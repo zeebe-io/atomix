@@ -135,7 +135,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
-            <version>1.1</version>
+            <version>1.6</version>
             <executions>
               <execution>
                 <id>sign-artifacts</id>
@@ -143,6 +143,34 @@
                 <goals>
                   <goal>sign</goal>
                 </goals>
+                <configuration>
+                  <gpgArguments>
+                    <arg>--pinentry-mode</arg>
+                    <arg>loopback</arg>
+                  </gpgArguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <extensions>true</extensions>
+            <executions>
+              <execution>
+                <id>central-deploy</id>
+                <phase>deploy</phase>
+                <goals>
+                  <goal>deploy</goal>
+                </goals>
+                <configuration>
+                  <detectBuildFailures>true</detectBuildFailures>
+                  <keepStagingRepositoryOnFailure>true</keepStagingRepositoryOnFailure>
+                  <keepStagingRepositoryOnCloseRuleFailure>true</keepStagingRepositoryOnCloseRuleFailure>
+                  <serverId>central</serverId>
+                  <nexusUrl>https://oss.sonatype.org</nexusUrl>
+                  <skipStaging>false</skipStaging>
+                </configuration>
               </execution>
             </executions>
           </plugin>
@@ -406,8 +434,11 @@
         <artifactId>maven-release-plugin</artifactId>
         <version>2.1</version><!--$NO-MVN-MAN-VER$ -->
         <configuration>
-          <allowTimestampedSnapshots>true</allowTimestampedSnapshots>
-          <arguments>-Psonatype-oss-release -DskipTests=${env.SKIP_TESTS}</arguments>
+          <arguments>-s settings.xml -Psonatype-oss-release -DskipTests -Ddockerfile.skip -Dgpg.passphrase='${env.GPG_PASS}'</arguments>
+          <resume>false</resume>
+          <releaseVersion>${env.RELEASE_VERSION}</releaseVersion>
+          <developmentVersion>${env.DEVELOPMENT_VERSION}</developmentVersion>
+          <tag>zeebe-atomix-${env.RELEASE_VERSION}</tag>
         </configuration>
       </plugin>
 
@@ -492,7 +523,7 @@
     <repository>
       <id>camunda-nexus</id>
       <name>Zeebe Release Repository</name>
-      <url>https://app.camunda.com/nexus/content/repositories/zeebe-io-snapshots/</url>
+      <url>https://app.camunda.com/nexus/content/repositories/zeebe-io/</url>
     </repository>
   </distributionManagement>
 

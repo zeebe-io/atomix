@@ -49,6 +49,12 @@ spec:
     NEXUS = credentials("camunda-nexus")
   }
 
+  parameters {
+    booleanParam(name: 'RELEASE', defaultValue: false, description: 'Build a release from current commit?')
+    string(name: 'RELEASE_VERSION', defaultValue: '3.2.0-alpha1', description: 'Which version to release?')
+    string(name: 'DEVELOPMENT_VERSION', defaultValue: '3.2.0-SNAPSHOT', description: 'Next development version?')
+  }
+
   stages {
     stage('Prepare') {
       steps {
@@ -59,6 +65,7 @@ spec:
     }
 
     stage('Build') {
+      when { not { expression { params.RELEASE } } }
       steps {
         container('maven') {
             sh 'mvn install -B -s settings.xml -Ddockerfile.skip -Dmaven.test.redirectTestOutputToFile -Dsurefire.rerunFailingTestsCount=3'
@@ -73,10 +80,44 @@ spec:
     }
 
     stage('Upload') {
-      when { branch 'zeebe' }
+      when {
+        allOf {
+            branch 'zeebe'; not { expression { params.RELEASE } }
+        }
+      }
       steps {
         container('maven') {
             sh 'mvn -B -s settings.xml generate-sources source:jar javadoc:jar deploy -DskipTests -Ddockerfile.skip'
+        }
+      }
+    }
+
+    stage('Release') {
+      when {
+        allOf {
+          branch 'zeebe'; expression { params.RELEASE }
+        }
+      }
+
+      environment {
+        MAVEN_CENTRAL = credentials('maven_central_deployment_credentials')
+        GPG_PASS = credentials('password_maven_central_gpg_signing_key')
+        GPG_PUB_KEY = credentials('maven_central_gpg_signing_key_pub')
+        GPG_SEC_KEY = credentials('maven_central_gpg_signing_key_sec')
+        RELEASE_VERSION = "${params.RELEASE_VERSION}"
+        DEVELOPMENT_VERSION = "${params.DEVELOPMENT_VERSION}"
+      }
+
+      steps {
+        container('maven') {
+          sshagent(['camunda-jenkins-github-ssh']) {
+            sh 'gpg -q --import ${GPG_PUB_KEY} '
+            sh 'gpg -q --allow-secret-key-import --import --no-tty --batch --yes ${GPG_SEC_KEY}'
+            sh 'git config --global user.email "ci@camunda.com"'
+            sh 'git config --global user.name "camunda-jenkins"'
+            sh 'mkdir ~/.ssh/ && ssh-keyscan github.com >> ~/.ssh/known_hosts'
+            sh 'mvn -B -s settings.xml -DskipTests source:jar javadoc:jar release:prepare release:perform'
+          }
         }
       }
     }
