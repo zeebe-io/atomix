@@ -49,7 +49,6 @@ import io.atomix.utils.concurrent.Futures;
 import io.atomix.utils.concurrent.OrderedFuture;
 import io.atomix.utils.concurrent.ThreadContext;
 import io.atomix.utils.concurrent.ThreadContextFactory;
-import io.atomix.utils.config.ConfigurationException;
 import io.atomix.utils.logging.ContextualLoggerFactory;
 import io.atomix.utils.logging.LoggerContext;
 import io.atomix.utils.serializer.Serializer;
@@ -63,6 +62,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -78,6 +78,8 @@ public class RaftServiceManager implements AutoCloseable {
   private static final Duration COMPACT_DELAY = Duration.ofSeconds(10);
 
   private static final int SEGMENT_BUFFER_FACTOR = 5;
+  private static final String SNAPSHOT_FAILURE_ERROR_MESSAGE =
+      "Expected to read snapshot, but caught a non recoverable error; blocking thread to avoid applying further entries and creating inconsistencies";
 
   private final Logger logger;
   private final RaftContext raft;
@@ -495,17 +497,26 @@ public class RaftServiceManager implements AutoCloseable {
     logger.debug("Installing snapshot {}", snapshot);
     try (SnapshotReader reader = snapshot.openReader()) {
       while (reader.hasRemaining()) {
-        try {
-          int length = reader.readInt();
-          if (length > 0) {
-            SnapshotReader serviceReader = new SnapshotReader(reader.buffer().slice(length), reader.snapshot());
-            installService(serviceReader);
-            reader.skip(length);
-          }
-        } catch (Exception e) {
-          logger.error("Failed to read snapshot", e);
+        int length = reader.readInt();
+        if (length > 0) {
+          SnapshotReader serviceReader = new SnapshotReader(reader.buffer().slice(length), reader.snapshot());
+          installService(serviceReader);
+          reader.skip(length);
         }
       }
+    } catch (Exception e) {
+      logger.error(SNAPSHOT_FAILURE_ERROR_MESSAGE, e);
+
+      // block the current thread to avoid an inconsistent state
+      // TODO (saig0): find a way to recover from an install snapshot failure
+      while (true) {
+        try {
+          new CountDownLatch(1).await();
+        } catch (InterruptedException ex) {
+          // still blocking
+        }
+      }
+
     }
   }
 
@@ -516,23 +527,20 @@ public class RaftServiceManager implements AutoCloseable {
    */
   private void installService(SnapshotReader reader) {
     PrimitiveId primitiveId = PrimitiveId.from(reader.readLong());
-    try {
-      PrimitiveType primitiveType = raft.getPrimitiveTypes().getPrimitiveType(reader.readString());
-      String serviceName = reader.readString();
-      byte[] serviceConfig = reader.readBytes(reader.readInt());
+    PrimitiveType primitiveType = raft.getPrimitiveTypes().getPrimitiveType(reader.readString());
+    String serviceName = reader.readString();
+    byte[] serviceConfig = reader.readBytes(reader.readInt());
 
-      // Get or create the service associated with the snapshot.
-      logger.debug("Installing service {} {}", primitiveId, serviceName);
-      RaftServiceContext service = initializeService(primitiveId, primitiveType, serviceName, serviceConfig);
-      if (service != null) {
-        try {
-          service.installSnapshot(reader);
-        } catch (Exception e) {
-          logger.error("Failed to install snapshot for service {}", serviceName, e);
-        }
+    // Get or create the service associated with the snapshot.
+    logger.debug("Installing service {} {}", primitiveId, serviceName);
+    RaftServiceContext service = initializeService(primitiveId, primitiveType, serviceName, serviceConfig);
+    if (service != null) {
+      try {
+        service.installSnapshot(reader);
+      } catch (Exception e) {
+        logger.error("Failed to install snapshot for service {}", serviceName, e);
+        throw e;
       }
-    } catch (ConfigurationException e) {
-      logger.error(e.getMessage(), e);
     }
   }
 
