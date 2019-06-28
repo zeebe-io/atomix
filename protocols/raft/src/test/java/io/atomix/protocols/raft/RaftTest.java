@@ -62,6 +62,8 @@ import io.atomix.protocols.raft.storage.log.entry.KeepAliveEntry;
 import io.atomix.protocols.raft.storage.log.entry.MetadataEntry;
 import io.atomix.protocols.raft.storage.log.entry.OpenSessionEntry;
 import io.atomix.protocols.raft.storage.log.entry.QueryEntry;
+import io.atomix.protocols.raft.storage.snapshot.Snapshot;
+import io.atomix.protocols.raft.storage.snapshot.SnapshotStore;
 import io.atomix.protocols.raft.storage.system.Configuration;
 import io.atomix.storage.StorageLevel;
 import io.atomix.utils.concurrent.Futures;
@@ -69,6 +71,7 @@ import io.atomix.utils.concurrent.SingleThreadContext;
 import io.atomix.utils.concurrent.ThreadContext;
 import io.atomix.utils.serializer.Namespace;
 import io.atomix.utils.serializer.Serializer;
+import java.util.function.BooleanSupplier;
 import net.jodah.concurrentunit.ConcurrentTestCase;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
@@ -92,6 +95,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Map;
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -1268,21 +1272,86 @@ public class RaftTest extends ConcurrentTestCase {
     await(30000);
 
     // shutdown slave and recreate from scratch
-    final RaftServer slaveServer = recreateServerWithDataLoss(leader, slave, servers.get(slave.memberId()), slaveStorage);
+    final RaftServer slaveServer =
+        recreateServerWithDataLoss(
+            Arrays.asList(leader.memberId(), other.memberId()), slave, servers.get(slave.memberId()), slaveStorage);
     assertEquals(leaderStorage.openSnapshotStore().getCurrentSnapshotIndex(), slaveStorage.openSnapshotStore().getCurrentSnapshotIndex());
 
     // and again a second time to ensure the snapshot index of the member is reset
-    recreateServerWithDataLoss(leader, slave, slaveServer, slaveStorage);
+    recreateServerWithDataLoss(Arrays.asList(leader.memberId(), other.memberId()), slave, slaveServer, slaveStorage);
     assertEquals(leaderStorage.openSnapshotStore().getCurrentSnapshotIndex(), slaveStorage.openSnapshotStore().getCurrentSnapshotIndex());
   }
 
-  private RaftServer recreateServerWithDataLoss(RaftMember leader, RaftMember member, RaftServer server, RaftStorage storage) throws TimeoutException {
+  @Test
+  public void testCorrectTermInSnapshot() throws Throwable {
+    final List<RaftMember> members =
+        Lists.newArrayList(createMember(), createMember(), createMember());
+    List<MemberId> memberIds = members
+            .stream()
+            .map(RaftMember::memberId)
+            .collect(Collectors.toList());
+    final Map<MemberId, RaftStorage> storages =
+        members.stream()
+            .map(RaftMember::memberId)
+            .collect(Collectors.toMap(Function.identity(), this::createStorage));
+    final Map<MemberId, RaftServer> servers =
+        storages.entrySet().stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, this::createServer));
+
+    // wait for cluster to start
+    startCluster(servers);
+
+    servers.get(members.get(0).memberId()).shutdown().join();
+
+    // fill two segments then compact so we have at least one snapshot
+    final RaftClient client = createClient(members);
+    final TestPrimitive primitive = createPrimitive(client);
+    fillSegment(primitive);
+    fillSegment(primitive);
+    MemberId leaderId = members.stream().filter(m -> servers.get(m.memberId()).isLeader()).findFirst().get().memberId();
+    servers.get(leaderId).compact().get(15_000, TimeUnit.MILLISECONDS);
+
+    final Snapshot currentSnapshot = storages.get(leaderId).openSnapshotStore().getCurrentSnapshot();
+    final long leaderTerm = servers.get(leaderId).getTerm();
+
+    assertEquals(currentSnapshot.term(), leaderTerm);
+
+    final RaftServer server = createServer(members.get(0).memberId());
+    server.join(memberIds).get(15_000, TimeUnit.MILLISECONDS);
+
+    final SnapshotStore snapshotStore = storages.get(memberIds.get(0)).openSnapshotStore();
+
+    waitUntil(() -> snapshotStore.getCurrentSnapshot() != null, 100);
+
+    final Snapshot receivedSnapshot = snapshotStore.getCurrentSnapshot();
+
+    assertEquals(receivedSnapshot.index(), currentSnapshot.index());
+    assertEquals(receivedSnapshot.term(), leaderTerm);
+
+  }
+
+  private void waitUntil(BooleanSupplier condition, int retries) {
+    try {
+      while (!condition.getAsBoolean() && retries > 0) {
+        Thread.sleep(100);
+        retries--;
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+
+    assertTrue(condition.getAsBoolean());
+  }
+
+  private RaftServer recreateServerWithDataLoss(
+      List<MemberId> others, RaftMember member, RaftServer server, RaftStorage storage)
+      throws TimeoutException {
     server.shutdown().thenRun(this::resume);
     await(30000);
     deleteStorage(storage);
 
     final RaftServer newServer = createServer(member.memberId(), b -> b.withStorage(storage));
-    newServer.bootstrap(leader.memberId()).thenRun(this::resume);
+    newServer.bootstrap(others).thenRun(this::resume);
     await(30000);
     return newServer;
   }
