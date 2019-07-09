@@ -16,7 +16,6 @@
 package io.atomix.protocols.raft.storage.snapshot;
 
 import io.atomix.utils.time.WallClockTimestamp;
-
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -75,6 +74,13 @@ public abstract class Snapshot implements AutoCloseable {
     return descriptor.index();
   }
 
+  /**
+   * Returns the snapshot term.
+   *
+   * The snapshot term is the term of the state machine at the point at which the snapshot was written.
+   *
+   * @return The snapshot term.
+   */
   public long term() {
     return descriptor.term();
   }
@@ -178,24 +184,6 @@ public abstract class Snapshot implements AutoCloseable {
   }
 
   /**
-   * Persists the snapshot to disk if necessary.
-   * <p>
-   * If the snapshot store is backed by disk, the snapshot will be persisted.
-   *
-   * @return The persisted snapshot.
-   */
-  public Snapshot persist() {
-    return this;
-  }
-
-  /**
-   * Returns whether the snapshot is persisted.
-   *
-   * @return Whether the snapshot is persisted.
-   */
-  public abstract boolean isPersisted();
-
-  /**
    * Closes the snapshot.
    */
   @Override
@@ -206,6 +194,7 @@ public abstract class Snapshot implements AutoCloseable {
    * Deletes the snapshot.
    */
   public void delete() {
+
   }
 
   @Override
@@ -219,13 +208,14 @@ public abstract class Snapshot implements AutoCloseable {
       return false;
     }
     Snapshot snapshot = (Snapshot) object;
-    return snapshot.index() == index();
+    return snapshot.index() == index() && snapshot.term() == term();
   }
 
   @Override
   public String toString() {
     return toStringHelper(this)
         .add("index", index())
+        .add("term", term())
         .toString();
   }
 }
