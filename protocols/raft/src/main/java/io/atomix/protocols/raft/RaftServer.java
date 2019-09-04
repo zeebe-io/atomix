@@ -23,6 +23,8 @@ import io.atomix.primitive.service.PrimitiveService;
 import io.atomix.protocols.raft.cluster.RaftCluster;
 import io.atomix.protocols.raft.cluster.RaftMember;
 import io.atomix.protocols.raft.impl.DefaultRaftServer;
+import io.atomix.protocols.raft.impl.RaftContext;
+import io.atomix.protocols.raft.impl.RaftServiceManager;
 import io.atomix.protocols.raft.protocol.RaftServerProtocol;
 import io.atomix.protocols.raft.storage.RaftStorage;
 import io.atomix.protocols.raft.storage.log.RaftLog;
@@ -530,6 +532,13 @@ public interface RaftServer {
   CompletableFuture<Void> leave();
 
   /**
+   * Returns the current Raft context.
+   *
+   * @return the current Raft context
+   */
+  RaftContext getContext();
+
+  /**
    * Builds a single-use Raft server.
    * <p>
    * This builder should be used to programmatically configure and construct a new {@link RaftServer} instance.
@@ -580,6 +589,7 @@ public interface RaftServer {
     protected ThreadModel threadModel = DEFAULT_THREAD_MODEL;
     protected int threadPoolSize = DEFAULT_THREAD_POOL_SIZE;
     protected ThreadContextFactory threadContextFactory;
+    protected RaftStateMachineFactory stateMachineFactory = RaftServiceManager::new;
 
     protected Builder(MemberId localMemberId) {
       this.localMemberId = checkNotNull(localMemberId, "localMemberId cannot be null");
@@ -724,6 +734,18 @@ public interface RaftServer {
      */
     public Builder withThreadContextFactory(ThreadContextFactory threadContextFactory) {
       this.threadContextFactory = checkNotNull(threadContextFactory, "threadContextFactory cannot be null");
+      return this;
+    }
+
+    /**
+     * Sets the server's state machine factory.
+     *
+     * @param stateMachineFactory the server state machine factory
+     * @return the server builder
+     * @throws NullPointerException if the factory is null
+     */
+    public Builder withStateMachineFactory(RaftStateMachineFactory stateMachineFactory) {
+      this.stateMachineFactory = checkNotNull(stateMachineFactory, "stateMachineFactory cannot be null");
       return this;
     }
   }

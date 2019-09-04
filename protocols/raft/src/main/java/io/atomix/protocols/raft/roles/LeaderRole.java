@@ -68,6 +68,8 @@ import io.atomix.protocols.raft.storage.log.entry.OpenSessionEntry;
 import io.atomix.protocols.raft.storage.log.entry.QueryEntry;
 import io.atomix.protocols.raft.storage.log.entry.RaftLogEntry;
 import io.atomix.protocols.raft.storage.system.Configuration;
+import io.atomix.protocols.raft.zeebe.ZeebeEntry;
+import io.atomix.protocols.raft.zeebe.ZeebeLogAppender;
 import io.atomix.storage.StorageException;
 import io.atomix.storage.journal.Indexed;
 import io.atomix.utils.concurrent.Futures;
@@ -84,7 +86,7 @@ import java.util.stream.Collectors;
 /**
  * Leader state.
  */
-public final class LeaderRole extends ActiveRole {
+public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
   private static final int MAX_PENDING_COMMANDS = 1000;
   private static final int MAX_APPEND_ATTEMPTS = 5;
 
@@ -1124,5 +1126,56 @@ public final class LeaderRole extends ActiveRole {
         .thenRun(this::cancelAppendTimer)
         .thenRun(this::stepDown)
         .thenRun(this::failPendingCommands);
+  }
+
+  @Override
+  public CompletableFuture<Indexed<ZeebeEntry>> appendEntry(byte[] data) {
+    final CompletableFuture<Indexed<ZeebeEntry>> result = new CompletableFuture<>();
+    raft.getThreadContext().execute(() -> appendEntry(data, result));
+    return result;
+  }
+
+  private void appendEntry(byte[] data, CompletableFuture<Indexed<ZeebeEntry>> result) {
+    final ZeebeEntry entry = new ZeebeEntry(raft.getTerm(), System.currentTimeMillis(), data);
+    raft.checkThread();
+    if (!isRunning()) {
+      result.completeExceptionally(
+          new IllegalStateException("LeaderRole is closed and cannot be used as appender"));
+      return;
+    }
+
+    appendAndCompact(entry)
+        .whenCompleteAsync(
+            (indexed, error) -> {
+              if (error != null) {
+                result.completeExceptionally(Throwables.getRootCause(error));
+              } else {
+                result.complete(indexed);
+                replicate(indexed);
+              }
+            },
+            raft.getThreadContext());
+  }
+
+  private void replicate(Indexed<ZeebeEntry> indexed) {
+    raft.checkThread();
+    appender
+        .appendEntries(indexed.index())
+        .whenCompleteAsync(
+            (commitIndex, commitError) -> {
+              if (!isRunning()) {
+                return;
+              }
+
+              // have the state machine apply the index which should do nothing but allows it to
+              // makes sure to keep it up to date with the latest entries so it can handle
+              // configuration and initial entries properly on fail over
+              if (commitError == null) {
+                raft.getServiceManager().apply(indexed.index());
+              } else {
+                log.error("Failed to replicate entry: {}", indexed, commitError);
+              }
+            },
+            raft.getThreadContext());
   }
 }

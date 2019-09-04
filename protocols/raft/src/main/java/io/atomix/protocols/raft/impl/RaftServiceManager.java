@@ -26,6 +26,7 @@ import io.atomix.primitive.session.SessionId;
 import io.atomix.primitive.session.SessionMetadata;
 import io.atomix.protocols.raft.RaftException;
 import io.atomix.protocols.raft.RaftServer;
+import io.atomix.protocols.raft.RaftStateMachine;
 import io.atomix.protocols.raft.service.RaftServiceContext;
 import io.atomix.protocols.raft.session.RaftSession;
 import io.atomix.protocols.raft.storage.log.RaftLog;
@@ -73,7 +74,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * The internal state machine handles application of commands to the user provided {@link PrimitiveService} and keeps
  * track of internal state like sessions and the various indexes relevant to log compaction.
  */
-public class RaftServiceManager implements AutoCloseable {
+public class RaftServiceManager implements RaftStateMachine {
   private static final Duration SNAPSHOT_INTERVAL = Duration.ofSeconds(10);
   private static final Duration SNAPSHOT_COMPLETION_DELAY = Duration.ofSeconds(10);
   private static final Duration COMPACT_DELAY = Duration.ofSeconds(10);
@@ -111,6 +112,7 @@ public class RaftServiceManager implements AutoCloseable {
    *
    * @return the service thread context
    */
+  @Override
   public ThreadContext executor() {
     return stateContext;
   }
@@ -144,7 +146,7 @@ public class RaftServiceManager implements AutoCloseable {
    * Schedules a snapshot iteration.
    */
   private void scheduleSnapshots() {
-    raft.getThreadContext().schedule(SNAPSHOT_INTERVAL, () -> takeSnapshots(true, false));
+    raft.getThreadContext().schedule(getSnapshotInterval(), () -> takeSnapshots(true, false));
   }
 
   /**
@@ -152,6 +154,7 @@ public class RaftServiceManager implements AutoCloseable {
    *
    * @return a future to be completed once logs have been compacted
    */
+  @Override
   public CompletableFuture<Void> compact() {
     return takeSnapshots(false, true);
   }
@@ -168,10 +171,10 @@ public class RaftServiceManager implements AutoCloseable {
       return compactFuture;
     }
 
-    long lastApplied = raft.getLastApplied();
+    long compactableIndex = getCompactableIndex();
 
-    // Only take snapshots if segments can be removed from the log below the lastApplied index.
-    if (raft.getLog().isCompactable(lastApplied) && raft.getLog().getCompactableIndex(lastApplied) > lastCompacted) {
+    // Only take snapshots if segments can be removed from the log below the compactableIndex index.
+    if (raft.getLog().isCompactable(compactableIndex) && raft.getLog().getCompactableIndex(compactableIndex) > lastCompacted) {
 
       // Determine whether the node is running out of disk space.
       boolean runningOutOfDiskSpace = isRunningOutOfDiskSpace();
@@ -200,7 +203,7 @@ public class RaftServiceManager implements AutoCloseable {
       logger.debug("Snapshotting services");
 
       // Update the index at which the log was last compacted.
-      this.lastCompacted = lastApplied;
+      this.lastCompacted = compactableIndex;
 
       // We need to ensure that callbacks added to the compaction future are completed in the order in which they
       // were added in order to preserve the order of retries when appending to the log.
@@ -228,6 +231,16 @@ public class RaftServiceManager implements AutoCloseable {
     }
   }
 
+  @Override
+  public long getCompactableIndex() {
+    return raft.getLastApplied();
+  }
+
+  @Override
+  public long getCompactableTerm() {
+    return raft.getLastAppliedTerm();
+  }
+
   /**
    * Takes and persists snapshots of provided services.
    *
@@ -251,7 +264,7 @@ public class RaftServiceManager implements AutoCloseable {
    * @param snapshot the snapshot to complete
    */
   private void scheduleCompletion(Snapshot snapshot) {
-    stateContext.schedule(SNAPSHOT_COMPLETION_DELAY, () -> {
+    stateContext.schedule(getSnapshotCompletionDelay(), () -> {
       if (completeSnapshot(snapshot.index())) {
         logger.debug("Completing snapshot {}", snapshot.index());
         try {
@@ -286,9 +299,10 @@ public class RaftServiceManager implements AutoCloseable {
    *     before which segments can be safely removed from disk
    */
   private void scheduleCompaction(long lastApplied) {
+    final Duration compactDelay = getCompactDelay();
     // Schedule compaction after a randomized delay to discourage snapshots on multiple nodes at the same time.
-    logger.trace("Scheduling compaction in {}", COMPACT_DELAY);
-    stateContext.schedule(COMPACT_DELAY, () -> compactLogs(lastApplied));
+    logger.trace("Scheduling compaction in {}", compactDelay);
+    stateContext.schedule(compactDelay, () -> compactLogs(lastApplied));
   }
 
   /**
@@ -320,6 +334,7 @@ public class RaftServiceManager implements AutoCloseable {
    *
    * @param index The index up to which to apply commits.
    */
+  @Override
   public void applyAll(long index) {
     enqueueBatch(index);
   }
@@ -333,6 +348,7 @@ public class RaftServiceManager implements AutoCloseable {
    * @param index The index to apply.
    * @return A completable future to be completed once the commit has been applied.
    */
+  @Override
   @SuppressWarnings("unchecked")
   public <T> CompletableFuture<T> apply(long index) {
     CompletableFuture<T> future = futures.computeIfAbsent(index, i -> new CompletableFuture<T>());
@@ -409,6 +425,7 @@ public class RaftServiceManager implements AutoCloseable {
    * @param entry The entry to apply.
    * @return A completable future to be completed with the result.
    */
+  @Override
   @SuppressWarnings("unchecked")
   public <T> CompletableFuture<T> apply(Indexed<? extends RaftLogEntry> entry) {
     CompletableFuture<T> future = new CompletableFuture<>();
@@ -466,7 +483,7 @@ public class RaftServiceManager implements AutoCloseable {
    * Takes snapshots for the given index.
    */
   Snapshot snapshot() {
-    Snapshot snapshot = raft.getSnapshotStore().newSnapshot(raft.getLastApplied(), raft.getLastAppliedTerm(), new WallClockTimestamp());
+    Snapshot snapshot = raft.getSnapshotStore().newSnapshot(getCompactableIndex(), getCompactableTerm(), new WallClockTimestamp());
     try (SnapshotWriter writer = snapshot.openWriter()) {
       for (RaftServiceContext service : raft.getServices()) {
         writer.buffer().mark();
@@ -874,5 +891,17 @@ public class RaftServiceManager implements AutoCloseable {
   @Override
   public void close() {
     // Don't close the thread context here since state machines can be reused.
+  }
+
+  protected Duration getSnapshotInterval() {
+    return SNAPSHOT_INTERVAL;
+  }
+
+  protected Duration getSnapshotCompletionDelay() {
+    return SNAPSHOT_COMPLETION_DELAY;
+  }
+
+  protected Duration getCompactDelay() {
+    return COMPACT_DELAY;
   }
 }

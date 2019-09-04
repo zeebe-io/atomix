@@ -222,6 +222,11 @@ public class DefaultRaftServer implements RaftServer {
   }
 
   @Override
+  public RaftContext getContext() {
+    return context;
+  }
+
+  @Override
   public String toString() {
     return toStringHelper(this)
         .add("name", name())
@@ -278,7 +283,8 @@ public class DefaultRaftServer implements RaftServer {
           storage,
           primitiveTypes,
           threadContextFactory,
-          closeOnStop);
+          closeOnStop,
+          stateMachineFactory);
       raft.setElectionTimeout(electionTimeout);
       raft.setHeartbeatInterval(heartbeatInterval);
       raft.setSessionTimeout(sessionTimeout);

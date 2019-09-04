@@ -21,6 +21,8 @@ import io.atomix.primitive.PrimitiveTypeRegistry;
 import io.atomix.protocols.raft.RaftError;
 import io.atomix.protocols.raft.RaftException;
 import io.atomix.protocols.raft.RaftServer;
+import io.atomix.protocols.raft.RaftStateMachine;
+import io.atomix.protocols.raft.RaftStateMachineFactory;
 import io.atomix.protocols.raft.cluster.RaftMember;
 import io.atomix.protocols.raft.cluster.impl.DefaultRaftMember;
 import io.atomix.protocols.raft.cluster.impl.RaftClusterContext;
@@ -102,7 +104,7 @@ public class RaftContext implements AutoCloseable {
   private final RaftLogWriter logWriter;
   private final RaftLogReader logReader;
   private final SnapshotStore snapshotStore;
-  private final RaftServiceManager stateMachine;
+  private final RaftStateMachine stateMachine;
   private final ThreadContextFactory threadContextFactory;
   private final ThreadContext loadContext;
   private final ThreadContext stateContext;
@@ -128,7 +130,8 @@ public class RaftContext implements AutoCloseable {
       RaftStorage storage,
       PrimitiveTypeRegistry primitiveTypes,
       ThreadContextFactory threadContextFactory,
-      boolean closeOnStop) {
+      boolean closeOnStop,
+      RaftStateMachineFactory stateMachineFactory) {
     this.name = checkNotNull(name, "name cannot be null");
     this.membershipService = checkNotNull(membershipService, "membershipService cannot be null");
     this.protocol = checkNotNull(protocol, "protocol cannot be null");
@@ -169,7 +172,7 @@ public class RaftContext implements AutoCloseable {
     this.snapshotStore = storage.openSnapshotStore();
 
     // Create a new internal server state machine.
-    this.stateMachine = new RaftServiceManager(this, stateContext, threadContextFactory);
+    this.stateMachine = stateMachineFactory.createStateMachine(this, stateContext, threadContextFactory);
 
     this.cluster = new RaftClusterContext(localMemberId, this);
 
@@ -574,7 +577,7 @@ public class RaftContext implements AutoCloseable {
    *
    * @return The server state machine.
    */
-  public RaftServiceManager getServiceManager() {
+  public RaftStateMachine getServiceManager() {
     return stateMachine;
   }
 
