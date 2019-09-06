@@ -18,6 +18,8 @@ package io.atomix.protocols.raft.partition;
 import io.atomix.primitive.partition.PartitionGroup;
 import io.atomix.primitive.partition.PartitionGroupConfig;
 
+import io.atomix.protocols.raft.RaftStateMachineFactory;
+import io.atomix.protocols.raft.impl.RaftServiceManager;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
@@ -187,5 +189,14 @@ public class RaftPartitionGroupConfig extends PartitionGroupConfig<RaftPartition
   public RaftPartitionGroupConfig setCompactionConfig(RaftCompactionConfig compactionConfig) {
     this.compactionConfig = compactionConfig;
     return this;
+  }
+
+  /**
+   * Returns the raft state machine factory.
+   *
+   * @return the raft state machine factory
+   */
+  public RaftStateMachineFactory getStateMachineFactory() {
+    return RaftServiceManager::new;
   }
 }

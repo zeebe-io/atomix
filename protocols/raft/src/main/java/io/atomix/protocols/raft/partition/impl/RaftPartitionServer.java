@@ -24,7 +24,10 @@ import io.atomix.protocols.raft.RaftServer;
 import io.atomix.protocols.raft.RaftServer.Role;
 import io.atomix.protocols.raft.partition.RaftPartition;
 import io.atomix.protocols.raft.partition.RaftPartitionGroupConfig;
+import io.atomix.protocols.raft.roles.RaftRole;
 import io.atomix.protocols.raft.storage.RaftStorage;
+import io.atomix.protocols.raft.storage.log.RaftLogReader;
+import io.atomix.protocols.raft.zeebe.ZeebeLogAppender;
 import io.atomix.storage.StorageException;
 import io.atomix.utils.Managed;
 import io.atomix.utils.concurrent.Futures;
@@ -43,6 +46,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Duration;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -139,6 +143,23 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
     return server.getRole();
   }
 
+  public void setCompactablePosition(long index, long term) {
+    server.getContext().getServiceManager().setCompactablePosition(index, term);
+  }
+
+  public RaftLogReader openReader(long index, RaftLogReader.Mode mode) {
+    return server.getContext().getLog().openReader(index, mode);
+  }
+
+  public Optional<ZeebeLogAppender> getAppender() {
+    final RaftRole role = server.getContext().getRaftRole();
+    if (role instanceof ZeebeLogAppender) {
+      return Optional.of((ZeebeLogAppender) role);
+    }
+
+    return Optional.empty();
+  }
+
   public long getTerm() {
     return server.getTerm();
   }
@@ -203,6 +224,7 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
             .withNamespace(RaftNamespaces.RAFT_STORAGE)
             .build())
         .withThreadContextFactory(threadContextFactory)
+        .withStateMachineFactory(config.getStateMachineFactory())
         .build();
   }
 

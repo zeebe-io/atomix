@@ -69,6 +69,7 @@ import io.atomix.protocols.raft.storage.log.entry.MetadataEntry;
 import io.atomix.protocols.raft.storage.log.entry.OpenSessionEntry;
 import io.atomix.protocols.raft.storage.log.entry.QueryEntry;
 import io.atomix.protocols.raft.storage.system.Configuration;
+import io.atomix.protocols.raft.zeebe.ZeebeEntry;
 import io.atomix.utils.serializer.Namespace;
 import io.atomix.utils.serializer.Namespaces;
 
@@ -150,6 +151,7 @@ public final class RaftNamespaces {
       .register(RaftMember.Type.class)
       .register(Instant.class)
       .register(Configuration.class)
+      .register(ZeebeEntry.class)
       .build("RaftProtocol");
 
   /**
@@ -177,6 +179,7 @@ public final class RaftNamespaces {
       .register(RaftMember.Type.class)
       .register(Instant.class)
       .register(Configuration.class)
+      .register(ZeebeEntry.class)
       .build("RaftStorage");
 
   private RaftNamespaces() {

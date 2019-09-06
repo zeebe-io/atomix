@@ -121,7 +121,7 @@ public class RaftServiceManagerTest {
         1000));
     writer.commit(2);
 
-    RaftServiceManager manager = raft.getServiceManager();
+    RaftServiceManager manager = (RaftServiceManager) raft.getServiceManager();
 
     manager.apply(2).join();
 
@@ -153,7 +153,7 @@ public class RaftServiceManagerTest {
         1000));
     writer.commit(2);
 
-    RaftServiceManager manager = raft.getServiceManager();
+    RaftServiceManager manager = (RaftServiceManager) raft.getServiceManager();
 
     manager.apply(2).join();
 
@@ -251,7 +251,8 @@ public class RaftServiceManagerTest {
         storage,
         registry,
         ThreadModel.SHARED_THREAD_POOL.factory("raft-server-test-%d", 1, LoggerFactory.getLogger(RaftServer.class)),
-        true);
+        true,
+        RaftServiceManager::new);
 
     snapshotTaken = new AtomicBoolean();
     snapshotInstalled = new AtomicBoolean();

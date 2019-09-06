@@ -91,6 +91,10 @@ public class RaftPartition implements Partition {
     return server != null ? server.getRole() : null;
   }
 
+  public RaftPartitionServer getServer() {
+    return server;
+  }
+
   public void addRoleChangeListener(Consumer<Role> listener) {
     if (server == null) {
       deferredRoleChangeListeners.add(listener);
