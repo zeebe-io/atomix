@@ -15,6 +15,8 @@
  */
 package io.atomix.protocols.raft.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Longs;
 import io.atomix.cluster.MemberId;
@@ -43,7 +45,6 @@ import io.atomix.protocols.raft.storage.log.entry.RaftLogEntry;
 import io.atomix.protocols.raft.storage.snapshot.Snapshot;
 import io.atomix.protocols.raft.storage.snapshot.SnapshotReader;
 import io.atomix.protocols.raft.storage.snapshot.SnapshotWriter;
-import io.atomix.storage.StorageLevel;
 import io.atomix.storage.journal.Indexed;
 import io.atomix.utils.AtomixIOException;
 import io.atomix.utils.concurrent.ComposableFuture;
@@ -55,8 +56,6 @@ import io.atomix.utils.logging.ContextualLoggerFactory;
 import io.atomix.utils.logging.LoggerContext;
 import io.atomix.utils.serializer.Serializer;
 import io.atomix.utils.time.WallClockTimestamp;
-import org.slf4j.Logger;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -65,8 +64,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.slf4j.Logger;
 
 /**
  * Internal server state machine.
@@ -131,13 +129,10 @@ public class RaftServiceManager implements RaftStateMachine {
    * Returns a boolean indicating whether the node is running out of memory.
    */
   private boolean isRunningOutOfMemory() {
-    StorageLevel level = raft.getStorage().storageLevel();
-    if (level == StorageLevel.MEMORY || level == StorageLevel.MAPPED) {
-      long freeMemory = raft.getStorage().statistics().getFreeMemory();
-      long totalMemory = raft.getStorage().statistics().getTotalMemory();
-      if (freeMemory > 0 && totalMemory > 0) {
-        return freeMemory / (double) totalMemory < raft.getStorage().freeMemoryBuffer();
-      }
+    final long freeMemory = raft.getStorage().statistics().getFreeMemory();
+    final long totalMemory = raft.getStorage().statistics().getTotalMemory();
+    if (freeMemory > 0 && totalMemory > 0) {
+      return freeMemory / (double) totalMemory < raft.getStorage().freeMemoryBuffer();
     }
     return false;
   }

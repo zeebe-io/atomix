@@ -92,7 +92,8 @@ public class RaftStorage {
       double freeDiskBuffer,
       double freeMemoryBuffer,
       boolean flushOnCommit,
-      boolean retainStaleSnapshots) {
+      boolean retainStaleSnapshots,
+      StorageStatistics storageStatistics) {
     this.prefix = prefix;
     this.storageLevel = storageLevel;
     this.directory = directory;
@@ -105,7 +106,7 @@ public class RaftStorage {
     this.freeMemoryBuffer = freeMemoryBuffer;
     this.flushOnCommit = flushOnCommit;
     this.retainStaleSnapshots = retainStaleSnapshots;
-    this.statistics = new StorageStatistics(directory);
+    this.statistics = storageStatistics == null ? new StorageStatistics(directory) : storageStatistics;
     directory.mkdirs();
   }
 
@@ -409,6 +410,7 @@ public class RaftStorage {
     private double freeMemoryBuffer = DEFAULT_FREE_MEMORY_BUFFER;
     private boolean flushOnCommit = DEFAULT_FLUSH_ON_COMMIT;
     private boolean retainStaleSnapshots = DEFAULT_RETAIN_STALE_SNAPSHOTS;
+    private StorageStatistics storageStatistics;
 
     private Builder() {
     }
@@ -648,6 +650,18 @@ public class RaftStorage {
     }
 
     /**
+     * Sets the storage statistics, which are evaluated for deciding to force compaction or not.
+     * Depending on the free memory and/or free disk space ratio the compaction is forced.
+     *
+     * @param storageStatistics the statistics which are evaluated
+     * @return The storage builder.
+     */
+    public Builder withStorageStatistics(StorageStatistics storageStatistics) {
+      this.storageStatistics = storageStatistics;
+      return this;
+    }
+
+    /**
      * Builds the {@link RaftStorage} object.
      *
      * @return The built storage configuration.
@@ -666,7 +680,8 @@ public class RaftStorage {
           freeDiskBuffer,
           freeMemoryBuffer,
           flushOnCommit,
-          retainStaleSnapshots);
+          retainStaleSnapshots,
+          storageStatistics);
     }
   }
 

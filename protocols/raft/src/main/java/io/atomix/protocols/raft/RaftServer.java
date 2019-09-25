@@ -15,6 +15,10 @@
  */
 package io.atomix.protocols.raft;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static io.atomix.protocols.raft.RaftException.ConfigurationException;
+
 import io.atomix.cluster.ClusterMembershipService;
 import io.atomix.cluster.MemberId;
 import io.atomix.primitive.PrimitiveTypeRegistry;
@@ -28,10 +32,10 @@ import io.atomix.protocols.raft.impl.RaftServiceManager;
 import io.atomix.protocols.raft.protocol.RaftServerProtocol;
 import io.atomix.protocols.raft.storage.RaftStorage;
 import io.atomix.protocols.raft.storage.log.RaftLog;
+import io.atomix.protocols.raft.utils.LoadMonitorFactory;
 import io.atomix.storage.StorageLevel;
 import io.atomix.utils.concurrent.ThreadContextFactory;
 import io.atomix.utils.concurrent.ThreadModel;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Duration;
@@ -41,10 +45,6 @@ import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static io.atomix.protocols.raft.RaftException.ConfigurationException;
 
 /**
  * Provides a standalone implementation of the <a href="http://raft.github.io/">Raft consensus algorithm</a>.
@@ -590,6 +590,7 @@ public interface RaftServer {
     protected int threadPoolSize = DEFAULT_THREAD_POOL_SIZE;
     protected ThreadContextFactory threadContextFactory;
     protected RaftStateMachineFactory stateMachineFactory = RaftServiceManager::new;
+    protected LoadMonitorFactory loadMonitorFactory;
 
     protected Builder(MemberId localMemberId) {
       this.localMemberId = checkNotNull(localMemberId, "localMemberId cannot be null");
@@ -746,6 +747,18 @@ public interface RaftServer {
      */
     public Builder withStateMachineFactory(RaftStateMachineFactory stateMachineFactory) {
       this.stateMachineFactory = checkNotNull(stateMachineFactory, "stateMachineFactory cannot be null");
+      return this;
+    }
+
+    /**
+     * Sets a load monitor factory which is used to create the load monitor.
+     * The monitor is used detect high load and to suspend compaction/snapshotting.
+     *
+     * @param loadMonitorFactory the factory to create the load monitor
+     * @return the server builder
+     */
+    public Builder withLoadMonitorFactory(LoadMonitorFactory loadMonitorFactory) {
+      this.loadMonitorFactory = loadMonitorFactory;
       return this;
     }
   }

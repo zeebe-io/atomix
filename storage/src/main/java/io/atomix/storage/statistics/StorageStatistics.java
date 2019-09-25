@@ -15,27 +15,17 @@
  */
 package io.atomix.storage.statistics;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
-import java.lang.management.ManagementFactory;
-
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
 
 /**
  * Atomix storage statistics.
  */
 public class StorageStatistics {
-  private static final Logger LOGGER = LoggerFactory.getLogger(StorageStatistics.class);
 
   private final File file;
-  private final MBeanServer mBeanServer;
 
   public StorageStatistics(File file) {
     this.file = file;
-    this.mBeanServer = ManagementFactory.getPlatformMBeanServer();
   }
 
   /**
@@ -71,14 +61,7 @@ public class StorageStatistics {
    * @return the amount of free memory remaining if successful, -1 return indicates failure.
    */
   public long getFreeMemory() {
-    try {
-      return (long) mBeanServer.getAttribute(new ObjectName("java.lang", "type", "OperatingSystem"), "FreePhysicalMemorySize");
-    } catch (Exception e) {
-      if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("An exception occurred during memory check", e);
-      }
-    }
-    return -1;
+    return Runtime.getRuntime().freeMemory();
   }
 
   /**
@@ -87,13 +70,6 @@ public class StorageStatistics {
    * @return the total amount of memory if successful, -1 return indicates failure.
    */
   public long getTotalMemory() {
-    try {
-      return (long) mBeanServer.getAttribute(new ObjectName("java.lang", "type", "OperatingSystem"), "TotalPhysicalMemorySize");
-    } catch (Exception e) {
-      if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("An exception occurred during memory check", e);
-      }
-    }
-    return -1;
+    return Runtime.getRuntime().totalMemory();
   }
 }

@@ -15,6 +15,13 @@
  */
 package io.atomix.protocols.raft;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import io.atomix.cluster.ClusterMembershipService;
@@ -65,20 +72,14 @@ import io.atomix.protocols.raft.storage.log.entry.QueryEntry;
 import io.atomix.protocols.raft.storage.snapshot.Snapshot;
 import io.atomix.protocols.raft.storage.snapshot.SnapshotStore;
 import io.atomix.protocols.raft.storage.system.Configuration;
+import io.atomix.protocols.raft.utils.LoadMonitor;
 import io.atomix.storage.StorageLevel;
+import io.atomix.storage.statistics.StorageStatistics;
 import io.atomix.utils.concurrent.Futures;
 import io.atomix.utils.concurrent.SingleThreadContext;
 import io.atomix.utils.concurrent.ThreadContext;
 import io.atomix.utils.serializer.Namespace;
 import io.atomix.utils.serializer.Serializer;
-import java.util.function.BooleanSupplier;
-import net.jodah.concurrentunit.ConcurrentTestCase;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -90,29 +91,30 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.Map;
-import java.util.Arrays;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import net.jodah.concurrentunit.ConcurrentTestCase;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
 
 /**
  * Raft test.
@@ -141,6 +143,8 @@ public class RaftTest extends ConcurrentTestCase {
       .register(byte[].class)
       .register(long[].class)
       .build();
+
+  private static AtomicLong snapshots = new AtomicLong(0);
 
   protected volatile int nextId;
   protected volatile List<RaftMember> members;
@@ -1330,6 +1334,75 @@ public class RaftTest extends ConcurrentTestCase {
 
   }
 
+  @Test
+  public void shouldCompactStorageUnderHighLoad() throws Throwable {
+    // given
+    final List<RaftMember> members =
+        Lists.newArrayList(createMember(), createMember(), createMember());
+    final Map<MemberId, RaftStorage> storages =
+        members.stream()
+            .map(RaftMember::memberId)
+            .collect(Collectors.toMap(Function.identity(),
+                (memberId) -> createStorage(memberId, storageBuilder -> storageBuilder
+                    .withStorageStatistics(new FakeStatistics(
+                        new File(String.format("target/test-logs/%s", memberId)))))));
+    final Map<MemberId, RaftServer> servers =
+        storages.entrySet().stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, (entry) ->
+                createServer(entry.getKey(),
+                    builder -> builder.withStorage(entry.getValue()).withLoadMonitorFactory(
+                        FakeLoadMonitor::new))
+            ));
+    // wait for cluster to start
+    startCluster(servers);
+
+    // when high load
+    final RaftClient client = createClient(members);
+    final TestPrimitive primitive = createPrimitive(client);
+    final AtomicBoolean runThread = new AtomicBoolean(true);
+    final Runnable runnable = () -> {
+      final String entry = RandomStringUtils.randomAscii(1024);
+      while (runThread.get()) {
+        primitive.write(entry);
+      }
+    };
+    new Thread(runnable).start();
+
+    // then we should still be able to snapshots and compactions
+    waitUntil(() -> snapshots.get() > 0, 100);
+    runThread.set(false);
+  }
+
+  private static final class FakeStatistics extends StorageStatistics {
+
+    FakeStatistics(File file) {
+      super(file);
+    }
+
+    @Override
+    public long getFreeMemory() {
+      return 1;
+    }
+
+    @Override
+    public long getTotalMemory() {
+      return 10;
+    }
+  }
+
+  private static final class FakeLoadMonitor extends LoadMonitor {
+
+    FakeLoadMonitor(int windowSize, int highLoadThreshold,
+        ThreadContext threadContext) {
+      super(windowSize, highLoadThreshold, threadContext);
+    }
+
+    @Override
+    public boolean isUnderHighLoad() {
+      return true;
+    }
+  }
+
   private void waitUntil(BooleanSupplier condition, int retries) {
     try {
       while (!condition.getAsBoolean() && retries > 0) {
@@ -1446,11 +1519,11 @@ public class RaftTest extends ConcurrentTestCase {
 
   private void startCluster(Map<MemberId, RaftServer> servers) throws TimeoutException {
     final List<MemberId> members = new ArrayList<>(servers.keySet());
-    final CompletableFuture[] bootstrapped = new CompletableFuture[members.size()];
-    servers.values().stream().map(s -> s.bootstrap(members)).collect(Collectors.toList()).toArray(bootstrapped);
+    for (RaftServer s : servers.values()) {
+      s.bootstrap(members).thenRun(this::resume);
+    }
 
-    CompletableFuture.allOf(bootstrapped).thenRun(this::resume);
-    await(30000);
+    await(30000 * servers.size(), servers.size());
   }
 
   /**
@@ -1559,6 +1632,7 @@ public class RaftTest extends ConcurrentTestCase {
   @Before
   @After
   public void clearTests() throws Exception {
+    snapshots = new AtomicLong(0);
     clients.forEach(c -> {
       try {
         c.close().get(10, TimeUnit.SECONDS);
@@ -1754,6 +1828,7 @@ public class RaftTest extends ConcurrentTestCase {
     }
   }
 
+
   /**
    * Test state machine.
    */
@@ -1786,6 +1861,7 @@ public class RaftTest extends ConcurrentTestCase {
 
     @Override
     public void backup(BackupOutput writer) {
+      snapshots.incrementAndGet();
       writer.writeLong(10);
     }
 
