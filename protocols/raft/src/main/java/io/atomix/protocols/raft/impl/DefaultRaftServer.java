@@ -284,7 +284,8 @@ public class DefaultRaftServer implements RaftServer {
           primitiveTypes,
           threadContextFactory,
           closeOnStop,
-          stateMachineFactory);
+          stateMachineFactory,
+          loadMonitorFactory);
       raft.setElectionTimeout(electionTimeout);
       raft.setHeartbeatInterval(heartbeatInterval);
       raft.setSessionTimeout(sessionTimeout);

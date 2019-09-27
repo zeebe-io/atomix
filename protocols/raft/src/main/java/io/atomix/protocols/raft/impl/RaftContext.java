@@ -15,6 +15,11 @@
  */
 package io.atomix.protocols.raft.impl;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+import static io.atomix.utils.concurrent.Threads.namedThreads;
+
 import io.atomix.cluster.ClusterMembershipService;
 import io.atomix.cluster.MemberId;
 import io.atomix.primitive.PrimitiveTypeRegistry;
@@ -51,6 +56,7 @@ import io.atomix.protocols.raft.storage.log.RaftLogWriter;
 import io.atomix.protocols.raft.storage.snapshot.SnapshotStore;
 import io.atomix.protocols.raft.storage.system.MetaStore;
 import io.atomix.protocols.raft.utils.LoadMonitor;
+import io.atomix.protocols.raft.utils.LoadMonitorFactory;
 import io.atomix.storage.StorageException;
 import io.atomix.utils.concurrent.ComposableFuture;
 import io.atomix.utils.concurrent.SingleThreadContext;
@@ -58,8 +64,6 @@ import io.atomix.utils.concurrent.ThreadContext;
 import io.atomix.utils.concurrent.ThreadContextFactory;
 import io.atomix.utils.logging.ContextualLoggerFactory;
 import io.atomix.utils.logging.LoggerContext;
-import org.slf4j.Logger;
-
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Set;
@@ -68,11 +72,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
-import static io.atomix.utils.concurrent.Threads.namedThreads;
+import org.slf4j.Logger;
 
 /**
  * Manages the volatile state and state transitions of a Raft server.
@@ -131,7 +131,8 @@ public class RaftContext implements AutoCloseable {
       PrimitiveTypeRegistry primitiveTypes,
       ThreadContextFactory threadContextFactory,
       boolean closeOnStop,
-      RaftStateMachineFactory stateMachineFactory) {
+      RaftStateMachineFactory stateMachineFactory,
+      LoadMonitorFactory loadMonitorFactory) {
     this.name = checkNotNull(name, "name cannot be null");
     this.membershipService = checkNotNull(membershipService, "membershipService cannot be null");
     this.protocol = checkNotNull(protocol, "protocol cannot be null");
@@ -154,7 +155,8 @@ public class RaftContext implements AutoCloseable {
     this.threadContextFactory = checkNotNull(threadContextFactory, "threadContextFactory cannot be null");
     this.closeOnStop = closeOnStop;
 
-    this.loadMonitor = new LoadMonitor(LOAD_WINDOW_SIZE, HIGH_LOAD_THRESHOLD, loadContext);
+    checkNotNull(loadMonitorFactory, "loadMonitorFactory must be not null");
+    this.loadMonitor = loadMonitorFactory.createLoadMonitor(LOAD_WINDOW_SIZE, HIGH_LOAD_THRESHOLD, loadContext);
 
     // Open the metadata store.
     this.meta = storage.openMetaStore();
@@ -172,6 +174,7 @@ public class RaftContext implements AutoCloseable {
     this.snapshotStore = storage.openSnapshotStore();
 
     // Create a new internal server state machine.
+    checkNotNull(stateMachineFactory, "stateMachineFactory must be not null");
     this.stateMachine = stateMachineFactory.createStateMachine(this, stateContext, threadContextFactory);
 
     this.cluster = new RaftClusterContext(localMemberId, this);
