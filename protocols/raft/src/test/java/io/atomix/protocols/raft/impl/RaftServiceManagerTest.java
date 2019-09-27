@@ -48,6 +48,7 @@ import io.atomix.protocols.raft.storage.log.entry.MetadataEntry;
 import io.atomix.protocols.raft.storage.log.entry.OpenSessionEntry;
 import io.atomix.protocols.raft.storage.log.entry.QueryEntry;
 import io.atomix.protocols.raft.storage.snapshot.Snapshot;
+import io.atomix.protocols.raft.utils.LoadMonitor;
 import io.atomix.utils.concurrent.ThreadModel;
 import io.atomix.utils.serializer.Namespace;
 import org.junit.After;
@@ -252,7 +253,8 @@ public class RaftServiceManagerTest {
         registry,
         ThreadModel.SHARED_THREAD_POOL.factory("raft-server-test-%d", 1, LoggerFactory.getLogger(RaftServer.class)),
         true,
-        RaftServiceManager::new);
+        RaftServiceManager::new,
+        LoadMonitor::new);
 
     snapshotTaken = new AtomicBoolean();
     snapshotInstalled = new AtomicBoolean();

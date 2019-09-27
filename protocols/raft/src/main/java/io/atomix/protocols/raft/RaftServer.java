@@ -32,6 +32,7 @@ import io.atomix.protocols.raft.impl.RaftServiceManager;
 import io.atomix.protocols.raft.protocol.RaftServerProtocol;
 import io.atomix.protocols.raft.storage.RaftStorage;
 import io.atomix.protocols.raft.storage.log.RaftLog;
+import io.atomix.protocols.raft.utils.LoadMonitor;
 import io.atomix.protocols.raft.utils.LoadMonitorFactory;
 import io.atomix.storage.StorageLevel;
 import io.atomix.utils.concurrent.ThreadContextFactory;
@@ -590,7 +591,7 @@ public interface RaftServer {
     protected int threadPoolSize = DEFAULT_THREAD_POOL_SIZE;
     protected ThreadContextFactory threadContextFactory;
     protected RaftStateMachineFactory stateMachineFactory = RaftServiceManager::new;
-    protected LoadMonitorFactory loadMonitorFactory;
+    protected LoadMonitorFactory loadMonitorFactory = LoadMonitor::new;
 
     protected Builder(MemberId localMemberId) {
       this.localMemberId = checkNotNull(localMemberId, "localMemberId cannot be null");

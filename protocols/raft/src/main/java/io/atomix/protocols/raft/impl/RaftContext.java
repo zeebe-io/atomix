@@ -121,21 +121,6 @@ public class RaftContext implements AutoCloseable {
   private volatile long lastApplied;
   private volatile long lastAppliedTerm;
 
-  public RaftContext(
-      String name,
-      MemberId localMemberId,
-      ClusterMembershipService membershipService,
-      RaftServerProtocol protocol,
-      RaftStorage storage,
-      PrimitiveTypeRegistry primitiveTypes,
-      ThreadContextFactory threadContextFactory,
-      boolean closeOnStop,
-      RaftStateMachineFactory stateMachineFactory) {
-    this(name, localMemberId, membershipService, protocol, storage, primitiveTypes,
-        threadContextFactory, closeOnStop, stateMachineFactory, null);
-
-  }
-
   @SuppressWarnings("unchecked")
   public RaftContext(
       String name,
@@ -170,10 +155,8 @@ public class RaftContext implements AutoCloseable {
     this.threadContextFactory = checkNotNull(threadContextFactory, "threadContextFactory cannot be null");
     this.closeOnStop = closeOnStop;
 
-    this.loadMonitor =
-        loadMonitorFactory == null ? new LoadMonitor(LOAD_WINDOW_SIZE, HIGH_LOAD_THRESHOLD,
-            loadContext) : loadMonitorFactory
-            .createLoadMonitor(LOAD_WINDOW_SIZE, HIGH_LOAD_THRESHOLD, loadContext);
+    checkNotNull(loadMonitorFactory, "loadMonitorFactory must be not null");
+    this.loadMonitor = loadMonitorFactory.createLoadMonitor(LOAD_WINDOW_SIZE, HIGH_LOAD_THRESHOLD, loadContext);
 
     // Open the metadata store.
     this.meta = storage.openMetaStore();
@@ -191,6 +174,7 @@ public class RaftContext implements AutoCloseable {
     this.snapshotStore = storage.openSnapshotStore();
 
     // Create a new internal server state machine.
+    checkNotNull(stateMachineFactory, "stateMachineFactory must be not null");
     this.stateMachine = stateMachineFactory.createStateMachine(this, stateContext, threadContextFactory);
 
     this.cluster = new RaftClusterContext(localMemberId, this);
