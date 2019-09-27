@@ -32,6 +32,7 @@ import io.atomix.utils.serializer.Serializer;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -106,7 +107,7 @@ public class RaftStorage {
     this.freeMemoryBuffer = freeMemoryBuffer;
     this.flushOnCommit = flushOnCommit;
     this.retainStaleSnapshots = retainStaleSnapshots;
-    this.statistics = storageStatistics == null ? new StorageStatistics(directory) : storageStatistics;
+    this.statistics = storageStatistics;
     directory.mkdirs();
   }
 
@@ -681,7 +682,7 @@ public class RaftStorage {
           freeMemoryBuffer,
           flushOnCommit,
           retainStaleSnapshots,
-          storageStatistics);
+          Optional.ofNullable(storageStatistics).orElse(new StorageStatistics(directory)));
     }
   }
 
