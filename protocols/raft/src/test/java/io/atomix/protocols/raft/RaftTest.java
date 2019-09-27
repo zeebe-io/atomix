@@ -59,6 +59,8 @@ import io.atomix.primitive.session.SessionMetadata;
 import io.atomix.protocols.raft.cluster.RaftClusterEvent;
 import io.atomix.protocols.raft.cluster.RaftMember;
 import io.atomix.protocols.raft.cluster.impl.DefaultRaftMember;
+import io.atomix.protocols.raft.impl.RaftContext;
+import io.atomix.protocols.raft.impl.RaftServiceManager;
 import io.atomix.protocols.raft.protocol.TestRaftProtocolFactory;
 import io.atomix.protocols.raft.storage.RaftStorage;
 import io.atomix.protocols.raft.storage.log.entry.CloseSessionEntry;
@@ -78,6 +80,7 @@ import io.atomix.storage.statistics.StorageStatistics;
 import io.atomix.utils.concurrent.Futures;
 import io.atomix.utils.concurrent.SingleThreadContext;
 import io.atomix.utils.concurrent.ThreadContext;
+import io.atomix.utils.concurrent.ThreadContextFactory;
 import io.atomix.utils.serializer.Namespace;
 import io.atomix.utils.serializer.Serializer;
 import java.io.File;
@@ -101,7 +104,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BooleanSupplier;
@@ -1342,35 +1344,42 @@ public class RaftTest extends ConcurrentTestCase {
     final Map<MemberId, RaftStorage> storages =
         members.stream()
             .map(RaftMember::memberId)
-            .collect(Collectors.toMap(Function.identity(),
-                (memberId) -> createStorage(memberId, storageBuilder -> storageBuilder
-                    .withStorageStatistics(new FakeStatistics(
-                        new File(String.format("target/test-logs/%s", memberId)))))));
+            .collect(
+                Collectors.toMap(
+                    Function.identity(),
+                    (memberId) ->
+                        createStorage(
+                            memberId,
+                            storageBuilder ->
+                                storageBuilder.withStorageStatistics(
+                                    new FakeStatistics(
+                                        new File(
+                                            String.format("target/test-logs/%s", memberId)))))));
     final Map<MemberId, RaftServer> servers =
         storages.entrySet().stream()
-            .collect(Collectors.toMap(Map.Entry::getKey, (entry) ->
-                createServer(entry.getKey(),
-                    builder -> builder.withStorage(entry.getValue()).withLoadMonitorFactory(
-                        FakeLoadMonitor::new))
-            ));
+            .collect(
+                Collectors.toMap(
+                    Map.Entry::getKey,
+                    (entry) ->
+                        createServer(
+                            entry.getKey(),
+                            builder ->
+                                builder
+                                    .withStorage(entry.getValue())
+                                    .withLoadMonitorFactory(FakeLoadMonitor::new)
+                                    .withStateMachineFactory(FakeStateMachine::new))));
     // wait for cluster to start
     startCluster(servers);
 
     // when high load
     final RaftClient client = createClient(members);
     final TestPrimitive primitive = createPrimitive(client);
-    final AtomicBoolean runThread = new AtomicBoolean(true);
-    final Runnable runnable = () -> {
-      final String entry = RandomStringUtils.randomAscii(1024);
-      while (runThread.get()) {
-        primitive.write(entry);
-      }
-    };
-    new Thread(runnable).start();
 
     // then we should still be able to snapshots and compactions
-    waitUntil(() -> snapshots.get() > 0, 100);
-    runThread.set(false);
+    final MemberId chosenOne = members.get(0).memberId();
+    fillSegment(primitive);
+    fillSegment(primitive);
+    waitUntil(() -> storages.get(chosenOne).openSnapshotStore().getCurrentSnapshot() != null, 100);
   }
 
   private static final class FakeStatistics extends StorageStatistics {
@@ -1971,4 +1980,25 @@ public class RaftTest extends ConcurrentTestCase {
     }
   }
 
+  private class FakeStateMachine extends RaftServiceManager {
+    public FakeStateMachine(final RaftContext context, final ThreadContext threadContext,
+        final ThreadContextFactory threadContextFactory) {
+      super(context, threadContext, threadContextFactory);
+    }
+
+    @Override
+    protected Duration getSnapshotInterval() {
+      return Duration.ofMillis(10);
+    }
+
+    @Override
+    protected Duration getSnapshotCompletionDelay() {
+      return Duration.ZERO;
+    }
+
+    @Override
+    protected Duration getCompactDelay() {
+      return Duration.ZERO;
+    }
+  }
 }
