@@ -1344,30 +1344,21 @@ public class RaftTest extends ConcurrentTestCase {
     final Map<MemberId, RaftStorage> storages =
         members.stream()
             .map(RaftMember::memberId)
-            .collect(
-                Collectors.toMap(
-                    Function.identity(),
-                    (memberId) ->
-                        createStorage(
-                            memberId,
-                            storageBuilder ->
-                                storageBuilder.withStorageStatistics(
-                                    new FakeStatistics(
-                                        new File(
-                                            String.format("target/test-logs/%s", memberId)))))));
+            .collect(Collectors.toMap(
+                Function.identity(),
+                memberId ->
+                    createStorage(
+                        memberId,
+                        storageBuilder ->
+                            storageBuilder.withStorageStatistics(new FakeStatistics(new File(String.format("target/test-logs/%s", memberId)))))));
     final Map<MemberId, RaftServer> servers =
         storages.entrySet().stream()
-            .collect(
-                Collectors.toMap(
-                    Map.Entry::getKey,
-                    (entry) ->
-                        createServer(
-                            entry.getKey(),
-                            builder ->
-                                builder
-                                    .withStorage(entry.getValue())
-                                    .withLoadMonitorFactory(FakeLoadMonitor::new)
-                                    .withStateMachineFactory(FakeStateMachine::new))));
+            .collect(Collectors.toMap(Map.Entry::getKey,
+                entry ->
+                    createServer(entry.getKey(),
+                        builder ->
+                            builder
+                                .withStorage(entry.getValue()).withLoadMonitorFactory(FakeLoadMonitor::new).withStateMachineFactory(FakeStateMachine::new))));
     // wait for cluster to start
     startCluster(servers);
 
@@ -1980,9 +1971,8 @@ public class RaftTest extends ConcurrentTestCase {
     }
   }
 
-  private class FakeStateMachine extends RaftServiceManager {
-    public FakeStateMachine(final RaftContext context, final ThreadContext threadContext,
-        final ThreadContextFactory threadContextFactory) {
+  private static class FakeStateMachine extends RaftServiceManager {
+    FakeStateMachine(final RaftContext context, final ThreadContext threadContext, final ThreadContextFactory threadContextFactory) {
       super(context, threadContext, threadContextFactory);
     }
 
