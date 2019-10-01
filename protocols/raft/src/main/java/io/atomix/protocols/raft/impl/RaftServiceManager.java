@@ -29,6 +29,7 @@ import io.atomix.primitive.session.SessionMetadata;
 import io.atomix.protocols.raft.RaftException;
 import io.atomix.protocols.raft.RaftServer;
 import io.atomix.protocols.raft.RaftStateMachine;
+import io.atomix.protocols.raft.metrics.RaftServiceMetrics;
 import io.atomix.protocols.raft.service.RaftServiceContext;
 import io.atomix.protocols.raft.session.RaftSession;
 import io.atomix.protocols.raft.storage.log.RaftLog;
@@ -91,6 +92,7 @@ public class RaftServiceManager implements RaftStateMachine {
   private volatile CompletableFuture<Void> compactFuture;
   private long lastEnqueued;
   private long lastCompacted;
+  private final RaftServiceMetrics metrics;
 
   public RaftServiceManager(RaftContext raft, ThreadContext stateContext, ThreadContextFactory threadContextFactory) {
     this.raft = checkNotNull(raft, "state cannot be null");
@@ -102,6 +104,7 @@ public class RaftServiceManager implements RaftStateMachine {
         .addValue(raft.getName())
         .build());
     this.lastEnqueued = reader.getFirstIndex() - 1;
+    this.metrics = new RaftServiceMetrics(raft.getName());
     scheduleSnapshots();
   }
 
@@ -245,7 +248,9 @@ public class RaftServiceManager implements RaftStateMachine {
     ComposableFuture<Snapshot> future = new ComposableFuture<>();
     stateContext.execute(() -> {
       try {
+        long startTime = System.currentTimeMillis();
         future.complete(snapshot());
+        metrics.snapshotTime(System.currentTimeMillis() - startTime);
       } catch (Exception e) {
         future.completeExceptionally(e);
       }
@@ -309,7 +314,9 @@ public class RaftServiceManager implements RaftStateMachine {
     raft.getThreadContext().execute(() -> {
       logger.debug("Compacting logs up to index {}", compactIndex);
       try {
+        long startTime = System.currentTimeMillis();
         raft.getLog().compact(compactIndex);
+        metrics.compactionTime(System.currentTimeMillis() - startTime);
       } catch (Exception e) {
         logger.error("An exception occurred during log compaction: {}", e);
       } finally {

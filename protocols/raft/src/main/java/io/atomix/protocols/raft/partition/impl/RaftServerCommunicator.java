@@ -15,15 +15,11 @@
  */
 package io.atomix.protocols.raft.partition.impl;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
 import com.google.common.base.Preconditions;
 import io.atomix.cluster.MemberId;
 import io.atomix.cluster.messaging.ClusterCommunicationService;
 import io.atomix.primitive.session.SessionId;
+import io.atomix.protocols.raft.metrics.RaftRequestMetrics;
 import io.atomix.protocols.raft.protocol.AppendRequest;
 import io.atomix.protocols.raft.protocol.AppendResponse;
 import io.atomix.protocols.raft.protocol.CloseSessionRequest;
@@ -51,6 +47,7 @@ import io.atomix.protocols.raft.protocol.PollResponse;
 import io.atomix.protocols.raft.protocol.PublishRequest;
 import io.atomix.protocols.raft.protocol.QueryRequest;
 import io.atomix.protocols.raft.protocol.QueryResponse;
+import io.atomix.protocols.raft.protocol.RaftMessage;
 import io.atomix.protocols.raft.protocol.RaftServerProtocol;
 import io.atomix.protocols.raft.protocol.ReconfigureRequest;
 import io.atomix.protocols.raft.protocol.ReconfigureResponse;
@@ -60,6 +57,10 @@ import io.atomix.protocols.raft.protocol.TransferResponse;
 import io.atomix.protocols.raft.protocol.VoteRequest;
 import io.atomix.protocols.raft.protocol.VoteResponse;
 import io.atomix.utils.serializer.Serializer;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Raft server protocol that uses a {@link ClusterCommunicationService}.
@@ -68,6 +69,8 @@ public class RaftServerCommunicator implements RaftServerProtocol {
   private final RaftMessageContext context;
   private final Serializer serializer;
   private final ClusterCommunicationService clusterCommunicator;
+  private final String partitionName;
+  private final RaftRequestMetrics metrics;
 
   public RaftServerCommunicator(Serializer serializer, ClusterCommunicationService clusterCommunicator) {
     this(null, serializer, clusterCommunicator);
@@ -75,11 +78,14 @@ public class RaftServerCommunicator implements RaftServerProtocol {
 
   public RaftServerCommunicator(String prefix, Serializer serializer, ClusterCommunicationService clusterCommunicator) {
     this.context = new RaftMessageContext(prefix);
+    this.partitionName = prefix;
     this.serializer = Preconditions.checkNotNull(serializer, "serializer cannot be null");
     this.clusterCommunicator = Preconditions.checkNotNull(clusterCommunicator, "clusterCommunicator cannot be null");
+    this.metrics = new RaftRequestMetrics(partitionName);
   }
 
   private <T, U> CompletableFuture<U> sendAndReceive(String subject, T request, MemberId memberId) {
+    metrics.sendMessage(memberId.id(), request.getClass().getSimpleName());
     return clusterCommunicator.send(subject, request, serializer::encode, serializer::decode, MemberId.from(memberId.id()));
   }
 
@@ -169,8 +175,13 @@ public class RaftServerCommunicator implements RaftServerProtocol {
   }
 
   @Override
-  public void registerOpenSessionHandler(Function<OpenSessionRequest, CompletableFuture<OpenSessionResponse>> handler) {
-    clusterCommunicator.subscribe(context.openSessionSubject, serializer::decode, handler, serializer::encode);
+  public void registerOpenSessionHandler(
+      Function<OpenSessionRequest, CompletableFuture<OpenSessionResponse>> handler) {
+    clusterCommunicator.subscribe(
+        context.openSessionSubject,
+        serializer::decode,
+        handler.<OpenSessionRequest>compose(this::recordReceivedMetrics),
+        serializer::encode);
   }
 
   @Override
@@ -180,7 +191,11 @@ public class RaftServerCommunicator implements RaftServerProtocol {
 
   @Override
   public void registerCloseSessionHandler(Function<CloseSessionRequest, CompletableFuture<CloseSessionResponse>> handler) {
-    clusterCommunicator.subscribe(context.closeSessionSubject, serializer::decode, handler, serializer::encode);
+    clusterCommunicator.subscribe(
+        context.closeSessionSubject,
+        serializer::decode,
+        handler.<CloseSessionRequest>compose(this::recordReceivedMetrics),
+        serializer::encode);
   }
 
   @Override
@@ -190,7 +205,11 @@ public class RaftServerCommunicator implements RaftServerProtocol {
 
   @Override
   public void registerKeepAliveHandler(Function<KeepAliveRequest, CompletableFuture<KeepAliveResponse>> handler) {
-    clusterCommunicator.subscribe(context.keepAliveSubject, serializer::decode, handler, serializer::encode);
+    clusterCommunicator.subscribe(
+        context.keepAliveSubject,
+        serializer::decode,
+        handler.<KeepAliveRequest>compose(this::recordReceivedMetrics),
+        serializer::encode);
   }
 
   @Override
@@ -200,7 +219,11 @@ public class RaftServerCommunicator implements RaftServerProtocol {
 
   @Override
   public void registerQueryHandler(Function<QueryRequest, CompletableFuture<QueryResponse>> handler) {
-    clusterCommunicator.subscribe(context.querySubject, serializer::decode, handler, serializer::encode);
+    clusterCommunicator.subscribe(
+        context.querySubject,
+        serializer::decode,
+        handler.<QueryRequest>compose(this::recordReceivedMetrics),
+        serializer::encode);
   }
 
   @Override
@@ -210,7 +233,11 @@ public class RaftServerCommunicator implements RaftServerProtocol {
 
   @Override
   public void registerCommandHandler(Function<CommandRequest, CompletableFuture<CommandResponse>> handler) {
-    clusterCommunicator.subscribe(context.commandSubject, serializer::decode, handler, serializer::encode);
+    clusterCommunicator.subscribe(
+        context.commandSubject,
+        serializer::decode,
+        handler.<CommandRequest>compose(this::recordReceivedMetrics),
+        serializer::encode);
   }
 
   @Override
@@ -220,7 +247,11 @@ public class RaftServerCommunicator implements RaftServerProtocol {
 
   @Override
   public void registerMetadataHandler(Function<MetadataRequest, CompletableFuture<MetadataResponse>> handler) {
-    clusterCommunicator.subscribe(context.metadataSubject, serializer::decode, handler, serializer::encode);
+    clusterCommunicator.subscribe(
+        context.metadataSubject,
+        serializer::decode,
+        handler.<MetadataRequest>compose(this::recordReceivedMetrics),
+        serializer::encode);
   }
 
   @Override
@@ -230,7 +261,11 @@ public class RaftServerCommunicator implements RaftServerProtocol {
 
   @Override
   public void registerJoinHandler(Function<JoinRequest, CompletableFuture<JoinResponse>> handler) {
-    clusterCommunicator.subscribe(context.joinSubject, serializer::decode, handler, serializer::encode);
+    clusterCommunicator.subscribe(
+        context.joinSubject,
+        serializer::decode,
+        handler.<JoinRequest>compose(this::recordReceivedMetrics),
+        serializer::encode);
   }
 
   @Override
@@ -240,7 +275,11 @@ public class RaftServerCommunicator implements RaftServerProtocol {
 
   @Override
   public void registerLeaveHandler(Function<LeaveRequest, CompletableFuture<LeaveResponse>> handler) {
-    clusterCommunicator.subscribe(context.leaveSubject, serializer::decode, handler, serializer::encode);
+    clusterCommunicator.subscribe(
+        context.leaveSubject,
+        serializer::decode,
+        handler.<LeaveRequest>compose(this::recordReceivedMetrics),
+        serializer::encode);
   }
 
   @Override
@@ -250,7 +289,11 @@ public class RaftServerCommunicator implements RaftServerProtocol {
 
   @Override
   public void registerConfigureHandler(Function<ConfigureRequest, CompletableFuture<ConfigureResponse>> handler) {
-    clusterCommunicator.subscribe(context.configureSubject, serializer::decode, handler, serializer::encode);
+    clusterCommunicator.subscribe(
+        context.configureSubject,
+        serializer::decode,
+        handler.<ConfigureRequest>compose(this::recordReceivedMetrics),
+        serializer::encode);
   }
 
   @Override
@@ -260,7 +303,11 @@ public class RaftServerCommunicator implements RaftServerProtocol {
 
   @Override
   public void registerReconfigureHandler(Function<ReconfigureRequest, CompletableFuture<ReconfigureResponse>> handler) {
-    clusterCommunicator.subscribe(context.reconfigureSubject, serializer::decode, handler, serializer::encode);
+    clusterCommunicator.subscribe(
+        context.reconfigureSubject,
+        serializer::decode,
+        handler.<ReconfigureRequest>compose(this::recordReceivedMetrics),
+        serializer::encode);
   }
 
   @Override
@@ -270,7 +317,11 @@ public class RaftServerCommunicator implements RaftServerProtocol {
 
   @Override
   public void registerInstallHandler(Function<InstallRequest, CompletableFuture<InstallResponse>> handler) {
-    clusterCommunicator.subscribe(context.installSubject, serializer::decode, handler, serializer::encode);
+    clusterCommunicator.subscribe(
+        context.installSubject,
+        serializer::decode,
+        handler.<InstallRequest>compose(this::recordReceivedMetrics),
+        serializer::encode);
   }
 
   @Override
@@ -280,7 +331,11 @@ public class RaftServerCommunicator implements RaftServerProtocol {
 
   @Override
   public void registerTransferHandler(Function<TransferRequest, CompletableFuture<TransferResponse>> handler) {
-    clusterCommunicator.subscribe(context.transferSubject, serializer::decode, handler, serializer::encode);
+    clusterCommunicator.subscribe(
+        context.transferSubject,
+        serializer::decode,
+        handler.<TransferRequest>compose(this::recordReceivedMetrics),
+        serializer::encode);
   }
 
   @Override
@@ -290,7 +345,11 @@ public class RaftServerCommunicator implements RaftServerProtocol {
 
   @Override
   public void registerPollHandler(Function<PollRequest, CompletableFuture<PollResponse>> handler) {
-    clusterCommunicator.subscribe(context.pollSubject, serializer::decode, handler, serializer::encode);
+    clusterCommunicator.subscribe(
+        context.pollSubject,
+        serializer::decode,
+        handler.<PollRequest>compose(this::recordReceivedMetrics),
+        serializer::encode);
   }
 
   @Override
@@ -300,7 +359,11 @@ public class RaftServerCommunicator implements RaftServerProtocol {
 
   @Override
   public void registerVoteHandler(Function<VoteRequest, CompletableFuture<VoteResponse>> handler) {
-    clusterCommunicator.subscribe(context.voteSubject, serializer::decode, handler, serializer::encode);
+    clusterCommunicator.subscribe(
+        context.voteSubject,
+        serializer::decode,
+        handler.<VoteRequest>compose(this::recordReceivedMetrics),
+        serializer::encode);
   }
 
   @Override
@@ -310,7 +373,11 @@ public class RaftServerCommunicator implements RaftServerProtocol {
 
   @Override
   public void registerAppendHandler(Function<AppendRequest, CompletableFuture<AppendResponse>> handler) {
-    clusterCommunicator.subscribe(context.appendSubject, serializer::decode, handler, serializer::encode);
+    clusterCommunicator.subscribe(
+        context.appendSubject,
+        serializer::decode,
+        handler.<AppendRequest>compose(this::recordReceivedMetrics),
+        serializer::encode);
   }
 
   @Override
@@ -326,5 +393,10 @@ public class RaftServerCommunicator implements RaftServerProtocol {
   @Override
   public void unregisterResetListener(SessionId sessionId) {
     clusterCommunicator.unsubscribe(context.resetSubject(sessionId.id()));
+  }
+
+  private <T extends RaftMessage> T recordReceivedMetrics(T m) {
+    metrics.receivedMessage(m.getClass().getSimpleName());
+    return m;
   }
 }
