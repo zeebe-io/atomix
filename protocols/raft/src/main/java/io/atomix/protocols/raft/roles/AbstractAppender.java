@@ -19,6 +19,7 @@ import io.atomix.protocols.raft.RaftServer;
 import io.atomix.protocols.raft.cluster.impl.DefaultRaftMember;
 import io.atomix.protocols.raft.cluster.impl.RaftMemberContext;
 import io.atomix.protocols.raft.impl.RaftContext;
+import io.atomix.protocols.raft.metrics.LeaderMetrics;
 import io.atomix.protocols.raft.protocol.AppendRequest;
 import io.atomix.protocols.raft.protocol.AppendResponse;
 import io.atomix.protocols.raft.protocol.ConfigureRequest;
@@ -50,12 +51,14 @@ abstract class AbstractAppender implements AutoCloseable {
   protected final Logger log;
   protected final RaftContext raft;
   protected boolean open = true;
+  private final LeaderMetrics metrics;
 
   AbstractAppender(RaftContext raft) {
     this.raft = checkNotNull(raft, "context cannot be null");
     this.log = ContextualLoggerFactory.getLogger(getClass(), LoggerContext.builder(RaftServer.class)
         .addValue(raft.getName())
         .build());
+    this.metrics = new LeaderMetrics(raft.getName());
   }
 
   /**
@@ -187,8 +190,10 @@ abstract class AbstractAppender implements AutoCloseable {
     log.trace("Sending {} to {}", request, member.getMember().memberId());
     raft.getProtocol().append(member.getMember().memberId(), request).whenCompleteAsync((response, error) -> {
       // Complete the append to the member.
+      final long appendLatency = System.currentTimeMillis() - timestamp;
+      metrics.appendComplete(appendLatency, member.getMember().memberId().id());
       if (!request.entries().isEmpty()) {
-        member.completeAppend(System.currentTimeMillis() - timestamp);
+        member.completeAppend(appendLatency);
       } else {
         member.completeAppend();
       }

@@ -32,6 +32,11 @@
       <artifactId>atomix-primitive</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>io.prometheus</groupId>
+      <artifactId>simpleclient</artifactId>
+      <version>${prometheus.client.version}</version>
+    </dependency>
   </dependencies>
 
   <build>
