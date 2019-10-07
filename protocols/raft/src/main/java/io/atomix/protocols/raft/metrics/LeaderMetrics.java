@@ -22,9 +22,9 @@ public class LeaderMetrics extends RaftMetrics {
   private static final Histogram APPEND_LATENCY =
       Histogram.build()
           .namespace("atomix")
-          .name("append_entries_latency_ms")
+          .name("append_entries_latency")
           .help("Latency to append an entry to a follower")
-          .labelNames("follower", "partitionName")
+          .labelNames("follower", "partition")
           .register();
 
   public LeaderMetrics(String partitionName) {
@@ -32,6 +32,6 @@ public class LeaderMetrics extends RaftMetrics {
   }
 
   public void appendComplete(long latencyms, String memberId) {
-    APPEND_LATENCY.labels(memberId, partition).observe(latencyms);
+    APPEND_LATENCY.labels(memberId, partition).observe(latencyms / 1000f);
   }
 }

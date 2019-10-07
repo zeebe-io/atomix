@@ -24,7 +24,7 @@ public class RaftServiceMetrics extends RaftMetrics {
           .namespace("atomix")
           .name("snapshot_time_ms")
           .help("Time spend to take a snapshot")
-          .labelNames("partitionName")
+          .labelNames("partition")
           .register();
 
   private static final Histogram COMPACTION_TIME =
@@ -32,7 +32,7 @@ public class RaftServiceMetrics extends RaftMetrics {
           .namespace("atomix")
           .name("compaction_time_ms")
           .help("Time spend to compact")
-          .labelNames("partitionName")
+          .labelNames("partition")
           .register();
 
   public RaftServiceMetrics(String partitionName) {

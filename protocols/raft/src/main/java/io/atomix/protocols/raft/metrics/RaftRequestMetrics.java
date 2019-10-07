@@ -24,7 +24,7 @@ public class RaftRequestMetrics extends RaftMetrics {
           .namespace("atomix")
           .name("raft_messages_received")
           .help("Number of raft requests received")
-          .labelNames("type", "partitionName")
+          .labelNames("type", "partition")
           .register();
 
   private static final Counter RAFT_MESSAGES_SEND =
@@ -32,7 +32,7 @@ public class RaftRequestMetrics extends RaftMetrics {
           .namespace("atomix")
           .name("raft_messages_send")
           .help("Number of raft requests send")
-          .labelNames("to", "type", "partitionName")
+          .labelNames("to", "type", "partition")
           .register();
 
   public RaftRequestMetrics(String partitionName) {
