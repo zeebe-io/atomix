@@ -192,7 +192,7 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
         }
       });
     } catch (IOException e) {
-      log.error("Failed to delete partition: {}", e);
+      log.error("Failed to delete partition: {}", partition, e);
     }
   }
 
@@ -205,8 +205,8 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
             Serializer.using(RaftNamespaces.RAFT_PROTOCOL),
             clusterCommunicator))
         .withPrimitiveTypes(primitiveTypes)
-        .withElectionTimeout(config.getElectionTimeout())
         .withHeartbeatInterval(config.getHeartbeatInterval())
+        .withElectionTimeout(config.getElectionTimeout())
         .withSessionTimeout(config.getDefaultSessionTimeout())
         .withStorage(RaftStorage.builder()
             .withPrefix(partition.name())
