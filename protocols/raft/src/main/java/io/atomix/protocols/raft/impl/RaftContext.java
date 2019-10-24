@@ -31,6 +31,7 @@ import io.atomix.protocols.raft.RaftStateMachineFactory;
 import io.atomix.protocols.raft.cluster.RaftMember;
 import io.atomix.protocols.raft.cluster.impl.DefaultRaftMember;
 import io.atomix.protocols.raft.cluster.impl.RaftClusterContext;
+import io.atomix.protocols.raft.metrics.RaftRoleMetrics;
 import io.atomix.protocols.raft.protocol.CloseSessionResponse;
 import io.atomix.protocols.raft.protocol.CommandResponse;
 import io.atomix.protocols.raft.protocol.KeepAliveResponse;
@@ -98,6 +99,7 @@ public class RaftContext implements AutoCloseable {
   protected final RaftServiceRegistry services = new RaftServiceRegistry();
   protected final RaftSessionRegistry sessions = new RaftSessionRegistry();
   private final LoadMonitor loadMonitor;
+  private final RaftRoleMetrics raftRoleMetrics;
   private volatile State state = State.ACTIVE;
   private final MetaStore meta;
   private final RaftLog raftLog;
@@ -181,6 +183,12 @@ public class RaftContext implements AutoCloseable {
 
     // Register protocol listeners.
     registerHandlers(protocol);
+
+    raftRoleMetrics = new RaftRoleMetrics(name);
+  }
+
+  public RaftRoleMetrics getRaftRoleMetrics() {
+    return raftRoleMetrics;
   }
 
   public MemberId localMemberId() {
@@ -879,10 +887,13 @@ public class RaftContext implements AutoCloseable {
       case PROMOTABLE:
         return new PromotableRole(this);
       case FOLLOWER:
+        raftRoleMetrics.becomingFollower();
         return new FollowerRole(this);
       case CANDIDATE:
+        raftRoleMetrics.becomingCandidate();
         return new CandidateRole(this);
       case LEADER:
+        raftRoleMetrics.becomingLeader();
         return new LeaderRole(this);
       default:
         throw new AssertionError();
