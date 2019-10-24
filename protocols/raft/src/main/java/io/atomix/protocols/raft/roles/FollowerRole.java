@@ -63,7 +63,7 @@ public final class FollowerRole extends ActiveRole {
   @Override
   public synchronized CompletableFuture<RaftRole> start() {
     if (raft.getCluster().getActiveMemberStates().isEmpty()) {
-      log.debug("Single member cluster. Transitioning directly to candidate.");
+      log.info("Single member cluster. Transitioning directly to candidate.");
       raft.transition(RaftServer.Role.CANDIDATE);
       return CompletableFuture.completedFuture(this);
     }
@@ -105,7 +105,7 @@ public final class FollowerRole extends ActiveRole {
       heartbeatTimer = null;
       if (isRunning() && (raft.getFirstCommitIndex() == 0 || raft.getState() == RaftContext.State.READY)) {
         raft.setLeader(null);
-        log.debug("Heartbeat timed out in {}", delay);
+        log.info("No heartbeat from {} in the last {}", raft.getLeader(),  delay);
         sendPollRequests();
       }
     });

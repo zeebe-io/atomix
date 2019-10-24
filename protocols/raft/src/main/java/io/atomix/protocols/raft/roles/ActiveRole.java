@@ -215,7 +215,7 @@ public abstract class ActiveRole extends PassiveRole {
     // If we made it this far, the candidate's last term is greater than or equal to the local log's last
     // term, and if equal to the local log's last term, the candidate's last index is equal to or greater
     // than the local log's last index.
-    log.debug("Accepted {}: candidate's log is up-to-date", request);
+    log.info("Accepted {}: candidate's log is up-to-date", request);
     return true;
   }
 
