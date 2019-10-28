@@ -26,6 +26,7 @@ import io.atomix.primitive.PrimitiveTypeRegistry;
 import io.atomix.protocols.raft.RaftError;
 import io.atomix.protocols.raft.RaftException;
 import io.atomix.protocols.raft.RaftServer;
+import io.atomix.protocols.raft.RaftServer.Role;
 import io.atomix.protocols.raft.RaftStateMachine;
 import io.atomix.protocols.raft.RaftStateMachineFactory;
 import io.atomix.protocols.raft.cluster.RaftMember;
@@ -824,6 +825,11 @@ public class RaftContext implements AutoCloseable {
       case ACTIVE:
         if (!(role instanceof ActiveRole)) {
           transition(RaftServer.Role.FOLLOWER);
+        }
+        break;
+      case BOOTSTRAP:
+        if (!(role instanceof  ActiveRole)) {
+          transition(Role.CANDIDATE);
         }
         break;
       case PROMOTABLE:

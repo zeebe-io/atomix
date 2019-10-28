@@ -64,6 +64,8 @@ import io.atomix.primitive.protocol.ProxyProtocol;
 import io.atomix.protocols.log.DistributedLogProtocol;
 import io.atomix.protocols.log.partition.LogPartitionGroup;
 import io.atomix.protocols.raft.MultiRaftProtocol;
+import io.atomix.protocols.raft.RaftServer;
+import io.atomix.protocols.raft.RaftServer.Role;
 import io.atomix.protocols.raft.partition.RaftPartition;
 import io.atomix.protocols.raft.partition.RaftPartitionGroup;
 import io.atomix.utils.concurrent.Futures;
@@ -72,7 +74,9 @@ import io.atomix.utils.net.Address;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
@@ -244,6 +248,152 @@ public class AtomixTest extends AbstractAtomixTest {
     // then
     nodeOneFuture.get();
     roleChanged.get();
+  }
+
+  @Test
+  public void testAtomixBootstrapPartitions() throws Exception {
+    // given
+    // Partitions \ Nodes
+    //      \   0  1  2
+    //    0     L  F  F
+    //    1     F  L  F
+    //    2     F  F  L
+
+    final List<Map<Integer, RaftServer.Role>> nodeRoles = new ArrayList<>();
+    nodeRoles.add(new HashMap<>());
+    nodeRoles.add(new HashMap<>());
+    nodeRoles.add(new HashMap<>());
+
+    final List<Integer> members = Arrays.asList(1, 2, 3);
+
+    final int firstNodeId = 1;
+    final CompletableFuture<Atomix> nodeOneFuture = setupAtomixWithListener(firstNodeId, members, nodeRoles);
+
+    final int secondNodeId = 2;
+    final CompletableFuture<Atomix> nodeTwoFuture = setupAtomixWithListener(secondNodeId, members, nodeRoles);
+
+    final int thirdNodeId = 3;
+    final CompletableFuture<Atomix> nodeThreeFuture = setupAtomixWithListener(thirdNodeId, members, nodeRoles);
+
+    // then
+    CompletableFuture.allOf(nodeOneFuture, nodeTwoFuture, nodeThreeFuture).join();
+
+    while (nodeRoles.get(0).size() < 3
+        || nodeRoles.get(1).size() < 3
+        || nodeRoles.get(2).size() < 3) {
+      Thread.sleep(100L);
+    }
+
+    final Map<Integer, RaftServer.Role> expectedNodeOneRoles = new HashMap<>();
+    expectedNodeOneRoles.put(1, Role.LEADER);
+    expectedNodeOneRoles.put(2, Role.FOLLOWER);
+    expectedNodeOneRoles.put(3, Role.FOLLOWER);
+    assertEquals(expectedNodeOneRoles, nodeRoles.get(0));
+
+    final Map<Integer, RaftServer.Role> expectedNodeTwoRoles = new HashMap<>();
+    expectedNodeTwoRoles.put(1, Role.FOLLOWER);
+    expectedNodeTwoRoles.put(2, Role.LEADER);
+    expectedNodeTwoRoles.put(3, Role.FOLLOWER);
+    assertEquals(expectedNodeTwoRoles, nodeRoles.get(1));
+
+    final Map<Integer, RaftServer.Role> expectedNodeThreeRoles = new HashMap<>();
+    expectedNodeThreeRoles.put(1, Role.FOLLOWER);
+    expectedNodeThreeRoles.put(2, Role.FOLLOWER);
+    expectedNodeThreeRoles.put(3, Role.LEADER);
+    assertEquals(expectedNodeThreeRoles, nodeRoles.get(2));
+  }
+
+  @Test
+  public void testAtomixBootstrapPartitionsAndRestartingNode() throws Exception {
+    // given
+    // Partitions \ Nodes
+    //      \   0  1  2
+    //    0     L  F  F
+    //    1     F  L  F
+    //    2     F  F  L
+
+    final List<Map<Integer, RaftServer.Role>> nodeRoles = new ArrayList<>();
+    nodeRoles.add(new HashMap<>());
+    nodeRoles.add(new HashMap<>());
+    nodeRoles.add(new HashMap<>());
+
+    final List<Integer> members = Arrays.asList(1, 2, 3);
+
+    final int firstNodeId = 1;
+    final CompletableFuture<Atomix> nodeOneFuture = setupAtomixWithListener(firstNodeId, members, nodeRoles);
+
+    final int secondNodeId = 2;
+    final CompletableFuture<Atomix> nodeTwoFuture = setupAtomixWithListener(secondNodeId, members, nodeRoles);
+
+    final int thirdNodeId = 3;
+    final CompletableFuture<Atomix> nodeThreeFuture = setupAtomixWithListener(thirdNodeId, members, nodeRoles);
+
+    // then
+    CompletableFuture.allOf(nodeOneFuture, nodeTwoFuture, nodeThreeFuture).join();
+
+    while (nodeRoles.get(0).size() < 3
+        || nodeRoles.get(1).size() < 3
+        || nodeRoles.get(2).size() < 3) {
+      Thread.sleep(100L);
+    }
+
+    // when
+    final Atomix atomix = nodeTwoFuture.get();
+    atomix.stop().join();
+    nodeRoles.get(1).clear();
+    final CompletableFuture<Atomix> nodeTwoSecondFuture = setupAtomixWithListener(secondNodeId,
+        members, nodeRoles);
+
+    nodeTwoSecondFuture.join();
+    while (nodeRoles.get(0).size() < 3
+        || nodeRoles.get(1).size() < 3
+        || nodeRoles.get(2).size() < 3) {
+      Thread.sleep(100L);
+    }
+
+    // then
+    final long nodeOneLeaderCount = nodeRoles.get(0).values().stream().filter(r -> r == Role.LEADER).count();
+    final long nodeTwoLeaderCount = nodeRoles.get(1).values().stream().filter(r -> r == Role.LEADER).count();
+    final long nodeThreeLeaderCount = nodeRoles.get(2).values().stream().filter(r -> r == Role.LEADER).count();
+
+    assertTrue(nodeOneLeaderCount == 2 || nodeThreeLeaderCount == 2);
+    assertEquals(0, nodeTwoLeaderCount);
+
+    final Map<Integer, RaftServer.Role> expectedNodeTwoRoles = new HashMap<>();
+    expectedNodeTwoRoles.put(1, Role.FOLLOWER);
+    expectedNodeTwoRoles.put(2, Role.FOLLOWER);
+    expectedNodeTwoRoles.put(3, Role.FOLLOWER);
+    assertEquals(expectedNodeTwoRoles, nodeRoles.get(1));
+  }
+
+  private CompletableFuture<Atomix> setupAtomixWithListener(int nodeId, List<Integer> members,
+      List<Map<Integer, RaftServer.Role>> nodeRoles) {
+    final List<String> memberIds = members.stream().map(Object::toString)
+        .collect(Collectors.toList());
+
+    return startAtomix(nodeId, members,
+        builder -> {
+          final RaftPartitionGroup partitionGroup = RaftPartitionGroup.builder("system")
+              .withNumPartitions(3)
+              .withPartitionSize(3)
+              .withMembers(memberIds)
+              .withDataDirectory(new File(new File(DATA_DIR, "log"), "" + nodeId))
+              .build();
+
+          final Atomix atomix = builder.withManagementGroup(partitionGroup).build();
+
+          final DefaultPartitionService partitionService = (DefaultPartitionService) atomix.getPartitionService();
+          final RaftPartitionGroup raftPartitionGroup = (RaftPartitionGroup) partitionService.getSystemPartitionGroup();
+
+          // when
+          raftPartitionGroup.getPartitions().forEach(
+              partition -> {
+                final Map<Integer, RaftServer.Role> roleMap = nodeRoles.get(nodeId - 1);
+                final RaftPartition raftPartition = (RaftPartition) partition;
+                raftPartition.addRoleChangeListener((role) -> roleMap.put(partition.id().id(), role));
+              });
+          return atomix;
+        });
   }
 
   @Test

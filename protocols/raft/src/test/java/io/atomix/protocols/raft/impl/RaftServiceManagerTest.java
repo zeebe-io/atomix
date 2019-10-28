@@ -15,6 +15,10 @@
  */
 package io.atomix.protocols.raft.impl;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+
 import io.atomix.cluster.ClusterMembershipService;
 import io.atomix.cluster.MemberId;
 import io.atomix.primitive.PrimitiveBuilder;
@@ -51,11 +55,6 @@ import io.atomix.protocols.raft.storage.snapshot.Snapshot;
 import io.atomix.protocols.raft.utils.LoadMonitor;
 import io.atomix.utils.concurrent.ThreadModel;
 import io.atomix.utils.serializer.Namespace;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -69,10 +68,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
 /**
  * Raft service manager test.
@@ -244,9 +243,12 @@ public class RaftServiceManagerTest {
         return new TestType();
       }
     };
+    final ArrayList<MemberId> members = new ArrayList<>();
+    final MemberId member = MemberId.from("test-1");
+    members.add(member);
     raft = new RaftContext(
         "test",
-        MemberId.from("test-1"),
+        member,
         mock(ClusterMembershipService.class),
         mock(RaftServerProtocol.class),
         storage,

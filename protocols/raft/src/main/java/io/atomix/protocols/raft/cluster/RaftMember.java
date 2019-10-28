@@ -81,6 +81,11 @@ public interface RaftMember {
      */
     ACTIVE,
 
+    /**
+     * Bootstraps the partition cluster, which means it tries directly to become candidate.
+     */
+    BOOTSTRAP,
+
   }
 
   /**
