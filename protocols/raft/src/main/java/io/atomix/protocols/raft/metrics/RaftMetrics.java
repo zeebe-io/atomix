@@ -25,7 +25,7 @@ public class RaftMetrics {
     int partitionId;
     try {
       final String[] parts = partitionName.split("-");
-      partitionId = Integer.valueOf(parts[parts.length - 1]);
+      partitionId = Integer.parseInt(parts[parts.length - 1]);
     } catch (Exception e) {
       LoggerFactory.getLogger(RaftMetrics.class)
           .debug("Cannot extract partition id from name {}, defaulting to 0", partitionName);
