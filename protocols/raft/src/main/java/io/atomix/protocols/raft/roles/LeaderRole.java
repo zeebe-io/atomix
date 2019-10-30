@@ -466,7 +466,7 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
     appender.appendEntries(raft.getLogWriter().getLastIndex()).whenComplete((result, error) -> {
       if (isRunning()) {
         if (error == null) {
-          log.debug("Transferring leadership to {}", request.member());
+          log.info("Transferring leadership to {}", request.member());
           raft.transition(RaftServer.Role.FOLLOWER);
           future.complete(logResponse(TransferResponse.builder()
               .withStatus(RaftResponse.Status.OK)
@@ -519,7 +519,7 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
   @Override
   public CompletableFuture<VoteResponse> onVote(final VoteRequest request) {
     if (updateTermAndLeader(request.term(), null)) {
-      log.debug("Received greater term");
+      log.info("Received greater term from {}", request.candidate());
       raft.transition(RaftServer.Role.FOLLOWER);
       return super.onVote(request);
     } else {

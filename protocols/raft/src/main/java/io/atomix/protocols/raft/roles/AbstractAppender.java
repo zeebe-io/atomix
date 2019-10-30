@@ -250,6 +250,7 @@ abstract class AbstractAppender implements AutoCloseable {
     }
     // If we've received a greater term, update the term and transition back to follower.
     else if (response.term() > raft.getTerm()) {
+      log.info("Received higher term ({} > {}) from {}", response.term(), raft.getTerm(), member.getMember());
       raft.setTerm(response.term());
       raft.setLeader(null);
       raft.transition(RaftServer.Role.FOLLOWER);
@@ -277,7 +278,7 @@ abstract class AbstractAppender implements AutoCloseable {
     // when attempting to send entries to down followers.
     int failures = member.incrementFailureCount();
     if (failures <= 3 || failures % 100 == 0) {
-      log.debug("{} to {} failed: {}", request, member.getMember().memberId(), response.error() != null ? response.error() : "");
+      log.info("{} to {} failed: {}", request, member.getMember().memberId(), response.error() != null ? response.error() : "");
     }
   }
 
@@ -298,7 +299,7 @@ abstract class AbstractAppender implements AutoCloseable {
     // when attempting to send entries to down followers.
     int failures = member.incrementFailureCount();
     if (failures <= 3 || failures % 100 == 0) {
-      log.debug("{} to {} failed: {}", request, member.getMember().memberId(), error.getMessage());
+      log.info("{} to {} failed: {}", request, member.getMember().memberId(), error.getMessage());
     }
   }
 

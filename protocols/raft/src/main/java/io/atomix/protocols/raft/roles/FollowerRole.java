@@ -63,7 +63,7 @@ public final class FollowerRole extends ActiveRole {
   @Override
   public synchronized CompletableFuture<RaftRole> start() {
     if (raft.getCluster().getActiveMemberStates().isEmpty()) {
-      log.debug("Single member cluster. Transitioning directly to candidate.");
+      log.info("Single member cluster. Transitioning directly to candidate.");
       raft.transition(RaftServer.Role.CANDIDATE);
       return CompletableFuture.completedFuture(this);
     }
