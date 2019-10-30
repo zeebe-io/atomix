@@ -35,7 +35,6 @@ import io.atomix.protocols.raft.storage.log.entry.RaftLogEntry;
 import io.atomix.protocols.raft.utils.Quorum;
 import io.atomix.storage.journal.Indexed;
 import io.atomix.utils.concurrent.Scheduled;
-
 import java.time.Duration;
 import java.util.Random;
 import java.util.Set;
@@ -50,6 +49,7 @@ public final class FollowerRole extends ActiveRole {
   private final ClusterMembershipEventListener clusterListener = this::handleClusterEvent;
   private final Random random = new Random();
   private Scheduled heartbeatTimer;
+  private long lastHeartbeat;
 
   public FollowerRole(RaftContext context) {
     super(context);
@@ -103,9 +103,14 @@ public final class FollowerRole extends ActiveRole {
     Duration delay = raft.getElectionTimeout().plus(Duration.ofMillis(random.nextInt((int) raft.getElectionTimeout().toMillis())));
     heartbeatTimer = raft.getThreadContext().schedule(delay, () -> {
       heartbeatTimer = null;
-      if (isRunning() && (raft.getFirstCommitIndex() == 0 || raft.getState() == RaftContext.State.READY)) {
+      if (isRunning() && (raft.getFirstCommitIndex() == 0
+          || raft.getState() == RaftContext.State.READY)) {
+        final long missTime = System.currentTimeMillis() - lastHeartbeat;
+        log.info("No heartbeat from {} in the last {} (calculated from last {} ms)",
+            raft.getLeader(), delay, missTime);
+        raft.getRaftRoleMetrics().countHeartbeatMiss();
+
         raft.setLeader(null);
-        log.info("No heartbeat from {} in the last {}", raft.getLeader(),  delay);
         sendPollRequests();
       }
     });
@@ -210,6 +215,11 @@ public final class FollowerRole extends ActiveRole {
 
   @Override
   public CompletableFuture<AppendResponse> onAppend(AppendRequest request) {
+    final long currentHeartbeatTime = System.currentTimeMillis();
+    if (lastHeartbeat > 0) {
+      raft.getRaftRoleMetrics().observeHeartbeatInterval(currentHeartbeatTime - lastHeartbeat);
+    }
+    lastHeartbeat = currentHeartbeatTime;
     CompletableFuture<AppendResponse> future = super.onAppend(request);
 
     // Reset the heartbeat timeout.

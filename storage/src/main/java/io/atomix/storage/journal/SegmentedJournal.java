@@ -15,6 +15,7 @@
  */
 package io.atomix.storage.journal;
 
+import io.atomix.storage.statistics.JournalMetrics;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -44,6 +45,8 @@ import static com.google.common.base.Preconditions.checkState;
  * Segmented journal.
  */
 public class SegmentedJournal<E> implements Journal<E> {
+
+  private final JournalMetrics journalMetrics;
 
   /**
    * Returns a new Raft log builder.
@@ -94,8 +97,13 @@ public class SegmentedJournal<E> implements Journal<E> {
     this.maxEntriesPerSegment = maxEntriesPerSegment;
     this.indexDensity = indexDensity;
     this.flushOnCommit = flushOnCommit;
+    journalMetrics = new JournalMetrics(name);
     open();
     this.writer = openWriter();
+  }
+
+  public JournalMetrics getJournalMetrics() {
+    return journalMetrics;
   }
 
   /**
