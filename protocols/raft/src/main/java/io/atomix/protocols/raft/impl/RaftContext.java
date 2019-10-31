@@ -105,6 +105,7 @@ public class RaftContext implements AutoCloseable {
   protected final RaftSessionRegistry sessions = new RaftSessionRegistry();
   private final LoadMonitor loadMonitor;
   private final RaftRoleMetrics raftRoleMetrics;
+  private final SingleThreadContext heartBeatThread;
   private volatile State state = State.ACTIVE;
   private final MetaStore meta;
   private final RaftLog raftLog;
@@ -156,6 +157,7 @@ public class RaftContext implements AutoCloseable {
 
     String baseThreadName = String.format("raft-server-%s-%s", localMemberId.id(), name);
     this.threadContext = new SingleThreadContext(namedThreads(baseThreadName, log));
+    this.heartBeatThread = new SingleThreadContext(namedThreads(baseThreadName + "-heartbeat", log));
     this.loadContext = new SingleThreadContext(namedThreads(baseThreadName + "-load", log));
     this.stateContext = new SingleThreadContext(namedThreads(baseThreadName + "-state", log));
 
@@ -320,6 +322,19 @@ public class RaftContext implements AutoCloseable {
    */
   public ThreadContext getThreadContext() {
     return threadContext;
+  }
+
+  public ThreadContext getHeartbeatThread() {
+    // we should avoid to use to many different threads
+    // it makes sense to accept incoming requests (like heartbeats, appends etc) by one thread
+    // then we do not need to synchronize the resource access
+    // for sending we need multiple threads such that we are able to send heartbeats in time
+
+    if (!(role instanceof LeaderRole)) {
+      throw new IllegalStateException("The heartbeat thread should only used by the leader!");
+    }
+
+    return heartBeatThread;
   }
 
   /**
@@ -735,6 +750,10 @@ public class RaftContext implements AutoCloseable {
     threadContext.checkThread();
   }
 
+  public void checkHeartbeatThread() {
+    heartBeatThread.checkThread();
+  }
+
   /**
    * Registers server handlers on the configured protocol.
    */
@@ -754,6 +773,7 @@ public class RaftContext implements AutoCloseable {
     protocol.registerVoteHandler(request -> runOnContext(() -> role.onVote(request)));
     protocol.registerCommandHandler(request -> runOnContextIfReady(() -> role.onCommand(request), CommandResponse::builder));
     protocol.registerQueryHandler(request -> runOnContextIfReady(() -> role.onQuery(request), QueryResponse::builder));
+    protocol.registerLeaderHeartbeatHandler(request -> runOnHeartbeatContext(() -> role.onLeaderHeartbeat(request)), heartBeatThread);
   }
 
   private <R extends RaftResponse> CompletableFuture<R> runOnContextIfReady(
@@ -780,6 +800,10 @@ public class RaftContext implements AutoCloseable {
       });
     });
     return future;
+  }
+
+  public void runOnHeartbeatContext(Runnable runnable) {
+    heartBeatThread.execute(runnable);
   }
 
   /**

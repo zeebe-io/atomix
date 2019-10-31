@@ -19,6 +19,7 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import io.atomix.cluster.ClusterMembershipEvent;
 import io.atomix.cluster.ClusterMembershipEventListener;
+import io.atomix.cluster.MemberId;
 import io.atomix.primitive.session.SessionId;
 import io.atomix.protocols.raft.RaftError;
 import io.atomix.protocols.raft.RaftException;
@@ -40,6 +41,7 @@ import io.atomix.protocols.raft.protocol.JoinRequest;
 import io.atomix.protocols.raft.protocol.JoinResponse;
 import io.atomix.protocols.raft.protocol.KeepAliveRequest;
 import io.atomix.protocols.raft.protocol.KeepAliveResponse;
+import io.atomix.protocols.raft.protocol.LeaderHeartbeatRequest;
 import io.atomix.protocols.raft.protocol.LeaveRequest;
 import io.atomix.protocols.raft.protocol.LeaveResponse;
 import io.atomix.protocols.raft.protocol.MetadataRequest;
@@ -96,6 +98,7 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
   private final Set<SessionId> expiring = Sets.newHashSet();
   private long configuring;
   private boolean transferring;
+  private Scheduled heartbeatTimer;
 
   public LeaderRole(RaftContext context) {
     super(context);
@@ -122,7 +125,7 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
     raft.getMembershipService().addListener(clusterListener);
 
     return super.start()
-        .thenRun(this::startAppendTimer)
+        .thenRun(this::startTimers)
         .thenApply(v -> this);
   }
 
@@ -170,12 +173,15 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
   /**
    * Starts sending AppendEntries requests to all cluster members.
    */
-  private void startAppendTimer() {
+  private void startTimers() {
     // Set a timer that will be used to periodically synchronize with other nodes
     // in the cluster. This timer acts as a heartbeat to ensure this node remains
     // the leader.
-    log.trace("Starting append timer");
+    log.trace("Starting append timer on fix rate of {}", raft.getHeartbeatInterval());
     appendTimer = raft.getThreadContext().schedule(Duration.ZERO, raft.getHeartbeatInterval(), this::appendMembers);
+
+    log.trace("Starting heartbeat timer on fix rate of {}", raft.getHeartbeatInterval());
+    heartbeatTimer = raft.getHeartbeatThread().schedule(Duration.ZERO, raft.getHeartbeatInterval(), this::sendHeartbeats);
   }
 
   /**
@@ -185,6 +191,30 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
     raft.checkThread();
     if (isRunning()) {
       appender.appendEntries();
+    }
+  }
+
+  private void sendHeartbeats() {
+    raft.checkHeartbeatThread();
+    if (isRunning()) {
+
+      // If there are no other active members in the cluster, simply complete the heartbeat operation.
+      if (raft.getCluster().getRemoteMemberStates().isEmpty()) {
+        return;
+      }
+
+      DefaultRaftMember leader = raft.getLeader();
+
+      final LeaderHeartbeatRequest heartbeat = LeaderHeartbeatRequest.builder()
+          .withTerm(raft.getTerm())
+          .withLeader(leader != null ? leader.memberId() : null)
+          .withCommitIndex(raft.getCommitIndex())
+          .build();
+      for (RaftMemberContext member : raft.getCluster().getRemoteMemberStates()) {
+        final MemberId memberId = member.getMember().memberId();
+        log.trace("Sending {} to {}", heartbeat, memberId);
+        raft.getProtocol().leaderHeartbeat(memberId, heartbeat);
+      }
     }
   }
 
@@ -1085,12 +1115,17 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
   }
 
   /**
-   * Cancels the append timer.
+   * Cancels the timers.
    */
-  private void cancelAppendTimer() {
+  private void cancelTimers() {
     if (appendTimer != null) {
       log.trace("Cancelling append timer");
       appendTimer.cancel();
+    }
+
+    if (heartbeatTimer != null) {
+      log.trace("Cancelling heartbeat timer");
+      heartbeatTimer.cancel();
     }
   }
 
@@ -1123,7 +1158,7 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
     raft.getMembershipService().removeListener(clusterListener);
     return super.stop()
         .thenRun(appender::close)
-        .thenRun(this::cancelAppendTimer)
+        .thenRun(this::cancelTimers)
         .thenRun(this::stepDown)
         .thenRun(this::failPendingCommands);
   }

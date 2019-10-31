@@ -34,6 +34,7 @@ import io.atomix.protocols.raft.protocol.JoinRequest;
 import io.atomix.protocols.raft.protocol.JoinResponse;
 import io.atomix.protocols.raft.protocol.KeepAliveRequest;
 import io.atomix.protocols.raft.protocol.KeepAliveResponse;
+import io.atomix.protocols.raft.protocol.LeaderHeartbeatRequest;
 import io.atomix.protocols.raft.protocol.LeaveRequest;
 import io.atomix.protocols.raft.protocol.LeaveResponse;
 import io.atomix.protocols.raft.protocol.MetadataRequest;
@@ -53,9 +54,8 @@ import io.atomix.protocols.raft.protocol.TransferRequest;
 import io.atomix.protocols.raft.protocol.TransferResponse;
 import io.atomix.protocols.raft.protocol.VoteRequest;
 import io.atomix.protocols.raft.protocol.VoteResponse;
-import io.atomix.utils.serializer.Serializer;
 import io.atomix.utils.concurrent.Futures;
-
+import io.atomix.utils.serializer.Serializer;
 import java.net.ConnectException;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -83,6 +83,7 @@ public class LocalRaftServerProtocol extends LocalRaftProtocol implements RaftSe
   private Function<TransferRequest, CompletableFuture<TransferResponse>> transferHandler;
   private Function<AppendRequest, CompletableFuture<AppendResponse>> appendHandler;
   private final Map<Long, Consumer<ResetRequest>> resetListeners = Maps.newConcurrentMap();
+  private Consumer<LeaderHeartbeatRequest> leaderHeartbeatHandler;
 
   public LocalRaftServerProtocol(MemberId memberId, Serializer serializer, Map<MemberId, LocalRaftServerProtocol> servers, Map<MemberId, LocalRaftClientProtocol> clients) {
     super(serializer, servers, clients);
@@ -478,4 +479,29 @@ public class LocalRaftServerProtocol extends LocalRaftProtocol implements RaftSe
   public void unregisterResetListener(SessionId sessionId) {
     resetListeners.remove(sessionId.id());
   }
+
+  @Override
+  public void leaderHeartbeat(MemberId memberId, LeaderHeartbeatRequest request) {
+    getServer(memberId).thenAccept(listener -> listener.leaderHeartbeat(encode(request)));
+  }
+
+  private void leaderHeartbeat(byte[] request) {
+
+    if (leaderHeartbeatHandler == null) {
+      throw new IllegalStateException("No heartbeat handler registered!");
+    }
+
+    leaderHeartbeatHandler.accept(decode(request));
+  }
+
+  @Override
+  public void registerLeaderHeartbeatHandler(Consumer<LeaderHeartbeatRequest> leaderHeartbeatRequestConsumer, Executor executor) {
+    leaderHeartbeatHandler = leaderHeartbeatHandler;
+  }
+
+  @Override
+  public void unregisterLeaderHeartbeatHandler() {
+    leaderHeartbeatHandler = null;
+  }
+
 }

@@ -36,6 +36,7 @@ import io.atomix.protocols.raft.protocol.JoinRequest;
 import io.atomix.protocols.raft.protocol.JoinResponse;
 import io.atomix.protocols.raft.protocol.KeepAliveRequest;
 import io.atomix.protocols.raft.protocol.KeepAliveResponse;
+import io.atomix.protocols.raft.protocol.LeaderHeartbeatRequest;
 import io.atomix.protocols.raft.protocol.LeaveRequest;
 import io.atomix.protocols.raft.protocol.LeaveResponse;
 import io.atomix.protocols.raft.protocol.MetadataRequest;
@@ -162,6 +163,11 @@ public class RaftServerCommunicator implements RaftServerProtocol {
   @Override
   public CompletableFuture<AppendResponse> append(MemberId memberId, AppendRequest request) {
     return sendAndReceive(context.appendSubject, request, memberId);
+  }
+
+  @Override
+  public void leaderHeartbeat(MemberId memberId, LeaderHeartbeatRequest request) {
+    sendAndReceive(context.leaderHeartbeatSubject, request, memberId);
   }
 
   @Override
@@ -399,4 +405,16 @@ public class RaftServerCommunicator implements RaftServerProtocol {
     metrics.receivedMessage(m.getClass().getSimpleName());
     return m;
   }
+
+  @Override
+  public void registerLeaderHeartbeatHandler(Consumer<LeaderHeartbeatRequest> heartbeatRequestConsumer, Executor executor) {
+    clusterCommunicator.subscribe(
+        context.leaderHeartbeatSubject, serializer::decode, heartbeatRequestConsumer, executor);
+  }
+
+  @Override
+  public void unregisterLeaderHeartbeatHandler() {
+    clusterCommunicator.unsubscribe(context.leaderHeartbeatSubject);
+  }
+
 }

@@ -38,7 +38,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 public abstract class AbstractRole implements RaftRole {
   protected final Logger log;
   protected final RaftContext raft;
-  private boolean open = true;
+  private volatile boolean open = true;
 
   protected AbstractRole(RaftContext raft) {
     this.raft = raft;

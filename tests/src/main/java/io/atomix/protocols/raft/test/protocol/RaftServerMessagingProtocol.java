@@ -16,6 +16,8 @@
 package io.atomix.protocols.raft.test.protocol;
 
 import io.atomix.cluster.MemberId;
+import io.atomix.cluster.messaging.MessagingService;
+import io.atomix.primitive.session.SessionId;
 import io.atomix.protocols.raft.protocol.AppendRequest;
 import io.atomix.protocols.raft.protocol.AppendResponse;
 import io.atomix.protocols.raft.protocol.CloseSessionRequest;
@@ -32,6 +34,7 @@ import io.atomix.protocols.raft.protocol.JoinRequest;
 import io.atomix.protocols.raft.protocol.JoinResponse;
 import io.atomix.protocols.raft.protocol.KeepAliveRequest;
 import io.atomix.protocols.raft.protocol.KeepAliveResponse;
+import io.atomix.protocols.raft.protocol.LeaderHeartbeatRequest;
 import io.atomix.protocols.raft.protocol.LeaveRequest;
 import io.atomix.protocols.raft.protocol.LeaveResponse;
 import io.atomix.protocols.raft.protocol.MetadataRequest;
@@ -52,10 +55,7 @@ import io.atomix.protocols.raft.protocol.TransferResponse;
 import io.atomix.protocols.raft.protocol.VoteRequest;
 import io.atomix.protocols.raft.protocol.VoteResponse;
 import io.atomix.utils.net.Address;
-import io.atomix.cluster.messaging.MessagingService;
-import io.atomix.primitive.session.SessionId;
 import io.atomix.utils.serializer.Serializer;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -142,6 +142,11 @@ public class RaftServerMessagingProtocol extends RaftMessagingProtocol implement
   @Override
   public CompletableFuture<AppendResponse> append(MemberId memberId, AppendRequest request) {
     return sendAndReceive(memberId, "append", request);
+  }
+
+  @Override
+  public void leaderHeartbeat(MemberId memberId, LeaderHeartbeatRequest request) {
+    sendAndReceive(memberId, "leaderHeartbeat", request);
   }
 
   @Override
@@ -314,5 +319,19 @@ public class RaftServerMessagingProtocol extends RaftMessagingProtocol implement
   @Override
   public void unregisterResetListener(SessionId sessionId) {
     messagingService.unregisterHandler(String.format("reset-%d", sessionId.id()));
+  }
+
+  @Override
+  public void registerLeaderHeartbeatHandler(
+      Consumer<LeaderHeartbeatRequest> leaderHeartbeatRequestConsumer, Executor executor) {
+    messagingService.registerHandler("leaderHeartbeat", (e, p) -> {
+      leaderHeartbeatRequestConsumer.accept(serializer.decode(p));
+    }, executor);
+
+  }
+
+  @Override
+  public void unregisterLeaderHeartbeatHandler() {
+    messagingService.unregisterHandler("leaderHeartbeat");
   }
 }

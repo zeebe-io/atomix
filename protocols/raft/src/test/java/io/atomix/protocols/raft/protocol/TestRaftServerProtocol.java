@@ -20,7 +20,6 @@ import io.atomix.cluster.MemberId;
 import io.atomix.primitive.session.SessionId;
 import io.atomix.utils.concurrent.Futures;
 import io.atomix.utils.concurrent.ThreadContext;
-
 import java.net.ConnectException;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -47,6 +46,7 @@ public class TestRaftServerProtocol extends TestRaftProtocol implements RaftServ
   private Function<PollRequest, CompletableFuture<PollResponse>> pollHandler;
   private Function<VoteRequest, CompletableFuture<VoteResponse>> voteHandler;
   private Function<AppendRequest, CompletableFuture<AppendResponse>> appendHandler;
+  private Consumer<LeaderHeartbeatRequest> leaderHeartbeatRequestConsumer;
   private final Map<Long, Consumer<ResetRequest>> resetListeners = Maps.newConcurrentMap();
 
   public TestRaftServerProtocol(
@@ -447,4 +447,30 @@ public class TestRaftServerProtocol extends TestRaftProtocol implements RaftServ
   public void unregisterResetListener(SessionId sessionId) {
     resetListeners.remove(sessionId.id());
   }
+
+  @Override
+  public void leaderHeartbeat(MemberId memberId, LeaderHeartbeatRequest heartbeat) {
+    getServer(memberId).thenAccept(l -> l.leaderHeartbeat(heartbeat));
+  }
+
+  private void leaderHeartbeat(LeaderHeartbeatRequest request) {
+
+    if (leaderHeartbeatRequestConsumer == null) {
+      throw new IllegalStateException("No heartbeat consumer registered!");
+    }
+
+    leaderHeartbeatRequestConsumer.accept(request);
+  }
+
+  @Override
+  public void registerLeaderHeartbeatHandler(
+      Consumer<LeaderHeartbeatRequest> leaderHeartbeatRequestConsumer, Executor executor) {
+    this.leaderHeartbeatRequestConsumer = (r) -> leaderHeartbeatRequestConsumer.accept(r);
+  }
+
+  @Override
+  public void unregisterLeaderHeartbeatHandler() {
+    leaderHeartbeatRequestConsumer = null;
+  }
+
 }
