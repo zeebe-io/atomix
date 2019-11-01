@@ -258,7 +258,7 @@ public class AtomixTest extends AbstractAtomixTest {
     //    0     L  F  F
     //    1     F  L  F
     //    2     F  F  L
-
+    final CountDownLatch latch = new CountDownLatch(3);
     final List<Map<Integer, RaftServer.Role>> nodeRoles = new ArrayList<>();
     nodeRoles.add(new HashMap<>());
     nodeRoles.add(new HashMap<>());
@@ -267,22 +267,23 @@ public class AtomixTest extends AbstractAtomixTest {
     final List<Integer> members = Arrays.asList(1, 2, 3);
 
     final int firstNodeId = 1;
-    final CompletableFuture<Atomix> nodeOneFuture = setupAtomixWithListener(firstNodeId, members, nodeRoles);
+    final CompletableFuture<Atomix> nodeOneFuture = setupAtomixWithListener(firstNodeId, members,
+        nodeRoles,
+        latch);
 
     final int secondNodeId = 2;
-    final CompletableFuture<Atomix> nodeTwoFuture = setupAtomixWithListener(secondNodeId, members, nodeRoles);
+    final CompletableFuture<Atomix> nodeTwoFuture = setupAtomixWithListener(secondNodeId, members,
+        nodeRoles,
+        latch);
 
     final int thirdNodeId = 3;
-    final CompletableFuture<Atomix> nodeThreeFuture = setupAtomixWithListener(thirdNodeId, members, nodeRoles);
+    final CompletableFuture<Atomix> nodeThreeFuture = setupAtomixWithListener(thirdNodeId, members,
+        nodeRoles,
+        latch);
 
     // then
     CompletableFuture.allOf(nodeOneFuture, nodeTwoFuture, nodeThreeFuture).join();
-
-    while (nodeRoles.get(0).size() < 3
-        || nodeRoles.get(1).size() < 3
-        || nodeRoles.get(2).size() < 3) {
-      Thread.sleep(100L);
-    }
+    latch.await(15_000, TimeUnit.MILLISECONDS);
 
     final Map<Integer, RaftServer.Role> expectedNodeOneRoles = new HashMap<>();
     expectedNodeOneRoles.put(1, Role.LEADER);
@@ -303,71 +304,8 @@ public class AtomixTest extends AbstractAtomixTest {
     assertEquals(expectedNodeThreeRoles, nodeRoles.get(2));
   }
 
-  @Test
-  public void testAtomixBootstrapPartitionsAndRestartingNode() throws Exception {
-    // given
-    // Partitions \ Nodes
-    //      \   0  1  2
-    //    0     L  F  F
-    //    1     F  L  F
-    //    2     F  F  L
-
-    final List<Map<Integer, RaftServer.Role>> nodeRoles = new ArrayList<>();
-    nodeRoles.add(new HashMap<>());
-    nodeRoles.add(new HashMap<>());
-    nodeRoles.add(new HashMap<>());
-
-    final List<Integer> members = Arrays.asList(1, 2, 3);
-
-    final int firstNodeId = 1;
-    final CompletableFuture<Atomix> nodeOneFuture = setupAtomixWithListener(firstNodeId, members, nodeRoles);
-
-    final int secondNodeId = 2;
-    final CompletableFuture<Atomix> nodeTwoFuture = setupAtomixWithListener(secondNodeId, members, nodeRoles);
-
-    final int thirdNodeId = 3;
-    final CompletableFuture<Atomix> nodeThreeFuture = setupAtomixWithListener(thirdNodeId, members, nodeRoles);
-
-    // then
-    CompletableFuture.allOf(nodeOneFuture, nodeTwoFuture, nodeThreeFuture).join();
-
-    while (nodeRoles.get(0).size() < 3
-        || nodeRoles.get(1).size() < 3
-        || nodeRoles.get(2).size() < 3) {
-      Thread.sleep(100L);
-    }
-
-    // when
-    final Atomix atomix = nodeTwoFuture.get();
-    atomix.stop().join();
-    nodeRoles.get(1).clear();
-    final CompletableFuture<Atomix> nodeTwoSecondFuture = setupAtomixWithListener(secondNodeId,
-        members, nodeRoles);
-
-    nodeTwoSecondFuture.join();
-    while (nodeRoles.get(0).size() < 3
-        || nodeRoles.get(1).size() < 3
-        || nodeRoles.get(2).size() < 3) {
-      Thread.sleep(100L);
-    }
-
-    // then
-    final long nodeOneLeaderCount = nodeRoles.get(0).values().stream().filter(r -> r == Role.LEADER).count();
-    final long nodeTwoLeaderCount = nodeRoles.get(1).values().stream().filter(r -> r == Role.LEADER).count();
-    final long nodeThreeLeaderCount = nodeRoles.get(2).values().stream().filter(r -> r == Role.LEADER).count();
-
-    assertTrue(nodeOneLeaderCount == 2 || nodeThreeLeaderCount == 2);
-    assertEquals(0, nodeTwoLeaderCount);
-
-    final Map<Integer, RaftServer.Role> expectedNodeTwoRoles = new HashMap<>();
-    expectedNodeTwoRoles.put(1, Role.FOLLOWER);
-    expectedNodeTwoRoles.put(2, Role.FOLLOWER);
-    expectedNodeTwoRoles.put(3, Role.FOLLOWER);
-    assertEquals(expectedNodeTwoRoles, nodeRoles.get(1));
-  }
-
   private CompletableFuture<Atomix> setupAtomixWithListener(int nodeId, List<Integer> members,
-      List<Map<Integer, RaftServer.Role>> nodeRoles) {
+      List<Map<Integer, Role>> nodeRoles, CountDownLatch latch) {
     final List<String> memberIds = members.stream().map(Object::toString)
         .collect(Collectors.toList());
 
@@ -382,18 +320,88 @@ public class AtomixTest extends AbstractAtomixTest {
 
           final Atomix atomix = builder.withManagementGroup(partitionGroup).build();
 
-          final DefaultPartitionService partitionService = (DefaultPartitionService) atomix.getPartitionService();
-          final RaftPartitionGroup raftPartitionGroup = (RaftPartitionGroup) partitionService.getSystemPartitionGroup();
+          final DefaultPartitionService partitionService = (DefaultPartitionService) atomix
+              .getPartitionService();
+          final RaftPartitionGroup raftPartitionGroup = (RaftPartitionGroup) partitionService
+              .getSystemPartitionGroup();
 
           // when
           raftPartitionGroup.getPartitions().forEach(
               partition -> {
                 final Map<Integer, RaftServer.Role> roleMap = nodeRoles.get(nodeId - 1);
                 final RaftPartition raftPartition = (RaftPartition) partition;
-                raftPartition.addRoleChangeListener((role) -> roleMap.put(partition.id().id(), role));
+                raftPartition.addRoleChangeListener((role) -> {
+                  roleMap.put(partition.id().id(), role);
+                  if (roleMap.size() >= 3) {
+                    latch.countDown();
+                  }
+                });
               });
           return atomix;
         });
+  }
+
+  @Test
+  public void testAtomixBootstrapPartitionsAndRestartingNode() throws Exception {
+    // given
+    // Partitions \ Nodes
+    //      \   0  1  2
+    //    0     L  F  F
+    //    1     F  L  F
+    //    2     F  F  L
+    final CountDownLatch latch = new CountDownLatch(3);
+    final List<Map<Integer, RaftServer.Role>> nodeRoles = new ArrayList<>();
+    nodeRoles.add(new HashMap<>());
+    nodeRoles.add(new HashMap<>());
+    nodeRoles.add(new HashMap<>());
+
+    final List<Integer> members = Arrays.asList(1, 2, 3);
+
+    final int firstNodeId = 1;
+    final CompletableFuture<Atomix> nodeOneFuture = setupAtomixWithListener(firstNodeId, members,
+        nodeRoles, latch);
+
+    final int secondNodeId = 2;
+    final CompletableFuture<Atomix> nodeTwoFuture = setupAtomixWithListener(secondNodeId, members,
+        nodeRoles,
+        latch);
+
+    final int thirdNodeId = 3;
+    final CompletableFuture<Atomix> nodeThreeFuture = setupAtomixWithListener(thirdNodeId, members,
+        nodeRoles,
+        latch);
+
+    // then
+    CompletableFuture.allOf(nodeOneFuture, nodeTwoFuture, nodeThreeFuture).join();
+    latch.await(15_000, TimeUnit.MILLISECONDS);
+
+    // when
+    final Atomix atomix = nodeTwoFuture.get();
+    atomix.stop().join();
+    nodeRoles.get(1).clear();
+    final CountDownLatch newLatch = new CountDownLatch(1);
+    final CompletableFuture<Atomix> nodeTwoSecondFuture = setupAtomixWithListener(secondNodeId,
+        members, nodeRoles, newLatch);
+
+    nodeTwoSecondFuture.join();
+    newLatch.await(5_000, TimeUnit.MILLISECONDS);
+
+    // then
+    final long nodeOneLeaderCount = nodeRoles.get(0).values().stream().filter(r -> r == Role.LEADER)
+        .count();
+    final long nodeTwoLeaderCount = nodeRoles.get(1).values().stream().filter(r -> r == Role.LEADER)
+        .count();
+    final long nodeThreeLeaderCount = nodeRoles.get(2).values().stream()
+        .filter(r -> r == Role.LEADER).count();
+
+    assertTrue(nodeOneLeaderCount == 2 || nodeThreeLeaderCount == 2);
+    assertEquals(0, nodeTwoLeaderCount);
+
+    final Map<Integer, RaftServer.Role> expectedNodeTwoRoles = new HashMap<>();
+    expectedNodeTwoRoles.put(1, Role.FOLLOWER);
+    expectedNodeTwoRoles.put(2, Role.FOLLOWER);
+    expectedNodeTwoRoles.put(3, Role.FOLLOWER);
+    assertEquals(expectedNodeTwoRoles, nodeRoles.get(1));
   }
 
   @Test

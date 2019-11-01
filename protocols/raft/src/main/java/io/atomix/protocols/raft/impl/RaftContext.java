@@ -150,7 +150,7 @@ public class RaftContext implements AutoCloseable {
       throw new StorageException("Failed to acquire storage lock; ensure each Raft server is configured with a distinct storage directory");
     }
 
-    String baseThreadName = String.format("raft-server-%s", name);
+    String baseThreadName = String.format("raft-server-%s-%s", localMemberId.id(), name);
     this.threadContext = new SingleThreadContext(namedThreads(baseThreadName, log));
     this.loadContext = new SingleThreadContext(namedThreads(baseThreadName + "-load", log));
     this.stateContext = new SingleThreadContext(namedThreads(baseThreadName + "-state", log));

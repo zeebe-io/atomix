@@ -74,6 +74,7 @@ public class RaftPartition implements Partition {
    * @return the partition name
    */
   public String name() {
+
     return String.format("%s-partition-%d", partitionId.group(), partitionId.id());
   }
 
