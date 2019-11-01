@@ -48,7 +48,7 @@ public class RaftPartition implements Partition {
   private final File dataDirectory;
   private final ThreadContextFactory threadContextFactory;
   private final Set<Consumer<Role>> deferredRoleChangeListeners = new CopyOnWriteArraySet<>();
-  private PartitionMetadata partition;
+  private PartitionMetadata partitionMetadata;
   private RaftPartitionClient client;
   private RaftPartitionServer server;
 
@@ -74,6 +74,7 @@ public class RaftPartition implements Partition {
    * @return the partition name
    */
   public String name() {
+
     return String.format("%s-partition-%d", partitionId.group(), partitionId.id());
   }
 
@@ -121,7 +122,7 @@ public class RaftPartition implements Partition {
 
   @Override
   public Collection<MemberId> members() {
-    return partition != null ? partition.members() : Collections.emptyList();
+    return partitionMetadata != null ? partitionMetadata.members() : Collections.emptyList();
   }
 
   /**
@@ -155,9 +156,10 @@ public class RaftPartition implements Partition {
    * Opens the partition.
    */
   CompletableFuture<Partition> open(PartitionMetadata metadata, PartitionManagementService managementService) {
-    this.partition = metadata;
+    this.partitionMetadata = metadata;
     this.client = createClient(managementService);
-    if (partition.members().contains(managementService.getMembershipService().getLocalMember().id())) {
+    if (partitionMetadata
+        .members().contains(managementService.getMembershipService().getLocalMember().id())) {
       initServer(managementService);
       return server.start()
           .thenCompose(v -> client.start())

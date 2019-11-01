@@ -15,6 +15,9 @@
  */
 package io.atomix.protocols.raft.cluster.impl;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.atomix.cluster.MemberId;
 import io.atomix.protocols.raft.RaftError;
 import io.atomix.protocols.raft.RaftServer;
@@ -22,6 +25,7 @@ import io.atomix.protocols.raft.cluster.RaftCluster;
 import io.atomix.protocols.raft.cluster.RaftClusterEvent;
 import io.atomix.protocols.raft.cluster.RaftClusterEventListener;
 import io.atomix.protocols.raft.cluster.RaftMember;
+import io.atomix.protocols.raft.cluster.RaftMember.Type;
 import io.atomix.protocols.raft.impl.RaftContext;
 import io.atomix.protocols.raft.protocol.JoinRequest;
 import io.atomix.protocols.raft.protocol.LeaveRequest;
@@ -31,8 +35,6 @@ import io.atomix.utils.concurrent.Futures;
 import io.atomix.utils.concurrent.Scheduled;
 import io.atomix.utils.logging.ContextualLoggerFactory;
 import io.atomix.utils.logging.LoggerContext;
-import org.slf4j.Logger;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -49,9 +51,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.slf4j.Logger;
 
 /**
  * Manages the persistent state of the Raft cluster from the perspective of a single server.
@@ -275,7 +275,14 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
     }
 
     if (configuration == null) {
-      member.setType(RaftMember.Type.ACTIVE);
+
+      final MemberId firstMemberId = new ArrayList<>(cluster).get(0);
+      if (cluster.size() == 1 || (cluster.size() > 1 && firstMemberId.equals(member.memberId()))) {
+        // try to bootstrap partition as leader
+        member.setType(Type.BOOTSTRAP);
+      } else {
+        member.setType(Type.ACTIVE);
+      }
 
       // Create a set of active members.
       Set<RaftMember> activeMembers = cluster.stream()
@@ -366,6 +373,9 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
     raft.getThreadContext().execute(() -> {
       // Transition the server to the appropriate state for the local member type.
       raft.transition(member.getType());
+      if (member.getType() == Type.BOOTSTRAP) {
+        member.setType(Type.ACTIVE);
+      }
 
       // Attempt to join the cluster. If the local member is ACTIVE then failing to join the cluster
       // will result in the member attempting to get elected. This allows initial clusters to form.

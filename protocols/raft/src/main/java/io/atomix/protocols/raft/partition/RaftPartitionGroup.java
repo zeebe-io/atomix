@@ -15,6 +15,9 @@
  */
 package io.atomix.protocols.raft.partition;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -43,25 +46,20 @@ import io.atomix.utils.logging.LoggerContext;
 import io.atomix.utils.memory.MemorySize;
 import io.atomix.utils.serializer.Namespace;
 import io.atomix.utils.serializer.Namespaces;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Raft partition group.
@@ -232,7 +230,20 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
 
   @Override
   public CompletableFuture<ManagedPartitionGroup> join(PartitionManagementService managementService) {
+
+    // We expect to bootstrap partitions where leadership is equally distributed.
+    // First member of a PartitionMetadata is the bootstrap leader
     this.metadata = buildPartitions();
+    // +------------------+----+----+----+---+
+    // | Partition \ Node | 0  | 1  | 2  | 3 |
+    // +------------------+----+----+----+---+
+    // |                1 | L  | F  | F  |   |
+    // |                2 |    | L  | F  | F |
+    // |                3 | F  |    | L  | F |
+    // |                4 | F  | F  |    | L |
+    // |                5 | L  | F  | F  |   |
+    // +------------------+----+----+----+---+
+
     this.communicationService = managementService.getMessagingService();
     communicationService.<Void, Void>subscribe(snapshotSubject, m -> handleSnapshot());
     List<CompletableFuture<Partition>> futures = metadata.stream()
@@ -269,11 +280,11 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
     Set<PartitionMetadata> metadata = Sets.newHashSet();
     for (int i = 0; i < partitions.size(); i++) {
       PartitionId partitionId = sortedPartitionIds.get(i);
-      Set<MemberId> set = new HashSet<>(count);
+      List<MemberId> membersForPartition = new ArrayList<>(count);
       for (int j = 0; j < count; j++) {
-        set.add(sorted.get((i + j) % length));
+        membersForPartition.add(sorted.get((i + j) % length));
       }
-      metadata.add(new PartitionMetadata(partitionId, set));
+      metadata.add(new PartitionMetadata(partitionId, membersForPartition));
     }
     return metadata;
   }
@@ -285,7 +296,10 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
         .collect(Collectors.toList());
     return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()])).thenRun(() -> {
       threadContextFactory.close();
-      communicationService.unsubscribe(snapshotSubject);
+      if (communicationService != null) {
+        communicationService.unsubscribe(snapshotSubject);
+      }
+
       LOGGER.info("Stopped");
     });
   }

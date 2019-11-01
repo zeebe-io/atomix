@@ -15,6 +15,7 @@
  */
 package io.atomix.protocols.raft.roles;
 
+import io.atomix.cluster.messaging.MessagingException.NoRemoteHandler;
 import io.atomix.protocols.raft.RaftServer;
 import io.atomix.protocols.raft.cluster.impl.DefaultRaftMember;
 import io.atomix.protocols.raft.cluster.impl.RaftMemberContext;
@@ -28,7 +29,6 @@ import io.atomix.protocols.raft.storage.log.entry.RaftLogEntry;
 import io.atomix.protocols.raft.utils.Quorum;
 import io.atomix.storage.journal.Indexed;
 import io.atomix.utils.concurrent.Scheduled;
-
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.Random;
@@ -152,32 +152,47 @@ public final class CandidateRole extends ActiveRole {
           .withLastLogTerm(lastTerm)
           .build();
 
-      raft.getProtocol().vote(member.memberId(), request).whenCompleteAsync((response, error) -> {
-        raft.checkThread();
-        if (isRunning() && !complete.get()) {
-          if (error != null) {
-            log.warn(error.getMessage());
-            quorum.fail();
-          } else {
-            if (response.term() > raft.getTerm()) {
-              log.debug("Received greater term from {}", member);
-              raft.setTerm(response.term());
-              complete.set(true);
-              raft.transition(RaftServer.Role.FOLLOWER);
-            } else if (!response.voted()) {
-              log.debug("Received rejected vote from {}", member);
-              quorum.fail();
-            } else if (response.term() != raft.getTerm()) {
-              log.debug("Received successful vote for a different term from {}", member);
-              quorum.fail();
+      sendVoteRequestToMember(complete, quorum, member, request);
+    }
+  }
+
+  private void sendVoteRequestToMember(AtomicBoolean complete, Quorum quorum,
+      DefaultRaftMember member, VoteRequest request) {
+    raft.getProtocol().vote(member.memberId(), request)
+        .whenCompleteAsync((response, error) -> {
+          raft.checkThread();
+          if (isRunning() && !complete.get()) {
+            if (error != null) {
+              if (error.getCause() instanceof NoRemoteHandler) {
+                log.debug("Member {} is not ready to receive vote requests, will retry later.",
+                    member, error);
+                if (isRunning() && !complete.get()) {
+                  raft.getThreadContext().schedule(Duration.ofMillis(150),
+                      () -> sendVoteRequestToMember(complete, quorum, member, request));
+                }
+              } else {
+                log.warn(error.getMessage());
+                quorum.fail();
+              }
             } else {
-              log.debug("Received successful vote from {}", member);
-              quorum.succeed();
+              if (response.term() > raft.getTerm()) {
+                log.debug("Received greater term from {}", member);
+                raft.setTerm(response.term());
+                complete.set(true);
+                raft.transition(RaftServer.Role.FOLLOWER);
+              } else if (!response.voted()) {
+                log.debug("Received rejected vote from {}", member);
+                quorum.fail();
+              } else if (response.term() != raft.getTerm()) {
+                log.debug("Received successful vote for a different term from {}", member);
+                quorum.fail();
+              } else {
+                log.debug("Received successful vote from {}", member);
+                quorum.succeed();
+              }
             }
           }
-        }
-      }, raft.getThreadContext());
-    }
+        }, raft.getThreadContext());
   }
 
   @Override

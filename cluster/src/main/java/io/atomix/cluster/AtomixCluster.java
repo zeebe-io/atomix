@@ -326,19 +326,24 @@ public class AtomixCluster implements BootstrapService, Managed<Void> {
     return closeFuture;
   }
 
+  private Void logServiceStopError(String serviceName, Throwable throwable) {
+    LOGGER.error("Failed to stop service {}", serviceName, throwable);
+    return null;
+  }
+
   protected CompletableFuture<Void> stopServices() {
     return communicationService.stop()
-        .exceptionally(e -> null)
+        .exceptionally(e -> logServiceStopError("communicationService", e))
         .thenComposeAsync(v -> eventService.stop(), threadContext)
-        .exceptionally(e -> null)
+        .exceptionally(e -> logServiceStopError("eventService", e))
         .thenComposeAsync(v -> membershipService.stop(), threadContext)
-        .exceptionally(e -> null)
+        .exceptionally(e -> logServiceStopError("membershipService", e))
         .thenComposeAsync(v -> broadcastService.stop(), threadContext)
-        .exceptionally(e -> null)
+        .exceptionally(e -> logServiceStopError("broadcastService", e))
         .thenComposeAsync(v -> unicastService.stop(), threadContext)
-        .exceptionally(e -> null)
+        .exceptionally(e -> logServiceStopError("unicastService", e))
         .thenComposeAsync(v -> messagingService.stop(), threadContext)
-        .exceptionally(e -> null);
+        .exceptionally(e -> logServiceStopError("messagingService", e));
   }
 
   protected CompletableFuture<Void> completeShutdown() {
