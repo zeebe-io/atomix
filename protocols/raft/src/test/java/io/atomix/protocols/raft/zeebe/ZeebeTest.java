@@ -15,7 +15,6 @@
  */
 package io.atomix.protocols.raft.zeebe;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
@@ -233,11 +232,14 @@ public class ZeebeTest {
     // when - then
     for (int i = 0; i < 5; i++) {
       final Indexed<ZeebeEntry> entry = appender.appendEntry(i, i, getIntAsBytes(i)).join();
+      final int expectedCount = i + 1;
       helper.awaitAllContains(nodes, partitionId, entry);
 
       for (final ZeebeTestNode node : nodes) {
         final CommitListener listener = listeners.get(node);
-        assertEquals(i + 1, listener.calledCount.get());
+        // it may take a little bit before the listener is called as this is done
+        // asynchronously
+        helper.await(() -> listener.calledCount.get() == expectedCount);
         assertTrue(helper.isEntryEqualTo(entry, listener.lastCommitted.get()));
       }
     }
