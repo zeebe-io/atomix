@@ -54,6 +54,11 @@ public class SegmentedJournalReader<E> implements JournalReader<E> {
   }
 
   @Override
+  public long getLastIndex() {
+    return mode == Mode.COMMITS ? journal.getCommitIndex() : journal.getLastSegment().lastIndex();
+  }
+
+  @Override
   public long getCurrentIndex() {
     long currentIndex = currentReader.getCurrentIndex();
     if (currentIndex != 0) {

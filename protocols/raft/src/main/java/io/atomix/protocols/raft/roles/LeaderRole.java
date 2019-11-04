@@ -74,7 +74,7 @@ import io.atomix.storage.StorageException;
 import io.atomix.storage.journal.Indexed;
 import io.atomix.utils.concurrent.Futures;
 import io.atomix.utils.concurrent.Scheduled;
-
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
@@ -1129,14 +1129,22 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
   }
 
   @Override
-  public CompletableFuture<Indexed<ZeebeEntry>> appendEntry(byte[] data) {
+  public CompletableFuture<Indexed<ZeebeEntry>> appendEntry(
+      final long lowestPosition, final long highestPosition, final ByteBuffer data) {
     final CompletableFuture<Indexed<ZeebeEntry>> result = new CompletableFuture<>();
-    raft.getThreadContext().execute(() -> appendEntry(data, result));
+    raft.getThreadContext()
+        .execute(() -> appendEntry(lowestPosition, highestPosition, data, result));
     return result;
   }
 
-  private void appendEntry(byte[] data, CompletableFuture<Indexed<ZeebeEntry>> result) {
-    final ZeebeEntry entry = new ZeebeEntry(raft.getTerm(), System.currentTimeMillis(), data);
+  private void appendEntry(
+      final long lowestPosition,
+      final long highestPosition,
+      ByteBuffer data,
+      CompletableFuture<Indexed<ZeebeEntry>> result) {
+    final ZeebeEntry entry =
+        new ZeebeEntry(
+            raft.getTerm(), System.currentTimeMillis(), lowestPosition, highestPosition, data);
     raft.checkThread();
     if (!isRunning()) {
       result.completeExceptionally(
@@ -1167,12 +1175,13 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
                 return;
               }
 
-              // have the state machine apply the index which should do nothing but allows it to
-              // makes sure to keep it up to date with the latest entries so it can handle
-              // configuration and initial entries properly on fail over
+              // have the state machine apply the index which should do nothing but ensures it keeps
+              // up to date with the latest entries so it can handle configuration and initial
+              // entries properly on fail over
               if (commitError == null) {
                 raft.getServiceManager().apply(indexed.index());
               } else {
+                // replicating the entry will be retried on the next append request
                 log.error("Failed to replicate entry: {}", indexed, commitError);
               }
             },

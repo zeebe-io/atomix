@@ -17,6 +17,7 @@ package io.atomix.protocols.raft.zeebe;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
@@ -61,8 +62,8 @@ import org.slf4j.LoggerFactory;
 public class ZeebeTest {
 
   // rough estimate of how many entries we'd need to write to fill a segment
-  // segments are configured for 1kb, and one entry takes ~20 bytes (plus some metadata I guess)
-  private static final int ENTRIES_PER_SEGMENT = (1024 / 20) + 1;
+  // segments are configured for 1kb, and one entry takes ~30 bytes (plus some metadata I guess)
+  private static final int ENTRIES_PER_SEGMENT = (1024 / 30) + 1;
 
   @Rule public final TemporaryFolder temporaryFolder = new TemporaryFolder();
 
@@ -120,7 +121,7 @@ public class ZeebeTest {
     final ZeebeLogAppender appender = helper.awaitLeaderAppender(partitionId);
 
     // when
-    final Indexed<ZeebeEntry> appended = appender.appendEntry(getIntAsBytes(0)).join();
+    final Indexed<ZeebeEntry> appended = appender.appendEntry(0, 0, getIntAsBytes(0)).join();
 
     // then
     helper.awaitAllContain(partitionId, appended);
@@ -134,9 +135,9 @@ public class ZeebeTest {
     final ZeebeLogAppender appender = helper.awaitLeaderAppender(partitionId);
 
     // when
-    final Indexed<ZeebeEntry> firstAppended = appender.appendEntry(getIntAsBytes(0)).join();
+    final Indexed<ZeebeEntry> firstAppended = appender.appendEntry(0, 0, getIntAsBytes(0)).join();
     for (int i = 1; i < ENTRIES_PER_SEGMENT; i++) {
-      helper.awaitAllContain(partitionId, appender.appendEntry(getIntAsBytes(i)).join());
+      helper.awaitAllContain(partitionId, appender.appendEntry(i, i, getIntAsBytes(i)).join());
     }
     server.snapshot().join();
 
@@ -152,10 +153,10 @@ public class ZeebeTest {
     final ZeebeLogAppender appender = helper.awaitLeaderAppender(partitionId);
 
     // when
-    Indexed<ZeebeEntry> appended = appender.appendEntry(getIntAsBytes(0)).join();
+    Indexed<ZeebeEntry> appended = appender.appendEntry(0, 0, getIntAsBytes(0)).join();
     final Indexed<ZeebeEntry> firstAppended = appended;
     for (int i = 1; i < ENTRIES_PER_SEGMENT; i++) {
-      appended = appender.appendEntry(getIntAsBytes(i)).join();
+      appended = appender.appendEntry(i, i, getIntAsBytes(i)).join();
       helper.awaitAllContain(partitionId, appended);
     }
     server.setCompactablePosition(appended.index(), appended.entry().term());
@@ -179,7 +180,7 @@ public class ZeebeTest {
     originalLeader.start(nodes).join();
 
     // then
-    assertTrue(nodes.size() == 1 || !originalLeader.equals(helper.awaitLeader(partitionId)));
+    assertNotEquals(originalLeader, helper.awaitLeader(partitionId));
   }
 
   @SuppressWarnings("squid:S2699") // awaitAllContain is the assert here
@@ -202,7 +203,7 @@ public class ZeebeTest {
           nodes.stream().filter(node -> !node.equals(follower)).collect(Collectors.toList());
       follower.stop().join();
 
-      entries.add(i, appender.appendEntry(getIntAsBytes(i)).join());
+      entries.add(i, appender.appendEntry(i, i, getIntAsBytes(i)).join());
       helper.awaitAllContains(others, partitionId, entries.get(i));
       follower.start(nodes).join();
     }
@@ -231,7 +232,7 @@ public class ZeebeTest {
 
     // when - then
     for (int i = 0; i < 5; i++) {
-      final Indexed<ZeebeEntry> entry = appender.appendEntry(getIntAsBytes(i)).join();
+      final Indexed<ZeebeEntry> entry = appender.appendEntry(i, i, getIntAsBytes(i)).join();
       helper.awaitAllContains(nodes, partitionId, entry);
 
       for (final ZeebeTestNode node : nodes) {
@@ -262,8 +263,11 @@ public class ZeebeTest {
     Futures.allOf(nodes.stream().map(ZeebeTestNode::stop)).get(30, TimeUnit.SECONDS);
   }
 
-  private byte[] getIntAsBytes(final int value) {
-    return ByteBuffer.allocate(Integer.BYTES).putInt(value).array();
+  private ByteBuffer getIntAsBytes(final int value) {
+    final ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
+    buffer.putInt(value).flip();
+
+    return buffer;
   }
 
   static class CommitListener implements RaftCommitListener {

@@ -80,6 +80,11 @@ class MappableJournalSegmentReader<E> implements JournalReader<E> {
   }
 
   @Override
+  public long getLastIndex() {
+    return reader.getLastIndex();
+  }
+
+  @Override
   public long getCurrentIndex() {
     return reader.getCurrentIndex();
   }
