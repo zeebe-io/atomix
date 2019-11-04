@@ -82,7 +82,7 @@ public class ZeebeTestNode {
     return cluster;
   }
 
-  RaftPartitionServer getPartitionServer(final int id) {
+  public RaftPartitionServer getPartitionServer(final int id) {
     return getPartition(id).getServer();
   }
 

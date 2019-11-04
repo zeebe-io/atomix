@@ -89,13 +89,16 @@ public class ZeebeTestHelper {
     try (final RaftLogReader reader = partition.openReader(indexed.index(), Mode.COMMITS)) {
 
       if (reader.hasNext() && reader.getNextIndex() == indexed.index()) {
-        final ZeebeEntry entry = reader.next().<ZeebeEntry>cast().entry();
-        return entry.term() == indexed.entry().term()
-            && Arrays.equals(entry.getData(), indexed.entry().getData());
+        return isEntryEqualTo(reader.next().cast(), indexed);
       }
     }
 
     return false;
+  }
+
+  public boolean isEntryEqualTo(final Indexed<ZeebeEntry> indexed, final Indexed<ZeebeEntry> other) {
+    return indexed.entry().term() == other.entry().term()
+        && Arrays.equals(indexed.entry().getData(), other.entry().getData());
   }
 
   public <T> T await(final Supplier<Optional<T>> supplier) {

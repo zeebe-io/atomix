@@ -15,12 +15,15 @@
  */
 package io.atomix.protocols.raft.zeebe;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 import com.google.common.base.Stopwatch;
+import io.atomix.protocols.raft.RaftCommitListener;
 import io.atomix.protocols.raft.partition.impl.RaftPartitionServer;
+import io.atomix.protocols.raft.storage.log.entry.RaftLogEntry;
 import io.atomix.protocols.raft.zeebe.util.ZeebeTestHelper;
 import io.atomix.protocols.raft.zeebe.util.ZeebeTestNode;
 import io.atomix.storage.journal.Indexed;
@@ -34,9 +37,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.junit.After;
@@ -207,6 +213,35 @@ public class ZeebeTest {
     }
   }
 
+  @Test
+  public void shouldNotifyCommitListeners() {
+    // given
+    final int partitionId = 1;
+    final ZeebeLogAppender appender = helper.awaitLeaderAppender(partitionId);
+    final Map<ZeebeTestNode, CommitListener> listeners =
+        nodes.stream()
+            .collect(
+                Collectors.toMap(
+                    Function.identity(),
+                    node -> {
+                      final CommitListener listener = new CommitListener();
+                      node.getPartitionServer(partitionId).addCommitListener(listener);
+                      return listener;
+                    }));
+
+    // when - then
+    for (int i = 0; i < 5; i++) {
+      final Indexed<ZeebeEntry> entry = appender.appendEntry(getIntAsBytes(i)).join();
+      helper.awaitAllContains(nodes, partitionId, entry);
+
+      for (final ZeebeTestNode node : nodes) {
+        final CommitListener listener = listeners.get(node);
+        assertEquals(i + 1, listener.calledCount.get());
+        assertTrue(helper.isEntryEqualTo(entry, listener.lastCommitted.get()));
+      }
+    }
+  }
+
   private static Function<TemporaryFolder, ZeebeTestNode> provideNode(final int id) {
     return tmp -> new ZeebeTestNode(id, newFolderUnchecked(tmp, id));
   }
@@ -229,5 +264,18 @@ public class ZeebeTest {
 
   private byte[] getIntAsBytes(final int value) {
     return ByteBuffer.allocate(Integer.BYTES).putInt(value).array();
+  }
+
+  static class CommitListener implements RaftCommitListener {
+    private final AtomicReference<Indexed<ZeebeEntry>> lastCommitted = new AtomicReference<>();
+    private final AtomicInteger calledCount = new AtomicInteger(0);
+
+    @Override
+    public <T extends RaftLogEntry> void onCommit(final Indexed<T> entry) {
+      if (entry.type() == ZeebeEntry.class) {
+        lastCommitted.set(entry.cast());
+        calledCount.incrementAndGet();
+      }
+    }
   }
 }
