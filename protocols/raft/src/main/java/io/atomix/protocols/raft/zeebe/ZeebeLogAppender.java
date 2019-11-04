@@ -16,7 +16,7 @@
 package io.atomix.protocols.raft.zeebe;
 
 import io.atomix.storage.journal.Indexed;
-
+import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 
 @FunctionalInterface
@@ -24,8 +24,11 @@ public interface ZeebeLogAppender {
   /**
    * Appends an entry to the local Raft log and schedules replication to each follower.
    *
+   * @param lowestPosition lowest record position in the data buffer
+   * @param highestPosition highest record position in the data buffer
    * @param data data to store in the entry
    * @return a future which is completed with the indexed entry without waiting for replication
    */
-  CompletableFuture<Indexed<ZeebeEntry>> appendEntry(byte[] data);
+  CompletableFuture<Indexed<ZeebeEntry>> appendEntry(
+      long lowestPosition, long highestPosition, ByteBuffer data);
 }

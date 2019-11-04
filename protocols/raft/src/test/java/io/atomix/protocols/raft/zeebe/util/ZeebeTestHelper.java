@@ -25,7 +25,6 @@ import io.atomix.protocols.raft.zeebe.ZeebeLogAppender;
 import io.atomix.storage.journal.Indexed;
 import io.atomix.storage.journal.JournalReader.Mode;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.locks.LockSupport;
@@ -96,9 +95,10 @@ public class ZeebeTestHelper {
     return false;
   }
 
-  public boolean isEntryEqualTo(final Indexed<ZeebeEntry> indexed, final Indexed<ZeebeEntry> other) {
+  public boolean isEntryEqualTo(
+      final Indexed<ZeebeEntry> indexed, final Indexed<ZeebeEntry> other) {
     return indexed.entry().term() == other.entry().term()
-        && Arrays.equals(indexed.entry().getData(), other.entry().getData());
+        && indexed.entry().data().equals(other.entry().data());
   }
 
   public <T> T await(final Supplier<Optional<T>> supplier) {

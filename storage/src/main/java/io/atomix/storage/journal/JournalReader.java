@@ -48,6 +48,14 @@ public interface JournalReader<E> extends Iterator<Indexed<E>>, AutoCloseable {
   long getFirstIndex();
 
   /**
+   * Returns the last index in the journal; if the reader is mode aware, should respect the given
+   * mode (e.g. return commit index if commits only).
+   *
+   * @return the last index in the journal
+   */
+  long getLastIndex();
+
+  /**
    * Returns the current reader index.
    *
    * @return The current reader index.

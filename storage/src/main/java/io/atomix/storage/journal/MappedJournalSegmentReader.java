@@ -34,7 +34,7 @@ class MappedJournalSegmentReader<E> implements JournalReader<E> {
   private final int maxEntrySize;
   private final JournalIndex index;
   private final Namespace namespace;
-  private final long firstIndex;
+  private final JournalSegment<E> segment;
   private Indexed<E> currentEntry;
   private Indexed<E> nextEntry;
 
@@ -48,13 +48,18 @@ class MappedJournalSegmentReader<E> implements JournalReader<E> {
     this.maxEntrySize = maxEntrySize;
     this.index = index;
     this.namespace = namespace;
-    this.firstIndex = segment.index();
+    this.segment = segment;
     reset();
   }
 
   @Override
   public long getFirstIndex() {
-    return firstIndex;
+    return segment.index();
+  }
+
+  @Override
+  public long getLastIndex() {
+    return segment.lastIndex();
   }
 
   @Override
@@ -69,7 +74,7 @@ class MappedJournalSegmentReader<E> implements JournalReader<E> {
 
   @Override
   public long getNextIndex() {
-    return currentEntry != null ? currentEntry.index() + 1 : firstIndex;
+    return currentEntry != null ? currentEntry.index() + 1 : getFirstIndex();
   }
 
   @Override

@@ -24,12 +24,14 @@ import com.google.common.collect.Multisets;
 import com.google.common.collect.Sets;
 import io.atomix.utils.Version;
 import io.atomix.utils.serializer.serializers.ArraysAsListSerializer;
+import io.atomix.utils.serializer.serializers.ByteBufferSerializer;
 import io.atomix.utils.serializer.serializers.ImmutableListSerializer;
 import io.atomix.utils.serializer.serializers.ImmutableMapSerializer;
 import io.atomix.utils.serializer.serializers.ImmutableSetSerializer;
 import io.atomix.utils.time.LogicalTimestamp;
 import io.atomix.utils.time.WallClockTimestamp;
 
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -105,6 +107,10 @@ public final class Namespaces {
       .register(LogicalTimestamp.class)
       .register(WallClockTimestamp.class)
       .register(Version.class)
+      .register(new ByteBufferSerializer(),
+          ByteBuffer.class,
+          ByteBuffer.allocate(1).getClass(),
+          ByteBuffer.allocateDirect(1).getClass())
       .build("BASIC");
 
   /**

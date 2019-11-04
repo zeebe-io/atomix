@@ -39,7 +39,7 @@ class FileChannelJournalSegmentReader<E> implements JournalReader<E> {
   private final JournalIndex index;
   private final Namespace namespace;
   private final ByteBuffer memory;
-  private final long firstIndex;
+  private final JournalSegment<E> segment;
   private Indexed<E> currentEntry;
   private Indexed<E> nextEntry;
 
@@ -54,13 +54,18 @@ class FileChannelJournalSegmentReader<E> implements JournalReader<E> {
     this.index = index;
     this.namespace = namespace;
     this.memory = ByteBuffer.allocate((maxEntrySize + Integer.BYTES + Integer.BYTES) * 2);
-    this.firstIndex = segment.index();
+    this.segment = segment;
     reset();
   }
 
   @Override
   public long getFirstIndex() {
-    return firstIndex;
+    return segment.index();
+  }
+
+  @Override
+  public long getLastIndex() {
+    return segment.lastIndex();
   }
 
   @Override
@@ -75,7 +80,7 @@ class FileChannelJournalSegmentReader<E> implements JournalReader<E> {
 
   @Override
   public long getNextIndex() {
-    return currentEntry != null ? currentEntry.index() + 1 : firstIndex;
+    return currentEntry != null ? currentEntry.index() + 1 : getFirstIndex();
   }
 
   @Override
