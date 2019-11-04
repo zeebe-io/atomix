@@ -20,6 +20,7 @@ import io.atomix.cluster.MemberId;
 import io.atomix.cluster.messaging.ClusterCommunicationService;
 import io.atomix.primitive.PrimitiveTypeRegistry;
 import io.atomix.primitive.partition.Partition;
+import io.atomix.protocols.raft.RaftCommitListener;
 import io.atomix.protocols.raft.RaftServer;
 import io.atomix.protocols.raft.RaftServer.Role;
 import io.atomix.protocols.raft.partition.RaftPartition;
@@ -36,6 +37,7 @@ import io.atomix.utils.serializer.Serializer;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.Consumer;
+import java.util.function.LongConsumer;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -65,6 +67,7 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
   private final PrimitiveTypeRegistry primitiveTypes;
   private final ThreadContextFactory threadContextFactory;
   private final Set<Consumer<Role>> deferredRoleChangeListeners = new CopyOnWriteArraySet<>();
+  private final Set<LongConsumer> commitListeners = new CopyOnWriteArraySet<>();
   private RaftServer server;
 
   public RaftPartitionServer(
@@ -171,6 +174,20 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
   public void removeRoleChangeListener(Consumer<Role> listener) {
     deferredRoleChangeListeners.remove(listener);
     server.removeRoleChangeListener(listener);
+  }
+
+  /**
+   * @see io.atomix.protocols.raft.impl.RaftContext#addCommitListener(RaftCommitListener)
+   */
+  public void addCommitListener(RaftCommitListener commitListener) {
+    server.getContext().addCommitListener(commitListener);
+  }
+
+  /**
+   * @see io.atomix.protocols.raft.impl.RaftContext#removeCommitListener(RaftCommitListener)
+   */
+  public void removeCommitListener(RaftCommitListener commitListener) {
+    server.getContext().removeCommitListener(commitListener);
   }
 
   /**

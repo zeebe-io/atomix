@@ -23,6 +23,7 @@ import static io.atomix.utils.concurrent.Threads.namedThreads;
 import io.atomix.cluster.ClusterMembershipService;
 import io.atomix.cluster.MemberId;
 import io.atomix.primitive.PrimitiveTypeRegistry;
+import io.atomix.protocols.raft.RaftCommitListener;
 import io.atomix.protocols.raft.RaftError;
 import io.atomix.protocols.raft.RaftException;
 import io.atomix.protocols.raft.RaftServer;
@@ -55,11 +56,13 @@ import io.atomix.protocols.raft.storage.RaftStorage;
 import io.atomix.protocols.raft.storage.log.RaftLog;
 import io.atomix.protocols.raft.storage.log.RaftLogReader;
 import io.atomix.protocols.raft.storage.log.RaftLogWriter;
+import io.atomix.protocols.raft.storage.log.entry.RaftLogEntry;
 import io.atomix.protocols.raft.storage.snapshot.SnapshotStore;
 import io.atomix.protocols.raft.storage.system.MetaStore;
 import io.atomix.protocols.raft.utils.LoadMonitor;
 import io.atomix.protocols.raft.utils.LoadMonitorFactory;
 import io.atomix.storage.StorageException;
+import io.atomix.storage.journal.Indexed;
 import io.atomix.utils.concurrent.ComposableFuture;
 import io.atomix.utils.concurrent.SingleThreadContext;
 import io.atomix.utils.concurrent.ThreadContext;
@@ -90,6 +93,7 @@ public class RaftContext implements AutoCloseable {
   private final Set<Consumer<RaftServer.Role>> roleChangeListeners = new CopyOnWriteArraySet<>();
   private final Set<Consumer<State>> stateChangeListeners = new CopyOnWriteArraySet<>();
   private final Set<Consumer<RaftMember>> electionListeners = new CopyOnWriteArraySet<>();
+  private final Set<RaftCommitListener> commitListeners = new CopyOnWriteArraySet<>();
   protected final String name;
   protected final ThreadContext threadContext;
   protected final PrimitiveTypeRegistry primitiveTypes;
@@ -278,6 +282,36 @@ public class RaftContext implements AutoCloseable {
   public void removeLeaderElectionListener(Consumer<RaftMember> listener) {
     electionListeners.remove(listener);
   }
+
+  /**
+   * Adds a new commit listener, which will be notified whenever the commit position changes. Note
+   * that it will be called on the Raft thread, and as such should not perform any heavy
+   * computation.
+   *
+   * @param commitListener the listener to add
+   */
+  public void addCommitListener(final RaftCommitListener commitListener) {
+    commitListeners.add(commitListener);
+  }
+
+  /**
+   * Removes a previously registered commit listener, or does nothing.
+   *
+   * @param commitListener the listener to remove
+   */
+  public void removeCommitListener(final RaftCommitListener commitListener) {
+    commitListeners.remove(commitListener);
+  }
+
+  /**
+   * Notifies all listeners of the latest entry.
+   *
+   * @param latestEntry latest committed entry
+   */
+  public <T extends RaftLogEntry> void notifyCommitListeners(final Indexed<T> latestEntry) {
+    commitListeners.forEach(listener -> listener.onCommit(latestEntry));
+  }
+
 
   /**
    * Returns the execution context.

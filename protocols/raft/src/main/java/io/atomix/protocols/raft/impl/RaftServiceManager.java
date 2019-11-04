@@ -46,6 +46,7 @@ import io.atomix.protocols.raft.storage.log.entry.RaftLogEntry;
 import io.atomix.protocols.raft.storage.snapshot.Snapshot;
 import io.atomix.protocols.raft.storage.snapshot.SnapshotReader;
 import io.atomix.protocols.raft.storage.snapshot.SnapshotWriter;
+import io.atomix.protocols.raft.zeebe.ZeebeEntry;
 import io.atomix.storage.journal.Indexed;
 import io.atomix.utils.AtomixIOException;
 import io.atomix.utils.concurrent.ComposableFuture;
@@ -431,6 +432,8 @@ public class RaftServiceManager implements RaftStateMachine {
   @SuppressWarnings("unchecked")
   public <T> CompletableFuture<T> apply(Indexed<? extends RaftLogEntry> entry) {
     CompletableFuture<T> future = new CompletableFuture<>();
+    raft.notifyCommitListeners(entry);
+
     stateContext.execute(() -> {
       logger.trace("Applying {}", entry);
       try {
@@ -470,6 +473,8 @@ public class RaftServiceManager implements RaftStateMachine {
             future.complete((T) applyInitialize(entry.cast()));
           } else if (entry.type() == ConfigurationEntry.class) {
             future.complete((T) applyConfiguration(entry.cast()));
+          } else if (entry.type() == ZeebeEntry.class) {
+            future.complete(null);
           } else {
             future.completeExceptionally(new RaftException.ProtocolException("Unknown entry type"));
           }

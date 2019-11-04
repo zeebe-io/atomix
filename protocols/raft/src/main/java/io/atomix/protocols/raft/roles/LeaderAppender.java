@@ -135,16 +135,10 @@ final class LeaderAppender extends AbstractAppender {
       return CompletableFuture.completedFuture(index);
     }
 
-    // If there are no other stateful servers in the cluster, immediately commit the index.
-    if (raft.getCluster().getActiveMemberStates().isEmpty() && raft.getCluster().getPassiveMemberStates().isEmpty()) {
-      long previousCommitIndex = raft.getCommitIndex();
-      raft.setCommitIndex(index);
-      completeCommits(previousCommitIndex, index);
-      return CompletableFuture.completedFuture(index);
-    }
+    // If there are no other stateful servers in the cluster, immediately commit the index OR
     // If there are no other active members in the cluster, update the commit index and complete the commit.
     // The updated commit index will be sent to passive/reserve members on heartbeats.
-    else if (raft.getCluster().getActiveMemberStates().isEmpty()) {
+    if (raft.getCluster().getActiveMemberStates().isEmpty()) {
       long previousCommitIndex = raft.getCommitIndex();
       raft.setCommitIndex(index);
       completeCommits(previousCommitIndex, index);

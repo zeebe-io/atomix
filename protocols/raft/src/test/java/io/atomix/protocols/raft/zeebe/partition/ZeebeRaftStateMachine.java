@@ -17,13 +17,9 @@ package io.atomix.protocols.raft.zeebe.partition;
 
 import io.atomix.protocols.raft.impl.RaftContext;
 import io.atomix.protocols.raft.impl.RaftServiceManager;
-import io.atomix.protocols.raft.storage.log.entry.RaftLogEntry;
-import io.atomix.protocols.raft.zeebe.ZeebeEntry;
-import io.atomix.storage.journal.Indexed;
 import io.atomix.utils.concurrent.ThreadContext;
 import io.atomix.utils.concurrent.ThreadContextFactory;
 import java.time.Duration;
-import java.util.concurrent.CompletableFuture;
 
 public class ZeebeRaftStateMachine extends RaftServiceManager {
   private static final Duration SNAPSHOT_COMPLETION_DELAY = Duration.ofMillis(0);
@@ -57,15 +53,6 @@ public class ZeebeRaftStateMachine extends RaftServiceManager {
   @Override
   public long getCompactableTerm() {
     return compactableTerm;
-  }
-
-  @Override
-  public <T> CompletableFuture<T> apply(final Indexed<? extends RaftLogEntry> entry) {
-    if (entry.type() == ZeebeEntry.class) {
-      return CompletableFuture.completedFuture(null);
-    }
-
-    return super.apply(entry);
   }
 
   @Override
