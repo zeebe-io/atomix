@@ -38,15 +38,13 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
   }
 
   private final SegmentedJournal<RaftLogEntry> journal;
-  private final boolean flushOnCommit;
   private final RaftLogWriter writer;
   private volatile long commitIndex;
 
-  protected RaftLog(SegmentedJournal<RaftLogEntry> journal, boolean flushOnCommit) {
+  protected RaftLog(SegmentedJournal<RaftLogEntry> journal) {
     super(journal);
     this.journal = journal;
-    this.flushOnCommit = flushOnCommit;
-    this.writer = new RaftLogWriter(journal.writer(), this);
+    this.writer = new RaftLogWriter(journal.writer());
   }
 
   @Override
@@ -62,15 +60,6 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
   @Override
   public RaftLogReader openReader(long index, RaftLogReader.Mode mode) {
     return new RaftLogReader(journal.openReader(index, mode), this, mode);
-  }
-
-  /**
-   * Returns whether {@code flushOnCommit} is enabled for the log.
-   *
-   * @return Indicates whether {@code flushOnCommit} is enabled for the log.
-   */
-  boolean isFlushOnCommit() {
-    return flushOnCommit;
   }
 
   /**
@@ -126,10 +115,7 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
    * Raft log builder.
    */
   public static class Builder implements io.atomix.utils.Builder<RaftLog> {
-    private static final boolean DEFAULT_FLUSH_ON_COMMIT = false;
-
     private final SegmentedJournal.Builder<RaftLogEntry> journalBuilder = SegmentedJournal.builder();
-    private boolean flushOnCommit = DEFAULT_FLUSH_ON_COMMIT;
 
     protected Builder() {
     }
@@ -299,13 +285,13 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
      * @return The storage builder.
      */
     public Builder withFlushOnCommit(boolean flushOnCommit) {
-      this.flushOnCommit = flushOnCommit;
+      journalBuilder.withFlushOnCommit(flushOnCommit);
       return this;
     }
 
     @Override
     public RaftLog build() {
-      return new RaftLog(journalBuilder.build(), flushOnCommit);
+      return new RaftLog(journalBuilder.build());
     }
   }
 }
