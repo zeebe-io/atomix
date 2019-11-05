@@ -36,6 +36,7 @@ class RaftMessageContext {
   final String pollSubject;
   final String voteSubject;
   final String appendSubject;
+  final String leaderHeartbeatSubject;
 
   RaftMessageContext(String prefix) {
     this.prefix = prefix;
@@ -55,6 +56,7 @@ class RaftMessageContext {
     this.pollSubject = getSubject(prefix, "poll");
     this.voteSubject = getSubject(prefix, "vote");
     this.appendSubject = getSubject(prefix, "append");
+    this.leaderHeartbeatSubject = getSubject(prefix, "leaderHeartbeat");
   }
 
   private static String getSubject(String prefix, String type) {

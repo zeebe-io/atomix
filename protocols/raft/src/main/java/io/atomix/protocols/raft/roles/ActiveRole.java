@@ -19,6 +19,7 @@ import io.atomix.protocols.raft.RaftServer;
 import io.atomix.protocols.raft.impl.RaftContext;
 import io.atomix.protocols.raft.protocol.AppendRequest;
 import io.atomix.protocols.raft.protocol.AppendResponse;
+import io.atomix.protocols.raft.protocol.LeaderHeartbeatRequest;
 import io.atomix.protocols.raft.protocol.PollRequest;
 import io.atomix.protocols.raft.protocol.PollResponse;
 import io.atomix.protocols.raft.protocol.RaftRequest;
@@ -58,6 +59,22 @@ public abstract class ActiveRole extends PassiveRole {
       raft.transition(RaftServer.Role.FOLLOWER);
     }
     return future;
+  }
+
+  @Override
+  public void onLeaderHeartbeat(LeaderHeartbeatRequest request) {
+    raft.checkHeartbeatThread();
+    logRequest(request);
+
+    // If the request indicates a term that is greater than the current term then
+    // assign that term and leader to the current context and transition to follower.
+    boolean transition = updateTermAndLeader(request.term(), request.leader());
+
+    // If a transition is required then transition back to the follower state.
+    // If the node is already a follower then the transition will be ignored.
+    if (transition) {
+      raft.transition(RaftServer.Role.FOLLOWER);
+    }
   }
 
   @Override

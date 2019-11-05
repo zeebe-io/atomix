@@ -43,6 +43,7 @@ import io.atomix.protocols.raft.protocol.JoinRequest;
 import io.atomix.protocols.raft.protocol.JoinResponse;
 import io.atomix.protocols.raft.protocol.KeepAliveRequest;
 import io.atomix.protocols.raft.protocol.KeepAliveResponse;
+import io.atomix.protocols.raft.protocol.LeaderHeartbeatRequest;
 import io.atomix.protocols.raft.protocol.LeaveRequest;
 import io.atomix.protocols.raft.protocol.LeaveResponse;
 import io.atomix.protocols.raft.protocol.MetadataRequest;
@@ -152,6 +153,7 @@ public final class RaftNamespaces {
       .register(Instant.class)
       .register(Configuration.class)
       .register(ZeebeEntry.class)
+      .register(LeaderHeartbeatRequest.class)
       .build("RaftProtocol");
 
   /**
