@@ -50,14 +50,21 @@ public class AppendRequest extends AbstractRaftRequest {
   private final long prevLogTerm;
   private final List<RaftLogEntry> entries;
   private final long commitIndex;
+  private final long size;
 
-  public AppendRequest(long term, String leader, long prevLogIndex, long prevLogTerm, List<RaftLogEntry> entries, long commitIndex) {
+  public long getSize() {
+    return size;
+  }
+
+  public AppendRequest(long term, String leader, long prevLogIndex, long prevLogTerm,
+      List<RaftLogEntry> entries, long commitIndex, long size) {
     this.term = term;
     this.leader = leader;
     this.prevLogIndex = prevLogIndex;
     this.prevLogTerm = prevLogTerm;
     this.entries = entries;
     this.commitIndex = commitIndex;
+    this.size = size;
   }
 
   /**
@@ -155,6 +162,7 @@ public class AppendRequest extends AbstractRaftRequest {
     private long logTerm;
     private List<RaftLogEntry> entries;
     private long commitIndex = -1;
+    private int size = 0;
 
     /**
      * Sets the request term.
@@ -274,7 +282,12 @@ public class AppendRequest extends AbstractRaftRequest {
     @Override
     public AppendRequest build() {
       validate();
-      return new AppendRequest(term, leader, logIndex, logTerm, entries, commitIndex);
+      return new AppendRequest(term, leader, logIndex, logTerm, entries, commitIndex, size);
+    }
+
+    public Builder withSize(int size) {
+      this.size = size;
+      return this;
     }
   }
 }

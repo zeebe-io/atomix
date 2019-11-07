@@ -15,6 +15,8 @@
  */
 package io.atomix.protocols.raft.roles;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 import io.atomix.primitive.PrimitiveException;
 import io.atomix.protocols.raft.RaftError;
 import io.atomix.protocols.raft.RaftException;
@@ -22,6 +24,7 @@ import io.atomix.protocols.raft.RaftServer;
 import io.atomix.protocols.raft.ReadConsistency;
 import io.atomix.protocols.raft.impl.OperationResult;
 import io.atomix.protocols.raft.impl.RaftContext;
+import io.atomix.protocols.raft.metrics.FollowerMetrics;
 import io.atomix.protocols.raft.protocol.AppendRequest;
 import io.atomix.protocols.raft.protocol.AppendResponse;
 import io.atomix.protocols.raft.protocol.CloseSessionRequest;
@@ -60,20 +63,19 @@ import io.atomix.protocols.raft.storage.snapshot.SnapshotWriter;
 import io.atomix.storage.StorageException;
 import io.atomix.storage.journal.Indexed;
 import io.atomix.utils.time.WallClockTimestamp;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-
-import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Passive state.
  */
 public class PassiveRole extends InactiveRole {
   private PendingSnapshot pendingSnapshot;
+  private final FollowerMetrics metrics;
 
   public PassiveRole(RaftContext context) {
     super(context);
+    metrics = new FollowerMetrics(context.getName());
   }
 
   @Override
@@ -112,18 +114,22 @@ public class PassiveRole extends InactiveRole {
   protected CompletableFuture<AppendResponse> handleAppend(final AppendRequest request) {
     CompletableFuture<AppendResponse> future = new CompletableFuture<>();
 
-    // Check that the term of the given request matches the local term or update the term.
-    if (!checkTerm(request, future)) {
-      return future;
-    }
+    metrics.observeAppendLatency(
+        () -> {
+          // Check that the term of the given request matches the local term or update the term.
+          if (!checkTerm(request, future)) {
+            return;
+          }
 
-    // Check that the previous index/term matches the local log's last entry.
-    if (!checkPreviousEntry(request, future)) {
-      return future;
-    }
+          // Check that the previous index/term matches the local log's last entry.
+          if (!checkPreviousEntry(request, future)) {
+            return;
+          }
 
-    // Append the entries to the log.
-    appendEntries(request, future);
+          // Append the entries to the log.
+          appendEntries(request, future);
+          return;
+        });
     return future;
   }
 

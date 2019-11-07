@@ -150,7 +150,7 @@ abstract class AbstractAppender implements AutoCloseable {
     }
 
     // Add the entries to the request builder and build the request.
-    return builder.withEntries(entries).build();
+    return builder.withEntries(entries).withSize(size).build();
   }
 
   private AppendRequest.Builder builderWithPreviousEntry(Indexed<RaftLogEntry> prevEntry) {
@@ -188,25 +188,33 @@ abstract class AbstractAppender implements AutoCloseable {
     long timestamp = System.currentTimeMillis();
 
     log.trace("Sending {} to {}", request, member.getMember().memberId());
-    raft.getProtocol().append(member.getMember().memberId(), request).whenCompleteAsync((response, error) -> {
-      // Complete the append to the member.
-      final long appendLatency = System.currentTimeMillis() - timestamp;
-      metrics.appendComplete(appendLatency, member.getMember().memberId().id());
-      if (!request.entries().isEmpty()) {
-        member.completeAppend(appendLatency);
-      } else {
-        member.completeAppend();
-      }
+    raft.getProtocol()
+        .append(member.getMember().memberId(), request)
+        .whenCompleteAsync(
+            (response, error) -> {
+              // Complete the append to the member.
+              final long appendLatency = System.currentTimeMillis() - timestamp;
+              if (appendLatency >= 2000) { // > 2s
+                log.info("Append latency {} for request with num entries {}, size {}", appendLatency, request.entries().size(), request.getSize());
+              }
+              if (!request.entries().isEmpty()) {
+                member.completeAppend(appendLatency);
+              } else {
+                member.completeAppend();
+              }
 
-      if (open) {
-        if (error == null) {
-          log.trace("Received {} from {}", response, member.getMember().memberId());
-          handleAppendResponse(member, request, response, timestamp);
-        } else {
-          handleAppendResponseFailure(member, request, error);
-        }
-      }
-    }, raft.getThreadContext());
+              if (open) {
+                if (error == null) {
+                  log.trace("Received {} from {}", response, member.getMember().memberId());
+                  metrics.appendComplete(appendLatency, member.getMember().memberId().id());
+                  handleAppendResponse(member, request, response, timestamp);
+                } else {
+                  handleAppendResponseFailure(member, request, error);
+                  metrics.appendFailed(member.getMember().memberId().id());
+                }
+              }
+            },
+            raft.getThreadContext());
 
     if (!request.entries().isEmpty() && hasMoreEntries(member)) {
       appendEntries(member);

@@ -15,35 +15,35 @@
  */
 package io.atomix.protocols.raft.metrics;
 
-import io.prometheus.client.Counter;
 import io.prometheus.client.Histogram;
 
-public class LeaderMetrics extends RaftMetrics {
+public class FollowerMetrics extends RaftMetrics {
 
   private static final Histogram APPEND_LATENCY =
       Histogram.build()
           .namespace("atomix")
-          .name("append_entries_latency")
-          .help("Latency to append an entry to a follower")
-          .labelNames("follower", "partition")
-          .register();
-  private static final Counter APPEND_FAILED_COUNT =
-      Counter.build()
-          .namespace("atomix")
-          .name("append_entries_failed_count")
-          .help("Latency to append an entry to a follower")
-          .labelNames("follower", "partition")
+          .name("follower_append_entries_time")
+          .help("Time to append an request in a follower")
+          .labelNames("partition")
           .register();
 
-  public LeaderMetrics(String partitionName) {
+  private static final Histogram APPEND_LATENCY_PER_ENTRY =
+      Histogram.build()
+          .namespace("atomix")
+          .name("follower_append_latency_per_entry_time")
+          .help("Time to append an entry in a follower")
+          .labelNames("partition")
+          .register();
+
+  public FollowerMetrics(String partitionName) {
     super(partitionName);
   }
 
-  public void appendComplete(long latencyms, String memberId) {
-    APPEND_LATENCY.labels(memberId, partition).observe(latencyms / 1000f);
+  public double observeAppendLatency(Runnable append) {
+    return APPEND_LATENCY.labels(partition).time(append);
   }
 
-  public void appendFailed(String follower) {
-    APPEND_FAILED_COUNT.labels(follower, partition).inc();
+  public double observeAppendLatencyEntry(Runnable appendEntry) {
+    return APPEND_LATENCY_PER_ENTRY.labels(partition).time(appendEntry);
   }
 }
