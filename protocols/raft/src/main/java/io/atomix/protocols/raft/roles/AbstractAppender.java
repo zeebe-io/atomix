@@ -15,6 +15,8 @@
  */
 package io.atomix.protocols.raft.roles;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.atomix.protocols.raft.RaftServer;
 import io.atomix.protocols.raft.cluster.impl.DefaultRaftMember;
 import io.atomix.protocols.raft.cluster.impl.RaftMemberContext;
@@ -35,19 +37,17 @@ import io.atomix.protocols.raft.storage.snapshot.SnapshotReader;
 import io.atomix.storage.journal.Indexed;
 import io.atomix.utils.logging.ContextualLoggerFactory;
 import io.atomix.utils.logging.LoggerContext;
-import org.slf4j.Logger;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.Optional;
+import org.slf4j.Logger;
 
 /**
  * Abstract appender.
  */
 abstract class AbstractAppender implements AutoCloseable {
-  private static final int MAX_BATCH_SIZE = 1024 * 32;
+  private final int maxBatchSize;
   protected final Logger log;
   protected final RaftContext raft;
   protected boolean open = true;
@@ -59,6 +59,10 @@ abstract class AbstractAppender implements AutoCloseable {
         .addValue(raft.getName())
         .build());
     this.metrics = new LeaderMetrics(raft.getName());
+    this.maxBatchSize =
+        Optional.ofNullable(System.getenv().get("ATOMIX_RAFT_MAX_BATCH_SIZE"))
+            .map(Integer::valueOf)
+            .orElse(1024 * 32);
   }
 
   /**
@@ -144,7 +148,7 @@ abstract class AbstractAppender implements AutoCloseable {
       Indexed<RaftLogEntry> entry = reader.next();
       entries.add(entry.entry());
       size += entry.size();
-      if (entry.index() == lastIndex || size >= MAX_BATCH_SIZE) {
+      if (entry.index() == lastIndex || size >= maxBatchSize) {
         break;
       }
     }
@@ -464,8 +468,8 @@ abstract class AbstractAppender implements AutoCloseable {
       // Open a new snapshot reader.
       try (SnapshotReader reader = snapshot.openReader()) {
         // Skip to the next batch of bytes according to the snapshot chunk size and current offset.
-        reader.skip(member.getNextSnapshotOffset() * MAX_BATCH_SIZE);
-        byte[] data = new byte[Math.min(MAX_BATCH_SIZE, reader.remaining())];
+        reader.skip(member.getNextSnapshotOffset() * maxBatchSize);
+        byte[] data = new byte[Math.min(maxBatchSize, reader.remaining())];
         reader.read(data);
 
         // Create the install request, indicating whether this is the last chunk of data based on the number

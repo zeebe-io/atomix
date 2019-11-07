@@ -17,6 +17,7 @@ package io.atomix.protocols.raft.cluster.impl;
 
 import io.atomix.protocols.raft.storage.log.RaftLog;
 import io.atomix.protocols.raft.storage.log.RaftLogReader;
+import java.util.Optional;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -27,7 +28,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Cluster member state.
  */
 public final class RaftMemberContext {
-  private static final int MAX_APPENDS = 2;
+  private final int maxAppends;
   private static final int APPEND_WINDOW_SIZE = 8;
   private final DefaultRaftMember member;
   private long term;
@@ -50,6 +51,9 @@ public final class RaftMemberContext {
 
   RaftMemberContext(DefaultRaftMember member, RaftClusterContext cluster) {
     this.member = checkNotNull(member, "member cannot be null").setCluster(cluster);
+    this.maxAppends = Optional.ofNullable(System.getenv().get("ATOMIX_RAFT_MAX_APPENDS_IN_FLIGHT"))
+        .map(Integer::valueOf)
+        .orElse(2);
   }
 
   /**
@@ -214,7 +218,8 @@ public final class RaftMemberContext {
    * @return Indicates whether an append request can be sent to the member.
    */
   public boolean canAppend() {
-    return appending == 0 || (appendSucceeded && appending < MAX_APPENDS && System.currentTimeMillis() - (timeStats.getMean() / MAX_APPENDS) >= appendTime);
+    return appending == 0 || (appendSucceeded && appending < maxAppends
+        && System.currentTimeMillis() - (timeStats.getMean() / maxAppends) >= appendTime);
   }
 
   /**
