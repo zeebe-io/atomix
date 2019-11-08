@@ -196,6 +196,11 @@ public final class FollowerRole extends ActiveRole {
   @Override
   public void onLeaderHeartbeat(LeaderHeartbeatRequest request) {
     logRequest(request);
+
+    // If the request indicates a term that is greater than the current term then
+    // assign that term and leader to the current context
+    raft.getThreadContext().execute(() -> updateTermAndLeader(request.term(), request.leader()));
+
     // Reset the heartbeat timeout.
     resetHeartbeatTimeoutFromHeartbeatThread();
   }

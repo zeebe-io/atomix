@@ -19,7 +19,6 @@ import io.atomix.cluster.MemberId;
 import io.atomix.primitive.PrimitiveId;
 import io.atomix.primitive.session.SessionId;
 import io.atomix.protocols.raft.ReadConsistency;
-import io.atomix.protocols.raft.TestPrimitiveType;
 import io.atomix.protocols.raft.impl.RaftContext;
 import io.atomix.protocols.raft.impl.RaftServiceManager;
 import io.atomix.protocols.raft.protocol.RaftServerProtocol;
