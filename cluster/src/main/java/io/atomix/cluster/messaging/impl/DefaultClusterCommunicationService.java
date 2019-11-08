@@ -15,6 +15,8 @@
  */
 package io.atomix.cluster.messaging.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import io.atomix.cluster.ClusterMembershipService;
@@ -23,15 +25,20 @@ import io.atomix.cluster.MemberId;
 import io.atomix.cluster.messaging.ClusterCommunicationService;
 import io.atomix.cluster.messaging.ManagedClusterCommunicationService;
 import io.atomix.cluster.messaging.MessagingService;
+import io.atomix.cluster.messaging.TracedMessage;
 import io.atomix.cluster.messaging.UnicastService;
 import io.atomix.utils.concurrent.Futures;
 import io.atomix.utils.net.Address;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import io.opentracing.Scope;
+import io.opentracing.Span;
+import io.opentracing.SpanContext;
+import io.opentracing.propagation.Format.Builtin;
+import io.opentracing.propagation.TextMapExtractAdapter;
+import io.opentracing.util.GlobalTracer;
 import java.net.ConnectException;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -41,8 +48,8 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Cluster communication service implementation.
@@ -255,7 +262,29 @@ public class DefaultClusterCommunicationService implements ManagedClusterCommuni
 
     @Override
     public CompletableFuture<byte[]> apply(Address sender, byte[] bytes) {
-      return handler.apply(decoder.apply(bytes)).thenApply(encoder);
+      final Scope scope = GlobalTracer.get().buildSpan("netty-receiver").startActive(true);
+      final M apply = decoder.apply(bytes);
+      final Optional<Span> handlerSpan;
+      if(apply instanceof TracedMessage) {
+        final TracedMessage request = (TracedMessage) apply;
+        final SpanContext spanContext = GlobalTracer.get()
+            .extract(Builtin.TEXT_MAP, new TextMapExtractAdapter(request.getSpanContext()));
+        handlerSpan =
+            Optional.of(
+                GlobalTracer.get()
+                    .buildSpan("netty-receiver-handler")
+                    .asChildOf(spanContext)
+                    .asChildOf(scope.span())
+                    .start());
+      } else {
+        handlerSpan = Optional.empty();
+      }
+
+      return handler.apply(apply)
+          .whenComplete((r, e) -> {
+            handlerSpan.ifPresent(Span::finish);
+          })
+          .thenApply(encoder).whenComplete((r, e) -> scope.close());
     }
   }
 

@@ -16,10 +16,14 @@
 package io.atomix.protocols.raft.protocol;
 
 import io.atomix.cluster.MemberId;
+import io.atomix.cluster.messaging.TracedMessage;
 import io.atomix.protocols.raft.storage.log.entry.RaftLogEntry;
 
+import io.opentracing.propagation.TextMap;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -33,8 +37,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * to followers to replicate and commit log entries, and followers sent append requests to passive members
  * to replicate committed log entries.
  */
-public class AppendRequest extends AbstractRaftRequest {
-
+public class AppendRequest extends AbstractRaftRequest implements TracedMessage {
   /**
    * Returns a new append request builder.
    *
@@ -44,6 +47,8 @@ public class AppendRequest extends AbstractRaftRequest {
     return new Builder();
   }
 
+
+  private final Map<String, String> spanContext = new HashMap<>();
   private final long term;
   private final String leader;
   private final long prevLogIndex;
@@ -51,6 +56,10 @@ public class AppendRequest extends AbstractRaftRequest {
   private final List<RaftLogEntry> entries;
   private final long commitIndex;
   private final long size;
+
+  public Map<String, String> getSpanContext() {
+    return spanContext;
+  }
 
   public long getSize() {
     return size;

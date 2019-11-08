@@ -17,6 +17,8 @@ package io.atomix.protocols.raft.protocol;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
+import java.util.UUID;
+
 /**
  * Base request for all client requests.
  */

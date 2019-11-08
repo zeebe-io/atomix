@@ -15,34 +15,7 @@
  */
 package io.atomix.cluster.messaging.impl;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLException;
-import javax.net.ssl.TrustManagerFactory;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.net.InetAddress;
-import java.security.Key;
-import java.security.KeyStore;
-import java.security.MessageDigest;
-import java.security.cert.Certificate;
-import java.time.Duration;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Optional;
-import java.util.OptionalInt;
-import java.util.StringJoiner;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Function;
+import static io.atomix.utils.concurrent.Threads.namedThreads;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
@@ -81,10 +54,38 @@ import io.netty.handler.ssl.ClientAuth;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.util.concurrent.Future;
+import io.opentracing.Span;
+import io.opentracing.util.GlobalTracer;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.net.InetAddress;
+import java.security.Key;
+import java.security.KeyStore;
+import java.security.MessageDigest;
+import java.security.cert.Certificate;
+import java.time.Duration;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.StringJoiner;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.TrustManagerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static io.atomix.utils.concurrent.Threads.namedThreads;
 
 /**
  * Netty based MessagingService.
@@ -278,11 +279,27 @@ public class NettyMessagingService implements ManagedMessagingService {
         returnAddress,
         type,
         payload);
+
+    final Span span =
+        GlobalTracer.get()
+            .buildSpan("netty-sender")
+            .withTag("messageId", messageId)
+            .withTag("sender", returnAddress.toString())
+            .withTag("dest", address.toString())
+            .start();
+    final CompletableFuture<byte[]> completableFuture;
     if (keepAlive) {
-      return executeOnPooledConnection(address, type, c -> c.sendAndReceive(message, timeout), executor);
+      completableFuture =
+          executeOnPooledConnection(
+              address, type, c -> c.sendAndReceive(message, timeout), executor);
     } else {
-      return executeOnTransientConnection(address, c -> c.sendAndReceive(message, timeout), executor);
+      completableFuture =
+          executeOnTransientConnection(address, c -> c.sendAndReceive(message, timeout), executor);
     }
+    return completableFuture.whenComplete(
+        (r, e) -> {
+          span.finish();
+        });
   }
 
   /**

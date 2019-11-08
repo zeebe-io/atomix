@@ -37,6 +37,12 @@ import io.atomix.protocols.raft.storage.snapshot.SnapshotReader;
 import io.atomix.storage.journal.Indexed;
 import io.atomix.utils.logging.ContextualLoggerFactory;
 import io.atomix.utils.logging.LoggerContext;
+import io.opentracing.Scope;
+import io.opentracing.Span;
+import io.opentracing.propagation.Format;
+import io.opentracing.propagation.Format.Builtin;
+import io.opentracing.propagation.TextMapInjectAdapter;
+import io.opentracing.util.GlobalTracer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -189,14 +195,17 @@ abstract class AbstractAppender implements AutoCloseable {
     // Start the append to the member.
     member.startAppend();
 
-    long timestamp = System.currentTimeMillis();
+    final Scope scope = GlobalTracer.get().buildSpan("leader-appender").ignoreActiveSpan().startActive(true);
+    GlobalTracer.get().inject(scope.span().context(), Builtin.TEXT_MAP, new TextMapInjectAdapter(request.getSpanContext()));
 
+    long timestamp = System.currentTimeMillis();
     log.trace("Sending {} to {}", request, member.getMember().memberId());
     raft.getProtocol()
         .append(member.getMember().memberId(), request)
         .whenCompleteAsync(
             (response, error) -> {
               // Complete the append to the member.
+              scope.close();
               final long appendLatency = System.currentTimeMillis() - timestamp;
               if (appendLatency >= 2000) { // > 2s
                 log.info("Append latency {} for request with num entries {}, size {}", appendLatency, request.entries().size(), request.getSize());
