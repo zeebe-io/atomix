@@ -206,6 +206,7 @@ abstract class AbstractAppender implements AutoCloseable {
               } else {
                 member.completeAppend();
               }
+              metrics.appendRequestSize(request.getSize());
 
               if (open) {
                 if (error == null) {

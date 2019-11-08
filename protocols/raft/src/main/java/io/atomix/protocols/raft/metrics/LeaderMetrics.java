@@ -35,6 +35,14 @@ public class LeaderMetrics extends RaftMetrics {
           .labelNames("follower", "partition")
           .register();
 
+  private static final Histogram APPEND_REQUEST_SIZE =
+      Histogram.build()
+          .namespace("atomix")
+          .name("append_request_size")
+          .help("Size of an append request 0.1 KB")
+          .labelNames("partition")
+          .register();
+
   public LeaderMetrics(String partitionName) {
     super(partitionName);
   }
@@ -45,5 +53,9 @@ public class LeaderMetrics extends RaftMetrics {
 
   public void appendFailed(String follower) {
     APPEND_FAILED_COUNT.labels(follower, partition).inc();
+  }
+
+  public void appendRequestSize(long size) {
+    APPEND_REQUEST_SIZE.labels(partition).observe(size / 10000f);
   }
 }
