@@ -31,7 +31,7 @@ import io.atomix.primitive.operation.OperationId;
 import io.atomix.primitive.session.SessionId;
 import io.atomix.protocols.raft.RaftError;
 import io.atomix.protocols.raft.RaftException;
-import io.atomix.protocols.raft.TestPrimitiveType;
+import io.atomix.protocols.raft.session.TestPrimitiveType;
 import io.atomix.protocols.raft.protocol.CommandRequest;
 import io.atomix.protocols.raft.protocol.CommandResponse;
 import io.atomix.protocols.raft.protocol.QueryRequest;

@@ -57,13 +57,7 @@
         <property name="message" value="Line has trailing spaces."/>
     </module>
 
-    <!-- Checks for Headers                                -->
-    <!-- See http://checkstyle.sf.net/config_header.html   -->
-    <module name="RegexpHeader">
-        <!-- The following line is different for maven due to how the maven checkstyle plugin works -->
-        <property name="headerFile" value="src/main/resources/atomix.header"/>
-        <property name="fileExtensions" value="java"/>
-    </module>
+    
 
     <module name="TreeWalker">
 

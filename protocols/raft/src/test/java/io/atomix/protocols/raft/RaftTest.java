@@ -23,44 +23,32 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import io.atomix.cluster.ClusterMembershipService;
 import io.atomix.cluster.MemberId;
-import io.atomix.primitive.AbstractAsyncPrimitive;
-import io.atomix.primitive.AsyncPrimitive;
-import io.atomix.primitive.PrimitiveBuilder;
 import io.atomix.primitive.PrimitiveException;
 import io.atomix.primitive.PrimitiveInfo;
-import io.atomix.primitive.PrimitiveManagementService;
 import io.atomix.primitive.PrimitiveRegistry;
 import io.atomix.primitive.PrimitiveState;
 import io.atomix.primitive.PrimitiveType;
-import io.atomix.primitive.SyncPrimitive;
-import io.atomix.primitive.config.PrimitiveConfig;
-import io.atomix.primitive.event.Event;
-import io.atomix.primitive.operation.Command;
 import io.atomix.primitive.operation.OperationType;
 import io.atomix.primitive.operation.PrimitiveOperation;
-import io.atomix.primitive.operation.Query;
 import io.atomix.primitive.operation.impl.DefaultOperationId;
 import io.atomix.primitive.partition.PartitionId;
-import io.atomix.primitive.protocol.PrimitiveProtocol;
 import io.atomix.primitive.proxy.ProxyClient;
 import io.atomix.primitive.proxy.impl.DefaultProxyClient;
-import io.atomix.primitive.service.AbstractPrimitiveService;
-import io.atomix.primitive.service.BackupInput;
-import io.atomix.primitive.service.BackupOutput;
-import io.atomix.primitive.service.PrimitiveService;
 import io.atomix.primitive.service.ServiceConfig;
-import io.atomix.primitive.session.Session;
 import io.atomix.primitive.session.SessionClient;
-import io.atomix.primitive.session.SessionId;
 import io.atomix.primitive.session.SessionMetadata;
+import io.atomix.protocols.raft.RaftServer.Role;
 import io.atomix.protocols.raft.cluster.RaftClusterEvent;
 import io.atomix.protocols.raft.cluster.RaftMember;
 import io.atomix.protocols.raft.cluster.impl.DefaultRaftMember;
-import io.atomix.protocols.raft.impl.RaftContext;
-import io.atomix.protocols.raft.impl.RaftServiceManager;
+import io.atomix.protocols.raft.primitive.FakeStateMachine;
+import io.atomix.protocols.raft.primitive.TestMember;
+import io.atomix.protocols.raft.primitive.TestPrimitive;
+import io.atomix.protocols.raft.primitive.TestPrimitiveImpl;
+import io.atomix.protocols.raft.primitive.TestPrimitiveService;
+import io.atomix.protocols.raft.primitive.TestPrimitiveType;
 import io.atomix.protocols.raft.protocol.TestRaftProtocolFactory;
 import io.atomix.protocols.raft.storage.RaftStorage;
 import io.atomix.protocols.raft.storage.log.entry.CloseSessionEntry;
@@ -80,9 +68,7 @@ import io.atomix.storage.statistics.StorageStatistics;
 import io.atomix.utils.concurrent.Futures;
 import io.atomix.utils.concurrent.SingleThreadContext;
 import io.atomix.utils.concurrent.ThreadContext;
-import io.atomix.utils.concurrent.ThreadContextFactory;
 import io.atomix.utils.serializer.Namespace;
-import io.atomix.utils.serializer.Serializer;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -107,7 +93,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -117,6 +102,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
 /**
  * Raft test.
@@ -146,7 +132,7 @@ public class RaftTest extends ConcurrentTestCase {
       .register(long[].class)
       .build();
 
-  private static AtomicLong snapshots = new AtomicLong(0);
+  public static AtomicLong snapshots = new AtomicLong(0);
 
   protected volatile int nextId;
   protected volatile List<RaftMember> members;
@@ -959,6 +945,40 @@ public class RaftTest extends ConcurrentTestCase {
     testManyEventsAfterLeaderShutdown(3);
   }
 
+
+  /**
+   * Tests submitting linearizable events.
+   */
+  @Test
+  public void testThreeNodesAndRestartFollower() throws Throwable {
+    // given
+    List<RaftServer> servers = createServers(3);
+
+    RaftClient client = createClient();
+    TestPrimitive primitive = createPrimitive(client);
+    primitive.onEvent(event -> {
+      threadAssertNotNull(event);
+      resume();
+    });
+
+    RaftServer follower = servers.stream().filter(s -> s.getRole() == Role.FOLLOWER).findFirst().get();
+    final MemberId memberId = new MemberId(follower.name());
+    follower.shutdown().get(10, TimeUnit.SECONDS);
+
+    for (int i = 0; i < 1_000; i++) {
+      primitive.sendEvent(true).thenRun(this::resume);
+      await(30000, 2);
+    }
+
+    // when
+    LoggerFactory.getLogger(RaftTest.class).error("====\nRestart!\n====");
+    members.removeIf(r -> r.memberId().equals(memberId));
+    createServer(memberId).bootstrap(members.stream().map(RaftMember::memberId).collect(Collectors.toList())).thenRun(this::resume);
+
+    // then
+    await(30000);
+  }
+
   /**
    * Tests submitting linearizable events.
    */
@@ -1358,7 +1378,8 @@ public class RaftTest extends ConcurrentTestCase {
                     createServer(entry.getKey(),
                         builder ->
                             builder
-                                .withStorage(entry.getValue()).withLoadMonitorFactory(FakeLoadMonitor::new).withStateMachineFactory(FakeStateMachine::new))));
+                                .withStorage(entry.getValue()).withLoadMonitorFactory(FakeLoadMonitor::new).withStateMachineFactory(
+                                FakeStateMachine::new))));
     // wait for cluster to start
     startCluster(servers);
 
@@ -1678,317 +1699,4 @@ public class RaftTest extends ConcurrentTestCase {
     protocolFactory = new TestRaftProtocolFactory(context);
   }
 
-  public static class TestPrimitiveType implements PrimitiveType {
-    private static final TestPrimitiveType INSTANCE = new TestPrimitiveType();
-
-    @Override
-    public String name() {
-      return "raft-test";
-    }
-
-    @Override
-    public PrimitiveConfig newConfig() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public PrimitiveBuilder newBuilder(String primitiveName, PrimitiveConfig config, PrimitiveManagementService managementService) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public PrimitiveService newService(ServiceConfig config) {
-      return new TestPrimitiveServiceImpl(config);
-    }
-  }
-
-  /**
-   * Test primitive.
-   */
-  public interface TestPrimitive extends AsyncPrimitive {
-    CompletableFuture<Long> write(String value);
-
-    CompletableFuture<Long> read();
-
-    CompletableFuture<Long> sendEvent(boolean sender);
-
-    CompletableFuture<Void> onEvent(Consumer<Long> callback);
-
-    CompletableFuture<Void> onExpire(Consumer<String> callback);
-
-    CompletableFuture<Void> onClose(Consumer<String> callback);
-  }
-
-  /**
-   * Test primitive client interface.
-   */
-  public interface TestPrimitiveClient {
-    @Event("event")
-    void event(long index);
-
-    @Event("expire")
-    void expire(String value);
-
-    @Event("close")
-    void close(String value);
-  }
-
-  /**
-   * Test primitive service interface.
-   */
-  public interface TestPrimitiveService {
-    @Command
-    long write(String value);
-
-    @Query
-    long read();
-
-    @Command
-    long sendEvent(boolean sender);
-
-    @Command
-    void onExpire();
-
-    @Command
-    void onClose();
-  }
-
-  public static class TestPrimitiveImpl
-      extends AbstractAsyncPrimitive<TestPrimitive, TestPrimitiveService>
-      implements TestPrimitive, TestPrimitiveClient {
-    private final Set<Consumer<Long>> eventListeners = Sets.newCopyOnWriteArraySet();
-    private final Set<Consumer<String>> expireListeners = Sets.newCopyOnWriteArraySet();
-    private final Set<Consumer<String>> closeListeners = Sets.newCopyOnWriteArraySet();
-
-    public TestPrimitiveImpl(ProxyClient<TestPrimitiveService> proxy, PrimitiveRegistry registry) {
-      super(proxy, registry);
-    }
-
-    @Override
-    public PrimitiveProtocol protocol() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public CompletableFuture<Long> write(String value) {
-      return getProxyClient().applyBy(name(), service -> service.write(value));
-    }
-
-    @Override
-    public CompletableFuture<Long> read() {
-      return getProxyClient().applyBy(name(), service -> service.read());
-    }
-
-    @Override
-    public CompletableFuture<Long> sendEvent(boolean sender) {
-      return getProxyClient().applyBy(name(), service -> service.sendEvent(sender));
-    }
-
-    @Override
-    public CompletableFuture<Void> onEvent(Consumer<Long> callback) {
-      eventListeners.add(callback);
-      return CompletableFuture.completedFuture(null);
-    }
-
-    @Override
-    public CompletableFuture<Void> onExpire(Consumer<String> callback) {
-      expireListeners.add(callback);
-      return getProxyClient().acceptBy(name(), service -> service.onExpire());
-    }
-
-    @Override
-    public CompletableFuture<Void> onClose(Consumer<String> callback) {
-      closeListeners.add(callback);
-      return getProxyClient().acceptBy(name(), service -> service.onClose());
-    }
-
-    @Override
-    public void event(long index) {
-      eventListeners.forEach(l -> l.accept(index));
-    }
-
-    @Override
-    public void expire(String value) {
-      expireListeners.forEach(l -> l.accept(value));
-    }
-
-    @Override
-    public void close(String value) {
-      closeListeners.forEach(l -> l.accept(value));
-    }
-
-    @Override
-    public SyncPrimitive sync() {
-      return null;
-    }
-
-    @Override
-    public SyncPrimitive sync(Duration operationTimeout) {
-      return null;
-    }
-  }
-
-
-  /**
-   * Test state machine.
-   */
-  public static class TestPrimitiveServiceImpl extends AbstractPrimitiveService<TestPrimitiveClient> implements TestPrimitiveService {
-    private SessionId expire;
-    private SessionId close;
-
-    public TestPrimitiveServiceImpl(ServiceConfig config) {
-      super(TestPrimitiveType.INSTANCE, TestPrimitiveClient.class);
-    }
-
-    @Override
-    public Serializer serializer() {
-      return Serializer.using(TestPrimitiveType.INSTANCE.namespace());
-    }
-
-    @Override
-    public void onExpire(Session session) {
-      if (expire != null) {
-        getSession(expire).accept(client -> client.expire("Hello world!"));
-      }
-    }
-
-    @Override
-    public void onClose(Session session) {
-      if (close != null && !session.sessionId().equals(close)) {
-        getSession(close).accept(client -> client.close("Hello world!"));
-      }
-    }
-
-    @Override
-    public void backup(BackupOutput writer) {
-      snapshots.incrementAndGet();
-      writer.writeLong(10);
-    }
-
-    @Override
-    public void restore(BackupInput reader) {
-      assertEquals(10, reader.readLong());
-    }
-
-    @Override
-    public long write(String value) {
-      return getCurrentIndex();
-    }
-
-    @Override
-    public long read() {
-      return getCurrentIndex();
-    }
-
-    @Override
-    public long sendEvent(boolean sender) {
-      if (sender) {
-        getCurrentSession().accept(service -> service.event(getCurrentIndex()));
-      } else {
-        for (Session<TestPrimitiveClient> session : getSessions()) {
-          session.accept(service -> service.event(getCurrentIndex()));
-        }
-      }
-      return getCurrentIndex();
-    }
-
-    @Override
-    public void onExpire() {
-      expire = getCurrentSession().sessionId();
-    }
-
-    @Override
-    public void onClose() {
-      close = getCurrentSession().sessionId();
-    }
-  }
-
-  /**
-   * Test member.
-   */
-  public static class TestMember implements RaftMember {
-    private final MemberId memberId;
-    private final Type type;
-
-    TestMember(MemberId memberId, Type type) {
-      this.memberId = memberId;
-      this.type = type;
-    }
-
-    @Override
-    public MemberId memberId() {
-      return memberId;
-    }
-
-    @Override
-    public Type getType() {
-      return type;
-    }
-
-    @Override
-    public int hash() {
-      return 0;
-    }
-
-    @Override
-    public void addTypeChangeListener(Consumer<Type> listener) {
-
-    }
-
-    @Override
-    public void removeTypeChangeListener(Consumer<Type> listener) {
-
-    }
-
-    @Override
-    public Instant getLastUpdated() {
-      return null;
-    }
-
-    @Override
-    public CompletableFuture<Void> promote() {
-      return null;
-    }
-
-    @Override
-    public CompletableFuture<Void> promote(Type type) {
-      return null;
-    }
-
-    @Override
-    public CompletableFuture<Void> demote() {
-      return null;
-    }
-
-    @Override
-    public CompletableFuture<Void> demote(Type type) {
-      return null;
-    }
-
-    @Override
-    public CompletableFuture<Void> remove() {
-      return null;
-    }
-  }
-
-  private static class FakeStateMachine extends RaftServiceManager {
-    FakeStateMachine(final RaftContext context, final ThreadContext threadContext, final ThreadContextFactory threadContextFactory) {
-      super(context, threadContext, threadContextFactory);
-    }
-
-    @Override
-    protected Duration getSnapshotInterval() {
-      return Duration.ofMillis(10);
-    }
-
-    @Override
-    protected Duration getSnapshotCompletionDelay() {
-      return Duration.ZERO;
-    }
-
-    @Override
-    protected Duration getCompactDelay() {
-      return Duration.ZERO;
-    }
-  }
 }

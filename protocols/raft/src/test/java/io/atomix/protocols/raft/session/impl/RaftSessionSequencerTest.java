@@ -16,7 +16,7 @@
 package io.atomix.protocols.raft.session.impl;
 
 import io.atomix.primitive.session.SessionId;
-import io.atomix.protocols.raft.TestPrimitiveType;
+import io.atomix.protocols.raft.session.TestPrimitiveType;
 import io.atomix.protocols.raft.protocol.CommandResponse;
 import io.atomix.protocols.raft.protocol.PublishRequest;
 import io.atomix.protocols.raft.protocol.QueryResponse;

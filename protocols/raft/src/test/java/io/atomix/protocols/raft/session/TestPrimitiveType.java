@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.atomix.protocols.raft;
+package io.atomix.protocols.raft.session;
 
 import io.atomix.primitive.PrimitiveBuilder;
 import io.atomix.primitive.config.PrimitiveConfig;
@@ -26,7 +26,7 @@ import io.atomix.primitive.service.ServiceConfig;
  * Test primitive type.
  */
 public class TestPrimitiveType implements PrimitiveType {
-  private static final TestPrimitiveType INSTANCE = new TestPrimitiveType();
+  static final TestPrimitiveType INSTANCE = new TestPrimitiveType();
 
   /**
    * Returns a singleton instance.
