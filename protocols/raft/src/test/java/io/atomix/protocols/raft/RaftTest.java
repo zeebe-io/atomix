@@ -201,8 +201,8 @@ public class RaftTest extends ConcurrentTestCase {
     createServers(3);
     RaftClient client = createClient();
     TestPrimitive primitive = createPrimitive(client);
-    submit(primitive, 0, 100);
-    await(15000);
+    submit(primitive, 100);
+    await(15000, 100);
     RaftServer joiner = createServer(nextNodeId());
     joiner.addRoleChangeListener(s -> {
       if (s == role) {
@@ -215,22 +215,20 @@ public class RaftTest extends ConcurrentTestCase {
       joiner.listen(members.stream().map(RaftMember::memberId).collect(Collectors.toList())).thenRun(this::resume);
     }
     await(15000, 2);
-    submit(primitive, 0, 10);
-    await(15000);
+    submit(primitive, 10);
+    await(15000, 10);
     Thread.sleep(5000);
   }
 
   /**
    * Submits a bunch of commands recursively.
    */
-  private void submit(TestPrimitive primitive, int count, int total) {
-    if (count < total) {
+  private void submit(TestPrimitive primitive, int total) {
+    for (int i = 0; i < total; i++) {
       primitive.write("Hello world!").whenComplete((result, error) -> {
         threadAssertNull(error);
-        submit(primitive, count + 1, total);
+        resume();
       });
-    } else {
-      resume();
     }
   }
 
@@ -243,13 +241,13 @@ public class RaftTest extends ConcurrentTestCase {
     List<RaftServer> servers = createServers(3);
     RaftClient client = createClient();
     TestPrimitive primitive = createPrimitive(client);
-    submit(primitive, 0, 1000);
+    submit(primitive, 1000);
     RaftServer follower = servers.stream()
         .filter(RaftServer::isFollower)
         .findFirst()
         .get();
     follower.promote().thenRun(this::resume);
-    await(15000, 2);
+    await(15000, 1001);
     assertTrue(follower.isLeader());
   }
 
@@ -261,15 +259,14 @@ public class RaftTest extends ConcurrentTestCase {
     List<RaftServer> servers = createServers(3);
     RaftClient client = createClient();
     TestPrimitive primitive = createPrimitive(client);
-    submit(primitive, 0, 100);
-    await(30000);
-    Thread.sleep(15000);
+    submit(primitive, 100);
+    await(30000, 100);
     servers.get(0).shutdown().get(10, TimeUnit.SECONDS);
     RaftServer server = createServer(members.get(0).memberId());
     server.join(members.stream().map(RaftMember::memberId).collect(Collectors.toList())).thenRun(this::resume);
     await(30000);
-    submit(primitive, 0, 100);
-    await(30000);
+    submit(primitive, 100);
+    await(30000, 100);
   }
 
   /**
@@ -490,9 +487,9 @@ public class RaftTest extends ConcurrentTestCase {
     final int entrySize = 1024;
     final String entry = RandomStringUtils.random(entrySize);
     for (int i = 0; i < entries; i++) {
-      primitive.write(entry)
-               .get(1_000, TimeUnit.MILLISECONDS);
+      primitive.write(entry).whenComplete((v, t) -> resume());
     }
+    await(10_000, entries);
 
     // when
     CompletableFuture
@@ -967,8 +964,8 @@ public class RaftTest extends ConcurrentTestCase {
 
     for (int i = 0; i < 1_000; i++) {
       primitive.sendEvent(true).thenRun(this::resume);
-      await(30000, 2);
     }
+    await(30000, 2 * 1000);
 
     // when
     LoggerFactory.getLogger(RaftTest.class).error("====\nRestart!\n====");
@@ -977,6 +974,58 @@ public class RaftTest extends ConcurrentTestCase {
 
     // then
     await(30000);
+  }
+
+  /**
+   * Tests submitting linearizable events.
+   */
+  @Test
+  public void testThreeNodesAndRestartLeader() throws Throwable {
+    // given
+    List<RaftServer> servers = createServers(3);
+
+    RaftClient client = createClient();
+    TestPrimitive primitive = createPrimitive(client);
+    primitive.onEvent(event -> {
+      threadAssertNotNull(event);
+      resume();
+    });
+
+    RaftServer leader = servers.stream().filter(s -> s.getRole() == Role.LEADER).findFirst().get();
+    final MemberId memberId = new MemberId(leader.name());
+    leader.shutdown().get(10, TimeUnit.SECONDS);
+
+    for (int i = 0; i < 1_000; i++) {
+      primitive.sendEvent(true).thenRun(this::resume);
+    }
+    await(30000, 2 * 1000);
+
+    // when
+    LoggerFactory.getLogger(RaftTest.class).error("====\nRestart!\n====");
+    members.removeIf(r -> r.memberId().equals(memberId));
+    createServer(memberId).bootstrap(members.stream().map(RaftMember::memberId).collect(Collectors.toList())).thenRun(this::resume);
+
+    // then
+    await(30000);
+  }
+
+  @Test
+  public void testThreeNodesSequentiallyStart() throws Throwable {
+    // given
+    for (int i = 0; i < 3; i++) {
+      members.add(nextMember(RaftMember.Type.ACTIVE));
+    }
+
+    // wait between bootstraps to produce more realistic environment
+    for (int i = 0; i < 3; i++) {
+      RaftServer server = createServer(members.get(i).memberId());
+      server.bootstrap(members.stream().map(RaftMember::memberId).collect(Collectors.toList())).thenRun(this::resume);
+      Thread.sleep(500);
+    }
+
+    //then expect that all come up in time
+    await(2000 * 3, 3);
+
   }
 
   /**
@@ -1458,8 +1507,8 @@ public class RaftTest extends ConcurrentTestCase {
 
   private void fillSegment(TestPrimitive primitive) throws InterruptedException, ExecutionException, TimeoutException {
     final String entry = RandomStringUtils.randomAscii(1024);
-    primitive.write(entry).get(5, TimeUnit.SECONDS);
-    IntStream.range(0, 10 - 1).forEach(i -> primitive.write(entry).join());
+    IntStream.range(0, 10).forEach(i -> primitive.write(entry).whenComplete((v, t) -> resume()));
+    await(10_000, 10);
   }
 
   /**
