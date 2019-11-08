@@ -15,30 +15,20 @@
  */
 package io.atomix.protocols.raft.protocol;
 
-import io.atomix.protocols.raft.RaftError;
-
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 
+import io.atomix.protocols.raft.RaftError;
+import java.util.Objects;
+
 /**
  * Server poll response.
- * <p>
- * Poll responses are sent by active servers in response to poll requests by followers to indicate
- * whether the responding server would vote for the requesting server if it were a candidate. This is
- * indicated by the {@link #accepted()} field of the response.
+ *
+ * <p>Poll responses are sent by active servers in response to poll requests by followers to
+ * indicate whether the responding server would vote for the requesting server if it were a
+ * candidate. This is indicated by the {@link #accepted()} field of the response.
  */
 public class PollResponse extends AbstractRaftResponse {
-
-  /**
-   * Returns a new poll response builder.
-   *
-   * @return A new poll response builder.
-   */
-  public static Builder builder() {
-    return new Builder();
-  }
 
   private final long term;
   private final boolean accepted;
@@ -47,6 +37,15 @@ public class PollResponse extends AbstractRaftResponse {
     super(status, error);
     this.term = term;
     this.accepted = accepted;
+  }
+
+  /**
+   * Returns a new poll response builder.
+   *
+   * @return A new poll response builder.
+   */
+  public static Builder builder() {
+    return new Builder();
   }
 
   /**
@@ -75,10 +74,8 @@ public class PollResponse extends AbstractRaftResponse {
   @Override
   public boolean equals(Object object) {
     if (object instanceof PollResponse) {
-      PollResponse response = (PollResponse) object;
-      return response.status == status
-          && response.term == term
-          && response.accepted == accepted;
+      final PollResponse response = (PollResponse) object;
+      return response.status == status && response.term == term && response.accepted == accepted;
     }
     return false;
   }
@@ -92,17 +89,13 @@ public class PollResponse extends AbstractRaftResponse {
           .add("accepted", accepted)
           .toString();
     } else {
-      return toStringHelper(this)
-          .add("status", status)
-          .add("error", error)
-          .toString();
+      return toStringHelper(this).add("status", status).add("error", error).toString();
     }
   }
 
-  /**
-   * Poll response builder.
-   */
+  /** Poll response builder. */
   public static class Builder extends AbstractRaftResponse.Builder<Builder, PollResponse> {
+
     private long term = -1;
     private boolean accepted;
 
@@ -131,17 +124,17 @@ public class PollResponse extends AbstractRaftResponse {
     }
 
     @Override
+    public PollResponse build() {
+      validate();
+      return new PollResponse(status, error, term, accepted);
+    }
+
+    @Override
     protected void validate() {
       super.validate();
       if (status == Status.OK) {
         checkArgument(term >= 0, "term must be positive");
       }
-    }
-
-    @Override
-    public PollResponse build() {
-      validate();
-      return new PollResponse(status, error, term, accepted);
     }
   }
 }

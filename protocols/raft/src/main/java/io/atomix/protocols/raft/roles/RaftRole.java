@@ -48,12 +48,9 @@ import io.atomix.protocols.raft.protocol.TransferResponse;
 import io.atomix.protocols.raft.protocol.VoteRequest;
 import io.atomix.protocols.raft.protocol.VoteResponse;
 import io.atomix.utils.Managed;
-
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Raft role interface.
- */
+/** Raft role interface. */
 public interface RaftRole extends Managed<RaftRole> {
 
   /**
@@ -186,5 +183,4 @@ public interface RaftRole extends Managed<RaftRole> {
   default void onLeaderHeartbeat(LeaderHeartbeatRequest request) {
     // default just accepts it
   }
-
 }

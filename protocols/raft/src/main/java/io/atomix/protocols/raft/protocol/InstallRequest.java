@@ -15,36 +15,26 @@
  */
 package io.atomix.protocols.raft.protocol;
 
-import io.atomix.cluster.MemberId;
-import io.atomix.utils.misc.ArraySizeHashPrinter;
-
-import java.util.Arrays;
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import io.atomix.cluster.MemberId;
+import io.atomix.utils.misc.ArraySizeHashPrinter;
+import java.util.Arrays;
+import java.util.Objects;
+
 /**
  * Server snapshot installation request.
- * <p>
- * Snapshot installation requests are sent by the leader to a follower when the follower indicates
- * that its log is further behind than the last snapshot taken by the leader. Snapshots are sent
- * in chunks, with each chunk being sent in a separate install request. As requests are received by
- * the follower, the snapshot is reconstructed based on the provided {@link #chunkOffset()} and other
- * metadata. The last install request will be sent with {@link #complete()} being {@code true} to
- * indicate that all chunks of the snapshot have been sent.
+ *
+ * <p>Snapshot installation requests are sent by the leader to a follower when the follower
+ * indicates that its log is further behind than the last snapshot taken by the leader. Snapshots
+ * are sent in chunks, with each chunk being sent in a separate install request. As requests are
+ * received by the follower, the snapshot is reconstructed based on the provided {@link
+ * #chunkOffset()} and other metadata. The last install request will be sent with {@link
+ * #complete()} being {@code true} to indicate that all chunks of the snapshot have been sent.
  */
 public class InstallRequest extends AbstractRaftRequest {
-
-  /**
-   * Returns a new install request builder.
-   *
-   * @return A new install request builder.
-   */
-  public static Builder builder() {
-    return new Builder();
-  }
 
   private final long term;
   private final MemberId leader;
@@ -56,7 +46,16 @@ public class InstallRequest extends AbstractRaftRequest {
   private final byte[] data;
   private final boolean complete;
 
-  public InstallRequest(long term, MemberId leader, long index, long snapshotTerm, long timestamp, int version, int offset, byte[] data, boolean complete) {
+  public InstallRequest(
+      long term,
+      MemberId leader,
+      long index,
+      long snapshotTerm,
+      long timestamp,
+      int version,
+      int offset,
+      byte[] data,
+      boolean complete) {
     this.term = term;
     this.leader = leader;
     this.index = index;
@@ -66,6 +65,15 @@ public class InstallRequest extends AbstractRaftRequest {
     this.data = data;
     this.complete = complete;
     this.snapshotTerm = snapshotTerm;
+  }
+
+  /**
+   * Returns a new install request builder.
+   *
+   * @return A new install request builder.
+   */
+  public static Builder builder() {
+    return new Builder();
   }
 
   /**
@@ -157,7 +165,7 @@ public class InstallRequest extends AbstractRaftRequest {
   @Override
   public boolean equals(Object object) {
     if (object instanceof InstallRequest) {
-      InstallRequest request = (InstallRequest) object;
+      final InstallRequest request = (InstallRequest) object;
       return request.term == term
           && request.leader == leader
           && request.index == index
@@ -184,10 +192,9 @@ public class InstallRequest extends AbstractRaftRequest {
         .toString();
   }
 
-  /**
-   * Snapshot request builder.
-   */
+  /** Snapshot request builder. */
   public static class Builder extends AbstractRaftRequest.Builder<Builder, InstallRequest> {
+
     private long term;
     private MemberId leader;
     private long index;
@@ -300,6 +307,14 @@ public class InstallRequest extends AbstractRaftRequest {
       return this;
     }
 
+    /** @throws IllegalStateException if member is null */
+    @Override
+    public InstallRequest build() {
+      validate();
+      return new InstallRequest(
+          term, leader, index, snapshotTerm, timestamp, version, offset, data, complete);
+    }
+
     @Override
     protected void validate() {
       super.validate();
@@ -310,15 +325,5 @@ public class InstallRequest extends AbstractRaftRequest {
       checkArgument(offset >= 0, "offset must be positive");
       checkNotNull(data, "data cannot be null");
     }
-
-    /**
-     * @throws IllegalStateException if member is null
-     */
-    @Override
-    public InstallRequest build() {
-      validate();
-      return new InstallRequest(term, leader, index,  snapshotTerm, timestamp, version, offset, data, complete);
-    }
   }
-
 }

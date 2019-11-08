@@ -15,14 +15,13 @@
  */
 package io.atomix.protocols.raft.storage.log.entry;
 
-import io.atomix.protocols.raft.storage.log.RaftLog;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-/**
- * Stores a state change in a {@link RaftLog}.
- */
+import io.atomix.protocols.raft.storage.log.RaftLog;
+
+/** Stores a state change in a {@link RaftLog}. */
 public abstract class RaftLogEntry {
+
   protected final long term;
 
   public RaftLogEntry(long term) {
@@ -40,8 +39,6 @@ public abstract class RaftLogEntry {
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("term", term)
-        .toString();
+    return toStringHelper(this).add("term", term).toString();
   }
 }

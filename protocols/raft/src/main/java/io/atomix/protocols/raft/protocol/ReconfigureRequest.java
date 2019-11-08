@@ -15,26 +15,14 @@
  */
 package io.atomix.protocols.raft.protocol;
 
-import io.atomix.protocols.raft.cluster.RaftMember;
-
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 
-/**
- * Member configuration change request.
- */
-public class ReconfigureRequest extends ConfigurationRequest {
+import io.atomix.protocols.raft.cluster.RaftMember;
+import java.util.Objects;
 
-  /**
-   * Returns a new reconfigure request builder.
-   *
-   * @return A new reconfigure request builder.
-   */
-  public static Builder builder() {
-    return new Builder();
-  }
+/** Member configuration change request. */
+public class ReconfigureRequest extends ConfigurationRequest {
 
   private final long index;
   private final long term;
@@ -43,6 +31,15 @@ public class ReconfigureRequest extends ConfigurationRequest {
     super(member);
     this.index = index;
     this.term = term;
+  }
+
+  /**
+   * Returns a new reconfigure request builder.
+   *
+   * @return A new reconfigure request builder.
+   */
+  public static Builder builder() {
+    return new Builder();
   }
 
   /**
@@ -71,7 +68,7 @@ public class ReconfigureRequest extends ConfigurationRequest {
   @Override
   public boolean equals(Object object) {
     if (object instanceof ReconfigureRequest) {
-      ReconfigureRequest request = (ReconfigureRequest) object;
+      final ReconfigureRequest request = (ReconfigureRequest) object;
       return request.index == index && request.term == term && request.member.equals(member);
     }
     return false;
@@ -86,10 +83,9 @@ public class ReconfigureRequest extends ConfigurationRequest {
         .toString();
   }
 
-  /**
-   * Reconfigure request builder.
-   */
+  /** Reconfigure request builder. */
   public static class Builder extends ConfigurationRequest.Builder<Builder, ReconfigureRequest> {
+
     private long index = -1;
     private long term = -1;
 
@@ -118,16 +114,16 @@ public class ReconfigureRequest extends ConfigurationRequest {
     }
 
     @Override
+    public ReconfigureRequest build() {
+      validate();
+      return new ReconfigureRequest(member, index, term);
+    }
+
+    @Override
     protected void validate() {
       super.validate();
       checkArgument(index >= 0, "index must be positive");
       checkArgument(term >= 0, "term must be positive");
-    }
-
-    @Override
-    public ReconfigureRequest build() {
-      validate();
-      return new ReconfigureRequest(member, index, term);
     }
   }
 }

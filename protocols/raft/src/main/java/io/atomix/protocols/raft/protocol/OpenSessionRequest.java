@@ -15,29 +15,17 @@
  */
 package io.atomix.protocols.raft.protocol;
 
-import io.atomix.cluster.MemberId;
-import io.atomix.primitive.PrimitiveType;
-import io.atomix.protocols.raft.ReadConsistency;
-
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Open session request.
- */
-public class OpenSessionRequest extends AbstractRaftRequest {
+import io.atomix.cluster.MemberId;
+import io.atomix.primitive.PrimitiveType;
+import io.atomix.protocols.raft.ReadConsistency;
+import java.util.Objects;
 
-  /**
-   * Returns a new open session request builder.
-   *
-   * @return A new open session request builder.
-   */
-  public static Builder builder() {
-    return new Builder();
-  }
+/** Open session request. */
+public class OpenSessionRequest extends AbstractRaftRequest {
 
   private final String node;
   private final String name;
@@ -47,7 +35,14 @@ public class OpenSessionRequest extends AbstractRaftRequest {
   private final long minTimeout;
   private final long maxTimeout;
 
-  public OpenSessionRequest(String node, String name, String typeName, byte[] config, ReadConsistency readConsistency, long minTimeout, long maxTimeout) {
+  public OpenSessionRequest(
+      String node,
+      String name,
+      String typeName,
+      byte[] config,
+      ReadConsistency readConsistency,
+      long minTimeout,
+      long maxTimeout) {
     this.node = node;
     this.name = name;
     this.typeName = typeName;
@@ -55,6 +50,15 @@ public class OpenSessionRequest extends AbstractRaftRequest {
     this.readConsistency = readConsistency;
     this.minTimeout = minTimeout;
     this.maxTimeout = maxTimeout;
+  }
+
+  /**
+   * Returns a new open session request builder.
+   *
+   * @return A new open session request builder.
+   */
+  public static Builder builder() {
+    return new Builder();
   }
 
   /**
@@ -128,7 +132,7 @@ public class OpenSessionRequest extends AbstractRaftRequest {
   @Override
   public boolean equals(Object object) {
     if (object instanceof OpenSessionRequest) {
-      OpenSessionRequest request = (OpenSessionRequest) object;
+      final OpenSessionRequest request = (OpenSessionRequest) object;
       return request.node.equals(node)
           && request.name.equals(name)
           && request.typeName.equals(typeName)
@@ -151,10 +155,9 @@ public class OpenSessionRequest extends AbstractRaftRequest {
         .toString();
   }
 
-  /**
-   * Open session request builder.
-   */
+  /** Open session request builder. */
   public static class Builder extends AbstractRaftRequest.Builder<Builder, OpenSessionRequest> {
+
     private String memberId;
     private String serviceName;
     private String serviceType;
@@ -249,6 +252,20 @@ public class OpenSessionRequest extends AbstractRaftRequest {
       return this;
     }
 
+    /** @throws IllegalStateException is session is not positive */
+    @Override
+    public OpenSessionRequest build() {
+      validate();
+      return new OpenSessionRequest(
+          memberId,
+          serviceName,
+          serviceType,
+          serviceConfig,
+          readConsistency,
+          minTimeout,
+          maxTimeout);
+    }
+
     @Override
     protected void validate() {
       super.validate();
@@ -258,15 +275,6 @@ public class OpenSessionRequest extends AbstractRaftRequest {
       checkNotNull(serviceConfig, "serviceConfig cannot be null");
       checkArgument(minTimeout >= 0, "minTimeout must be positive");
       checkArgument(maxTimeout >= 0, "maxTimeout must be positive");
-    }
-
-    /**
-     * @throws IllegalStateException is session is not positive
-     */
-    @Override
-    public OpenSessionRequest build() {
-      validate();
-      return new OpenSessionRequest(memberId, serviceName, serviceType, serviceConfig, readConsistency, minTimeout, maxTimeout);
     }
   }
 }

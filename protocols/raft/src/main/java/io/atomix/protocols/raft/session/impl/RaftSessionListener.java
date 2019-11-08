@@ -15,6 +15,8 @@
  */
 package io.atomix.protocols.raft.session.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import io.atomix.primitive.event.EventType;
@@ -25,20 +27,16 @@ import io.atomix.protocols.raft.protocol.RaftClientProtocol;
 import io.atomix.protocols.raft.protocol.ResetRequest;
 import io.atomix.utils.logging.ContextualLoggerFactory;
 import io.atomix.utils.logging.LoggerContext;
-import org.slf4j.Logger;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import org.slf4j.Logger;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * Client session message listener.
- */
+/** Client session message listener. */
 final class RaftSessionListener {
+
   private final Logger log;
   private final RaftClientProtocol protocol;
   private final MemberSelector memberSelector;
@@ -47,36 +45,26 @@ final class RaftSessionListener {
   private final RaftSessionSequencer sequencer;
   private final Executor executor;
 
-  RaftSessionListener(RaftClientProtocol protocol, MemberSelector memberSelector, RaftSessionState state, RaftSessionSequencer sequencer, Executor executor) {
+  RaftSessionListener(
+      RaftClientProtocol protocol,
+      MemberSelector memberSelector,
+      RaftSessionState state,
+      RaftSessionSequencer sequencer,
+      Executor executor) {
     this.protocol = checkNotNull(protocol, "protocol cannot be null");
     this.memberSelector = checkNotNull(memberSelector, "nodeSelector cannot be null");
     this.state = checkNotNull(state, "state cannot be null");
     this.sequencer = checkNotNull(sequencer, "sequencer cannot be null");
     this.executor = checkNotNull(executor, "executor cannot be null");
-    this.log = ContextualLoggerFactory.getLogger(getClass(), LoggerContext.builder(SessionClient.class)
-        .addValue(state.getSessionId())
-        .add("type", state.getPrimitiveType())
-        .add("name", state.getPrimitiveName())
-        .build());
+    this.log =
+        ContextualLoggerFactory.getLogger(
+            getClass(),
+            LoggerContext.builder(SessionClient.class)
+                .addValue(state.getSessionId())
+                .add("type", state.getPrimitiveType())
+                .add("name", state.getPrimitiveName())
+                .build());
     protocol.registerPublishListener(state.getSessionId(), this::handlePublish, executor);
-  }
-
-  /**
-   * Adds an event listener to the session.
-   *
-   * @param listener the event listener callback
-   */
-  public void addEventListener(EventType eventType, Consumer<PrimitiveEvent> listener) {
-    executor.execute(() -> eventListeners.computeIfAbsent(eventType.canonicalize(), e -> Sets.newLinkedHashSet()).add(listener));
-  }
-
-  /**
-   * Removes an event listener from the session.
-   *
-   * @param listener the event listener callback
-   */
-  public void removeEventListener(EventType eventType, Consumer<PrimitiveEvent> listener) {
-    executor.execute(() -> eventListeners.computeIfAbsent(eventType.canonicalize(), e -> Sets.newLinkedHashSet()).remove(listener));
   }
 
   /**
@@ -96,7 +84,7 @@ final class RaftSessionListener {
     }
 
     // Store eventIndex in a local variable to prevent multiple volatile reads.
-    long eventIndex = state.getEventIndex();
+    final long eventIndex = state.getEventIndex();
 
     // If the request event index has already been processed, return.
     if (request.eventIndex() <= eventIndex) {
@@ -109,28 +97,58 @@ final class RaftSessionListener {
     // to resend events starting at eventIndex + 1.
     if (request.previousIndex() != eventIndex) {
       log.trace("Inconsistent event index: {}", request.previousIndex());
-      ResetRequest resetRequest = ResetRequest.builder()
-          .withSession(state.getSessionId().id())
-          .withIndex(eventIndex)
-          .build();
+      final ResetRequest resetRequest =
+          ResetRequest.builder()
+              .withSession(state.getSessionId().id())
+              .withIndex(eventIndex)
+              .build();
       log.trace("Sending {}", resetRequest);
       protocol.reset(memberSelector.members(), resetRequest);
       return;
     }
 
-    // Store the event index. This will be used to verify that events are received in sequential order.
+    // Store the event index. This will be used to verify that events are received in sequential
+    // order.
     state.setEventIndex(request.eventIndex());
 
-    sequencer.sequenceEvent(request, () -> {
-      for (PrimitiveEvent event : request.events()) {
-        Set<Consumer<PrimitiveEvent>> listeners = eventListeners.get(event.type());
-        if (listeners != null) {
-          for (Consumer<PrimitiveEvent> listener : listeners) {
-            listener.accept(event);
+    sequencer.sequenceEvent(
+        request,
+        () -> {
+          for (PrimitiveEvent event : request.events()) {
+            final Set<Consumer<PrimitiveEvent>> listeners = eventListeners.get(event.type());
+            if (listeners != null) {
+              for (Consumer<PrimitiveEvent> listener : listeners) {
+                listener.accept(event);
+              }
+            }
           }
-        }
-      }
-    });
+        });
+  }
+
+  /**
+   * Adds an event listener to the session.
+   *
+   * @param listener the event listener callback
+   */
+  public void addEventListener(EventType eventType, Consumer<PrimitiveEvent> listener) {
+    executor.execute(
+        () ->
+            eventListeners
+                .computeIfAbsent(eventType.canonicalize(), e -> Sets.newLinkedHashSet())
+                .add(listener));
+  }
+
+  /**
+   * Removes an event listener from the session.
+   *
+   * @param listener the event listener callback
+   */
+  public void removeEventListener(EventType eventType, Consumer<PrimitiveEvent> listener) {
+    executor.execute(
+        () ->
+            eventListeners
+                .computeIfAbsent(eventType.canonicalize(), e -> Sets.newLinkedHashSet())
+                .remove(listener));
   }
 
   /**

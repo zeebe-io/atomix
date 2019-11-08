@@ -15,24 +15,19 @@
  */
 package io.atomix.protocols.raft.storage.snapshot;
 
+import static org.junit.Assert.assertEquals;
+
 import io.atomix.storage.buffer.Buffer;
 import io.atomix.storage.buffer.HeapBuffer;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-
-/**
- * Snapshot descriptor test.
- */
+/** Snapshot descriptor test. */
 public class SnapshotDescriptorTest {
 
   @Test
   public void testSnapshotDescriptor() throws Exception {
-    SnapshotDescriptor descriptor = SnapshotDescriptor.builder()
-        .withIndex(2)
-        .withTimestamp(3)
-        .withTerm(4)
-        .build();
+    final SnapshotDescriptor descriptor =
+        SnapshotDescriptor.builder().withIndex(2).withTimestamp(3).withTerm(4).build();
     assertEquals(2, descriptor.index());
     assertEquals(3, descriptor.timestamp());
     assertEquals(4, descriptor.term());
@@ -41,12 +36,9 @@ public class SnapshotDescriptorTest {
 
   @Test
   public void testCopySnapshotDescriptor() throws Exception {
-    SnapshotDescriptor descriptor = SnapshotDescriptor.builder()
-        .withIndex(2)
-        .withTimestamp(3)
-        .withTerm(4)
-        .build();
-    Buffer buffer = HeapBuffer.allocate(SnapshotDescriptor.BYTES);
+    SnapshotDescriptor descriptor =
+        SnapshotDescriptor.builder().withIndex(2).withTimestamp(3).withTerm(4).build();
+    final Buffer buffer = HeapBuffer.allocate(SnapshotDescriptor.BYTES);
     descriptor.copyTo(buffer);
     buffer.flip();
     descriptor = new SnapshotDescriptor(buffer);
@@ -55,5 +47,4 @@ public class SnapshotDescriptorTest {
     assertEquals(4, descriptor.term());
     assertEquals(1, descriptor.version());
   }
-
 }

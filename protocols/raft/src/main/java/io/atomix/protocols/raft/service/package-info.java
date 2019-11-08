@@ -14,7 +14,5 @@
  * limitations under the License
  */
 
-/**
- * Provides classes for managing Raft-based primitive services.
- */
+/** Provides classes for managing Raft-based primitive services. */
 package io.atomix.protocols.raft.service;

@@ -4,10 +4,9 @@ import io.atomix.primitive.AsyncPrimitive;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-/**
- * Test primitive.
- */
+/** Test primitive. */
 public interface TestPrimitive extends AsyncPrimitive {
+
   CompletableFuture<Long> write(String value);
 
   CompletableFuture<Long> read();

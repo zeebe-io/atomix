@@ -43,22 +43,16 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-/**
- * Follower state.
- */
+/** Follower state. */
 public final class FollowerRole extends ActiveRole {
-  private final ClusterMembershipEventListener clusterListener = this::handleClusterEvent;
+
   private final Random random = new Random();
   private Scheduled heartbeatTimoutTimer;
+  private final ClusterMembershipEventListener clusterListener = this::handleClusterEvent;
   private volatile long lastHeartbeat;
 
   public FollowerRole(RaftContext context) {
     super(context);
-  }
-
-  @Override
-  public RaftServer.Role role() {
-    return RaftServer.Role.FOLLOWER;
   }
 
   @Override
@@ -71,39 +65,75 @@ public final class FollowerRole extends ActiveRole {
     }
 
     raft.getMembershipService().addListener(clusterListener);
-    return super.start().thenRun(this::resetHeartbeatTimeoutFromDifferentThread).thenApply(v -> this);
+    return super.start()
+        .thenRun(this::resetHeartbeatTimeoutFromDifferentThread)
+        .thenApply(v -> this);
   }
 
-  /**
-   * Handles a cluster event.
-   */
+  @Override
+  public RaftServer.Role role() {
+    return RaftServer.Role.FOLLOWER;
+  }
+
+  @Override
+  public CompletableFuture<InstallResponse> onInstall(InstallRequest request) {
+    final CompletableFuture<InstallResponse> future = super.onInstall(request);
+    resetHeartbeatTimeoutFromDifferentThread();
+    return future;
+  }
+
+  @Override
+  public synchronized CompletableFuture<Void> stop() {
+    raft.getMembershipService().removeListener(clusterListener);
+    return super.stop().thenRun(this::cancelHeartbeatTimers);
+  }
+
+  /** Cancels the heartbeat timer. */
+  private void cancelHeartbeatTimers() {
+    if (heartbeatTimoutTimer != null) {
+      log.trace("Cancelling heartbeat timer");
+      heartbeatTimoutTimer.cancel();
+    }
+  }
+
+  /** Handles a cluster event. */
   private void handleClusterEvent(ClusterMembershipEvent event) {
-    raft.getThreadContext().execute(() -> {
-      RaftMember leader = raft.getLeader();
-      if (leader != null && event.type() == ClusterMembershipEvent.Type.MEMBER_REMOVED && event
-          .subject().id().equals(leader.memberId())) {
-        raft.setLeader(null);
-        sendPollRequests();
-      }
-    });
+    raft.getThreadContext()
+        .execute(
+            () -> {
+              final RaftMember leader = raft.getLeader();
+              if (leader != null
+                  && event.type() == ClusterMembershipEvent.Type.MEMBER_REMOVED
+                  && event.subject().id().equals(leader.memberId())) {
+                raft.setLeader(null);
+                sendPollRequests();
+              }
+            });
   }
 
   /**
-   * Polls all members of the cluster to determine whether this member should transition to the CANDIDATE state.
+   * Polls all members of the cluster to determine whether this member should transition to the
+   * CANDIDATE state.
    */
   private void sendPollRequests() {
-    // Set a new timer within which other nodes must respond in order for this node to transition to candidate.
-    heartbeatTimoutTimer = raft.getThreadContext().schedule(raft.getElectionTimeout(), () -> {
-      log.debug("Failed to poll a majority of the cluster in {}", raft.getElectionTimeout());
-      resetHeartbeatTimeoutFromDifferentThread();
-    });
+    // Set a new timer within which other nodes must respond in order for this node to transition to
+    // candidate.
+    heartbeatTimoutTimer =
+        raft.getThreadContext()
+            .schedule(
+                raft.getElectionTimeout(),
+                () -> {
+                  log.debug(
+                      "Failed to poll a majority of the cluster in {}", raft.getElectionTimeout());
+                  resetHeartbeatTimeoutFromDifferentThread();
+                });
 
     // Create a quorum that will track the number of nodes that have responded to the poll request.
     final AtomicBoolean complete = new AtomicBoolean();
-    final Set<DefaultRaftMember> votingMembers = raft.getCluster().getActiveMemberStates()
-        .stream()
-        .map(RaftMemberContext::getMember)
-        .collect(Collectors.toSet());
+    final Set<DefaultRaftMember> votingMembers =
+        raft.getCluster().getActiveMemberStates().stream()
+            .map(RaftMemberContext::getMember)
+            .collect(Collectors.toSet());
 
     // If there are no other members in the cluster, immediately transition to leader.
     if (votingMembers.isEmpty()) {
@@ -111,15 +141,19 @@ public final class FollowerRole extends ActiveRole {
       return;
     }
 
-    final Quorum quorum = new Quorum(raft.getCluster().getQuorum(), (elected) -> {
-      // If a majority of the cluster indicated they would vote for us then transition to candidate.
-      complete.set(true);
-      if (raft.getLeader() == null && elected) {
-        raft.transition(RaftServer.Role.CANDIDATE);
-      } else {
-        resetHeartbeatTimeoutFromDifferentThread();
-      }
-    });
+    final Quorum quorum =
+        new Quorum(
+            raft.getCluster().getQuorum(),
+            (elected) -> {
+              // If a majority of the cluster indicated they would vote for us then transition to
+              // candidate.
+              complete.set(true);
+              if (raft.getLeader() == null && elected) {
+                raft.transition(RaftServer.Role.CANDIDATE);
+              } else {
+                resetHeartbeatTimeoutFromDifferentThread();
+              }
+            });
 
     // First, load the last log entry to get its term. We load the entry
     // by its index since the index is required by the protocol.
@@ -138,49 +172,47 @@ public final class FollowerRole extends ActiveRole {
     // of the cluster and vote each member for a vote.
     for (DefaultRaftMember member : votingMembers) {
       log.debug("Polling {} for next term {}", member, raft.getTerm() + 1);
-      PollRequest request = PollRequest.builder()
-          .withTerm(raft.getTerm())
-          .withCandidate(raft.getCluster().getMember().memberId())
-          .withLastLogIndex(lastEntry != null ? lastEntry.index() : 0)
-          .withLastLogTerm(lastTerm)
-          .build();
-      raft.getProtocol().poll(member.memberId(), request).whenCompleteAsync((response, error) -> {
-        raft.checkThread();
-        if (isRunning() && !complete.get()) {
-          if (error != null) {
-            log.warn("{}", error.getMessage());
-            quorum.fail();
-          } else {
-            if (response.term() > raft.getTerm()) {
-              raft.setTerm(response.term());
-            }
+      final PollRequest request =
+          PollRequest.builder()
+              .withTerm(raft.getTerm())
+              .withCandidate(raft.getCluster().getMember().memberId())
+              .withLastLogIndex(lastEntry != null ? lastEntry.index() : 0)
+              .withLastLogTerm(lastTerm)
+              .build();
+      raft.getProtocol()
+          .poll(member.memberId(), request)
+          .whenCompleteAsync(
+              (response, error) -> {
+                raft.checkThread();
+                if (isRunning() && !complete.get()) {
+                  if (error != null) {
+                    log.warn("{}", error.getMessage());
+                    quorum.fail();
+                  } else {
+                    if (response.term() > raft.getTerm()) {
+                      raft.setTerm(response.term());
+                    }
 
-            if (!response.accepted()) {
-              log.debug("Received rejected poll from {}", member);
-              quorum.fail();
-            } else if (response.term() != raft.getTerm()) {
-              log.debug("Received accepted poll for a different term from {}", member);
-              quorum.fail();
-            } else {
-              log.debug("Received accepted poll from {}", member);
-              quorum.succeed();
-            }
-          }
-        }
-      }, raft.getThreadContext());
+                    if (!response.accepted()) {
+                      log.debug("Received rejected poll from {}", member);
+                      quorum.fail();
+                    } else if (response.term() != raft.getTerm()) {
+                      log.debug("Received accepted poll for a different term from {}", member);
+                      quorum.fail();
+                    } else {
+                      log.debug("Received accepted poll from {}", member);
+                      quorum.succeed();
+                    }
+                  }
+                }
+              },
+              raft.getThreadContext());
     }
   }
 
   @Override
-  public CompletableFuture<InstallResponse> onInstall(InstallRequest request) {
-    CompletableFuture<InstallResponse> future = super.onInstall(request);
-    resetHeartbeatTimeoutFromDifferentThread();
-    return future;
-  }
-
-  @Override
   public CompletableFuture<ConfigureResponse> onConfigure(ConfigureRequest request) {
-    CompletableFuture<ConfigureResponse> future = super.onConfigure(request);
+    final CompletableFuture<ConfigureResponse> future = super.onConfigure(request);
     resetHeartbeatTimeoutFromDifferentThread();
     return future;
   }
@@ -191,6 +223,16 @@ public final class FollowerRole extends ActiveRole {
     resetHeartbeatTimeoutFromDifferentThread();
 
     return super.onAppend(request);
+  }
+
+  @Override
+  protected VoteResponse handleVote(VoteRequest request) {
+    // Reset the heartbeat timeout if we voted for another candidate.
+    final VoteResponse response = super.handleVote(request);
+    if (response.voted()) {
+      resetHeartbeatTimeoutFromDifferentThread();
+    }
+    return response;
   }
 
   @Override
@@ -209,9 +251,7 @@ public final class FollowerRole extends ActiveRole {
     raft.runOnHeartbeatContext(this::resetHeartbeatTimeoutFromHeartbeatThread);
   }
 
-  /**
-   * Resets the heartbeat timer.
-   */
+  /** Resets the heartbeat timer. */
   private void resetHeartbeatTimeoutFromHeartbeatThread() {
     raft.checkHeartbeatThread();
     if (!isRunning()) {
@@ -231,46 +271,29 @@ public final class FollowerRole extends ActiveRole {
 
     // Set the election timeout in a semi-random fashion with the random range
     // being election timeout and 2 * election timeout.
-    Duration delay = raft.getElectionTimeout().plus(Duration.ofMillis(random.nextInt((int) raft.getElectionTimeout().toMillis())));
-    heartbeatTimoutTimer = raft.getThreadContext().schedule(delay, () -> {
-      heartbeatTimoutTimer = null;
-      if (isRunning() && (raft.getFirstCommitIndex() == 0
-          || raft.getState() == RaftContext.State.READY)) {
-        final long missTime = System.currentTimeMillis() - lastHeartbeat;
-        log.info("No heartbeat from {} in the last {} (calculated from last {} ms)",
-            raft.getLeader(), delay, missTime);
-        raft.getRaftRoleMetrics().countHeartbeatMiss();
+    final Duration delay =
+        raft.getElectionTimeout()
+            .plus(Duration.ofMillis(random.nextInt((int) raft.getElectionTimeout().toMillis())));
+    heartbeatTimoutTimer =
+        raft.getThreadContext()
+            .schedule(
+                delay,
+                () -> {
+                  heartbeatTimoutTimer = null;
+                  if (isRunning()
+                      && (raft.getFirstCommitIndex() == 0
+                          || raft.getState() == RaftContext.State.READY)) {
+                    final long missTime = System.currentTimeMillis() - lastHeartbeat;
+                    log.info(
+                        "No heartbeat from {} in the last {} (calculated from last {} ms)",
+                        raft.getLeader(),
+                        delay,
+                        missTime);
+                    raft.getRaftRoleMetrics().countHeartbeatMiss();
 
-        raft.setLeader(null);
-        sendPollRequests();
-      }
-    });
+                    raft.setLeader(null);
+                    sendPollRequests();
+                  }
+                });
   }
-
-  @Override
-  protected VoteResponse handleVote(VoteRequest request) {
-    // Reset the heartbeat timeout if we voted for another candidate.
-    VoteResponse response = super.handleVote(request);
-    if (response.voted()) {
-      resetHeartbeatTimeoutFromDifferentThread();
-    }
-    return response;
-  }
-
-  /**
-   * Cancels the heartbeat timer.
-   */
-  private void cancelHeartbeatTimers() {
-    if (heartbeatTimoutTimer != null) {
-      log.trace("Cancelling heartbeat timer");
-      heartbeatTimoutTimer.cancel();
-    }
-  }
-
-  @Override
-  public synchronized CompletableFuture<Void> stop() {
-    raft.getMembershipService().removeListener(clusterListener);
-    return super.stop().thenRun(this::cancelHeartbeatTimers);
-  }
-
 }

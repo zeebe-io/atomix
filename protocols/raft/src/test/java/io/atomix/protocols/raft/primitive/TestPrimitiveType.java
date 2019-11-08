@@ -8,6 +8,7 @@ import io.atomix.primitive.service.PrimitiveService;
 import io.atomix.primitive.service.ServiceConfig;
 
 public class TestPrimitiveType implements PrimitiveType {
+
   public static final TestPrimitiveType INSTANCE = new TestPrimitiveType();
 
   @Override
@@ -21,7 +22,8 @@ public class TestPrimitiveType implements PrimitiveType {
   }
 
   @Override
-  public PrimitiveBuilder newBuilder(String primitiveName, PrimitiveConfig config, PrimitiveManagementService managementService) {
+  public PrimitiveBuilder newBuilder(
+      String primitiveName, PrimitiveConfig config, PrimitiveManagementService managementService) {
     throw new UnsupportedOperationException();
   }
 

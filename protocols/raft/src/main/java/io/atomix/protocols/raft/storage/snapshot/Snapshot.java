@@ -15,45 +15,50 @@
  */
 package io.atomix.protocols.raft.storage.snapshot;
 
-import io.atomix.utils.time.WallClockTimestamp;
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
+import io.atomix.utils.time.WallClockTimestamp;
+import java.util.Objects;
+
 /**
  * Manages reading and writing a single snapshot file.
+ *
+ * <p>User-provided state machines which implement the {@link Snapshottable} interface transparently
+ * write snapshots to and read snapshots from files on disk. Each time a snapshot is taken of the
+ * state machine state, the snapshot will be written to a single file represented by this interface.
+ * Snapshots are backed by a {@link io.atomix.storage.buffer.Buffer} dictated by the parent {@link
+ * io.atomix.storage.StorageLevel} configuration. Snapshots for file-based storage levels like
+ * {@link io.atomix.storage.StorageLevel#DISK DISK} will be stored in a disk backed buffer, and
+ * {@link io.atomix.storage.StorageLevel#MEMORY MEMORY} snapshots will be stored in an on-heap
+ * buffer.
+ *
+ * <p>Snapshots are read and written by a {@link SnapshotReader} and {@link SnapshotWriter}
+ * respectively. To create a reader or writer, use the {@link #openReader()} and {@link
+ * #openWriter()} methods.
+ *
  * <p>
- * User-provided state machines which implement the {@link Snapshottable} interface
- * transparently write snapshots to and read snapshots from files on disk. Each time a snapshot is taken of
- * the state machine state, the snapshot will be written to a single file represented by this interface.
- * Snapshots are backed by a {@link io.atomix.storage.buffer.Buffer} dictated by the parent
- * {@link io.atomix.storage.StorageLevel} configuration. Snapshots for file-based storage
- * levels like {@link io.atomix.storage.StorageLevel#DISK DISK} will be stored in a disk
- * backed buffer, and {@link io.atomix.storage.StorageLevel#MEMORY MEMORY} snapshots will
- * be stored in an on-heap buffer.
- * <p>
- * Snapshots are read and written by a {@link SnapshotReader} and {@link SnapshotWriter} respectively.
- * To create a reader or writer, use the {@link #openReader()} and {@link #openWriter()} methods.
- * <p>
- * <pre>
- *   {@code
- *   Snapshot snapshot = snapshotStore.snapshot(1);
- *   try (SnapshotWriter writer = snapshot.writer()) {
- *     writer.writeString("Hello world!");
- *   }
- *   snapshot.complete();
- *   }
- * </pre>
+ *
+ * <pre>{@code
+ * Snapshot snapshot = snapshotStore.snapshot(1);
+ * try (SnapshotWriter writer = snapshot.writer()) {
+ *   writer.writeString("Hello world!");
+ * }
+ * snapshot.complete();
+ *
+ * }</pre>
+ *
  * A {@link SnapshotReader} is not allowed to be created until a {@link SnapshotWriter} has
- * completed writing the snapshot file and the snapshot has been marked {@link #complete() complete}.
- * This allows snapshots to effectively be written and closed but not completed until other conditions
- * are met. Prior to the completion of a snapshot, a failure and recovery of the parent {@link SnapshotStore}
- * will <em>not</em> recover an incomplete snapshot. Once a snapshot is complete, the snapshot becomes immutable,
- * can be recovered after a failure, and can be read by multiple readers concurrently.
+ * completed writing the snapshot file and the snapshot has been marked {@link #complete()
+ * complete}. This allows snapshots to effectively be written and closed but not completed until
+ * other conditions are met. Prior to the completion of a snapshot, a failure and recovery of the
+ * parent {@link SnapshotStore} will <em>not</em> recover an incomplete snapshot. Once a snapshot is
+ * complete, the snapshot becomes immutable, can be recovered after a failure, and can be read by
+ * multiple readers concurrently.
  */
 public abstract class Snapshot implements AutoCloseable {
+
   protected final SnapshotDescriptor descriptor;
   protected final SnapshotStore store;
   private SnapshotWriter writer;
@@ -64,31 +69,10 @@ public abstract class Snapshot implements AutoCloseable {
   }
 
   /**
-   * Returns the snapshot index.
-   * <p>
-   * The snapshot index is the index of the state machine at the point at which the snapshot was written.
-   *
-   * @return The snapshot index.
-   */
-  public long index() {
-    return descriptor.index();
-  }
-
-  /**
-   * Returns the snapshot term.
-   *
-   * The snapshot term is the term of the state machine at the point at which the snapshot was written.
-   *
-   * @return The snapshot term.
-   */
-  public long term() {
-    return descriptor.term();
-  }
-
-  /**
    * Returns the snapshot timestamp.
-   * <p>
-   * The timestamp is the wall clock time at the {@link #index()} at which the snapshot was taken.
+   *
+   * <p>The timestamp is the wall clock time at the {@link #index()} at which the snapshot was
+   * taken.
    *
    * @return The snapshot timestamp.
    */
@@ -107,26 +91,18 @@ public abstract class Snapshot implements AutoCloseable {
 
   /**
    * Opens a new snapshot writer.
-   * <p>
-   * Only a single {@link SnapshotWriter} per {@link Snapshot} can be created. The single writer
-   * must write the snapshot in full and {@link #complete()} the snapshot to persist it to disk
-   * and make it available for {@link #openReader() reads}.
+   *
+   * <p>Only a single {@link SnapshotWriter} per {@link Snapshot} can be created. The single writer
+   * must write the snapshot in full and {@link #complete()} the snapshot to persist it to disk and
+   * make it available for {@link #openReader() reads}.
    *
    * @return A new snapshot writer.
-   * @throws IllegalStateException if a writer was already created or the snapshot is {@link #complete() complete}
+   * @throws IllegalStateException if a writer was already created or the snapshot is {@link
+   *     #complete() complete}
    */
   public abstract SnapshotWriter openWriter();
 
-  /**
-   * Checks that the snapshot can be written.
-   */
-  protected void checkWriter() {
-    checkState(writer == null, "cannot create multiple writers for the same snapshot");
-  }
-
-  /**
-   * Opens the given snapshot writer.
-   */
+  /** Opens the given snapshot writer. */
   protected SnapshotWriter openWriter(SnapshotWriter writer, SnapshotDescriptor descriptor) {
     checkWriter();
     checkState(!descriptor.isLocked(), "cannot write to locked snapshot descriptor");
@@ -134,17 +110,20 @@ public abstract class Snapshot implements AutoCloseable {
     return writer;
   }
 
-  /**
-   * Closes the current snapshot writer.
-   */
+  /** Checks that the snapshot can be written. */
+  protected void checkWriter() {
+    checkState(writer == null, "cannot create multiple writers for the same snapshot");
+  }
+
+  /** Closes the current snapshot writer. */
   protected void closeWriter(SnapshotWriter writer) {
     this.writer = null;
   }
 
   /**
    * Opens a new snapshot reader.
-   * <p>
-   * A {@link SnapshotReader} can only be created for a snapshot that has been fully written and
+   *
+   * <p>A {@link SnapshotReader} can only be created for a snapshot that has been fully written and
    * {@link #complete() completed}. Multiple concurrent readers can be created for the same snapshot
    * since completed snapshots are immutable.
    *
@@ -153,28 +132,22 @@ public abstract class Snapshot implements AutoCloseable {
    */
   public abstract SnapshotReader openReader();
 
-  /**
-   * Opens the given snapshot reader.
-   */
+  /** Opens the given snapshot reader. */
   protected SnapshotReader openReader(SnapshotReader reader, SnapshotDescriptor descriptor) {
     checkState(descriptor.isLocked(), "cannot read from unlocked snapshot descriptor");
     return reader;
   }
 
-  /**
-   * Closes the current snapshot reader.
-   */
-  protected void closeReader(SnapshotReader reader) {
-
-  }
+  /** Closes the current snapshot reader. */
+  protected void closeReader(SnapshotReader reader) {}
 
   /**
    * Completes writing the snapshot to persist it and make it available for reads.
-   * <p>
-   * Snapshot writers must call this method to persist a snapshot to disk. Prior to completing a
+   *
+   * <p>Snapshot writers must call this method to persist a snapshot to disk. Prior to completing a
    * snapshot, failure and recovery of the parent {@link SnapshotStore} will not result in recovery
-   * of this snapshot. Additionally, no {@link #openReader() readers} can be created until the snapshot
-   * has been completed.
+   * of this snapshot. Additionally, no {@link #openReader() readers} can be created until the
+   * snapshot has been completed.
    *
    * @return The completed snapshot.
    */
@@ -183,23 +156,28 @@ public abstract class Snapshot implements AutoCloseable {
     return this;
   }
 
-  /**
-   * Closes the snapshot.
-   */
+  /** Closes the snapshot. */
   @Override
-  public void close() {
-  }
+  public void close() {}
 
-  /**
-   * Deletes the snapshot.
-   */
-  public void delete() {
-
-  }
+  /** Deletes the snapshot. */
+  public void delete() {}
 
   @Override
   public int hashCode() {
     return Objects.hash(index());
+  }
+
+  /**
+   * Returns the snapshot index.
+   *
+   * <p>The snapshot index is the index of the state machine at the point at which the snapshot was
+   * written.
+   *
+   * @return The snapshot index.
+   */
+  public long index() {
+    return descriptor.index();
   }
 
   @Override
@@ -207,15 +185,24 @@ public abstract class Snapshot implements AutoCloseable {
     if (object == null || getClass() != object.getClass()) {
       return false;
     }
-    Snapshot snapshot = (Snapshot) object;
+    final Snapshot snapshot = (Snapshot) object;
     return snapshot.index() == index() && snapshot.term() == term();
+  }
+
+  /**
+   * Returns the snapshot term.
+   *
+   * <p>The snapshot term is the term of the state machine at the point at which the snapshot was
+   * written.
+   *
+   * @return The snapshot term.
+   */
+  public long term() {
+    return descriptor.term();
   }
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("index", index())
-        .add("term", term())
-        .toString();
+    return toStringHelper(this).add("index", index()).add("term", term()).toString();
   }
 }

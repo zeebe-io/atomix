@@ -15,34 +15,37 @@
  */
 package io.atomix.protocols.raft.session.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.atomix.primitive.PrimitiveState;
 import io.atomix.primitive.PrimitiveType;
 import io.atomix.primitive.session.SessionId;
-
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.Consumer;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * Client state.
- */
+/** Client state. */
 public final class RaftSessionState {
+
   private final String clientId;
   private final SessionId sessionId;
   private final String serviceName;
   private final PrimitiveType primitiveType;
   private final long timeout;
+  private final Set<Consumer<PrimitiveState>> changeListeners = new CopyOnWriteArraySet<>();
   private volatile PrimitiveState state = PrimitiveState.CONNECTED;
   private volatile Long suspendedTime;
   private volatile long commandRequest;
   private volatile long commandResponse;
   private volatile long responseIndex;
   private volatile long eventIndex;
-  private final Set<Consumer<PrimitiveState>> changeListeners = new CopyOnWriteArraySet<>();
 
-  RaftSessionState(String clientId, SessionId sessionId, String serviceName, PrimitiveType primitiveType, long timeout) {
+  RaftSessionState(
+      String clientId,
+      SessionId sessionId,
+      String serviceName,
+      PrimitiveType primitiveType,
+      long timeout) {
     this.clientId = clientId;
     this.sessionId = sessionId;
     this.serviceName = serviceName;
@@ -50,85 +53,6 @@ public final class RaftSessionState {
     this.timeout = timeout;
     this.responseIndex = sessionId.id();
     this.eventIndex = sessionId.id();
-  }
-
-  /**
-   * Returns the client identifier.
-   *
-   * @return The client identifier.
-   */
-  public String getClientId() {
-    return clientId;
-  }
-
-  /**
-   * Returns the client session ID.
-   *
-   * @return The client session ID.
-   */
-  public SessionId getSessionId() {
-    return sessionId;
-  }
-
-  /**
-   * Returns the session name.
-   *
-   * @return The session name.
-   */
-  public String getPrimitiveName() {
-    return serviceName;
-  }
-
-  /**
-   * Returns the session type.
-   *
-   * @return The session type.
-   */
-  public PrimitiveType getPrimitiveType() {
-    return primitiveType;
-  }
-
-  /**
-   * Returns the session timeout.
-   *
-   * @return The session timeout.
-   */
-  public long getSessionTimeout() {
-    return timeout;
-  }
-
-  /**
-   * Returns the session state.
-   *
-   * @return The session state.
-   */
-  public PrimitiveState getState() {
-    return state;
-  }
-
-  /**
-   * Updates the session state.
-   *
-   * @param state The updates session state.
-   */
-  public void setState(PrimitiveState state) {
-    if (this.state != state) {
-      if (this.state != PrimitiveState.EXPIRED && this.state != PrimitiveState.CLOSED) {
-        this.state = state;
-        if (state == PrimitiveState.SUSPENDED) {
-          if (suspendedTime == null) {
-            suspendedTime = System.currentTimeMillis();
-          }
-        } else {
-          suspendedTime = null;
-        }
-        changeListeners.forEach(l -> l.accept(state));
-      }
-    } else if (this.state == PrimitiveState.SUSPENDED) {
-      if (System.currentTimeMillis() - suspendedTime > timeout) {
-        setState(PrimitiveState.EXPIRED);
-      }
-    }
   }
 
   /**
@@ -150,12 +74,21 @@ public final class RaftSessionState {
   }
 
   /**
-   * Sets the last command request sequence number.
+   * Returns the next command request sequence number for the session.
    *
-   * @param commandRequest The last command request sequence number.
+   * @return The next command request sequence number for the session.
    */
-  public void setCommandRequest(long commandRequest) {
-    this.commandRequest = commandRequest;
+  public long nextCommandRequest() {
+    return ++commandRequest;
+  }
+
+  /**
+   * Returns the client identifier.
+   *
+   * @return The client identifier.
+   */
+  public String getClientId() {
+    return clientId;
   }
 
   /**
@@ -168,24 +101,6 @@ public final class RaftSessionState {
   }
 
   /**
-   * Returns the next command request sequence number for the session.
-   *
-   * @return The next command request sequence number for the session.
-   */
-  public long nextCommandRequest() {
-    return ++commandRequest;
-  }
-
-  /**
-   * Sets the last command sequence number for which a response has been received.
-   *
-   * @param commandResponse The last command sequence number for which a response has been received.
-   */
-  public void setCommandResponse(long commandResponse) {
-    this.commandResponse = commandResponse;
-  }
-
-  /**
    * Returns the last command sequence number for which a response has been received.
    *
    * @return The last command sequence number for which a response has been received.
@@ -195,12 +110,30 @@ public final class RaftSessionState {
   }
 
   /**
-   * Sets the highest index for which a response has been received.
+   * Returns the highest index for which an event has been received in sequence.
    *
-   * @param responseIndex The highest index for which a command or query response has been received.
+   * @return The highest index for which an event has been received in sequence.
    */
-  public void setResponseIndex(long responseIndex) {
-    this.responseIndex = Math.max(this.responseIndex, responseIndex);
+  public long getEventIndex() {
+    return eventIndex;
+  }
+
+  /**
+   * Returns the session name.
+   *
+   * @return The session name.
+   */
+  public String getPrimitiveName() {
+    return serviceName;
+  }
+
+  /**
+   * Returns the session type.
+   *
+   * @return The session type.
+   */
+  public PrimitiveType getPrimitiveType() {
+    return primitiveType;
   }
 
   /**
@@ -213,6 +146,51 @@ public final class RaftSessionState {
   }
 
   /**
+   * Returns the client session ID.
+   *
+   * @return The client session ID.
+   */
+  public SessionId getSessionId() {
+    return sessionId;
+  }
+
+  /**
+   * Returns the session timeout.
+   *
+   * @return The session timeout.
+   */
+  public long getSessionTimeout() {
+    return timeout;
+  }
+
+  /**
+   * Returns the session state.
+   *
+   * @return The session state.
+   */
+  public PrimitiveState getState() {
+    return state;
+  }
+
+  /**
+   * Sets the last command request sequence number.
+   *
+   * @param commandRequest The last command request sequence number.
+   */
+  public void setCommandRequest(long commandRequest) {
+    this.commandRequest = commandRequest;
+  }
+
+  /**
+   * Sets the last command sequence number for which a response has been received.
+   *
+   * @param commandResponse The last command sequence number for which a response has been received.
+   */
+  public void setCommandResponse(long commandResponse) {
+    this.commandResponse = commandResponse;
+  }
+
+  /**
    * Sets the highest index for which an event has been received in sequence.
    *
    * @param eventIndex The highest index for which an event has been received in sequence.
@@ -222,11 +200,40 @@ public final class RaftSessionState {
   }
 
   /**
-   * Returns the highest index for which an event has been received in sequence.
+   * Sets the highest index for which a response has been received.
    *
-   * @return The highest index for which an event has been received in sequence.
+   * @param responseIndex The highest index for which a command or query response has been received.
    */
-  public long getEventIndex() {
-    return eventIndex;
+  public void setResponseIndex(long responseIndex) {
+    this.responseIndex = Math.max(this.responseIndex, responseIndex);
+  }
+
+  /**
+   * Updates the session state.
+   *
+   * @param state The updates session state.
+   */
+  public void setState(PrimitiveState state) {
+    if (this.state != state) {
+      if (this.state != PrimitiveState.EXPIRED && this.state != PrimitiveState.CLOSED) {
+        this.state = state;
+        updateSuspendTime(state);
+        changeListeners.forEach(l -> l.accept(state));
+      }
+    } else if (this.state == PrimitiveState.SUSPENDED) {
+      if (System.currentTimeMillis() - suspendedTime > timeout) {
+        setState(PrimitiveState.EXPIRED);
+      }
+    }
+  }
+
+  private void updateSuspendTime(PrimitiveState state) {
+    if (state == PrimitiveState.SUSPENDED) {
+      if (suspendedTime == null) {
+        suspendedTime = System.currentTimeMillis();
+      }
+    } else {
+      suspendedTime = null;
+    }
   }
 }

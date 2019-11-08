@@ -15,6 +15,9 @@
  */
 package io.atomix.protocols.raft;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.atomix.cluster.MemberId;
 import io.atomix.primitive.PrimitiveType;
 import io.atomix.primitive.partition.PartitionId;
@@ -25,27 +28,21 @@ import io.atomix.protocols.raft.session.CommunicationStrategy;
 import io.atomix.protocols.raft.session.RaftSessionClient;
 import io.atomix.utils.concurrent.ThreadContextFactory;
 import io.atomix.utils.concurrent.ThreadModel;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * Provides an interface for submitting operations to the Raft cluster.
- */
+/** Provides an interface for submitting operations to the Raft cluster. */
 public interface RaftClient {
 
   /**
    * Returns a new Raft client builder.
-   * <p>
-   * The provided set of members will be used to connect to the Raft cluster. The members list does not have to represent
-   * the complete list of servers in the cluster, but it must have at least one reachable member that can communicate with
-   * the cluster's leader.
+   *
+   * <p>The provided set of members will be used to connect to the Raft cluster. The members list
+   * does not have to represent the complete list of servers in the cluster, but it must have at
+   * least one reachable member that can communicate with the cluster's leader.
    *
    * @return The client builder.
    */
@@ -56,30 +53,30 @@ public interface RaftClient {
 
   /**
    * Returns a new Raft client builder.
-   * <p>
-   * The provided set of members will be used to connect to the Raft cluster. The members list does not have to represent
-   * the complete list of servers in the cluster, but it must have at least one reachable member that can communicate with
-   * the cluster's leader.
    *
-   * @param cluster The cluster to which to connect.
-   * @return The client builder.
-   */
-  static Builder builder(MemberId... cluster) {
-    return builder(Arrays.asList(cluster));
-  }
-
-  /**
-   * Returns a new Raft client builder.
-   * <p>
-   * The provided set of members will be used to connect to the Raft cluster. The members list does not have to represent
-   * the complete list of servers in the cluster, but it must have at least one reachable member that can communicate with
-   * the cluster's leader.
+   * <p>The provided set of members will be used to connect to the Raft cluster. The members list
+   * does not have to represent the complete list of servers in the cluster, but it must have at
+   * least one reachable member that can communicate with the cluster's leader.
    *
    * @param cluster The cluster to which to connect.
    * @return The client builder.
    */
   static Builder builder(Collection<MemberId> cluster) {
     return new DefaultRaftClient.Builder(cluster);
+  }
+
+  /**
+   * Returns a new Raft client builder.
+   *
+   * <p>The provided set of members will be used to connect to the Raft cluster. The members list
+   * does not have to represent the complete list of servers in the cluster, but it must have at
+   * least one reachable member that can communicate with the cluster's leader.
+   *
+   * @param cluster The cluster to which to connect.
+   * @return The client builder.
+   */
+  static Builder builder(MemberId... cluster) {
+    return builder(Arrays.asList(cluster));
   }
 
   /**
@@ -118,28 +115,14 @@ public interface RaftClient {
    * @param serviceConfig the service configuration
    * @return the Raft proxy session builder
    */
-  RaftSessionClient.Builder sessionBuilder(String primitiveName, PrimitiveType primitiveType, ServiceConfig serviceConfig);
-
-  /**
-   * Connects the client to Raft cluster via the default server address.
-   * <p>
-   * If the client was built with a default cluster list, the default server addresses will be used. Otherwise, the client
-   * will attempt to connect to localhost:8700.
-   * <p>
-   * The client will connect to servers in the cluster according to the pattern specified by the configured
-   * {@link CommunicationStrategy}.
-   *
-   * @return A completable future to be completed once the client is registered.
-   */
-  default CompletableFuture<RaftClient> connect() {
-    return connect((Collection<MemberId>) null);
-  }
+  RaftSessionClient.Builder sessionBuilder(
+      String primitiveName, PrimitiveType primitiveType, ServiceConfig serviceConfig);
 
   /**
    * Connects the client to Raft cluster via the provided server addresses.
-   * <p>
-   * The client will connect to servers in the cluster according to the pattern specified by the configured
-   * {@link CommunicationStrategy}.
+   *
+   * <p>The client will connect to servers in the cluster according to the pattern specified by the
+   * configured {@link CommunicationStrategy}.
    *
    * @param members A set of server addresses to which to connect.
    * @return A completable future to be completed once the client is registered.
@@ -153,10 +136,25 @@ public interface RaftClient {
   }
 
   /**
+   * Connects the client to Raft cluster via the default server address.
+   *
+   * <p>If the client was built with a default cluster list, the default server addresses will be
+   * used. Otherwise, the client will attempt to connect to localhost:8700.
+   *
+   * <p>The client will connect to servers in the cluster according to the pattern specified by the
+   * configured {@link CommunicationStrategy}.
+   *
+   * @return A completable future to be completed once the client is registered.
+   */
+  default CompletableFuture<RaftClient> connect() {
+    return connect((Collection<MemberId>) null);
+  }
+
+  /**
    * Connects the client to Raft cluster via the provided server addresses.
-   * <p>
-   * The client will connect to servers in the cluster according to the pattern specified by the configured
-   * {@link CommunicationStrategy}.
+   *
+   * <p>The client will connect to servers in the cluster according to the pattern specified by the
+   * configured {@link CommunicationStrategy}.
    *
    * @param members A set of server addresses to which to connect.
    * @return A completable future to be completed once the client is registered.
@@ -172,24 +170,27 @@ public interface RaftClient {
 
   /**
    * Builds a new Raft client.
-   * <p>
-   * New client builders should be constructed using the static {@link #builder()} factory method.
-   * <pre>
-   *   {@code
-   *     RaftClient client = RaftClient.builder(new Address("123.456.789.0", 5000), new Address("123.456.789.1", 5000)
-   *       .withTransport(new NettyTransport())
-   *       .build();
-   *   }
-   * </pre>
+   *
+   * <p>New client builders should be constructed using the static {@link #builder()} factory
+   * method.
+   *
+   * <pre>{@code
+   * RaftClient client = RaftClient.builder(new Address("123.456.789.0", 5000), new Address("123.456.789.1", 5000)
+   *   .withTransport(new NettyTransport())
+   *   .build();
+   *
+   * }</pre>
    */
   abstract class Builder implements io.atomix.utils.Builder<RaftClient> {
+
     protected final Collection<MemberId> cluster;
     protected String clientId = UUID.randomUUID().toString();
     protected PartitionId partitionId;
     protected MemberId memberId;
     protected RaftClientProtocol protocol;
     protected ThreadModel threadModel = ThreadModel.SHARED_THREAD_POOL;
-    protected int threadPoolSize = Math.max(Math.min(Runtime.getRuntime().availableProcessors() * 2, 16), 4);
+    protected int threadPoolSize =
+        Math.max(Math.min(Runtime.getRuntime().availableProcessors() * 2, 16), 4);
     protected ThreadContextFactory threadContextFactory;
 
     protected Builder(Collection<MemberId> cluster) {
@@ -198,9 +199,9 @@ public interface RaftClient {
 
     /**
      * Sets the client ID.
-     * <p>
-     * The client ID is a name that should be unique among all clients. The ID will be used to resolve
-     * and recover sessions.
+     *
+     * <p>The client ID is a name that should be unique among all clients. The ID will be used to
+     * resolve and recover sessions.
      *
      * @param clientId The client ID.
      * @return The client builder.
@@ -280,7 +281,8 @@ public interface RaftClient {
      * @throws NullPointerException if the factory is null
      */
     public Builder withThreadContextFactory(ThreadContextFactory threadContextFactory) {
-      this.threadContextFactory = checkNotNull(threadContextFactory, "threadContextFactory cannot be null");
+      this.threadContextFactory =
+          checkNotNull(threadContextFactory, "threadContextFactory cannot be null");
       return this;
     }
   }

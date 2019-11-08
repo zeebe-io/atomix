@@ -17,9 +17,7 @@ package io.atomix.protocols.raft.protocol;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-/**
- * Base request for all client requests.
- */
+/** Base request for all client requests. */
 public abstract class AbstractRaftRequest implements RaftRequest {
 
   /**
@@ -28,13 +26,11 @@ public abstract class AbstractRaftRequest implements RaftRequest {
    * @param <T> The builder type.
    * @param <U> The request type.
    */
-  protected abstract static class Builder<T extends Builder<T, U>, U extends AbstractRaftRequest> implements RaftRequest.Builder<T, U> {
+  protected abstract static class Builder<T extends Builder<T, U>, U extends AbstractRaftRequest>
+      implements RaftRequest.Builder<T, U> {
 
-    /**
-     * Validates the builder.
-     */
-    protected void validate() {
-    }
+    /** Validates the builder. */
+    protected void validate() {}
 
     @Override
     public String toString() {

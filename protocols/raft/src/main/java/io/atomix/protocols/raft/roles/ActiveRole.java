@@ -28,13 +28,10 @@ import io.atomix.protocols.raft.protocol.VoteRequest;
 import io.atomix.protocols.raft.protocol.VoteResponse;
 import io.atomix.protocols.raft.storage.log.entry.RaftLogEntry;
 import io.atomix.storage.journal.Indexed;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-/**
- * Abstract active state.
- */
+/** Abstract active state. */
 public abstract class ActiveRole extends PassiveRole {
 
   protected ActiveRole(RaftContext context) {
@@ -42,16 +39,16 @@ public abstract class ActiveRole extends PassiveRole {
   }
 
   @Override
-  public CompletableFuture<AppendResponse> onAppend(final AppendRequest request) {
+  public CompletableFuture<AppendResponse> onAppend(AppendRequest request) {
     raft.checkThread();
     logRequest(request);
 
     // If the request indicates a term that is greater than the current term then
     // assign that term and leader to the current context and transition to follower.
-    boolean transition = updateTermAndLeader(request.term(), request.leader());
+    final boolean transition = updateTermAndLeader(request.term(), request.leader());
 
     // Handle the append request.
-    CompletableFuture<AppendResponse> future = handleAppend(request);
+    final CompletableFuture<AppendResponse> future = handleAppend(request);
 
     // If a transition is required then transition back to the follower state.
     // If the node is already a follower then the transition will be ignored.
@@ -62,22 +59,6 @@ public abstract class ActiveRole extends PassiveRole {
   }
 
   @Override
-  public void onLeaderHeartbeat(LeaderHeartbeatRequest request) {
-    raft.checkHeartbeatThread();
-    logRequest(request);
-
-    // If the request indicates a term that is greater than the current term then
-    // assign that term and leader to the current context and transition to follower.
-    boolean transition = updateTermAndLeader(request.term(), request.leader());
-
-    // If a transition is required then transition back to the follower state.
-    // If the node is already a follower then the transition will be ignored.
-    if (transition) {
-      raft.transition(RaftServer.Role.FOLLOWER);
-    }
-  }
-
-  @Override
   public CompletableFuture<PollResponse> onPoll(PollRequest request) {
     raft.checkThread();
     logRequest(request);
@@ -85,9 +66,7 @@ public abstract class ActiveRole extends PassiveRole {
     return CompletableFuture.completedFuture(logResponse(handlePoll(request)));
   }
 
-  /**
-   * Handles a poll request.
-   */
+  /** Handles a poll request. */
   protected PollResponse handlePoll(PollRequest request) {
     // If the request term is not as great as the current context term then don't
     // vote for the candidate. We want to vote for candidates that are at least
@@ -114,6 +93,53 @@ public abstract class ActiveRole extends PassiveRole {
     }
   }
 
+  /** Returns a boolean value indicating whether the given candidate's log is up-to-date. */
+  boolean isLogUpToDate(long lastIndex, long lastTerm, RaftRequest request) {
+    // Read the last entry from the log.
+    final Indexed<RaftLogEntry> lastEntry = raft.getLogWriter().getLastEntry();
+
+    // If the log is empty then vote for the candidate.
+    if (lastEntry == null) {
+      log.debug("Accepted {}: candidate's log is up-to-date", request);
+      return true;
+    }
+
+    // If the candidate's last log term is lower than the local log's last entry term, reject the
+    // request.
+    if (lastTerm < lastEntry.entry().term()) {
+      log.debug(
+          "Rejected {}: candidate's last log entry ({}) is at a lower term than the local log ({})",
+          request,
+          lastTerm,
+          lastEntry.entry().term());
+      return false;
+    }
+
+    // If the candidate's last term is equal to the local log's last entry term, reject the request
+    // if the
+    // candidate's last index is less than the local log's last index. If the candidate's last log
+    // term is
+    // greater than the local log's last term then it's considered up to date, and if both have the
+    // same term
+    // then the candidate's last index must be greater than the local log's last index.
+    if (lastTerm == lastEntry.entry().term() && lastIndex < lastEntry.index()) {
+      log.debug(
+          "Rejected {}: candidate's last log entry ({}) is at a lower index than the local log ({})",
+          request,
+          lastIndex,
+          lastEntry.index());
+      return false;
+    }
+
+    // If we made it this far, the candidate's last term is greater than or equal to the local log's
+    // last
+    // term, and if equal to the local log's last term, the candidate's last index is equal to or
+    // greater
+    // than the local log's last index.
+    log.info("Accepted {}: candidate's log is up-to-date", request);
+    return true;
+  }
+
   @Override
   public CompletableFuture<VoteResponse> onVote(VoteRequest request) {
     raft.checkThread();
@@ -121,18 +147,17 @@ public abstract class ActiveRole extends PassiveRole {
 
     // If the request indicates a term that is greater than the current term then
     // assign that term and leader to the current context.
-    boolean transition = updateTermAndLeader(request.term(), null);
+    final boolean transition = updateTermAndLeader(request.term(), null);
 
-    CompletableFuture<VoteResponse> future = CompletableFuture.completedFuture(logResponse(handleVote(request)));
+    final CompletableFuture<VoteResponse> future =
+        CompletableFuture.completedFuture(logResponse(handleVote(request)));
     if (transition) {
       raft.transition(RaftServer.Role.FOLLOWER);
     }
     return future;
   }
 
-  /**
-   * Handles a vote request.
-   */
+  /** Handles a vote request. */
   protected VoteResponse handleVote(VoteRequest request) {
     // If the request term is not as great as the current context term then don't
     // vote for the candidate. We want to vote for candidates that are at least
@@ -156,7 +181,10 @@ public abstract class ActiveRole extends PassiveRole {
     }
     // If the requesting candidate is not a known member of the cluster (to this
     // node) then don't vote for it. Only vote for candidates that we know about.
-    else if (!raft.getCluster().getRemoteMemberStates().stream().map(m -> m.getMember().memberId()).collect(Collectors.toSet()).contains(request.candidate())) {
+    else if (!raft.getCluster().getRemoteMemberStates().stream()
+        .map(m -> m.getMember().memberId())
+        .collect(Collectors.toSet())
+        .contains(request.candidate())) {
       log.debug("Rejected {}: candidate is not known to the local member", request);
       return VoteResponse.builder()
           .withStatus(RaftResponse.Status.OK)
@@ -183,7 +211,10 @@ public abstract class ActiveRole extends PassiveRole {
     }
     // If we already voted for the requesting server, respond successfully.
     else if (raft.getLastVotedFor() == request.candidate()) {
-      log.debug("Accepted {}: already voted for {}", request, raft.getCluster().getMember(raft.getLastVotedFor()).memberId());
+      log.debug(
+          "Accepted {}: already voted for {}",
+          request,
+          raft.getCluster().getMember(raft.getLastVotedFor()).memberId());
       return VoteResponse.builder()
           .withStatus(RaftResponse.Status.OK)
           .withTerm(raft.getTerm())
@@ -192,7 +223,10 @@ public abstract class ActiveRole extends PassiveRole {
     }
     // In this case, we've already voted for someone else.
     else {
-      log.debug("Rejected {}: already voted for {}", request, raft.getCluster().getMember(raft.getLastVotedFor()).memberId());
+      log.debug(
+          "Rejected {}: already voted for {}",
+          request,
+          raft.getCluster().getMember(raft.getLastVotedFor()).memberId());
       return VoteResponse.builder()
           .withStatus(RaftResponse.Status.OK)
           .withTerm(raft.getTerm())
@@ -201,39 +235,19 @@ public abstract class ActiveRole extends PassiveRole {
     }
   }
 
-  /**
-   * Returns a boolean value indicating whether the given candidate's log is up-to-date.
-   */
-  boolean isLogUpToDate(long lastIndex, long lastTerm, RaftRequest request) {
-    // Read the last entry from the log.
-    final Indexed<RaftLogEntry> lastEntry = raft.getLogWriter().getLastEntry();
+  @Override
+  public void onLeaderHeartbeat(LeaderHeartbeatRequest request) {
+    raft.checkHeartbeatThread();
+    logRequest(request);
 
-    // If the log is empty then vote for the candidate.
-    if (lastEntry == null) {
-      log.debug("Accepted {}: candidate's log is up-to-date", request);
-      return true;
+    // If the request indicates a term that is greater than the current term then
+    // assign that term and leader to the current context and transition to follower.
+    final boolean transition = updateTermAndLeader(request.term(), request.leader());
+
+    // If a transition is required then transition back to the follower state.
+    // If the node is already a follower then the transition will be ignored.
+    if (transition) {
+      raft.transition(RaftServer.Role.FOLLOWER);
     }
-
-    // If the candidate's last log term is lower than the local log's last entry term, reject the request.
-    if (lastTerm < lastEntry.entry().term()) {
-      log.debug("Rejected {}: candidate's last log entry ({}) is at a lower term than the local log ({})", request, lastTerm, lastEntry.entry().term());
-      return false;
-    }
-
-    // If the candidate's last term is equal to the local log's last entry term, reject the request if the
-    // candidate's last index is less than the local log's last index. If the candidate's last log term is
-    // greater than the local log's last term then it's considered up to date, and if both have the same term
-    // then the candidate's last index must be greater than the local log's last index.
-    if (lastTerm == lastEntry.entry().term() && lastIndex < lastEntry.index()) {
-      log.debug("Rejected {}: candidate's last log entry ({}) is at a lower index than the local log ({})", request, lastIndex, lastEntry.index());
-      return false;
-    }
-
-    // If we made it this far, the candidate's last term is greater than or equal to the local log's last
-    // term, and if equal to the local log's last term, the candidate's last index is equal to or greater
-    // than the local log's last index.
-    log.info("Accepted {}: candidate's log is up-to-date", request);
-    return true;
   }
-
 }

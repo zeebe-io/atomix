@@ -15,14 +15,13 @@
  */
 package io.atomix.protocols.raft.storage.snapshot;
 
-import io.atomix.storage.buffer.HeapBuffer;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * In-memory snapshot backed by a {@link HeapBuffer}.
- */
+import io.atomix.storage.buffer.HeapBuffer;
+
+/** In-memory snapshot backed by a {@link HeapBuffer}. */
 final class MemorySnapshot extends Snapshot {
+
   private final HeapBuffer buffer;
   private final SnapshotDescriptor descriptor;
 

@@ -15,31 +15,22 @@
  */
 package io.atomix.protocols.raft.protocol;
 
-import io.atomix.cluster.MemberId;
-
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import io.atomix.cluster.MemberId;
+import java.util.Objects;
+
 /**
  * Server poll request.
- * <p>
- * Poll requests aid in the implementation of the so-called "pre-vote" protocol. They are sent by followers
- * to all other servers prior to transitioning to the candidate state. This helps ensure that servers that
- * can't win elections do not disrupt existing leaders when e.g. rejoining the cluster after a partition.
+ *
+ * <p>Poll requests aid in the implementation of the so-called "pre-vote" protocol. They are sent by
+ * followers to all other servers prior to transitioning to the candidate state. This helps ensure
+ * that servers that can't win elections do not disrupt existing leaders when e.g. rejoining the
+ * cluster after a partition.
  */
 public class PollRequest extends AbstractRaftRequest {
-
-  /**
-   * Returns a new poll request builder.
-   *
-   * @return A new poll request builder.
-   */
-  public static Builder builder() {
-    return new Builder();
-  }
 
   private final long term;
   private final String candidate;
@@ -51,6 +42,15 @@ public class PollRequest extends AbstractRaftRequest {
     this.candidate = candidate;
     this.lastLogIndex = lastLogIndex;
     this.lastLogTerm = lastLogTerm;
+  }
+
+  /**
+   * Returns a new poll request builder.
+   *
+   * @return A new poll request builder.
+   */
+  public static Builder builder() {
+    return new Builder();
   }
 
   /**
@@ -97,7 +97,7 @@ public class PollRequest extends AbstractRaftRequest {
   @Override
   public boolean equals(Object object) {
     if (object instanceof PollRequest) {
-      PollRequest request = (PollRequest) object;
+      final PollRequest request = (PollRequest) object;
       return request.term == term
           && request.candidate == candidate
           && request.lastLogIndex == lastLogIndex
@@ -116,10 +116,9 @@ public class PollRequest extends AbstractRaftRequest {
         .toString();
   }
 
-  /**
-   * Poll request builder.
-   */
+  /** Poll request builder. */
   public static class Builder extends AbstractRaftRequest.Builder<Builder, PollRequest> {
+
     private long term = -1;
     private String candidate;
     private long lastLogIndex = -1;
@@ -176,6 +175,16 @@ public class PollRequest extends AbstractRaftRequest {
       return this;
     }
 
+    /**
+     * @throws IllegalStateException if candidate is not positive or if term, lastLogIndex or
+     *     lastLogTerm are negative
+     */
+    @Override
+    public PollRequest build() {
+      validate();
+      return new PollRequest(term, candidate, lastLogIndex, lastLogTerm);
+    }
+
     @Override
     protected void validate() {
       super.validate();
@@ -183,15 +192,6 @@ public class PollRequest extends AbstractRaftRequest {
       checkNotNull(candidate, "candidate cannot be null");
       checkArgument(lastLogIndex >= 0, "lastLogIndex must be positive");
       checkArgument(lastLogTerm >= 0, "lastLogTerm must be positive");
-    }
-
-    /**
-     * @throws IllegalStateException if candidate is not positive or if term, lastLogIndex or lastLogTerm are negative
-     */
-    @Override
-    public PollRequest build() {
-      validate();
-      return new PollRequest(term, candidate, lastLogIndex, lastLogTerm);
     }
   }
 }

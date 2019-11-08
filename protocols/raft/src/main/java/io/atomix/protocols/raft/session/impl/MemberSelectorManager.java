@@ -18,7 +18,6 @@ package io.atomix.protocols.raft.session.impl;
 import com.google.common.collect.Lists;
 import io.atomix.cluster.MemberId;
 import io.atomix.protocols.raft.session.CommunicationStrategy;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -26,10 +25,9 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.Consumer;
 
-/**
- * Cluster member selectors.
- */
+/** Cluster member selectors. */
 public final class MemberSelectorManager {
+
   private final Set<MemberSelector> selectors = new CopyOnWriteArraySet<>();
   private final Set<Consumer<MemberId>> leaderChangeListeners = new CopyOnWriteArraySet<>();
   private volatile MemberId leader;
@@ -78,14 +76,12 @@ public final class MemberSelectorManager {
    * @return A new address selector.
    */
   public MemberSelector createSelector(CommunicationStrategy selectionStrategy) {
-    MemberSelector selector = new MemberSelector(leader, members, selectionStrategy, this);
+    final MemberSelector selector = new MemberSelector(leader, members, selectionStrategy, this);
     selectors.add(selector);
     return selector;
   }
 
-  /**
-   * Resets all child selectors.
-   */
+  /** Resets all child selectors. */
   public void resetAll() {
     selectors.forEach(MemberSelector::reset);
   }
@@ -93,11 +89,11 @@ public final class MemberSelectorManager {
   /**
    * Resets all child selectors.
    *
-   * @param leader  The current cluster leader.
+   * @param leader The current cluster leader.
    * @param members The collection of all active members.
    */
   public void resetAll(MemberId leader, Collection<MemberId> members) {
-    MemberId oldLeader = this.leader;
+    final MemberId oldLeader = this.leader;
     this.leader = leader;
     this.members = Lists.newLinkedList(members);
     selectors.forEach(s -> s.reset(leader, this.members));
@@ -114,5 +110,4 @@ public final class MemberSelectorManager {
   void remove(MemberSelector selector) {
     selectors.remove(selector);
   }
-
 }

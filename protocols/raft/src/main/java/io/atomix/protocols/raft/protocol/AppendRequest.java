@@ -15,34 +15,24 @@
  */
 package io.atomix.protocols.raft.protocol;
 
-import io.atomix.cluster.MemberId;
-import io.atomix.protocols.raft.storage.log.entry.RaftLogEntry;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import io.atomix.cluster.MemberId;
+import io.atomix.protocols.raft.storage.log.entry.RaftLogEntry;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+
 /**
  * Append entries request.
- * <p>
- * Append entries requests are at the core of the replication protocol. Leaders send append requests
- * to followers to replicate and commit log entries, and followers sent append requests to passive members
- * to replicate committed log entries.
+ *
+ * <p>Append entries requests are at the core of the replication protocol. Leaders send append
+ * requests to followers to replicate and commit log entries, and followers sent append requests to
+ * passive members to replicate committed log entries.
  */
 public class AppendRequest extends AbstractRaftRequest {
-
-  /**
-   * Returns a new append request builder.
-   *
-   * @return A new append request builder.
-   */
-  public static Builder builder() {
-    return new Builder();
-  }
 
   private final long term;
   private final String leader;
@@ -51,13 +41,28 @@ public class AppendRequest extends AbstractRaftRequest {
   private final List<RaftLogEntry> entries;
   private final long commitIndex;
 
-  public AppendRequest(long term, String leader, long prevLogIndex, long prevLogTerm, List<RaftLogEntry> entries, long commitIndex) {
+  public AppendRequest(
+      long term,
+      String leader,
+      long prevLogIndex,
+      long prevLogTerm,
+      List<RaftLogEntry> entries,
+      long commitIndex) {
     this.term = term;
     this.leader = leader;
     this.prevLogIndex = prevLogIndex;
     this.prevLogTerm = prevLogTerm;
     this.entries = entries;
     this.commitIndex = commitIndex;
+  }
+
+  /**
+   * Returns a new append request builder.
+   *
+   * @return A new append request builder.
+   */
+  public static Builder builder() {
+    return new Builder();
   }
 
   /**
@@ -122,7 +127,7 @@ public class AppendRequest extends AbstractRaftRequest {
   @Override
   public boolean equals(Object object) {
     if (object instanceof AppendRequest) {
-      AppendRequest request = (AppendRequest) object;
+      final AppendRequest request = (AppendRequest) object;
       return request.term == term
           && request.leader.equals(leader)
           && request.prevLogIndex == prevLogIndex
@@ -145,10 +150,9 @@ public class AppendRequest extends AbstractRaftRequest {
         .toString();
   }
 
-  /**
-   * Append request builder.
-   */
+  /** Append request builder. */
   public static class Builder extends AbstractRaftRequest.Builder<Builder, AppendRequest> {
+
     private long term;
     private String leader;
     private long logIndex;
@@ -256,6 +260,16 @@ public class AppendRequest extends AbstractRaftRequest {
       return this;
     }
 
+    /**
+     * @throws IllegalStateException if the term, log term, log index, commit index, or global index
+     *     are not positive, or if entries is null
+     */
+    @Override
+    public AppendRequest build() {
+      validate();
+      return new AppendRequest(term, leader, logIndex, logTerm, entries, commitIndex);
+    }
+
     @Override
     protected void validate() {
       super.validate();
@@ -265,16 +279,6 @@ public class AppendRequest extends AbstractRaftRequest {
       checkArgument(logTerm >= 0, "prevLogTerm must be positive");
       checkNotNull(entries, "entries cannot be null");
       checkArgument(commitIndex >= 0, "commitIndex must be positive");
-    }
-
-    /**
-     * @throws IllegalStateException if the term, log term, log index, commit index, or global index are not positive, or
-     *                               if entries is null
-     */
-    @Override
-    public AppendRequest build() {
-      validate();
-      return new AppendRequest(term, leader, logIndex, logTerm, entries, commitIndex);
     }
   }
 }

@@ -25,15 +25,10 @@ import io.atomix.storage.StorageLevel;
  */
 public class MemorySnapshotStoreTest extends AbstractSnapshotStoreTest {
 
-  /**
-   * Returns a new snapshot store.
-   */
+  /** Returns a new snapshot store. */
   protected SnapshotStore createSnapshotStore() {
-    RaftStorage storage = RaftStorage.builder()
-        .withPrefix("test")
-        .withStorageLevel(StorageLevel.MEMORY)
-        .build();
+    final RaftStorage storage =
+        RaftStorage.builder().withPrefix("test").withStorageLevel(StorageLevel.MEMORY).build();
     return new SnapshotStore(storage);
   }
-
 }

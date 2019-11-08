@@ -18,10 +18,11 @@ package io.atomix.protocols.raft.utils;
 import java.util.function.Consumer;
 
 /**
- * Quorum helper. Completes and invokes a callback when the number of {@link #succeed()} or
- * {@link #fail()} calls equal the expected quorum count. Not threadsafe.
+ * Quorum helper. Completes and invokes a callback when the number of {@link #succeed()} or {@link
+ * #fail()} calls equal the expected quorum count. Not threadsafe.
  */
 public class Quorum {
+
   private final int quorum;
   private int succeeded = 1;
   private int failed;
@@ -31,6 +32,13 @@ public class Quorum {
   public Quorum(int quorum, Consumer<Boolean> callback) {
     this.quorum = quorum;
     this.callback = callback;
+  }
+
+  /** Indicates that a call in the quorum succeeded. */
+  public Quorum succeed() {
+    succeeded++;
+    checkComplete();
+    return this;
   }
 
   private void checkComplete() {
@@ -45,18 +53,7 @@ public class Quorum {
     }
   }
 
-  /**
-   * Indicates that a call in the quorum succeeded.
-   */
-  public Quorum succeed() {
-    succeeded++;
-    checkComplete();
-    return this;
-  }
-
-  /**
-   * Indicates that a call in the quorum failed.
-   */
+  /** Indicates that a call in the quorum failed. */
   public Quorum fail() {
     failed++;
     checkComplete();
@@ -71,5 +68,4 @@ public class Quorum {
     callback = null;
     complete = true;
   }
-
 }

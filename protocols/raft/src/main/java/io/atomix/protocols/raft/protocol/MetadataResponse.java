@@ -15,21 +15,25 @@
  */
 package io.atomix.protocols.raft.protocol;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.atomix.primitive.session.SessionMetadata;
 import io.atomix.protocols.raft.RaftError;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * Cluster metadata response.
- */
+/** Cluster metadata response. */
 public class MetadataResponse extends AbstractRaftResponse {
+
+  private final Set<SessionMetadata> sessions;
+
+  public MetadataResponse(Status status, RaftError error, Set<SessionMetadata> sessions) {
+    super(status, error);
+    this.sessions = sessions;
+  }
 
   /**
    * Returns a new metadata response builder.
@@ -38,13 +42,6 @@ public class MetadataResponse extends AbstractRaftResponse {
    */
   public static Builder builder() {
     return new Builder();
-  }
-
-  private final Set<SessionMetadata> sessions;
-
-  public MetadataResponse(Status status, RaftError error, Set<SessionMetadata> sessions) {
-    super(status, error);
-    this.sessions = sessions;
   }
 
   /**
@@ -59,22 +56,15 @@ public class MetadataResponse extends AbstractRaftResponse {
   @Override
   public String toString() {
     if (status == Status.OK) {
-      return toStringHelper(this)
-          .add("status", status)
-          .add("sessions", sessions)
-          .toString();
+      return toStringHelper(this).add("status", status).add("sessions", sessions).toString();
     } else {
-      return toStringHelper(this)
-          .add("status", status)
-          .add("error", error)
-          .toString();
+      return toStringHelper(this).add("status", status).add("error", error).toString();
     }
   }
 
-  /**
-   * Metadata response builder.
-   */
+  /** Metadata response builder. */
   public static class Builder extends AbstractRaftResponse.Builder<Builder, MetadataResponse> {
+
     private Set<SessionMetadata> sessions;
 
     /**
@@ -99,17 +89,17 @@ public class MetadataResponse extends AbstractRaftResponse {
     }
 
     @Override
+    public MetadataResponse build() {
+      validate();
+      return new MetadataResponse(status, error, sessions);
+    }
+
+    @Override
     protected void validate() {
       super.validate();
       if (status == Status.OK) {
         checkNotNull(sessions, "sessions cannot be null");
       }
-    }
-
-    @Override
-    public MetadataResponse build() {
-      validate();
-      return new MetadataResponse(status, error, sessions);
     }
   }
 }

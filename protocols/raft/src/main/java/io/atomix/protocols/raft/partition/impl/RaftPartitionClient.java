@@ -15,6 +15,8 @@
  */
 package io.atomix.protocols.raft.partition.impl;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import io.atomix.cluster.MemberId;
 import io.atomix.primitive.PrimitiveType;
 import io.atomix.primitive.partition.PartitionClient;
@@ -25,15 +27,10 @@ import io.atomix.protocols.raft.protocol.RaftClientProtocol;
 import io.atomix.protocols.raft.session.RaftSessionClient;
 import io.atomix.utils.Managed;
 import io.atomix.utils.concurrent.ThreadContextFactory;
+import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 
-import java.util.concurrent.CompletableFuture;
-
-import static org.slf4j.LoggerFactory.getLogger;
-
-/**
- * StoragePartition client.
- */
+/** StoragePartition client. */
 public class RaftPartitionClient implements PartitionClient, Managed<RaftPartitionClient> {
 
   private final Logger log = getLogger(getClass());
@@ -74,7 +71,8 @@ public class RaftPartitionClient implements PartitionClient, Managed<RaftPartiti
   }
 
   @Override
-  public RaftSessionClient.Builder sessionBuilder(String primitiveName, PrimitiveType primitiveType, ServiceConfig serviceConfig) {
+  public RaftSessionClient.Builder sessionBuilder(
+      String primitiveName, PrimitiveType primitiveType, ServiceConfig serviceConfig) {
     return client.sessionBuilder(primitiveName, primitiveType, serviceConfig);
   }
 
@@ -83,23 +81,27 @@ public class RaftPartitionClient implements PartitionClient, Managed<RaftPartiti
     synchronized (RaftPartitionClient.this) {
       client = newRaftClient(protocol);
     }
-    return client.connect(partition.members()).whenComplete((r, e) -> {
-      if (e == null) {
-        log.debug("Successfully started client for partition {}", partition.id());
-      } else {
-        log.warn("Failed to start client for partition {}", partition.id(), e);
-      }
-    }).thenApply(v -> null);
-  }
-
-  @Override
-  public CompletableFuture<Void> stop() {
-    return client != null ? client.close() : CompletableFuture.completedFuture(null);
+    return client
+        .connect(partition.members())
+        .whenComplete(
+            (r, e) -> {
+              if (e == null) {
+                log.debug("Successfully started client for partition {}", partition.id());
+              } else {
+                log.warn("Failed to start client for partition {}", partition.id(), e);
+              }
+            })
+        .thenApply(v -> null);
   }
 
   @Override
   public boolean isRunning() {
     return client != null;
+  }
+
+  @Override
+  public CompletableFuture<Void> stop() {
+    return client != null ? client.close() : CompletableFuture.completedFuture(null);
   }
 
   private RaftClient newRaftClient(RaftClientProtocol protocol) {

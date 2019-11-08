@@ -23,9 +23,10 @@ import io.atomix.utils.serializer.Namespace;
 import io.atomix.utils.serializer.Namespaces;
 
 public class ZeebeRaftPartitionGroup extends RaftPartitionGroup {
+
   public static final ZeebeRaftPartitionGroup.Type TYPE = new ZeebeRaftPartitionGroup.Type();
 
-  public ZeebeRaftPartitionGroup(final RaftPartitionGroupConfig config) {
+  public ZeebeRaftPartitionGroup(RaftPartitionGroupConfig config) {
     super(config);
   }
 
@@ -35,12 +36,13 @@ public class ZeebeRaftPartitionGroup extends RaftPartitionGroup {
    * @param name the partition group name
    * @return a new partition group builder
    */
-  public static Builder builder(final String name) {
+  public static Builder builder(String name) {
     return new Builder(new ZeebeRaftPartitionGroupConfig().setName(name));
   }
 
   /** Raft partition group type. */
   public static class Type implements PartitionGroup.Type<RaftPartitionGroupConfig> {
+
     private static final String NAME = "zeebe-raft";
 
     @Override
@@ -57,7 +59,7 @@ public class ZeebeRaftPartitionGroup extends RaftPartitionGroup {
     }
 
     @Override
-    public ManagedPartitionGroup newPartitionGroup(final RaftPartitionGroupConfig config) {
+    public ManagedPartitionGroup newPartitionGroup(RaftPartitionGroupConfig config) {
       return new ZeebeRaftPartitionGroup(config);
     }
 
@@ -68,7 +70,8 @@ public class ZeebeRaftPartitionGroup extends RaftPartitionGroup {
   }
 
   public static class Builder extends RaftPartitionGroup.Builder {
-    protected Builder(final RaftPartitionGroupConfig config) {
+
+    protected Builder(RaftPartitionGroupConfig config) {
       super(config);
     }
   }

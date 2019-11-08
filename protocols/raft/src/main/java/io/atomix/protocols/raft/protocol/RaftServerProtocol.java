@@ -17,21 +17,18 @@ package io.atomix.protocols.raft.protocol;
 
 import io.atomix.cluster.MemberId;
 import io.atomix.primitive.session.SessionId;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-/**
- * Raft server protocol.
- */
+/** Raft server protocol. */
 public interface RaftServerProtocol {
 
   /**
    * Sends an open session request to the given node.
    *
-   * @param memberId  the node to which to send the request
+   * @param memberId the node to which to send the request
    * @param request the request to send
    * @return a future to be completed with the response
    */
@@ -40,16 +37,17 @@ public interface RaftServerProtocol {
   /**
    * Sends a close session request to the given node.
    *
-   * @param memberId  the node to which to send the request
+   * @param memberId the node to which to send the request
    * @param request the request to send
    * @return a future to be completed with the response
    */
-  CompletableFuture<CloseSessionResponse> closeSession(MemberId memberId, CloseSessionRequest request);
+  CompletableFuture<CloseSessionResponse> closeSession(
+      MemberId memberId, CloseSessionRequest request);
 
   /**
    * Sends a keep alive request to the given node.
    *
-   * @param memberId  the node to which to send the request
+   * @param memberId the node to which to send the request
    * @param request the request to send
    * @return a future to be completed with the response
    */
@@ -58,7 +56,7 @@ public interface RaftServerProtocol {
   /**
    * Sends a query request to the given node.
    *
-   * @param memberId  the node to which to send the request
+   * @param memberId the node to which to send the request
    * @param request the request to send
    * @return a future to be completed with the response
    */
@@ -67,7 +65,7 @@ public interface RaftServerProtocol {
   /**
    * Sends a command request to the given node.
    *
-   * @param memberId  the node to which to send the request
+   * @param memberId the node to which to send the request
    * @param request the request to send
    * @return a future to be completed with the response
    */
@@ -76,7 +74,7 @@ public interface RaftServerProtocol {
   /**
    * Sends a metadata request to the given node.
    *
-   * @param memberId  the node to which to send the request
+   * @param memberId the node to which to send the request
    * @param request the request to send
    * @return a future to be completed with the response
    */
@@ -85,7 +83,7 @@ public interface RaftServerProtocol {
   /**
    * Sends a join request to the given node.
    *
-   * @param memberId  the node to which to send the request
+   * @param memberId the node to which to send the request
    * @param request the request to send
    * @return a future to be completed with the response
    */
@@ -94,7 +92,7 @@ public interface RaftServerProtocol {
   /**
    * Sends a leave request to the given node.
    *
-   * @param memberId  the node to which to send the request
+   * @param memberId the node to which to send the request
    * @param request the request to send
    * @return a future to be completed with the response
    */
@@ -103,7 +101,7 @@ public interface RaftServerProtocol {
   /**
    * Sends a configure request to the given node.
    *
-   * @param memberId  the node to which to send the request
+   * @param memberId the node to which to send the request
    * @param request the request to send
    * @return a future to be completed with the response
    */
@@ -112,7 +110,7 @@ public interface RaftServerProtocol {
   /**
    * Sends a reconfigure request to the given node.
    *
-   * @param memberId  the node to which to send the request
+   * @param memberId the node to which to send the request
    * @param request the request to send
    * @return a future to be completed with the response
    */
@@ -121,7 +119,7 @@ public interface RaftServerProtocol {
   /**
    * Sends an install request to the given node.
    *
-   * @param memberId  the node to which to send the request
+   * @param memberId the node to which to send the request
    * @param request the request to send
    * @return a future to be completed with the response
    */
@@ -130,7 +128,7 @@ public interface RaftServerProtocol {
   /**
    * Sends a transfer request to the given node.
    *
-   * @param memberId  the node to which to send the request
+   * @param memberId the node to which to send the request
    * @param request the request to send
    * @return a future to be completed with the response
    */
@@ -139,7 +137,7 @@ public interface RaftServerProtocol {
   /**
    * Sends a poll request to the given node.
    *
-   * @param memberId  the node to which to send the request
+   * @param memberId the node to which to send the request
    * @param request the request to send
    * @return a future to be completed with the response
    */
@@ -148,7 +146,7 @@ public interface RaftServerProtocol {
   /**
    * Sends a vote request to the given node.
    *
-   * @param memberId  the node to which to send the request
+   * @param memberId the node to which to send the request
    * @param request the request to send
    * @return a future to be completed with the response
    */
@@ -157,7 +155,7 @@ public interface RaftServerProtocol {
   /**
    * Sends an append request to the given node.
    *
-   * @param memberId  the node to which to send the request
+   * @param memberId the node to which to send the request
    * @param request the request to send
    * @return a future to be completed with the response
    */
@@ -175,7 +173,7 @@ public interface RaftServerProtocol {
   /**
    * Unicasts a publish request to the given node.
    *
-   * @param memberId  the node to which to send the request
+   * @param memberId the node to which to send the request
    * @param request the request to send
    */
   void publish(MemberId memberId, PublishRequest request);
@@ -185,11 +183,10 @@ public interface RaftServerProtocol {
    *
    * @param handler the open session request handler to register
    */
-  void registerOpenSessionHandler(Function<OpenSessionRequest, CompletableFuture<OpenSessionResponse>> handler);
+  void registerOpenSessionHandler(
+      Function<OpenSessionRequest, CompletableFuture<OpenSessionResponse>> handler);
 
-  /**
-   * Unregisters the open session request handler.
-   */
+  /** Unregisters the open session request handler. */
   void unregisterOpenSessionHandler();
 
   /**
@@ -197,11 +194,10 @@ public interface RaftServerProtocol {
    *
    * @param handler the close session request handler to register
    */
-  void registerCloseSessionHandler(Function<CloseSessionRequest, CompletableFuture<CloseSessionResponse>> handler);
+  void registerCloseSessionHandler(
+      Function<CloseSessionRequest, CompletableFuture<CloseSessionResponse>> handler);
 
-  /**
-   * Unregisters the close session request handler.
-   */
+  /** Unregisters the close session request handler. */
   void unregisterCloseSessionHandler();
 
   /**
@@ -209,11 +205,10 @@ public interface RaftServerProtocol {
    *
    * @param handler the open session request handler to register
    */
-  void registerKeepAliveHandler(Function<KeepAliveRequest, CompletableFuture<KeepAliveResponse>> handler);
+  void registerKeepAliveHandler(
+      Function<KeepAliveRequest, CompletableFuture<KeepAliveResponse>> handler);
 
-  /**
-   * Unregisters the keep alive request handler.
-   */
+  /** Unregisters the keep alive request handler. */
   void unregisterKeepAliveHandler();
 
   /**
@@ -223,9 +218,7 @@ public interface RaftServerProtocol {
    */
   void registerQueryHandler(Function<QueryRequest, CompletableFuture<QueryResponse>> handler);
 
-  /**
-   * Unregisters the query request handler.
-   */
+  /** Unregisters the query request handler. */
   void unregisterQueryHandler();
 
   /**
@@ -235,9 +228,7 @@ public interface RaftServerProtocol {
    */
   void registerCommandHandler(Function<CommandRequest, CompletableFuture<CommandResponse>> handler);
 
-  /**
-   * Unregisters the command request handler.
-   */
+  /** Unregisters the command request handler. */
   void unregisterCommandHandler();
 
   /**
@@ -245,11 +236,10 @@ public interface RaftServerProtocol {
    *
    * @param handler the open session request handler to register
    */
-  void registerMetadataHandler(Function<MetadataRequest, CompletableFuture<MetadataResponse>> handler);
+  void registerMetadataHandler(
+      Function<MetadataRequest, CompletableFuture<MetadataResponse>> handler);
 
-  /**
-   * Unregisters the metadata request handler.
-   */
+  /** Unregisters the metadata request handler. */
   void unregisterMetadataHandler();
 
   /**
@@ -259,9 +249,7 @@ public interface RaftServerProtocol {
    */
   void registerJoinHandler(Function<JoinRequest, CompletableFuture<JoinResponse>> handler);
 
-  /**
-   * Unregisters the join request handler.
-   */
+  /** Unregisters the join request handler. */
   void unregisterJoinHandler();
 
   /**
@@ -271,9 +259,7 @@ public interface RaftServerProtocol {
    */
   void registerLeaveHandler(Function<LeaveRequest, CompletableFuture<LeaveResponse>> handler);
 
-  /**
-   * Unregisters the leave request handler.
-   */
+  /** Unregisters the leave request handler. */
   void unregisterLeaveHandler();
 
   /**
@@ -281,11 +267,10 @@ public interface RaftServerProtocol {
    *
    * @param handler the open session request handler to register
    */
-  void registerTransferHandler(Function<TransferRequest, CompletableFuture<TransferResponse>> handler);
+  void registerTransferHandler(
+      Function<TransferRequest, CompletableFuture<TransferResponse>> handler);
 
-  /**
-   * Unregisters the transfer request handler.
-   */
+  /** Unregisters the transfer request handler. */
   void unregisterTransferHandler();
 
   /**
@@ -293,11 +278,10 @@ public interface RaftServerProtocol {
    *
    * @param handler the open session request handler to register
    */
-  void registerConfigureHandler(Function<ConfigureRequest, CompletableFuture<ConfigureResponse>> handler);
+  void registerConfigureHandler(
+      Function<ConfigureRequest, CompletableFuture<ConfigureResponse>> handler);
 
-  /**
-   * Unregisters the configure request handler.
-   */
+  /** Unregisters the configure request handler. */
   void unregisterConfigureHandler();
 
   /**
@@ -305,11 +289,10 @@ public interface RaftServerProtocol {
    *
    * @param handler the open session request handler to register
    */
-  void registerReconfigureHandler(Function<ReconfigureRequest, CompletableFuture<ReconfigureResponse>> handler);
+  void registerReconfigureHandler(
+      Function<ReconfigureRequest, CompletableFuture<ReconfigureResponse>> handler);
 
-  /**
-   * Unregisters the reconfigure request handler.
-   */
+  /** Unregisters the reconfigure request handler. */
   void unregisterReconfigureHandler();
 
   /**
@@ -319,9 +302,7 @@ public interface RaftServerProtocol {
    */
   void registerInstallHandler(Function<InstallRequest, CompletableFuture<InstallResponse>> handler);
 
-  /**
-   * Unregisters the install request handler.
-   */
+  /** Unregisters the install request handler. */
   void unregisterInstallHandler();
 
   /**
@@ -331,9 +312,7 @@ public interface RaftServerProtocol {
    */
   void registerPollHandler(Function<PollRequest, CompletableFuture<PollResponse>> handler);
 
-  /**
-   * Unregisters the poll request handler.
-   */
+  /** Unregisters the poll request handler. */
   void unregisterPollHandler();
 
   /**
@@ -343,9 +322,7 @@ public interface RaftServerProtocol {
    */
   void registerVoteHandler(Function<VoteRequest, CompletableFuture<VoteResponse>> handler);
 
-  /**
-   * Unregisters the vote request handler.
-   */
+  /** Unregisters the vote request handler. */
   void unregisterVoteHandler();
 
   /**
@@ -355,19 +332,18 @@ public interface RaftServerProtocol {
    */
   void registerAppendHandler(Function<AppendRequest, CompletableFuture<AppendResponse>> handler);
 
-  /**
-   * Unregisters the append request handler.
-   */
+  /** Unregisters the append request handler. */
   void unregisterAppendHandler();
 
   /**
    * Registers a reset request listener.
    *
    * @param sessionId the session ID for which to register the listener
-   * @param listener  the reset request listener to add
-   * @param executor  the executor with which to execute the listener
+   * @param listener the reset request listener to add
+   * @param executor the executor with which to execute the listener
    */
-  void registerResetListener(SessionId sessionId, Consumer<ResetRequest> listener, Executor executor);
+  void registerResetListener(
+      SessionId sessionId, Consumer<ResetRequest> listener, Executor executor);
 
   /**
    * Unregisters the given reset request listener.
@@ -381,13 +357,12 @@ public interface RaftServerProtocol {
   /**
    * Registers an leader heartbeat callback.
    *
-   * @param leaderHeartbeatRequestConsumer  the consumer to add
-   * @param executor  the executor with which to execute the listener
+   * @param leaderHeartbeatRequestConsumer the consumer to add
+   * @param executor the executor with which to execute the listener
    */
-  void registerLeaderHeartbeatHandler(Consumer<LeaderHeartbeatRequest> leaderHeartbeatRequestConsumer, Executor executor);
+  void registerLeaderHeartbeatHandler(
+      Consumer<LeaderHeartbeatRequest> leaderHeartbeatRequestConsumer, Executor executor);
 
-  /**
-   * Unregisters the leader heartbeat request handler.
-   */
+  /** Unregisters the leader heartbeat request handler. */
   void unregisterLeaderHeartbeatHandler();
 }

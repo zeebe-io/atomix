@@ -15,10 +15,9 @@
  */
 package io.atomix.protocols.raft.partition;
 
-/**
- * Raft compaction configuration.
- */
+/** Raft compaction configuration. */
 public class RaftCompactionConfig {
+
   private static final boolean DEFAULT_DYNAMIC_COMPACTION = true;
   private static final double DEFAULT_FREE_DISK_BUFFER = .2;
   private static final double DEFAULT_FREE_MEMORY_BUFFER = .2;
@@ -26,6 +25,24 @@ public class RaftCompactionConfig {
   private boolean dynamic = DEFAULT_DYNAMIC_COMPACTION;
   private double freeDiskBuffer = DEFAULT_FREE_DISK_BUFFER;
   private double freeMemoryBuffer = DEFAULT_FREE_MEMORY_BUFFER;
+
+  /**
+   * Returns the free disk buffer.
+   *
+   * @return the free disk buffer
+   */
+  public double getFreeDiskBuffer() {
+    return freeDiskBuffer;
+  }
+
+  /**
+   * Returns the free memory buffer.
+   *
+   * @return the free memory buffer
+   */
+  public double getFreeMemoryBuffer() {
+    return freeMemoryBuffer;
+  }
 
   /**
    * Returns whether dynamic compaction is enabled.
@@ -48,15 +65,6 @@ public class RaftCompactionConfig {
   }
 
   /**
-   * Returns the free disk buffer.
-   *
-   * @return the free disk buffer
-   */
-  public double getFreeDiskBuffer() {
-    return freeDiskBuffer;
-  }
-
-  /**
    * Sets the free disk buffer.
    *
    * @param freeDiskBuffer the free disk buffer
@@ -65,15 +73,6 @@ public class RaftCompactionConfig {
   public RaftCompactionConfig setFreeDiskBuffer(double freeDiskBuffer) {
     this.freeDiskBuffer = freeDiskBuffer;
     return this;
-  }
-
-  /**
-   * Returns the free memory buffer.
-   *
-   * @return the free memory buffer
-   */
-  public double getFreeMemoryBuffer() {
-    return freeMemoryBuffer;
   }
 
   /**

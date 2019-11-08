@@ -15,17 +15,11 @@
  */
 package io.atomix.protocols.raft.session;
 
-/**
- * Session recovery strategy.
- */
+/** Session recovery strategy. */
 public enum RecoveryStrategy {
-  /**
-   * Indicates that the session should be recovered when lost.
-   */
+  /** Indicates that the session should be recovered when lost. */
   RECOVER,
 
-  /**
-   * Indicates that the session should be closed when lost.
-   */
+  /** Indicates that the session should be closed when lost. */
   CLOSE,
 }

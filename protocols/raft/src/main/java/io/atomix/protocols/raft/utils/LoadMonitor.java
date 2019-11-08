@@ -15,15 +15,14 @@
  */
 package io.atomix.protocols.raft.utils;
 
-import io.atomix.utils.misc.SlidingWindowCounter;
-import io.atomix.utils.concurrent.ThreadContext;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-/**
- * Server load monitor.
- */
+import io.atomix.utils.concurrent.ThreadContext;
+import io.atomix.utils.misc.SlidingWindowCounter;
+
+/** Server load monitor. */
 public class LoadMonitor {
+
   private final SlidingWindowCounter loadCounter;
   private final int windowSize;
   private final int highLoadThreshold;
@@ -34,11 +33,17 @@ public class LoadMonitor {
     this.loadCounter = new SlidingWindowCounter(windowSize, threadContext);
   }
 
-  /**
-   * Records a load event.
-   */
+  /** Records a load event. */
   public void recordEvent() {
     loadCounter.incrementCount();
+  }
+
+  @Override
+  public String toString() {
+    return toStringHelper(this)
+        .add("windowSize", windowSize)
+        .add("highLoadThreshold", highLoadThreshold)
+        .toString();
   }
 
   /**
@@ -48,13 +53,5 @@ public class LoadMonitor {
    */
   public boolean isUnderHighLoad() {
     return loadCounter.get(windowSize) > highLoadThreshold;
-  }
-
-  @Override
-  public String toString() {
-    return toStringHelper(this)
-        .add("windowSize", windowSize)
-        .add("highLoadThreshold", highLoadThreshold)
-        .toString();
   }
 }

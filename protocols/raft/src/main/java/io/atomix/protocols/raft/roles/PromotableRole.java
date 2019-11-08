@@ -18,10 +18,9 @@ package io.atomix.protocols.raft.roles;
 import io.atomix.protocols.raft.RaftServer;
 import io.atomix.protocols.raft.impl.RaftContext;
 
-/**
- * Promotable role.
- */
+/** Promotable role. */
 public class PromotableRole extends PassiveRole {
+
   public PromotableRole(RaftContext context) {
     super(context);
   }

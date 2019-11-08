@@ -15,14 +15,13 @@
  */
 package io.atomix.protocols.raft.storage.log.entry;
 
-import io.atomix.utils.misc.TimestampPrinter;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-/**
- * Base class for timestamped entries.
- */
+import io.atomix.utils.misc.TimestampPrinter;
+
+/** Base class for timestamped entries. */
 public abstract class TimestampedEntry extends RaftLogEntry {
+
   protected final long timestamp;
 
   public TimestampedEntry(long term, long timestamp) {

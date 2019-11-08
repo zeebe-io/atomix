@@ -15,17 +15,33 @@
  */
 package io.atomix.protocols.raft.protocol;
 
-import io.atomix.protocols.raft.RaftError;
-
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 
-/**
- * Server append entries response.
- */
+import io.atomix.protocols.raft.RaftError;
+import java.util.Objects;
+
+/** Server append entries response. */
 public class AppendResponse extends AbstractRaftResponse {
+
+  private final long term;
+  private final boolean succeeded;
+  private final long lastLogIndex;
+  private final long lastSnapshotIndex;
+
+  public AppendResponse(
+      Status status,
+      RaftError error,
+      long term,
+      boolean succeeded,
+      long lastLogIndex,
+      long lastSnapshotIndex) {
+    super(status, error);
+    this.term = term;
+    this.succeeded = succeeded;
+    this.lastLogIndex = lastLogIndex;
+    this.lastSnapshotIndex = lastSnapshotIndex;
+  }
 
   /**
    * Returns a new append response builder.
@@ -34,19 +50,6 @@ public class AppendResponse extends AbstractRaftResponse {
    */
   public static Builder builder() {
     return new Builder();
-  }
-
-  private final long term;
-  private final boolean succeeded;
-  private final long lastLogIndex;
-  private final long lastSnapshotIndex;
-
-  public AppendResponse(Status status, RaftError error, long term, boolean succeeded, long lastLogIndex, long lastSnapshotIndex) {
-    super(status, error);
-    this.term = term;
-    this.succeeded = succeeded;
-    this.lastLogIndex = lastLogIndex;
-    this.lastSnapshotIndex = lastSnapshotIndex;
   }
 
   /**
@@ -93,7 +96,7 @@ public class AppendResponse extends AbstractRaftResponse {
   @Override
   public boolean equals(Object object) {
     if (object instanceof AppendResponse) {
-      AppendResponse response = (AppendResponse) object;
+      final AppendResponse response = (AppendResponse) object;
       return response.status == status
           && response.term == term
           && response.succeeded == succeeded
@@ -114,17 +117,13 @@ public class AppendResponse extends AbstractRaftResponse {
           .add("lastSnapshotIndex", lastSnapshotIndex)
           .toString();
     } else {
-      return toStringHelper(this)
-          .add("status", status)
-          .add("error", error)
-          .toString();
+      return toStringHelper(this).add("status", status).add("error", error).toString();
     }
   }
 
-  /**
-   * Append response builder.
-   */
+  /** Append response builder. */
   public static class Builder extends AbstractRaftResponse.Builder<Builder, AppendResponse> {
+
     private long term;
     private boolean succeeded;
     private long lastLogIndex;
@@ -173,6 +172,16 @@ public class AppendResponse extends AbstractRaftResponse {
       return this;
     }
 
+    /**
+     * @throws IllegalStateException if status is ok and term is not positive or log index is
+     *     negative
+     */
+    @Override
+    public AppendResponse build() {
+      validate();
+      return new AppendResponse(status, error, term, succeeded, lastLogIndex, lastSnapshotIndex);
+    }
+
     @Override
     protected void validate() {
       super.validate();
@@ -181,15 +190,6 @@ public class AppendResponse extends AbstractRaftResponse {
         checkArgument(lastLogIndex >= 0, "lastLogIndex must be positive");
         checkArgument(lastSnapshotIndex >= 0, "lastSnapshotIndex must be positive");
       }
-    }
-
-    /**
-     * @throws IllegalStateException if status is ok and term is not positive or log index is negative
-     */
-    @Override
-    public AppendResponse build() {
-      validate();
-      return new AppendResponse(status, error, term, succeeded, lastLogIndex, lastSnapshotIndex);
     }
   }
 }

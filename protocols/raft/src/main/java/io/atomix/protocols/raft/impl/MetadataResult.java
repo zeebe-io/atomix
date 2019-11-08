@@ -15,16 +15,14 @@
  */
 package io.atomix.protocols.raft.impl;
 
-import io.atomix.primitive.session.SessionMetadata;
-
-import java.util.Set;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-/**
- * Metadata result.
- */
+import io.atomix.primitive.session.SessionMetadata;
+import java.util.Set;
+
+/** Metadata result. */
 public final class MetadataResult {
+
   final Set<SessionMetadata> sessions;
 
   MetadataResult(Set<SessionMetadata> sessions) {
@@ -42,8 +40,6 @@ public final class MetadataResult {
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("sessions", sessions)
-        .toString();
+    return toStringHelper(this).add("sessions", sessions).toString();
   }
 }

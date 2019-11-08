@@ -15,27 +15,31 @@
  */
 package io.atomix.protocols.raft.protocol;
 
-import io.atomix.primitive.operation.PrimitiveOperation;
-
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
+
+import io.atomix.primitive.operation.PrimitiveOperation;
+import java.util.Objects;
 
 /**
  * Client command request.
- * <p>
- * Command requests are submitted by clients to the Raft cluster to commit commands to
- * the replicated state machine. Each command request must be associated with a registered
- * {@link #session()} and have a unique {@link #sequenceNumber()} number within that session. Commands will
- * be applied in the cluster in the order defined by the provided sequence number. Thus, sequence numbers
- * should never be skipped. In the event of a failure of a command request, the request should be resent
- * with the same sequence number. Commands are guaranteed to be applied in sequence order.
- * <p>
- * Command requests should always be submitted to the server to which the client is connected and will
- * be forwarded to the current cluster leader. In the event that no leader is available, the request
- * will fail and should be resubmitted by the client.
+ *
+ * <p>Command requests are submitted by clients to the Raft cluster to commit commands to the
+ * replicated state machine. Each command request must be associated with a registered {@link
+ * #session()} and have a unique {@link #sequenceNumber()} number within that session. Commands will
+ * be applied in the cluster in the order defined by the provided sequence number. Thus, sequence
+ * numbers should never be skipped. In the event of a failure of a command request, the request
+ * should be resent with the same sequence number. Commands are guaranteed to be applied in sequence
+ * order.
+ *
+ * <p>Command requests should always be submitted to the server to which the client is connected and
+ * will be forwarded to the current cluster leader. In the event that no leader is available, the
+ * request will fail and should be resubmitted by the client.
  */
 public class CommandRequest extends OperationRequest {
+
+  public CommandRequest(long session, long sequence, PrimitiveOperation operation) {
+    super(session, sequence, operation);
+  }
 
   /**
    * Returns a new submit request builder.
@@ -46,10 +50,6 @@ public class CommandRequest extends OperationRequest {
     return new Builder();
   }
 
-  public CommandRequest(long session, long sequence, PrimitiveOperation operation) {
-    super(session, sequence, operation);
-  }
-
   @Override
   public int hashCode() {
     return Objects.hash(getClass(), session, sequence);
@@ -58,7 +58,7 @@ public class CommandRequest extends OperationRequest {
   @Override
   public boolean equals(Object object) {
     if (object instanceof CommandRequest) {
-      CommandRequest request = (CommandRequest) object;
+      final CommandRequest request = (CommandRequest) object;
       return request.session == session
           && request.sequence == sequence
           && request.operation.equals(operation);
@@ -75,10 +75,9 @@ public class CommandRequest extends OperationRequest {
         .toString();
   }
 
-  /**
-   * Command request builder.
-   */
+  /** Command request builder. */
   public static class Builder extends OperationRequest.Builder<Builder, CommandRequest> {
+
     @Override
     public CommandRequest build() {
       validate();

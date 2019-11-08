@@ -11,9 +11,9 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-public class TestPrimitiveImpl
-    extends AbstractAsyncPrimitive<TestPrimitive, TestPrimitiveService>
+public class TestPrimitiveImpl extends AbstractAsyncPrimitive<TestPrimitive, TestPrimitiveService>
     implements TestPrimitive, TestPrimitiveClient {
+
   private final Set<Consumer<Long>> eventListeners = Sets.newCopyOnWriteArraySet();
   private final Set<Consumer<String>> expireListeners = Sets.newCopyOnWriteArraySet();
   private final Set<Consumer<String>> closeListeners = Sets.newCopyOnWriteArraySet();

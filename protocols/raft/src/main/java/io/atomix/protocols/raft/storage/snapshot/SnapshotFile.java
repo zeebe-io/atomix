@@ -15,18 +15,16 @@
  */
 package io.atomix.protocols.raft.storage.snapshot;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.annotations.VisibleForTesting;
 import io.atomix.utils.AtomixIOException;
-
 import java.io.File;
 import java.io.IOException;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * Represents a snapshot file on disk.
- */
+/** Represents a snapshot file on disk. */
 public final class SnapshotFile {
+
   private static final char PART_SEPARATOR = '-';
   private static final char EXTENSION_SEPARATOR = '.';
   private static final String EXTENSION = "snapshot";
@@ -34,13 +32,27 @@ public final class SnapshotFile {
   private File temporaryFile;
 
   /**
-   * Returns a boolean value indicating whether the given file appears to be a parsable snapshot file.
+   * Creates a new SnapshotFile with references to a permanent snapshot file (for reading) and a
+   * temporary snapshot file (for writing). The temporary file can be null if the snapshot is
+   * already completed and should not be written to.
+   *
+   * @param file the snapshot file which is used for reading
+   * @param temporaryFile the snapshot file which is used for writing
+   */
+  SnapshotFile(File file, File temporaryFile) {
+    this.file = file;
+    this.temporaryFile = temporaryFile;
+  }
+
+  /**
+   * Returns a boolean value indicating whether the given file appears to be a parsable snapshot
+   * file.
    *
    * @throws NullPointerException if {@code file} is null
    */
   public static boolean isSnapshotFile(File file) {
     checkNotNull(file, "file cannot be null");
-    String fileName = file.getName();
+    final String fileName = file.getName();
 
     // The file name should contain an extension separator.
     if (fileName.lastIndexOf(EXTENSION_SEPARATOR) == -1) {
@@ -53,7 +65,10 @@ public final class SnapshotFile {
     }
 
     // Parse the file name parts.
-    String[] parts = fileName.substring(0, fileName.lastIndexOf(EXTENSION_SEPARATOR)).split(String.valueOf(PART_SEPARATOR));
+    final String[] parts =
+        fileName
+            .substring(0, fileName.lastIndexOf(EXTENSION_SEPARATOR))
+            .split(String.valueOf(PART_SEPARATOR));
 
     // The total number of file name parts should be at least 2.
     if (parts.length < 2) {
@@ -62,12 +77,9 @@ public final class SnapshotFile {
 
     // The second part of the file name should be numeric.
     // Subtract from the number of parts to ensure PART_SEPARATOR can be used in snapshot names.
-    if (!isNumeric(parts[parts.length - 1])) {
-      return false;
-    }
+    return isNumeric(parts[parts.length - 1]);
 
     // Otherwise, assume this is a snapshot file.
-    return true;
   }
 
   /**
@@ -85,17 +97,19 @@ public final class SnapshotFile {
     return true;
   }
 
-  /**
-   * Creates a snapshot file for the given directory, log name, and snapshot index.
-   */
+  /** Creates a snapshot file for the given directory, log name, and snapshot index. */
   @VisibleForTesting
   static File createSnapshotFile(File directory, String serverName, long index) {
     return new File(directory, createSnapshotFileName(serverName, index));
   }
 
-  /**
-   * Creates a temporary file for writing snapshots.
-   */
+  /** Creates a snapshot file name from the given parameters. */
+  @VisibleForTesting
+  static String createSnapshotFileName(String serverName, long index) {
+    return String.format("%s-%d.%s", serverName, index, EXTENSION);
+  }
+
+  /** Creates a temporary file for writing snapshots. */
   static File createTemporaryFile(File base) {
     try {
       final File file = File.createTempFile(base.getName(), null);
@@ -104,30 +118,6 @@ public final class SnapshotFile {
     } catch (IOException e) {
       throw new AtomixIOException(e);
     }
-  }
-
-  /**
-   * Creates a snapshot file name from the given parameters.
-   */
-  @VisibleForTesting
-  static String createSnapshotFileName(String serverName, long index) {
-    return String.format("%s-%d.%s",
-        serverName,
-        index,
-        EXTENSION);
-  }
-
-  /**
-   * Creates a new SnapshotFile with references to a permanent snapshot file (for reading)
-   * and a temporary snapshot file (for writing). The temporary file can be null if the snapshot
-   * is already completed and should not be written to.
-   *
-   * @param file the snapshot file which is used for reading
-   * @param temporaryFile the snapshot file which is used for writing
-   */
-  SnapshotFile(File file, File temporaryFile) {
-    this.file = file;
-    this.temporaryFile = temporaryFile;
   }
 
   /**
@@ -163,6 +153,7 @@ public final class SnapshotFile {
 
   @VisibleForTesting
   static String parseName(String fileName) {
-    return fileName.substring(0, fileName.lastIndexOf(PART_SEPARATOR, fileName.lastIndexOf(PART_SEPARATOR) - 1));
+    return fileName.substring(
+        0, fileName.lastIndexOf(PART_SEPARATOR, fileName.lastIndexOf(PART_SEPARATOR) - 1));
   }
 }

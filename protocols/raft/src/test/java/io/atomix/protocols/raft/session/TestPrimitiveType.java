@@ -16,16 +16,15 @@
 package io.atomix.protocols.raft.session;
 
 import io.atomix.primitive.PrimitiveBuilder;
-import io.atomix.primitive.config.PrimitiveConfig;
 import io.atomix.primitive.PrimitiveManagementService;
 import io.atomix.primitive.PrimitiveType;
+import io.atomix.primitive.config.PrimitiveConfig;
 import io.atomix.primitive.service.PrimitiveService;
 import io.atomix.primitive.service.ServiceConfig;
 
-/**
- * Test primitive type.
- */
+/** Test primitive type. */
 public class TestPrimitiveType implements PrimitiveType {
+
   static final TestPrimitiveType INSTANCE = new TestPrimitiveType();
 
   /**
@@ -43,17 +42,18 @@ public class TestPrimitiveType implements PrimitiveType {
   }
 
   @Override
-  public PrimitiveService newService(ServiceConfig config) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public PrimitiveConfig newConfig() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public PrimitiveBuilder newBuilder(String primitiveName, PrimitiveConfig config, PrimitiveManagementService managementService) {
+  public PrimitiveBuilder newBuilder(
+      String primitiveName, PrimitiveConfig config, PrimitiveManagementService managementService) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public PrimitiveService newService(ServiceConfig config) {
     throw new UnsupportedOperationException();
   }
 }

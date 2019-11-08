@@ -15,28 +15,29 @@
  */
 package io.atomix.protocols.raft.storage.snapshot;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.atomix.protocols.raft.RaftServer;
 import io.atomix.storage.StorageLevel;
 import io.atomix.storage.buffer.Buffer;
 import io.atomix.storage.buffer.BufferInput;
 import io.atomix.storage.buffer.Bytes;
-
 import java.nio.charset.Charset;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Reads bytes from a state machine {@link Snapshot}.
- * <p>
- * This class provides the primary interface for reading snapshot buffers from disk or memory.
- * Snapshot bytes are read from an underlying {@link Buffer} which is backed by either memory
- * or disk based on the configured {@link StorageLevel}.
- * <p>
- * In addition to standard {@link BufferInput} methods, snapshot readers support reading serializable objects
- * from the snapshot via the {@link #readObject(java.util.function.Function)} method. Serializable types must be registered on the
- * {@link RaftServer} serializer to be supported in snapshots.
+ *
+ * <p>This class provides the primary interface for reading snapshot buffers from disk or memory.
+ * Snapshot bytes are read from an underlying {@link Buffer} which is backed by either memory or
+ * disk based on the configured {@link StorageLevel}.
+ *
+ * <p>In addition to standard {@link BufferInput} methods, snapshot readers support reading
+ * serializable objects from the snapshot via the {@link #readObject(java.util.function.Function)}
+ * method. Serializable types must be registered on the {@link RaftServer} serializer to be
+ * supported in snapshots.
  */
 public class SnapshotReader implements BufferInput<SnapshotReader> {
+
   private final Buffer buffer;
   private final Snapshot snapshot;
 
@@ -199,5 +200,4 @@ public class SnapshotReader implements BufferInput<SnapshotReader> {
     buffer.close();
     snapshot.closeReader(this);
   }
-
 }

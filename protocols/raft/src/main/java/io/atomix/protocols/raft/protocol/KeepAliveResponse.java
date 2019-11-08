@@ -13,27 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.atomix.protocols.raft.protocol;
-
-import io.atomix.cluster.MemberId;
-import io.atomix.protocols.raft.RaftError;
-import io.atomix.utils.misc.ArraySizeHashPrinter;
-
-import java.util.Collection;
-import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import io.atomix.cluster.MemberId;
+import io.atomix.protocols.raft.RaftError;
+import io.atomix.utils.misc.ArraySizeHashPrinter;
+import java.util.Collection;
+import java.util.Objects;
+
 /**
  * Session keep alive response.
- * <p>
- * Session keep alive responses are sent upon the completion of a {@link KeepAliveRequest}
- * from a client. Keep alive responses, when successful, provide the current cluster configuration and leader
- * to the client to ensure clients can evolve with the structure of the cluster and make intelligent decisions
- * about connecting to the cluster.
+ *
+ * <p>Session keep alive responses are sent upon the completion of a {@link KeepAliveRequest} from a
+ * client. Keep alive responses, when successful, provide the current cluster configuration and
+ * leader to the client to ensure clients can evolve with the structure of the cluster and make
+ * intelligent decisions about connecting to the cluster.
  */
 public class KeepAliveResponse extends AbstractRaftResponse {
+
+  private final MemberId leader;
+  private final Collection<MemberId> members;
+  private final long[] sessionIds;
+
+  public KeepAliveResponse(
+      Status status,
+      RaftError error,
+      MemberId leader,
+      Collection<MemberId> members,
+      long[] sessionIds) {
+    super(status, error);
+    this.leader = leader;
+    this.members = members;
+    this.sessionIds = sessionIds;
+  }
 
   /**
    * Returns a new keep alive response builder.
@@ -42,17 +58,6 @@ public class KeepAliveResponse extends AbstractRaftResponse {
    */
   public static Builder builder() {
     return new Builder();
-  }
-
-  private final MemberId leader;
-  private final Collection<MemberId> members;
-  private final long[] sessionIds;
-
-  public KeepAliveResponse(Status status, RaftError error, MemberId leader, Collection<MemberId> members, long[] sessionIds) {
-    super(status, error);
-    this.leader = leader;
-    this.members = members;
-    this.sessionIds = sessionIds;
   }
 
   /**
@@ -90,12 +95,12 @@ public class KeepAliveResponse extends AbstractRaftResponse {
   @Override
   public boolean equals(Object object) {
     if (object instanceof KeepAliveResponse) {
-      KeepAliveResponse response = (KeepAliveResponse) object;
+      final KeepAliveResponse response = (KeepAliveResponse) object;
       return response.status == status
           && ((response.leader == null && leader == null)
-          || (response.leader != null && leader != null && response.leader.equals(leader)))
+              || (response.leader != null && leader != null && response.leader.equals(leader)))
           && ((response.members == null && members == null)
-          || (response.members != null && members != null && response.members.equals(members)));
+              || (response.members != null && members != null && response.members.equals(members)));
     }
     return false;
   }
@@ -110,17 +115,13 @@ public class KeepAliveResponse extends AbstractRaftResponse {
           .add("sessionIds", ArraySizeHashPrinter.of(sessionIds))
           .toString();
     } else {
-      return toStringHelper(this)
-          .add("status", status)
-          .add("error", error)
-          .toString();
+      return toStringHelper(this).add("status", status).add("error", error).toString();
     }
   }
 
-  /**
-   * Status response builder.
-   */
+  /** Status response builder. */
   public static class Builder extends AbstractRaftResponse.Builder<Builder, KeepAliveResponse> {
+
     private MemberId leader;
     private Collection<MemberId> members;
     private long[] sessionIds;
@@ -159,6 +160,13 @@ public class KeepAliveResponse extends AbstractRaftResponse {
       return this;
     }
 
+    /** @throws IllegalStateException if status is OK and members is null */
+    @Override
+    public KeepAliveResponse build() {
+      validate();
+      return new KeepAliveResponse(status, error, leader, members, sessionIds);
+    }
+
     @Override
     protected void validate() {
       super.validate();
@@ -166,15 +174,6 @@ public class KeepAliveResponse extends AbstractRaftResponse {
         checkNotNull(members, "members cannot be null");
         checkNotNull(sessionIds, "sessionIds cannot be null");
       }
-    }
-
-    /**
-     * @throws IllegalStateException if status is OK and members is null
-     */
-    @Override
-    public KeepAliveResponse build() {
-      validate();
-      return new KeepAliveResponse(status, error, leader, members, sessionIds);
     }
   }
 }

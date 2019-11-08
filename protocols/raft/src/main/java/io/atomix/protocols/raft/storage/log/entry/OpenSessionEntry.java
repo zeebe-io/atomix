@@ -15,16 +15,15 @@
  */
 package io.atomix.protocols.raft.storage.log.entry;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 import io.atomix.protocols.raft.ReadConsistency;
 import io.atomix.utils.misc.ArraySizeHashPrinter;
 import io.atomix.utils.misc.TimestampPrinter;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
-/**
- * Open session entry.
- */
+/** Open session entry. */
 public class OpenSessionEntry extends TimestampedEntry {
+
   private final String memberId;
   private final String serviceName;
   private final String serviceType;

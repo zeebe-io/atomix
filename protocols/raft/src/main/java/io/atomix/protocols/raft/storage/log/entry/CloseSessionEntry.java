@@ -15,18 +15,18 @@
  */
 package io.atomix.protocols.raft.storage.log.entry;
 
-import io.atomix.utils.misc.TimestampPrinter;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-/**
- * Close session entry.
- */
+import io.atomix.utils.misc.TimestampPrinter;
+
+/** Close session entry. */
 public class CloseSessionEntry extends SessionEntry {
+
   private final boolean expired;
   private final boolean delete;
 
-  public CloseSessionEntry(long term, long timestamp, long session, boolean expired, boolean delete) {
+  public CloseSessionEntry(
+      long term, long timestamp, long session, boolean expired, boolean delete) {
     super(term, timestamp, session);
     this.expired = expired;
     this.delete = delete;

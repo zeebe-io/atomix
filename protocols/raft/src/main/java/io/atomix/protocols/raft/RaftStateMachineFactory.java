@@ -21,8 +21,7 @@ import io.atomix.utils.concurrent.ThreadContextFactory;
 
 @FunctionalInterface
 public interface RaftStateMachineFactory {
+
   RaftStateMachine createStateMachine(
-      final RaftContext raft,
-      final ThreadContext stateContext,
-      final ThreadContextFactory threadContextFactory);
+      RaftContext raft, ThreadContext stateContext, ThreadContextFactory threadContextFactory);
 }

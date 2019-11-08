@@ -20,22 +20,10 @@ import io.atomix.storage.StorageLevel;
 import io.atomix.storage.journal.DelegatingJournal;
 import io.atomix.storage.journal.SegmentedJournal;
 import io.atomix.utils.serializer.Namespace;
-
 import java.io.File;
 
-/**
- * Raft log.
- */
+/** Raft log. */
 public class RaftLog extends DelegatingJournal<RaftLogEntry> {
-
-  /**
-   * Returns a new Raft log builder.
-   *
-   * @return A new Raft log builder.
-   */
-  public static Builder builder() {
-    return new Builder();
-  }
 
   private final SegmentedJournal<RaftLogEntry> journal;
   private final RaftLogWriter writer;
@@ -45,6 +33,15 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
     super(journal);
     this.journal = journal;
     this.writer = new RaftLogWriter(journal.writer());
+  }
+
+  /**
+   * Returns a new Raft log builder.
+   *
+   * @return A new Raft log builder.
+   */
+  public static Builder builder() {
+    return new Builder();
   }
 
   @Override
@@ -63,25 +60,8 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
   }
 
   /**
-   * Commits entries up to the given index.
-   *
-   * @param index The index up to which to commit entries.
-   */
-  void setCommitIndex(long index) {
-    this.commitIndex = index;
-  }
-
-  /**
-   * Returns the Raft log commit index.
-   *
-   * @return The Raft log commit index.
-   */
-  long getCommitIndex() {
-    return commitIndex;
-  }
-
-  /**
-   * Returns a boolean indicating whether a segment can be removed from the journal prior to the given index.
+   * Returns a boolean indicating whether a segment can be removed from the journal prior to the
+   * given index.
    *
    * @param index the index from which to remove segments
    * @return indicates whether a segment can be removed from the journal
@@ -102,8 +82,8 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
 
   /**
    * Compacts the journal up to the given index.
-   * <p>
-   * The semantics of compaction are not specified by this interface.
+   *
+   * <p>The semantics of compaction are not specified by this interface.
    *
    * @param index The index up to which to compact the journal.
    */
@@ -112,13 +92,30 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
   }
 
   /**
-   * Raft log builder.
+   * Returns the Raft log commit index.
+   *
+   * @return The Raft log commit index.
    */
-  public static class Builder implements io.atomix.utils.Builder<RaftLog> {
-    private final SegmentedJournal.Builder<RaftLogEntry> journalBuilder = SegmentedJournal.builder();
+  long getCommitIndex() {
+    return commitIndex;
+  }
 
-    protected Builder() {
-    }
+  /**
+   * Commits entries up to the given index.
+   *
+   * @param index The index up to which to commit entries.
+   */
+  void setCommitIndex(long index) {
+    this.commitIndex = index;
+  }
+
+  /** Raft log builder. */
+  public static class Builder implements io.atomix.utils.Builder<RaftLog> {
+
+    private final SegmentedJournal.Builder<RaftLogEntry> journalBuilder =
+        SegmentedJournal.builder();
+
+    protected Builder() {}
 
     /**
      * Sets the storage name.
@@ -133,8 +130,8 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
 
     /**
      * Sets the log storage level, returning the builder for method chaining.
-     * <p>
-     * The storage level indicates how individual entries should be persisted in the journal.
+     *
+     * <p>The storage level indicates how individual entries should be persisted in the journal.
      *
      * @param storageLevel The log storage level.
      * @return The storage builder.
@@ -146,8 +143,8 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
 
     /**
      * Sets the log directory, returning the builder for method chaining.
-     * <p>
-     * The log will write segment files into the provided directory.
+     *
+     * <p>The log will write segment files into the provided directory.
      *
      * @param directory The log directory.
      * @return The storage builder.
@@ -160,8 +157,8 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
 
     /**
      * Sets the log directory, returning the builder for method chaining.
-     * <p>
-     * The log will write segment files into the provided directory.
+     *
+     * <p>The log will write segment files into the provided directory.
      *
      * @param directory The log directory.
      * @return The storage builder.
@@ -185,12 +182,13 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
 
     /**
      * Sets the maximum segment size in bytes, returning the builder for method chaining.
-     * <p>
-     * The maximum segment size dictates when logs should roll over to new segments. As entries are written to
-     * a segment of the log, once the size of the segment surpasses the configured maximum segment size, the
-     * log will create a new segment and append new entries to that segment.
-     * <p>
-     * By default, the maximum segment size is {@code 1024 * 1024 * 32}.
+     *
+     * <p>The maximum segment size dictates when logs should roll over to new segments. As entries
+     * are written to a segment of the log, once the size of the segment surpasses the configured
+     * maximum segment size, the log will create a new segment and append new entries to that
+     * segment.
+     *
+     * <p>By default, the maximum segment size is {@code 1024 * 1024 * 32}.
      *
      * @param maxSegmentSize The maximum segment size in bytes.
      * @return The storage builder.
@@ -214,18 +212,20 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
     }
 
     /**
-     * Sets the maximum number of allows entries per segment, returning the builder for method chaining.
-     * <p>
-     * The maximum entry count dictates when logs should roll over to new segments. As entries are written to
-     * a segment of the log, if the entry count in that segment meets the configured maximum entry count, the
-     * log will create a new segment and append new entries to that segment.
-     * <p>
-     * By default, the maximum entries per segment is {@code 1024 * 1024}.
+     * Sets the maximum number of allows entries per segment, returning the builder for method
+     * chaining.
+     *
+     * <p>The maximum entry count dictates when logs should roll over to new segments. As entries
+     * are written to a segment of the log, if the entry count in that segment meets the configured
+     * maximum entry count, the log will create a new segment and append new entries to that
+     * segment.
+     *
+     * <p>By default, the maximum entries per segment is {@code 1024 * 1024}.
      *
      * @param maxEntriesPerSegment The maximum number of entries allowed per segment.
      * @return The storage builder.
-     * @throws IllegalArgumentException If the {@code maxEntriesPerSegment} not greater than the default max entries per
-     *                                  segment
+     * @throws IllegalArgumentException If the {@code maxEntriesPerSegment} not greater than the
+     *     default max entries per segment
      * @deprecated since 3.0.2
      */
     @Deprecated
@@ -236,9 +236,9 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
 
     /**
      * Sets the log index density.
-     * <p>
-     * The index density is the frequency at which the position of entries written to the journal will be recorded in
-     * an in-memory index for faster seeking.
+     *
+     * <p>The index density is the frequency at which the position of entries written to the journal
+     * will be recorded in an in-memory index for faster seeking.
      *
      * @param indexDensity the index density
      * @return the log builder
@@ -262,11 +262,11 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
     }
 
     /**
-     * Enables flushing buffers to disk when entries are committed to a segment, returning the builder
-     * for method chaining.
-     * <p>
-     * When flush-on-commit is enabled, log entry buffers will be automatically flushed to disk each time
-     * an entry is committed in a given segment.
+     * Enables flushing buffers to disk when entries are committed to a segment, returning the
+     * builder for method chaining.
+     *
+     * <p>When flush-on-commit is enabled, log entry buffers will be automatically flushed to disk
+     * each time an entry is committed in a given segment.
      *
      * @return The storage builder.
      */
@@ -275,13 +275,14 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
     }
 
     /**
-     * Sets whether to flush buffers to disk when entries are committed to a segment, returning the builder
-     * for method chaining.
-     * <p>
-     * When flush-on-commit is enabled, log entry buffers will be automatically flushed to disk each time
-     * an entry is committed in a given segment.
+     * Sets whether to flush buffers to disk when entries are committed to a segment, returning the
+     * builder for method chaining.
      *
-     * @param flushOnCommit Whether to flush buffers to disk when entries are committed to a segment.
+     * <p>When flush-on-commit is enabled, log entry buffers will be automatically flushed to disk
+     * each time an entry is committed in a given segment.
+     *
+     * @param flushOnCommit Whether to flush buffers to disk when entries are committed to a
+     *     segment.
      * @return The storage builder.
      */
     public Builder withFlushOnCommit(boolean flushOnCommit) {

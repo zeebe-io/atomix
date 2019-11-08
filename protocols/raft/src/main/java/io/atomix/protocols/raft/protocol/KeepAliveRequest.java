@@ -15,35 +15,26 @@
  */
 package io.atomix.protocols.raft.protocol;
 
-import io.atomix.utils.misc.ArraySizeHashPrinter;
-
-import java.util.Arrays;
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import io.atomix.utils.misc.ArraySizeHashPrinter;
+import java.util.Arrays;
+import java.util.Objects;
+
 /**
  * Session keep alive request.
- * <p>
- * Keep alive requests are sent by clients to servers to maintain a session registered via
- * a {@link OpenSessionRequest}. Once a session has been registered, clients are responsible for sending
- * keep alive requests to the cluster at a rate less than the provided {@link OpenSessionResponse#timeout()}.
- * Keep alive requests also server to acknowledge the receipt of responses and events by the client.
- * The {@link #commandSequenceNumbers()} number indicates the highest command sequence number for which the client
- * has received a response, and the {@link #eventIndexes()} numbers indicate the highest index for which the
- * client has received an event in proper sequence.
+ *
+ * <p>Keep alive requests are sent by clients to servers to maintain a session registered via a
+ * {@link OpenSessionRequest}. Once a session has been registered, clients are responsible for
+ * sending keep alive requests to the cluster at a rate less than the provided {@link
+ * OpenSessionResponse#timeout()}. Keep alive requests also server to acknowledge the receipt of
+ * responses and events by the client. The {@link #commandSequenceNumbers()} number indicates the
+ * highest command sequence number for which the client has received a response, and the {@link
+ * #eventIndexes()} numbers indicate the highest index for which the client has received an event in
+ * proper sequence.
  */
 public class KeepAliveRequest extends AbstractRaftRequest {
-
-  /**
-   * Returns a new keep alive request builder.
-   *
-   * @return A new keep alive request builder.
-   */
-  public static Builder builder() {
-    return new Builder();
-  }
 
   private final long[] sessionIds;
   private final long[] commandSequences;
@@ -53,6 +44,15 @@ public class KeepAliveRequest extends AbstractRaftRequest {
     this.sessionIds = sessionIds;
     this.commandSequences = commandSequences;
     this.eventIndexes = eventIndexes;
+  }
+
+  /**
+   * Returns a new keep alive request builder.
+   *
+   * @return A new keep alive request builder.
+   */
+  public static Builder builder() {
+    return new Builder();
   }
 
   /**
@@ -90,7 +90,7 @@ public class KeepAliveRequest extends AbstractRaftRequest {
   @Override
   public boolean equals(Object object) {
     if (object instanceof KeepAliveRequest) {
-      KeepAliveRequest request = (KeepAliveRequest) object;
+      final KeepAliveRequest request = (KeepAliveRequest) object;
       return Arrays.equals(request.sessionIds, sessionIds)
           && Arrays.equals(request.commandSequences, commandSequences)
           && Arrays.equals(request.eventIndexes, eventIndexes);
@@ -107,10 +107,9 @@ public class KeepAliveRequest extends AbstractRaftRequest {
         .toString();
   }
 
-  /**
-   * Keep alive request builder.
-   */
+  /** Keep alive request builder. */
   public static class Builder extends AbstractRaftRequest.Builder<Builder, KeepAliveRequest> {
+
     private long[] sessionIds;
     private long[] commandSequences;
     private long[] eventIndexes;
@@ -152,17 +151,17 @@ public class KeepAliveRequest extends AbstractRaftRequest {
     }
 
     @Override
+    public KeepAliveRequest build() {
+      validate();
+      return new KeepAliveRequest(sessionIds, commandSequences, eventIndexes);
+    }
+
+    @Override
     protected void validate() {
       super.validate();
       this.sessionIds = checkNotNull(sessionIds, "sessionIds cannot be null");
       this.commandSequences = checkNotNull(commandSequences, "commandSequences cannot be null");
       this.eventIndexes = checkNotNull(eventIndexes, "eventIndexes cannot be null");
-    }
-
-    @Override
-    public KeepAliveRequest build() {
-      validate();
-      return new KeepAliveRequest(sessionIds, commandSequences, eventIndexes);
     }
   }
 }

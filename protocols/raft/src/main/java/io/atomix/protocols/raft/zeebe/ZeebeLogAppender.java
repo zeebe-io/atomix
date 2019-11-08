@@ -21,6 +21,7 @@ import java.util.concurrent.CompletableFuture;
 
 @FunctionalInterface
 public interface ZeebeLogAppender {
+
   /**
    * Appends an entry to the local Raft log and schedules replication to each follower.
    *

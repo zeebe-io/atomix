@@ -15,28 +15,29 @@
  */
 package io.atomix.protocols.raft.storage.snapshot;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.atomix.protocols.raft.RaftServer;
 import io.atomix.storage.StorageLevel;
 import io.atomix.storage.buffer.Buffer;
 import io.atomix.storage.buffer.BufferOutput;
 import io.atomix.storage.buffer.Bytes;
-
 import java.nio.charset.Charset;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Writes bytes to a state machine {@link Snapshot}.
- * <p>
- * This class provides the primary interface for writing snapshot buffers to disk or memory.
- * Snapshot bytes are written to an underlying {@link Buffer} which is backed by either memory
- * or disk based on the configured {@link StorageLevel}.
- * <p>
- * In addition to standard {@link BufferOutput} methods, snapshot readers support writing serializable objects
- * to the snapshot via the {@link #writeObject(Object, java.util.function.Function)} method. Serializable types must be registered on the
- * {@link RaftServer} serializer to be supported in snapshots.
+ *
+ * <p>This class provides the primary interface for writing snapshot buffers to disk or memory.
+ * Snapshot bytes are written to an underlying {@link Buffer} which is backed by either memory or
+ * disk based on the configured {@link StorageLevel}.
+ *
+ * <p>In addition to standard {@link BufferOutput} methods, snapshot readers support writing
+ * serializable objects to the snapshot via the {@link #writeObject(Object,
+ * java.util.function.Function)} method. Serializable types must be registered on the {@link
+ * RaftServer} serializer to be supported in snapshots.
  */
 public class SnapshotWriter implements BufferOutput<SnapshotWriter> {
+
   final Buffer buffer;
   private final Snapshot snapshot;
 
@@ -201,5 +202,4 @@ public class SnapshotWriter implements BufferOutput<SnapshotWriter> {
     snapshot.closeWriter(this);
     buffer.close();
   }
-
 }

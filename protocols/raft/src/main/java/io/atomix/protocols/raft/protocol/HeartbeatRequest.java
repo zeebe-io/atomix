@@ -15,18 +15,23 @@
  */
 package io.atomix.protocols.raft.protocol;
 
-import io.atomix.cluster.MemberId;
-
-import java.util.Collection;
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Client heartbeat request.
- */
+import io.atomix.cluster.MemberId;
+import java.util.Collection;
+import java.util.Objects;
+
+/** Client heartbeat request. */
 public class HeartbeatRequest extends AbstractRaftRequest {
+
+  private final MemberId leader;
+  private final Collection<MemberId> members;
+
+  public HeartbeatRequest(MemberId leader, Collection<MemberId> members) {
+    this.leader = leader;
+    this.members = members;
+  }
 
   /**
    * Returns a new heartbeat request builder.
@@ -35,14 +40,6 @@ public class HeartbeatRequest extends AbstractRaftRequest {
    */
   public static Builder builder() {
     return new Builder();
-  }
-
-  private final MemberId leader;
-  private final Collection<MemberId> members;
-
-  public HeartbeatRequest(MemberId leader, Collection<MemberId> members) {
-    this.leader = leader;
-    this.members = members;
   }
 
   /**
@@ -71,7 +68,7 @@ public class HeartbeatRequest extends AbstractRaftRequest {
   @Override
   public boolean equals(Object object) {
     if (object instanceof HeartbeatRequest) {
-      HeartbeatRequest request = (HeartbeatRequest) object;
+      final HeartbeatRequest request = (HeartbeatRequest) object;
       return Objects.equals(request.leader, leader) && Objects.equals(request.members, members);
     }
     return false;
@@ -79,16 +76,12 @@ public class HeartbeatRequest extends AbstractRaftRequest {
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("leader", leader)
-        .add("members", members)
-        .toString();
+    return toStringHelper(this).add("leader", leader).add("members", members).toString();
   }
 
-  /**
-   * Heartbeat request builder.
-   */
+  /** Heartbeat request builder. */
   public static class Builder extends AbstractRaftRequest.Builder<Builder, HeartbeatRequest> {
+
     private MemberId leader;
     private Collection<MemberId> members;
 
@@ -115,19 +108,17 @@ public class HeartbeatRequest extends AbstractRaftRequest {
       return this;
     }
 
-    @Override
-    protected void validate() {
-      super.validate();
-      checkNotNull(members, "members cannot be null");
-    }
-
-    /**
-     * @throws IllegalStateException if status is OK and members is null
-     */
+    /** @throws IllegalStateException if status is OK and members is null */
     @Override
     public HeartbeatRequest build() {
       validate();
       return new HeartbeatRequest(leader, members);
+    }
+
+    @Override
+    protected void validate() {
+      super.validate();
+      checkNotNull(members, "members cannot be null");
     }
   }
 }

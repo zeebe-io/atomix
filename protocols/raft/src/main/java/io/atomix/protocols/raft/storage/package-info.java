@@ -15,6 +15,7 @@
  */
 
 /**
- * Provides various classes and interfaces for storing logs and snapshots in the Raft consensus protocol.
+ * Provides various classes and interfaces for storing logs and snapshots in the Raft consensus
+ * protocol.
  */
 package io.atomix.protocols.raft.storage;

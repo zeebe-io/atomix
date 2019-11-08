@@ -15,24 +15,31 @@
  */
 package io.atomix.protocols.raft.protocol;
 
-import io.atomix.primitive.operation.PrimitiveOperation;
-
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 
+import io.atomix.primitive.operation.PrimitiveOperation;
+import java.util.Objects;
+
 /**
  * Client query request.
- * <p>
- * Query requests are submitted by clients to the Raft cluster to commit {@link PrimitiveOperation}s to
- * the replicated state machine. Each query request must be associated with a registered
- * {@link #session()} and have a unique {@link #sequenceNumber()} number within that session. Queries will
- * be applied in the cluster in the order defined by the provided sequence number. Thus, sequence numbers
- * should never be skipped. In the event of a failure of a query request, the request should be resent
- * with the same sequence number. Queries are guaranteed to be applied in sequence order.
+ *
+ * <p>Query requests are submitted by clients to the Raft cluster to commit {@link
+ * PrimitiveOperation}s to the replicated state machine. Each query request must be associated with
+ * a registered {@link #session()} and have a unique {@link #sequenceNumber()} number within that
+ * session. Queries will be applied in the cluster in the order defined by the provided sequence
+ * number. Thus, sequence numbers should never be skipped. In the event of a failure of a query
+ * request, the request should be resent with the same sequence number. Queries are guaranteed to be
+ * applied in sequence order.
  */
 public class QueryRequest extends OperationRequest {
+
+  private final long index;
+
+  public QueryRequest(long session, long sequence, PrimitiveOperation operation, long index) {
+    super(session, sequence, operation);
+    this.index = index;
+  }
 
   /**
    * Returns a new query request builder.
@@ -41,13 +48,6 @@ public class QueryRequest extends OperationRequest {
    */
   public static Builder builder() {
     return new Builder();
-  }
-
-  private final long index;
-
-  public QueryRequest(long session, long sequence, PrimitiveOperation operation, long index) {
-    super(session, sequence, operation);
-    this.index = index;
   }
 
   /**
@@ -67,7 +67,7 @@ public class QueryRequest extends OperationRequest {
   @Override
   public boolean equals(Object object) {
     if (object instanceof QueryRequest) {
-      QueryRequest request = (QueryRequest) object;
+      final QueryRequest request = (QueryRequest) object;
       return request.session == session
           && request.sequence == sequence
           && request.operation.equals(operation);
@@ -85,10 +85,9 @@ public class QueryRequest extends OperationRequest {
         .toString();
   }
 
-  /**
-   * Query request builder.
-   */
+  /** Query request builder. */
   public static class Builder extends OperationRequest.Builder<Builder, QueryRequest> {
+
     private long index;
 
     /**
@@ -104,20 +103,17 @@ public class QueryRequest extends OperationRequest {
       return this;
     }
 
-    @Override
-    protected void validate() {
-      super.validate();
-      checkArgument(index >= 0, "index must be positive");
-    }
-
-    /**
-     * @throws IllegalStateException if {@code query} is null
-     */
+    /** @throws IllegalStateException if {@code query} is null */
     @Override
     public QueryRequest build() {
       validate();
       return new QueryRequest(session, sequence, operation, index);
     }
-  }
 
+    @Override
+    protected void validate() {
+      super.validate();
+      checkArgument(index >= 0, "index must be positive");
+    }
+  }
 }

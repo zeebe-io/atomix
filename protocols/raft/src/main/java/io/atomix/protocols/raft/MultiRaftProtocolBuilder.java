@@ -19,14 +19,14 @@ import io.atomix.primitive.Recovery;
 import io.atomix.primitive.partition.Partitioner;
 import io.atomix.primitive.protocol.PrimitiveProtocolBuilder;
 import io.atomix.protocols.raft.session.CommunicationStrategy;
-
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Multi-Raft protocol builder.
- */
-public class MultiRaftProtocolBuilder extends PrimitiveProtocolBuilder<MultiRaftProtocolBuilder, MultiRaftProtocolConfig, MultiRaftProtocol> {
+/** Multi-Raft protocol builder. */
+public class MultiRaftProtocolBuilder
+    extends PrimitiveProtocolBuilder<
+        MultiRaftProtocolBuilder, MultiRaftProtocolConfig, MultiRaftProtocol> {
+
   protected MultiRaftProtocolBuilder(MultiRaftProtocolConfig config) {
     super(config);
   }
@@ -81,7 +81,8 @@ public class MultiRaftProtocolBuilder extends PrimitiveProtocolBuilder<MultiRaft
    * @param communicationStrategy the communication strategy
    * @return the Raft protocol builder
    */
-  public MultiRaftProtocolBuilder withCommunicationStrategy(CommunicationStrategy communicationStrategy) {
+  public MultiRaftProtocolBuilder withCommunicationStrategy(
+      CommunicationStrategy communicationStrategy) {
     config.setCommunicationStrategy(communicationStrategy);
     return this;
   }
@@ -122,24 +123,24 @@ public class MultiRaftProtocolBuilder extends PrimitiveProtocolBuilder<MultiRaft
    * Sets the operation retry delay.
    *
    * @param retryDelay the delay between operation retries
-   * @param timeUnit   the delay time unit
-   * @return the proxy builder
-   * @throws NullPointerException if the time unit is null
-   */
-  public MultiRaftProtocolBuilder withRetryDelay(long retryDelay, TimeUnit timeUnit) {
-    return withRetryDelay(Duration.ofMillis(timeUnit.toMillis(retryDelay)));
-  }
-
-  /**
-   * Sets the operation retry delay.
-   *
-   * @param retryDelay the delay between operation retries
    * @return the proxy builder
    * @throws NullPointerException if the delay is null
    */
   public MultiRaftProtocolBuilder withRetryDelay(Duration retryDelay) {
     config.setRetryDelay(retryDelay);
     return this;
+  }
+
+  /**
+   * Sets the operation retry delay.
+   *
+   * @param retryDelay the delay between operation retries
+   * @param timeUnit the delay time unit
+   * @return the proxy builder
+   * @throws NullPointerException if the time unit is null
+   */
+  public MultiRaftProtocolBuilder withRetryDelay(long retryDelay, TimeUnit timeUnit) {
+    return withRetryDelay(Duration.ofMillis(timeUnit.toMillis(retryDelay)));
   }
 
   @Override
