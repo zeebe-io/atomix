@@ -322,7 +322,13 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
     }
 
     // If the member is already a known member of the cluster, complete the join successfully.
-    if (raft.getCluster().getMember(request.member().memberId()) != null) {
+    final MemberId memberId = request.member().memberId();
+    if (raft.getCluster().getMember(memberId) != null) {
+      final RaftMemberContext memberContext = raft.getCluster().getMemberState(memberId);
+      if (memberContext != null) {
+        // reset the failure count se we can immediately start appending again
+        memberContext.resetFailureCount();
+      }
       return CompletableFuture.completedFuture(logResponse(JoinResponse.builder()
           .withStatus(RaftResponse.Status.OK)
           .withIndex(raft.getCluster().getConfiguration().index())
