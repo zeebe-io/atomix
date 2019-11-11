@@ -32,7 +32,6 @@ import io.atomix.primitive.partition.impl.DefaultPartitionService;
 import io.atomix.protocols.raft.partition.RaftPartition;
 import io.atomix.protocols.raft.partition.RaftPartitionGroup;
 import io.atomix.protocols.raft.partition.impl.RaftPartitionServer;
-import io.atomix.protocols.raft.zeebe.partition.ZeebeRaftPartitionGroup;
 import io.atomix.storage.StorageLevel;
 import java.io.File;
 import java.util.Collection;
@@ -58,7 +57,7 @@ public class ZeebeTestNode {
   private ManagedPartitionService partitionService;
   private AtomixCluster cluster;
 
-  public ZeebeTestNode(int id, File directory) {
+  public ZeebeTestNode(final int id, final File directory) {
     final String textualId = String.valueOf(id);
 
     this.directory = directory;
@@ -66,11 +65,11 @@ public class ZeebeTestNode {
     this.member = Member.member(MemberId.from(textualId), node.address());
   }
 
-  public RaftPartitionServer getPartitionServer(int id) {
+  public RaftPartitionServer getPartitionServer(final int id) {
     return getPartition(id).getServer();
   }
 
-  RaftPartition getPartition(int id) {
+  RaftPartition getPartition(final int id) {
     return (RaftPartition) getDataPartitionGroup().getPartition(String.valueOf(id));
   }
 
@@ -78,12 +77,13 @@ public class ZeebeTestNode {
     return (RaftPartitionGroup) partitionService.getPartitionGroup(DATA_PARTITION_GROUP_NAME);
   }
 
-  public CompletableFuture<Void> start(Collection<ZeebeTestNode> nodes) {
+  public CompletableFuture<Void> start(final Collection<ZeebeTestNode> nodes) {
     cluster = buildCluster(nodes);
     systemPartitionGroup =
         buildPartitionGroup(RaftPartitionGroup.builder(SYSTEM_PARTITION_GROUP_NAME), nodes).build();
     dataPartitionGroup =
-        buildPartitionGroup(ZeebeRaftPartitionGroup.builder(DATA_PARTITION_GROUP_NAME), nodes)
+        buildPartitionGroup(RaftPartitionGroup.builder(DATA_PARTITION_GROUP_NAME), nodes)
+            .withStateMachineFactory(ZeebeRaftStateMachine::new)
             .build();
     partitionService =
         buildPartitionService(cluster.getMembershipService(), cluster.getCommunicationService());
@@ -91,7 +91,7 @@ public class ZeebeTestNode {
     return cluster.start().thenCompose(ignored -> partitionService.start()).thenApply(v -> null);
   }
 
-  private AtomixCluster buildCluster(Collection<ZeebeTestNode> nodes) {
+  private AtomixCluster buildCluster(final Collection<ZeebeTestNode> nodes) {
     return AtomixCluster.builder()
         .withAddress(node.address())
         .withClusterId(CLUSTER_ID)
@@ -104,7 +104,7 @@ public class ZeebeTestNode {
     return member.id();
   }
 
-  private NodeDiscoveryProvider buildDiscoveryProvider(Collection<ZeebeTestNode> nodes) {
+  private NodeDiscoveryProvider buildDiscoveryProvider(final Collection<ZeebeTestNode> nodes) {
     return BootstrapDiscoveryProvider.builder()
         .withNodes(nodes.stream().map(ZeebeTestNode::getNode).collect(Collectors.toList()))
         .build();
@@ -115,7 +115,7 @@ public class ZeebeTestNode {
   }
 
   private RaftPartitionGroup.Builder buildPartitionGroup(
-      RaftPartitionGroup.Builder builder, Collection<ZeebeTestNode> nodes) {
+      final RaftPartitionGroup.Builder builder, final Collection<ZeebeTestNode> nodes) {
     final Set<Member> members =
         nodes.stream().map(ZeebeTestNode::getMember).collect(Collectors.toSet());
     members.add(member);
@@ -135,8 +135,8 @@ public class ZeebeTestNode {
   }
 
   private ManagedPartitionService buildPartitionService(
-      ClusterMembershipService clusterMembershipService,
-      ClusterCommunicationService messagingService) {
+      final ClusterMembershipService clusterMembershipService,
+      final ClusterCommunicationService messagingService) {
     final ClasspathScanningPrimitiveTypeRegistry registry =
         new ClasspathScanningPrimitiveTypeRegistry(this.getClass().getClassLoader());
     final List<ManagedPartitionGroup> partitionGroups =

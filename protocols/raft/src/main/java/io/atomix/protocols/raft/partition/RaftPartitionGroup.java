@@ -36,6 +36,7 @@ import io.atomix.primitive.protocol.PrimitiveProtocol;
 import io.atomix.primitive.protocol.ProxyProtocol;
 import io.atomix.protocols.raft.MultiRaftProtocol;
 import io.atomix.protocols.raft.RaftClient;
+import io.atomix.protocols.raft.RaftStateMachineFactory;
 import io.atomix.protocols.raft.impl.DefaultRaftClient;
 import io.atomix.storage.StorageLevel;
 import io.atomix.utils.concurrent.BlockingAwareThreadPoolContextFactory;
@@ -513,6 +514,17 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
      */
     public Builder withFlushOnCommit(boolean flushOnCommit) {
       config.getStorageConfig().setFlushOnCommit(flushOnCommit);
+      return this;
+    }
+
+    /**
+     * Sets the Raft state machine factory to use.
+     *
+     * @param stateMachineFactory the new state machine factory to use
+     * @return the Raft partition group builder
+     */
+    public Builder withStateMachineFactory(RaftStateMachineFactory stateMachineFactory) {
+      config.setStateMachineFactory(stateMachineFactory);
       return this;
     }
 

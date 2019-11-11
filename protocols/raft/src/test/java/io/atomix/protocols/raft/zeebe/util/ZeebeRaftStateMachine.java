@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.atomix.protocols.raft.zeebe.partition;
+package io.atomix.protocols.raft.zeebe.util;
 
 import io.atomix.protocols.raft.impl.RaftContext;
 import io.atomix.protocols.raft.impl.RaftServiceManager;
