@@ -15,14 +15,24 @@
  */
 package io.atomix.protocols.raft.impl;
 
-import io.atomix.utils.misc.ArraySizeHashPrinter;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-/**
- * Operation result.
- */
+import io.atomix.utils.misc.ArraySizeHashPrinter;
+
+/** Operation result. */
 public final class OperationResult {
+
+  private final long index;
+  private final long eventIndex;
+  private final Throwable error;
+  private final byte[] result;
+
+  private OperationResult(long index, long eventIndex, Throwable error, byte[] result) {
+    this.index = index;
+    this.eventIndex = eventIndex;
+    this.error = error;
+    this.result = result;
+  }
 
   /**
    * Returns a no-op operation result.
@@ -57,18 +67,6 @@ public final class OperationResult {
    */
   public static OperationResult failed(long index, long eventIndex, Throwable error) {
     return new OperationResult(index, eventIndex, error, null);
-  }
-
-  private final long index;
-  private final long eventIndex;
-  private final Throwable error;
-  private final byte[] result;
-
-  private OperationResult(long index, long eventIndex, Throwable error, byte[] result) {
-    this.index = index;
-    this.eventIndex = eventIndex;
-    this.error = error;
-    this.result = result;
   }
 
   /**
@@ -108,21 +106,21 @@ public final class OperationResult {
   }
 
   /**
-   * Returns whether the operation succeeded.
-   *
-   * @return whether the operation succeeded
-   */
-  public boolean succeeded() {
-    return error == null;
-  }
-
-  /**
    * Returns whether the operation failed.
    *
    * @return whether the operation failed
    */
   public boolean failed() {
     return !succeeded();
+  }
+
+  /**
+   * Returns whether the operation succeeded.
+   *
+   * @return whether the operation succeeded
+   */
+  public boolean succeeded() {
+    return error == null;
   }
 
   @Override

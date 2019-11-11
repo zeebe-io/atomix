@@ -15,26 +15,14 @@
  */
 package io.atomix.protocols.raft.protocol;
 
-import io.atomix.protocols.raft.RaftError;
-
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 
-/**
- * Open session response.
- */
-public class OpenSessionResponse extends AbstractRaftResponse {
+import io.atomix.protocols.raft.RaftError;
+import java.util.Objects;
 
-  /**
-   * Returns a new register client response builder.
-   *
-   * @return A new register client response builder.
-   */
-  public static Builder builder() {
-    return new Builder();
-  }
+/** Open session response. */
+public class OpenSessionResponse extends AbstractRaftResponse {
 
   protected final long session;
   protected final long timeout;
@@ -43,6 +31,15 @@ public class OpenSessionResponse extends AbstractRaftResponse {
     super(status, error);
     this.session = session;
     this.timeout = timeout;
+  }
+
+  /**
+   * Returns a new register client response builder.
+   *
+   * @return A new register client response builder.
+   */
+  public static Builder builder() {
+    return new Builder();
   }
 
   /**
@@ -71,7 +68,7 @@ public class OpenSessionResponse extends AbstractRaftResponse {
   @Override
   public boolean equals(Object object) {
     if (object instanceof OpenSessionResponse) {
-      OpenSessionResponse response = (OpenSessionResponse) object;
+      final OpenSessionResponse response = (OpenSessionResponse) object;
       return response.status == status
           && Objects.equals(response.error, error)
           && response.session == session
@@ -89,17 +86,13 @@ public class OpenSessionResponse extends AbstractRaftResponse {
           .add("timeout", timeout)
           .toString();
     } else {
-      return toStringHelper(this)
-          .add("status", status)
-          .add("error", error)
-          .toString();
+      return toStringHelper(this).add("status", status).add("error", error).toString();
     }
   }
 
-  /**
-   * Register response builder.
-   */
+  /** Register response builder. */
   public static class Builder extends AbstractRaftResponse.Builder<Builder, OpenSessionResponse> {
+
     private long session;
     private long timeout;
 
@@ -129,18 +122,18 @@ public class OpenSessionResponse extends AbstractRaftResponse {
     }
 
     @Override
+    public OpenSessionResponse build() {
+      validate();
+      return new OpenSessionResponse(status, error, session, timeout);
+    }
+
+    @Override
     protected void validate() {
       super.validate();
       if (status == Status.OK) {
         checkArgument(session > 0, "session must be positive");
         checkArgument(timeout > 0, "timeout must be positive");
       }
-    }
-
-    @Override
-    public OpenSessionResponse build() {
-      validate();
-      return new OpenSessionResponse(status, error, session, timeout);
     }
   }
 }

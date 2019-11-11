@@ -15,29 +15,36 @@
  */
 package io.atomix.protocols.raft.protocol;
 
-import io.atomix.protocols.raft.RaftError;
-import io.atomix.utils.misc.ArraySizeHashPrinter;
-
-import java.util.Arrays;
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 
+import io.atomix.protocols.raft.RaftError;
+import io.atomix.utils.misc.ArraySizeHashPrinter;
+import java.util.Arrays;
+import java.util.Objects;
+
 /**
  * Base client operation response.
- * <p>
- * All operation responses are sent with a {@link #result()} and the {@link #index()} (or index) of the state
- * machine at the point at which the operation was evaluated. The version allows clients to ensure state progresses
- * monotonically when switching servers by providing the state machine version in future operation requests.
+ *
+ * <p>All operation responses are sent with a {@link #result()} and the {@link #index()} (or index)
+ * of the state machine at the point at which the operation was evaluated. The version allows
+ * clients to ensure state progresses monotonically when switching servers by providing the state
+ * machine version in future operation requests.
  */
 public abstract class OperationResponse extends SessionResponse {
+
   protected final long index;
   protected final long eventIndex;
   protected final byte[] result;
   protected final long lastSequence;
 
-  public OperationResponse(Status status, RaftError error, long index, long eventIndex, byte[] result, long lastSequence) {
+  public OperationResponse(
+      Status status,
+      RaftError error,
+      long index,
+      long eventIndex,
+      byte[] result,
+      long lastSequence) {
     super(status, error);
     this.index = index;
     this.eventIndex = eventIndex;
@@ -74,8 +81,8 @@ public abstract class OperationResponse extends SessionResponse {
 
   /**
    * Returns the last in sequence command.
-   * <p>
-   * This argument is only populated if the command request failed.
+   *
+   * <p>This argument is only populated if the command request failed.
    *
    * @return The last command sequence number.
    */
@@ -97,7 +104,7 @@ public abstract class OperationResponse extends SessionResponse {
       return false;
     }
 
-    OperationResponse response = (OperationResponse) object;
+    final OperationResponse response = (OperationResponse) object;
     return response.status == status
         && Objects.equals(response.error, error)
         && response.index == index
@@ -124,10 +131,10 @@ public abstract class OperationResponse extends SessionResponse {
     }
   }
 
-  /**
-   * Operation response builder.
-   */
-  public abstract static class Builder<T extends Builder<T, U>, U extends OperationResponse> extends SessionResponse.Builder<T, U> {
+  /** Operation response builder. */
+  public abstract static class Builder<T extends Builder<T, U>, U extends OperationResponse>
+      extends SessionResponse.Builder<T, U> {
+
     protected long index;
     protected long eventIndex;
     protected byte[] result;

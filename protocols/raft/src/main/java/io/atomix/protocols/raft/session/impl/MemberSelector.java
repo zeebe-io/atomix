@@ -15,57 +15,36 @@
  */
 package io.atomix.protocols.raft.session.impl;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import io.atomix.cluster.MemberId;
 import io.atomix.protocols.raft.session.CommunicationStrategy;
-
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * Cluster member selector.
- */
+/** Cluster member selector. */
 public final class MemberSelector implements Iterator<MemberId>, AutoCloseable {
 
-  /**
-   * Address selector state.
-   */
-  public enum State {
-
-    /**
-     * Indicates that the selector has been reset.
-     */
-    RESET,
-
-    /**
-     * Indicates that the selector is being iterated.
-     */
-    ITERATE,
-
-    /**
-     * Indicates that selector iteration is complete.
-     */
-    COMPLETE
-
-  }
-
   private final MemberSelectorManager selectors;
+  private final CommunicationStrategy strategy;
   private MemberId leader;
   private Set<MemberId> members;
   private volatile MemberId selection;
-  private final CommunicationStrategy strategy;
   private Collection<MemberId> selections;
   private Iterator<MemberId> selectionsIterator;
 
-  public MemberSelector(MemberId leader, Collection<MemberId> members, CommunicationStrategy strategy, MemberSelectorManager selectors) {
+  public MemberSelector(
+      MemberId leader,
+      Collection<MemberId> members,
+      CommunicationStrategy strategy,
+      MemberSelectorManager selectors) {
     this.leader = leader;
     this.members = new LinkedHashSet<>(members);
     this.strategy = checkNotNull(strategy, "strategy cannot be null");
@@ -86,6 +65,21 @@ public final class MemberSelector implements Iterator<MemberId>, AutoCloseable {
     } else {
       return State.COMPLETE;
     }
+  }
+
+  @Override
+  public boolean hasNext() {
+    return selectionsIterator == null ? !selections.isEmpty() : selectionsIterator.hasNext();
+  }
+
+  @Override
+  public MemberId next() {
+    if (selectionsIterator == null) {
+      selectionsIterator = selections.iterator();
+    }
+    final MemberId selection = selectionsIterator.next();
+    this.selection = selection;
+    return selection;
   }
 
   /**
@@ -145,7 +139,8 @@ public final class MemberSelector implements Iterator<MemberId>, AutoCloseable {
   }
 
   /**
-   * Returns a boolean value indicating whether the selector state would be changed by the given members.
+   * Returns a boolean value indicating whether the selector state would be changed by the given
+   * members.
    */
   private boolean changed(MemberId leader, Collection<MemberId> members) {
     checkNotNull(members, "members");
@@ -155,14 +150,14 @@ public final class MemberSelector implements Iterator<MemberId>, AutoCloseable {
     }
     if (!Objects.equals(this.leader, leader)) {
       return true;
-    } else if (!matches(this.members, members)) {
-      return true;
+    } else {
+      return !matches(this.members, members);
     }
-    return false;
   }
 
   /**
-   * Returns a boolean value indicating whether the servers in the first list match the servers in the second list.
+   * Returns a boolean value indicating whether the servers in the first list match the servers in
+   * the second list.
    */
   private boolean matches(Collection<MemberId> left, Collection<MemberId> right) {
     if (left.size() != right.size()) {
@@ -178,30 +173,25 @@ public final class MemberSelector implements Iterator<MemberId>, AutoCloseable {
   }
 
   @Override
-  public boolean hasNext() {
-    return selectionsIterator == null ? !selections.isEmpty() : selectionsIterator.hasNext();
-  }
-
-  @Override
-  public MemberId next() {
-    if (selectionsIterator == null) {
-      selectionsIterator = selections.iterator();
-    }
-    MemberId selection = selectionsIterator.next();
-    this.selection = selection;
-    return selection;
-  }
-
-  @Override
   public void close() {
     selectors.remove(this);
   }
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("strategy", strategy)
-        .toString();
+    return toStringHelper(this).add("strategy", strategy).toString();
   }
 
+  /** Address selector state. */
+  public enum State {
+
+    /** Indicates that the selector has been reset. */
+    RESET,
+
+    /** Indicates that the selector is being iterated. */
+    ITERATE,
+
+    /** Indicates that selector iteration is complete. */
+    COMPLETE
+  }
 }

@@ -15,18 +15,25 @@
  */
 package io.atomix.protocols.raft.protocol;
 
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 
+import java.util.Objects;
+
 /**
  * Event reset request.
- * <p>
- * Reset requests are sent by clients to servers if the client receives an event message out of
+ *
+ * <p>Reset requests are sent by clients to servers if the client receives an event message out of
  * sequence to force the server to resend events from the correct index.
  */
 public class ResetRequest extends SessionRequest {
+
+  private final long index;
+
+  public ResetRequest(long session, long index) {
+    super(session);
+    this.index = index;
+  }
 
   /**
    * Returns a new publish response builder.
@@ -35,13 +42,6 @@ public class ResetRequest extends SessionRequest {
    */
   public static Builder builder() {
     return new Builder();
-  }
-
-  private final long index;
-
-  public ResetRequest(long session, long index) {
-    super(session);
-    this.index = index;
   }
 
   /**
@@ -61,25 +61,20 @@ public class ResetRequest extends SessionRequest {
   @Override
   public boolean equals(Object object) {
     if (object instanceof ResetRequest) {
-      ResetRequest request = (ResetRequest) object;
-      return request.session == session
-          && request.index == index;
+      final ResetRequest request = (ResetRequest) object;
+      return request.session == session && request.index == index;
     }
     return false;
   }
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("session", session)
-        .add("index", index)
-        .toString();
+    return toStringHelper(this).add("session", session).add("index", index).toString();
   }
 
-  /**
-   * Reset request builder.
-   */
+  /** Reset request builder. */
   public static class Builder extends SessionRequest.Builder<Builder, ResetRequest> {
+
     private long index;
 
     /**
@@ -95,9 +90,7 @@ public class ResetRequest extends SessionRequest {
       return this;
     }
 
-    /**
-     * @throws IllegalStateException if sequence is less than 1
-     */
+    /** @throws IllegalStateException if sequence is less than 1 */
     @Override
     public ResetRequest build() {
       validate();

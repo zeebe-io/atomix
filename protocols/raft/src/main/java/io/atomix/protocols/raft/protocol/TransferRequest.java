@@ -15,17 +15,20 @@
  */
 package io.atomix.protocols.raft.protocol;
 
-import io.atomix.cluster.MemberId;
-
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Leadership transfer request.
- */
+import io.atomix.cluster.MemberId;
+import java.util.Objects;
+
+/** Leadership transfer request. */
 public class TransferRequest extends AbstractRaftRequest {
+
+  protected final MemberId member;
+
+  protected TransferRequest(MemberId member) {
+    this.member = member;
+  }
 
   /**
    * Returns a new transfer request builder.
@@ -34,12 +37,6 @@ public class TransferRequest extends AbstractRaftRequest {
    */
   public static Builder builder() {
     return new Builder();
-  }
-
-  protected final MemberId member;
-
-  protected TransferRequest(MemberId member) {
-    this.member = member;
   }
 
   /**
@@ -70,15 +67,12 @@ public class TransferRequest extends AbstractRaftRequest {
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("member", member)
-        .toString();
+    return toStringHelper(this).add("member", member).toString();
   }
 
-  /**
-   * Transfer request builder.
-   */
+  /** Transfer request builder. */
   public static class Builder extends AbstractRaftRequest.Builder<Builder, TransferRequest> {
+
     protected MemberId member;
 
     /**

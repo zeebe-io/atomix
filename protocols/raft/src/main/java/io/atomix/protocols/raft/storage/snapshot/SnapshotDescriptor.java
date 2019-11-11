@@ -15,43 +15,61 @@
  */
 package io.atomix.protocols.raft.storage.snapshot;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.atomix.storage.buffer.Buffer;
 import io.atomix.storage.buffer.FileBuffer;
 import io.atomix.storage.buffer.HeapBuffer;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * Stores information about a {@link Snapshot} of the state machine.
- * <p>
- * Snapshot descriptors represent the header of a snapshot file which stores metadata about
- * the snapshot contents. This API provides methods for reading and a builder for writing
- * snapshot headers/descriptors.
+ *
+ * <p>Snapshot descriptors represent the header of a snapshot file which stores metadata about the
+ * snapshot contents. This API provides methods for reading and a builder for writing snapshot
+ * headers/descriptors.
  */
 public final class SnapshotDescriptor implements AutoCloseable {
+
   public static final int BYTES = 64;
 
   // Current snapshot version.
   private static final int VERSION = 1;
 
   // The lengths of each field in the header.
-  private static final int INDEX_LENGTH = Long.BYTES;          // 64-bit signed integer
-  private static final int TIMESTAMP_LENGTH = Long.BYTES;      // 64-bit signed integer
-  private static final int VERSION_LENGTH = Integer.BYTES;     // 32-bit signed integer
-  private static final int LOCKED_LENGTH = 1;                  // 8-bit signed byte
-  private static final int TERM_LENGTH = Long.BYTES;           // 64-bit signed integer
+  private static final int INDEX_LENGTH = Long.BYTES; // 64-bit signed integer
+  private static final int TIMESTAMP_LENGTH = Long.BYTES; // 64-bit signed integer
+  private static final int VERSION_LENGTH = Integer.BYTES; // 32-bit signed integer
+  private static final int LOCKED_LENGTH = 1; // 8-bit signed byte
+  private static final int TERM_LENGTH = Long.BYTES; // 64-bit signed integer
 
   // The positions of each field in the header.
-  private static final int INDEX_POSITION = 0;                                           // 0
-  private static final int TIMESTAMP_POSITION = INDEX_POSITION + INDEX_LENGTH;           // 8
-  private static final int VERSION_POSITION = TIMESTAMP_POSITION + TIMESTAMP_LENGTH;     // 16
-  private static final int LOCKED_POSITION = VERSION_POSITION + VERSION_LENGTH;          // 20
-  private static final int TERM_POSITION = LOCKED_POSITION + LOCKED_LENGTH;              // 21
+  private static final int INDEX_POSITION = 0; // 0
+  private static final int TIMESTAMP_POSITION = INDEX_POSITION + INDEX_LENGTH; // 8
+  private static final int VERSION_POSITION = TIMESTAMP_POSITION + TIMESTAMP_LENGTH; // 16
+  private static final int LOCKED_POSITION = VERSION_POSITION + VERSION_LENGTH; // 20
+  private static final int TERM_POSITION = LOCKED_POSITION + LOCKED_LENGTH; // 21
+  private final long index;
+  private final long timestamp;
+  private final long term;
+  private Buffer buffer;
+  private boolean locked;
+  private final int version;
+
+  /** @throws NullPointerException if {@code buffer} is null */
+  public SnapshotDescriptor(Buffer buffer) {
+    this.buffer = checkNotNull(buffer, "buffer cannot be null");
+    this.index = buffer.readLong();
+    this.timestamp = buffer.readLong();
+    this.version = buffer.readInt();
+    this.locked = buffer.readBoolean();
+    this.term = buffer.readLong();
+    buffer.skip(BYTES - buffer.position());
+  }
 
   /**
    * Returns a descriptor builder.
-   * <p>
-   * The descriptor builder will write segment metadata to a {@code 48} byte in-memory buffer.
+   *
+   * <p>The descriptor builder will write segment metadata to a {@code 48} byte in-memory buffer.
    *
    * @return The descriptor builder.
    */
@@ -68,26 +86,6 @@ public final class SnapshotDescriptor implements AutoCloseable {
    */
   public static Builder builder(Buffer buffer) {
     return new Builder(buffer);
-  }
-
-  private Buffer buffer;
-  private final long index;
-  private final long timestamp;
-  private final long term;
-  private boolean locked;
-  private int version;
-
-  /**
-   * @throws NullPointerException if {@code buffer} is null
-   */
-  public SnapshotDescriptor(Buffer buffer) {
-    this.buffer = checkNotNull(buffer, "buffer cannot be null");
-    this.index = buffer.readLong();
-    this.timestamp = buffer.readLong();
-    this.version = buffer.readInt();
-    this.locked = buffer.readBoolean();
-    this.term = buffer.readLong();
-    buffer.skip(BYTES - buffer.position());
   }
 
   /**
@@ -121,39 +119,23 @@ public final class SnapshotDescriptor implements AutoCloseable {
     return term;
   }
 
-  /**
-   * Returns whether the snapshot has been locked by commitment.
-   * <p>
-   * A snapshot will be locked once it has been fully written.
-   *
-   * @return Indicates whether the snapshot has been locked.
-   */
-  public boolean isLocked() {
-    return locked;
-  }
-
-  /**
-   * Locks the segment.
-   */
+  /** Locks the segment. */
   public void lock() {
-    buffer.flush()
-        .writeBoolean(LOCKED_POSITION, true)
-        .flush();
+    buffer.flush().writeBoolean(LOCKED_POSITION, true).flush();
     locked = true;
   }
 
-  /**
-   * Copies the snapshot to a new buffer.
-   */
+  /** Copies the snapshot to a new buffer. */
   SnapshotDescriptor copyTo(Buffer buffer) {
-    this.buffer = buffer
-        .writeLong(index)
-        .writeLong(timestamp)
-        .writeInt(version)
-        .writeBoolean(locked)
-        .writeLong(term)
-        .skip(BYTES - buffer.position())
-        .flush();
+    this.buffer =
+        buffer
+            .writeLong(index)
+            .writeLong(timestamp)
+            .writeInt(version)
+            .writeBoolean(locked)
+            .writeLong(term)
+            .skip(BYTES - buffer.position())
+            .flush();
     return this;
   }
 
@@ -162,9 +144,7 @@ public final class SnapshotDescriptor implements AutoCloseable {
     buffer.close();
   }
 
-  /**
-   * Deletes the descriptor.
-   */
+  /** Deletes the descriptor. */
   public void delete() {
     if (buffer instanceof FileBuffer) {
       ((FileBuffer) buffer).delete();
@@ -172,9 +152,19 @@ public final class SnapshotDescriptor implements AutoCloseable {
   }
 
   /**
-   * Snapshot descriptor builder.
+   * Returns whether the snapshot has been locked by commitment.
+   *
+   * <p>A snapshot will be locked once it has been fully written.
+   *
+   * @return Indicates whether the snapshot has been locked.
    */
-  public static class Builder {
+  public boolean isLocked() {
+    return locked;
+  }
+
+  /** Snapshot descriptor builder. */
+  public static final class Builder {
+
     private final Buffer buffer;
 
     private Builder(Buffer buffer) {

@@ -15,31 +15,22 @@
  */
 package io.atomix.protocols.raft.protocol;
 
-import io.atomix.cluster.MemberId;
-
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import io.atomix.cluster.MemberId;
+import java.util.Objects;
+
 /**
  * Server vote request.
- * <p>
- * Vote requests are sent by candidate servers during an election to determine whether they should
- * become the leader for a cluster. Vote requests contain the necessary information for followers to
- * determine whether a candidate should receive their vote based on log and other information.
+ *
+ * <p>Vote requests are sent by candidate servers during an election to determine whether they
+ * should become the leader for a cluster. Vote requests contain the necessary information for
+ * followers to determine whether a candidate should receive their vote based on log and other
+ * information.
  */
 public class VoteRequest extends AbstractRaftRequest {
-
-  /**
-   * Returns a new vote request builder.
-   *
-   * @return A new vote request builder.
-   */
-  public static Builder builder() {
-    return new Builder();
-  }
 
   private final long term;
   private final String candidate;
@@ -51,6 +42,15 @@ public class VoteRequest extends AbstractRaftRequest {
     this.candidate = candidate;
     this.lastLogIndex = lastLogIndex;
     this.lastLogTerm = lastLogTerm;
+  }
+
+  /**
+   * Returns a new vote request builder.
+   *
+   * @return A new vote request builder.
+   */
+  public static Builder builder() {
+    return new Builder();
   }
 
   /**
@@ -97,7 +97,7 @@ public class VoteRequest extends AbstractRaftRequest {
   @Override
   public boolean equals(Object object) {
     if (object instanceof VoteRequest) {
-      VoteRequest request = (VoteRequest) object;
+      final VoteRequest request = (VoteRequest) object;
       return request.term == term
           && request.candidate == candidate
           && request.lastLogIndex == lastLogIndex
@@ -116,10 +116,9 @@ public class VoteRequest extends AbstractRaftRequest {
         .toString();
   }
 
-  /**
-   * Vote request builder.
-   */
+  /** Vote request builder. */
   public static class Builder extends AbstractRaftRequest.Builder<Builder, VoteRequest> {
+
     private long term = -1;
     private String candidate;
     private long lastLogIndex = -1;
@@ -177,18 +176,18 @@ public class VoteRequest extends AbstractRaftRequest {
     }
 
     @Override
+    public VoteRequest build() {
+      validate();
+      return new VoteRequest(term, candidate, lastLogIndex, lastLogTerm);
+    }
+
+    @Override
     protected void validate() {
       super.validate();
       checkArgument(term >= 0, "term must be positive");
       checkNotNull(candidate, "candidate cannot be null");
       checkArgument(lastLogIndex >= 0, "lastLogIndex must be positive");
       checkArgument(lastLogTerm >= 0, "lastLogTerm must be positive");
-    }
-
-    @Override
-    public VoteRequest build() {
-      validate();
-      return new VoteRequest(term, candidate, lastLogIndex, lastLogTerm);
     }
   }
 }

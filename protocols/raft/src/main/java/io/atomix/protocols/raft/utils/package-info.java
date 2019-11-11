@@ -14,7 +14,5 @@
  * limitations under the License
  */
 
-/**
- * Provides utility classes for use in the Raft consensus protocol implementation.
- */
+/** Provides utility classes for use in the Raft consensus protocol implementation. */
 package io.atomix.protocols.raft.utils;

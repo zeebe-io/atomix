@@ -7,13 +7,15 @@ import io.atomix.utils.concurrent.ThreadContextFactory;
 import java.time.Duration;
 
 public class FakeStateMachine extends RaftServiceManager {
-  public FakeStateMachine(final RaftContext context, final ThreadContext threadContext, final ThreadContextFactory threadContextFactory) {
+
+  public FakeStateMachine(
+      RaftContext context, ThreadContext threadContext, ThreadContextFactory threadContextFactory) {
     super(context, threadContext, threadContextFactory);
   }
 
   @Override
-  protected Duration getSnapshotInterval() {
-    return Duration.ofMillis(10);
+  protected Duration getCompactDelay() {
+    return Duration.ZERO;
   }
 
   @Override
@@ -22,7 +24,7 @@ public class FakeStateMachine extends RaftServiceManager {
   }
 
   @Override
-  protected Duration getCompactDelay() {
-    return Duration.ZERO;
+  protected Duration getSnapshotInterval() {
+    return Duration.ofMillis(10);
   }
 }

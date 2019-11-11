@@ -15,18 +15,19 @@
  */
 package io.atomix.protocols.raft.protocol;
 
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 
+import java.util.Objects;
+
 /**
  * Base session request.
- * <p>
- * This is the base request for session-related requests. Many client requests are handled within the
- * context of a {@link #session()} identifier.
+ *
+ * <p>This is the base request for session-related requests. Many client requests are handled within
+ * the context of a {@link #session()} identifier.
  */
 public abstract class SessionRequest extends AbstractRaftRequest {
+
   protected final long session;
 
   protected SessionRequest(long session) {
@@ -56,21 +57,19 @@ public abstract class SessionRequest extends AbstractRaftRequest {
       return false;
     }
 
-    SessionRequest request = (SessionRequest) object;
+    final SessionRequest request = (SessionRequest) object;
     return request.session == session;
   }
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("session", session)
-        .toString();
+    return toStringHelper(this).add("session", session).toString();
   }
 
-  /**
-   * Session request builder.
-   */
-  public abstract static class Builder<T extends Builder<T, U>, U extends SessionRequest> extends AbstractRaftRequest.Builder<T, U> {
+  /** Session request builder. */
+  public abstract static class Builder<T extends Builder<T, U>, U extends SessionRequest>
+      extends AbstractRaftRequest.Builder<T, U> {
+
     protected long session;
 
     /**

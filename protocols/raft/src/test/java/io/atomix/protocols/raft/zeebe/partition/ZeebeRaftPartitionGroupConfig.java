@@ -20,13 +20,14 @@ import io.atomix.protocols.raft.RaftStateMachineFactory;
 import io.atomix.protocols.raft.partition.RaftPartitionGroupConfig;
 
 public class ZeebeRaftPartitionGroupConfig extends RaftPartitionGroupConfig {
-  @Override
-  public Type getType() {
-    return ZeebeRaftPartitionGroup.TYPE;
-  }
 
   @Override
   public RaftStateMachineFactory getStateMachineFactory() {
     return ZeebeRaftStateMachine::new;
+  }
+
+  @Override
+  public Type getType() {
+    return ZeebeRaftPartitionGroup.TYPE;
   }
 }

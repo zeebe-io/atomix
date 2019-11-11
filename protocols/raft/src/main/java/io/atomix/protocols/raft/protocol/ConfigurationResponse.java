@@ -15,26 +15,30 @@
  */
 package io.atomix.protocols.raft.protocol;
 
-import io.atomix.protocols.raft.cluster.RaftMember;
-import io.atomix.protocols.raft.RaftError;
-
-import java.util.Collection;
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Server configuration response.
- */
+import io.atomix.protocols.raft.RaftError;
+import io.atomix.protocols.raft.cluster.RaftMember;
+import java.util.Collection;
+import java.util.Objects;
+
+/** Server configuration response. */
 public abstract class ConfigurationResponse extends AbstractRaftResponse {
+
   protected final long index;
   protected final long term;
   protected final long timestamp;
   protected final Collection<RaftMember> members;
 
-  public ConfigurationResponse(Status status, RaftError error, long index, long term, long timestamp, Collection<RaftMember> members) {
+  public ConfigurationResponse(
+      Status status,
+      RaftError error,
+      long index,
+      long term,
+      long timestamp,
+      Collection<RaftMember> members) {
     super(status, error);
     this.index = index;
     this.term = term;
@@ -92,7 +96,7 @@ public abstract class ConfigurationResponse extends AbstractRaftResponse {
       return false;
     }
 
-    ConfigurationResponse response = (ConfigurationResponse) object;
+    final ConfigurationResponse response = (ConfigurationResponse) object;
     return response.status == status
         && response.index == index
         && response.term == term
@@ -111,17 +115,14 @@ public abstract class ConfigurationResponse extends AbstractRaftResponse {
           .add("members", members)
           .toString();
     } else {
-      return toStringHelper(this)
-          .add("status", status)
-          .add("error", error)
-          .toString();
+      return toStringHelper(this).add("status", status).add("error", error).toString();
     }
   }
 
-  /**
-   * Configuration response builder.
-   */
-  public abstract static class Builder<T extends Builder<T, U>, U extends ConfigurationResponse> extends AbstractRaftResponse.Builder<T, U> {
+  /** Configuration response builder. */
+  public abstract static class Builder<T extends Builder<T, U>, U extends ConfigurationResponse>
+      extends AbstractRaftResponse.Builder<T, U> {
+
     protected long index;
     protected long term;
     protected long timestamp;

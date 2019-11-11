@@ -15,18 +15,20 @@
  */
 package io.atomix.protocols.raft;
 
-import io.atomix.primitive.PrimitiveException;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import io.atomix.primitive.PrimitiveException;
+
 /**
  * Base type for Raft protocol errors.
- * <p>
- * Raft errors are passed on the wire in lieu of exceptions to reduce the overhead of serialization.
- * Each error is identifiable by an error ID which is used to serialize and deserialize errors.
+ *
+ * <p>Raft errors are passed on the wire in lieu of exceptions to reduce the overhead of
+ * serialization. Each error is identifiable by an error ID which is used to serialize and
+ * deserialize errors.
  */
 public class RaftError {
+
   private final Type type;
   private final String message;
 
@@ -64,20 +66,13 @@ public class RaftError {
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("type", type)
-        .add("message", message)
-        .toString();
+    return toStringHelper(this).add("type", type).add("message", message).toString();
   }
 
-  /**
-   * Raft error types.
-   */
+  /** Raft error types. */
   public enum Type {
 
-    /**
-     * No leader error.
-     */
+    /** No leader error. */
     NO_LEADER {
       @Override
       PrimitiveException createException() {
@@ -90,9 +85,7 @@ public class RaftError {
       }
     },
 
-    /**
-     * Read application error.
-     */
+    /** Read application error. */
     QUERY_FAILURE {
       @Override
       PrimitiveException createException() {
@@ -105,9 +98,7 @@ public class RaftError {
       }
     },
 
-    /**
-     * Write application error.
-     */
+    /** Write application error. */
     COMMAND_FAILURE {
       @Override
       PrimitiveException createException() {
@@ -120,9 +111,7 @@ public class RaftError {
       }
     },
 
-    /**
-     * User application error.
-     */
+    /** User application error. */
     APPLICATION_ERROR {
       @Override
       PrimitiveException createException() {
@@ -131,13 +120,13 @@ public class RaftError {
 
       @Override
       PrimitiveException createException(String message) {
-        return message != null ? new PrimitiveException.ServiceException(message) : createException();
+        return message != null
+            ? new PrimitiveException.ServiceException(message)
+            : createException();
       }
     },
 
-    /**
-     * Illegal member state error.
-     */
+    /** Illegal member state error. */
     ILLEGAL_MEMBER_STATE {
       @Override
       PrimitiveException createException() {
@@ -150,9 +139,7 @@ public class RaftError {
       }
     },
 
-    /**
-     * Unknown client error.
-     */
+    /** Unknown client error. */
     UNKNOWN_CLIENT {
       @Override
       PrimitiveException createException() {
@@ -165,9 +152,7 @@ public class RaftError {
       }
     },
 
-    /**
-     * Unknown session error.
-     */
+    /** Unknown session error. */
     UNKNOWN_SESSION {
       @Override
       PrimitiveException createException() {
@@ -180,9 +165,7 @@ public class RaftError {
       }
     },
 
-    /**
-     * Unknown state machine error.
-     */
+    /** Unknown state machine error. */
     UNKNOWN_SERVICE {
       @Override
       PrimitiveException createException() {
@@ -195,9 +178,7 @@ public class RaftError {
       }
     },
 
-    /**
-     * Closed session error.
-     */
+    /** Closed session error. */
     CLOSED_SESSION {
       @Override
       PrimitiveException createException() {
@@ -210,9 +191,7 @@ public class RaftError {
       }
     },
 
-    /**
-     * Internal error.
-     */
+    /** Internal error. */
     PROTOCOL_ERROR {
       @Override
       PrimitiveException createException() {
@@ -225,9 +204,7 @@ public class RaftError {
       }
     },
 
-    /**
-     * Configuration error.
-     */
+    /** Configuration error. */
     CONFIGURATION_ERROR {
       @Override
       PrimitiveException createException() {
@@ -240,9 +217,7 @@ public class RaftError {
       }
     },
 
-    /**
-     * Unavailable service error.
-     */
+    /** Unavailable service error. */
     UNAVAILABLE {
       @Override
       PrimitiveException createException() {

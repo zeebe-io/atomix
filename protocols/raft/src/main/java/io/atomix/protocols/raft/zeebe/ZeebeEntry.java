@@ -31,6 +31,7 @@ import java.util.Objects;
  * application of entries to the state machine.
  */
 public class ZeebeEntry extends TimestampedEntry {
+
   private final long lowestPosition;
   private final long highestPosition;
   private final ByteBuffer data;
@@ -43,16 +44,9 @@ public class ZeebeEntry extends TimestampedEntry {
     this.data = data;
   }
 
-  public long lowestPosition() {
-    return lowestPosition;
-  }
-
-  public long highestPosition() {
-    return highestPosition;
-  }
-
-  public ByteBuffer data() {
-    return data;
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), lowestPosition(), highestPosition(), data());
   }
 
   @Override
@@ -75,9 +69,16 @@ public class ZeebeEntry extends TimestampedEntry {
         && data().equals(that.data());
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(super.hashCode(), lowestPosition(), highestPosition(), data());
+  public long lowestPosition() {
+    return lowestPosition;
+  }
+
+  public long highestPosition() {
+    return highestPosition;
+  }
+
+  public ByteBuffer data() {
+    return data;
   }
 
   @Override

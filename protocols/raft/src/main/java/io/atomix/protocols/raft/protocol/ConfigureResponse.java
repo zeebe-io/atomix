@@ -17,10 +17,12 @@ package io.atomix.protocols.raft.protocol;
 
 import io.atomix.protocols.raft.RaftError;
 
-/**
- * Configuration installation response.
- */
+/** Configuration installation response. */
 public class ConfigureResponse extends AbstractRaftResponse {
+
+  public ConfigureResponse(Status status, RaftError error) {
+    super(status, error);
+  }
 
   /**
    * Returns a new configure response builder.
@@ -31,14 +33,9 @@ public class ConfigureResponse extends AbstractRaftResponse {
     return new Builder();
   }
 
-  public ConfigureResponse(Status status, RaftError error) {
-    super(status, error);
-  }
-
-  /**
-   * Heartbeat response builder.
-   */
+  /** Heartbeat response builder. */
   public static class Builder extends AbstractRaftResponse.Builder<Builder, ConfigureResponse> {
+
     @Override
     public ConfigureResponse build() {
       return new ConfigureResponse(status, error);

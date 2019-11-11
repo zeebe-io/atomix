@@ -11,11 +11,10 @@ import io.atomix.primitive.session.SessionId;
 import io.atomix.protocols.raft.RaftTest;
 import io.atomix.utils.serializer.Serializer;
 
-/**
- * Test state machine.
- */
-public class TestPrimitiveServiceImpl extends
-    AbstractPrimitiveService<TestPrimitiveClient> implements TestPrimitiveService {
+/** Test state machine. */
+public class TestPrimitiveServiceImpl extends AbstractPrimitiveService<TestPrimitiveClient>
+    implements TestPrimitiveService {
+
   private SessionId expire;
   private SessionId close;
 

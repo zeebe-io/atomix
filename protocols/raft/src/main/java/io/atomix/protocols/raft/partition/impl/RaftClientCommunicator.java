@@ -37,47 +37,52 @@ import io.atomix.protocols.raft.protocol.QueryResponse;
 import io.atomix.protocols.raft.protocol.RaftClientProtocol;
 import io.atomix.protocols.raft.protocol.ResetRequest;
 import io.atomix.utils.serializer.Serializer;
-
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-/**
- * Raft client protocol that uses a cluster communicator.
- */
+/** Raft client protocol that uses a cluster communicator. */
 public class RaftClientCommunicator implements RaftClientProtocol {
+
   private final RaftMessageContext context;
   private final Serializer serializer;
   private final ClusterCommunicationService clusterCommunicator;
 
-  public RaftClientCommunicator(Serializer serializer, ClusterCommunicationService clusterCommunicator) {
+  public RaftClientCommunicator(
+      Serializer serializer, ClusterCommunicationService clusterCommunicator) {
     this(null, serializer, clusterCommunicator);
   }
 
-  public RaftClientCommunicator(String prefix, Serializer serializer, ClusterCommunicationService clusterCommunicator) {
+  public RaftClientCommunicator(
+      String prefix, Serializer serializer, ClusterCommunicationService clusterCommunicator) {
     this.context = new RaftMessageContext(prefix);
     this.serializer = Preconditions.checkNotNull(serializer, "serializer cannot be null");
-    this.clusterCommunicator = Preconditions.checkNotNull(clusterCommunicator, "clusterCommunicator cannot be null");
-  }
-
-  private <T, U> CompletableFuture<U> sendAndReceive(String subject, T request, MemberId memberId) {
-    return clusterCommunicator.send(subject, request, serializer::encode, serializer::decode, memberId);
+    this.clusterCommunicator =
+        Preconditions.checkNotNull(clusterCommunicator, "clusterCommunicator cannot be null");
   }
 
   @Override
-  public CompletableFuture<OpenSessionResponse> openSession(MemberId memberId, OpenSessionRequest request) {
+  public CompletableFuture<OpenSessionResponse> openSession(
+      MemberId memberId, OpenSessionRequest request) {
     return sendAndReceive(context.openSessionSubject, request, memberId);
   }
 
+  private <T, U> CompletableFuture<U> sendAndReceive(String subject, T request, MemberId memberId) {
+    return clusterCommunicator.send(
+        subject, request, serializer::encode, serializer::decode, memberId);
+  }
+
   @Override
-  public CompletableFuture<CloseSessionResponse> closeSession(MemberId memberId, CloseSessionRequest request) {
+  public CompletableFuture<CloseSessionResponse> closeSession(
+      MemberId memberId, CloseSessionRequest request) {
     return sendAndReceive(context.closeSessionSubject, request, memberId);
   }
 
   @Override
-  public CompletableFuture<KeepAliveResponse> keepAlive(MemberId memberId, KeepAliveRequest request) {
+  public CompletableFuture<KeepAliveResponse> keepAlive(
+      MemberId memberId, KeepAliveRequest request) {
     return sendAndReceive(context.keepAliveSubject, request, memberId);
   }
 
@@ -97,8 +102,16 @@ public class RaftClientCommunicator implements RaftClientProtocol {
   }
 
   @Override
-  public void registerHeartbeatHandler(Function<HeartbeatRequest, CompletableFuture<HeartbeatResponse>> handler) {
-    clusterCommunicator.subscribe(context.heartbeatSubject, serializer::decode, handler, serializer::encode);
+  public void reset(Set<MemberId> members, ResetRequest request) {
+    clusterCommunicator.multicast(
+        context.resetSubject(request.session()), request, serializer::encode, members);
+  }
+
+  @Override
+  public void registerHeartbeatHandler(
+      Function<HeartbeatRequest, CompletableFuture<HeartbeatResponse>> handler) {
+    clusterCommunicator.subscribe(
+        context.heartbeatSubject, serializer::decode, handler, serializer::encode);
   }
 
   @Override
@@ -107,13 +120,10 @@ public class RaftClientCommunicator implements RaftClientProtocol {
   }
 
   @Override
-  public void reset(Set<MemberId> members, ResetRequest request) {
-    clusterCommunicator.multicast(context.resetSubject(request.session()), request, serializer::encode, members);
-  }
-
-  @Override
-  public void registerPublishListener(SessionId sessionId, Consumer<PublishRequest> listener, Executor executor) {
-    clusterCommunicator.subscribe(context.publishSubject(sessionId.id()), serializer::decode, listener, executor);
+  public void registerPublishListener(
+      SessionId sessionId, Consumer<PublishRequest> listener, Executor executor) {
+    clusterCommunicator.subscribe(
+        context.publishSubject(sessionId.id()), serializer::decode, listener, executor);
   }
 
   @Override

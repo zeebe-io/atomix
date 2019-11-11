@@ -15,14 +15,13 @@
  */
 package io.atomix.protocols.raft.storage.log.entry;
 
-import io.atomix.utils.misc.TimestampPrinter;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-/**
- * Base class for session-related entries.
- */
+import io.atomix.utils.misc.TimestampPrinter;
+
+/** Base class for session-related entries. */
 public abstract class SessionEntry extends TimestampedEntry {
+
   protected final long session;
 
   public SessionEntry(long term, long timestamp, long session) {

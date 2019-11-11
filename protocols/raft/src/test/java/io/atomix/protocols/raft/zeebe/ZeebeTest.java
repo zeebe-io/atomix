@@ -65,9 +65,7 @@ public class ZeebeTest {
   private static final int ENTRIES_PER_SEGMENT = (1024 / 30) + 1;
 
   @Rule public final TemporaryFolder temporaryFolder = new TemporaryFolder();
-
-  @Parameter(0)
-  public String name;
+  @Parameter public String name;
 
   @Parameter(1)
   public Collection<Function<TemporaryFolder, ZeebeTestNode>> nodeSuppliers;
@@ -86,6 +84,18 @@ public class ZeebeTest {
         });
   }
 
+  private static Function<TemporaryFolder, ZeebeTestNode> provideNode(int id) {
+    return tmp -> new ZeebeTestNode(id, newFolderUnchecked(tmp, id));
+  }
+
+  private static File newFolderUnchecked(TemporaryFolder tmp, int id) {
+    try {
+      return tmp.newFolder(String.valueOf(id));
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
   @Before
   public void setUp() throws Exception {
     stopwatch.reset();
@@ -94,6 +104,16 @@ public class ZeebeTest {
     start();
 
     stopwatch.start();
+  }
+
+  private Collection<ZeebeTestNode> buildNodes() {
+    return nodeSuppliers.stream()
+        .map(supplier -> supplier.apply(temporaryFolder))
+        .collect(Collectors.toList());
+  }
+
+  private void start() throws ExecutionException, InterruptedException, TimeoutException {
+    Futures.allOf(nodes.stream().map(n -> n.start(nodes))).get(30, TimeUnit.SECONDS);
   }
 
   @After
@@ -106,10 +126,8 @@ public class ZeebeTest {
     stop();
   }
 
-  private Collection<ZeebeTestNode> buildNodes() {
-    return nodeSuppliers.stream()
-        .map(supplier -> supplier.apply(temporaryFolder))
-        .collect(Collectors.toList());
+  private void stop() throws InterruptedException, ExecutionException, TimeoutException {
+    Futures.allOf(nodes.stream().map(ZeebeTestNode::stop)).get(30, TimeUnit.SECONDS);
   }
 
   @SuppressWarnings("squid:S2699") // awaitAllContain is the assert here
@@ -124,6 +142,13 @@ public class ZeebeTest {
 
     // then
     helper.awaitAllContain(partitionId, appended);
+  }
+
+  private ByteBuffer getIntAsBytes(int value) {
+    final ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
+    buffer.putInt(value).flip();
+
+    return buffer;
   }
 
   @Test
@@ -208,7 +233,7 @@ public class ZeebeTest {
     }
 
     // then
-    for (final Indexed<ZeebeEntry> entry : entries) {
+    for (Indexed<ZeebeEntry> entry : entries) {
       helper.awaitAllContain(partitionId, entry);
     }
   }
@@ -235,7 +260,7 @@ public class ZeebeTest {
       final int expectedCount = i + 1;
       helper.awaitAllContains(nodes, partitionId, entry);
 
-      for (final ZeebeTestNode node : nodes) {
+      for (ZeebeTestNode node : nodes) {
         final CommitListener listener = listeners.get(node);
         // it may take a little bit before the listener is called as this is done
         // asynchronously
@@ -245,39 +270,13 @@ public class ZeebeTest {
     }
   }
 
-  private static Function<TemporaryFolder, ZeebeTestNode> provideNode(final int id) {
-    return tmp -> new ZeebeTestNode(id, newFolderUnchecked(tmp, id));
-  }
-
-  private static File newFolderUnchecked(final TemporaryFolder tmp, final int id) {
-    try {
-      return tmp.newFolder(String.valueOf(id));
-    } catch (final IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
-  private void start() throws ExecutionException, InterruptedException, TimeoutException {
-    Futures.allOf(nodes.stream().map(n -> n.start(nodes))).get(30, TimeUnit.SECONDS);
-  }
-
-  private void stop() throws InterruptedException, ExecutionException, TimeoutException {
-    Futures.allOf(nodes.stream().map(ZeebeTestNode::stop)).get(30, TimeUnit.SECONDS);
-  }
-
-  private ByteBuffer getIntAsBytes(final int value) {
-    final ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
-    buffer.putInt(value).flip();
-
-    return buffer;
-  }
-
   static class CommitListener implements RaftCommitListener {
+
     private final AtomicReference<Indexed<ZeebeEntry>> lastCommitted = new AtomicReference<>();
     private final AtomicInteger calledCount = new AtomicInteger(0);
 
     @Override
-    public <T extends RaftLogEntry> void onCommit(final Indexed<T> entry) {
+    public <T extends RaftLogEntry> void onCommit(Indexed<T> entry) {
       if (entry.type() == ZeebeEntry.class) {
         lastCommitted.set(entry.cast());
         calledCount.incrementAndGet();

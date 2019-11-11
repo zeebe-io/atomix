@@ -15,19 +15,17 @@
  */
 package io.atomix.protocols.raft.storage.system;
 
-import io.atomix.protocols.raft.cluster.RaftMember;
-import io.atomix.utils.misc.TimestampPrinter;
-
-import java.util.Collection;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Represents a persisted server configuration.
- */
+import io.atomix.protocols.raft.cluster.RaftMember;
+import io.atomix.utils.misc.TimestampPrinter;
+import java.util.Collection;
+
+/** Represents a persisted server configuration. */
 public class Configuration {
+
   private final long index;
   private final long term;
   private final long time;
@@ -44,9 +42,10 @@ public class Configuration {
 
   /**
    * Returns the configuration index.
-   * <p>
-   * The index is the index of the {@link io.atomix.protocols.raft.storage.log.entry.ConfigurationEntry ConfigurationEntry}
-   * which resulted in this configuration.
+   *
+   * <p>The index is the index of the {@link
+   * io.atomix.protocols.raft.storage.log.entry.ConfigurationEntry ConfigurationEntry} which
+   * resulted in this configuration.
    *
    * @return The configuration index.
    */
@@ -56,8 +55,8 @@ public class Configuration {
 
   /**
    * Returns the configuration term.
-   * <p>
-   * The term is the term of the leader at the time the configuration change was committed.
+   *
+   * <p>The term is the term of the leader at the time the configuration change was committed.
    *
    * @return The configuration term.
    */
@@ -91,5 +90,4 @@ public class Configuration {
         .add("members", members)
         .toString();
   }
-
 }

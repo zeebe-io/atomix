@@ -19,5 +19,6 @@ import io.atomix.utils.concurrent.ThreadContext;
 
 @FunctionalInterface
 public interface LoadMonitorFactory {
+
   LoadMonitor createLoadMonitor(int windowSize, int highLoadThreshold, ThreadContext threadContext);
 }

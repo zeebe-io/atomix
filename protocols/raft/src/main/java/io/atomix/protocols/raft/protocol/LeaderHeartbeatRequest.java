@@ -82,26 +82,26 @@ public class LeaderHeartbeatRequest extends AbstractRaftRequest {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    LeaderHeartbeatRequest that = (LeaderHeartbeatRequest) o;
-    return term == that.term
-        && commitIndex == that.commitIndex
-        && leader.equals(that.leader);
+    final LeaderHeartbeatRequest that = (LeaderHeartbeatRequest) o;
+    return term == that.term && commitIndex == that.commitIndex && leader.equals(that.leader);
   }
 
   @Override
   public String toString() {
     return "LeaderHeartbeatRequest{"
-        + "term=" + term
-        + ", leader='" + leader + '\''
-        + ", commitIndex=" + commitIndex
+        + "term="
+        + term
+        + ", leader='"
+        + leader
+        + '\''
+        + ", commitIndex="
+        + commitIndex
         + '}';
   }
 
-  /**
-   * Append request builder.
-   */
-  public static class Builder extends
-      AbstractRaftRequest.Builder<LeaderHeartbeatRequest.Builder, LeaderHeartbeatRequest> {
+  /** Append request builder. */
+  public static class Builder
+      extends AbstractRaftRequest.Builder<LeaderHeartbeatRequest.Builder, LeaderHeartbeatRequest> {
 
     private long term;
     private String leader;
@@ -147,7 +147,7 @@ public class LeaderHeartbeatRequest extends AbstractRaftRequest {
 
     /**
      * @throws IllegalStateException if the term, log term, log index, commit index, or global index
-     * are not positive, or if entries is null
+     *     are not positive, or if entries is null
      */
     @Override
     public LeaderHeartbeatRequest build() {

@@ -15,21 +15,21 @@
  */
 package io.atomix.protocols.raft.protocol;
 
-import io.atomix.protocols.raft.cluster.RaftMember;
-
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import io.atomix.protocols.raft.cluster.RaftMember;
+import java.util.Objects;
+
 /**
  * Configuration change request.
- * <p>
- * Configuration change requests are the basis for members joining and leaving the cluster.
- * When a member wants to join or leave the cluster, it must submit a configuration change
- * request to the leader where the change will be logged and replicated.
+ *
+ * <p>Configuration change requests are the basis for members joining and leaving the cluster. When
+ * a member wants to join or leave the cluster, it must submit a configuration change request to the
+ * leader where the change will be logged and replicated.
  */
 public abstract class ConfigurationRequest extends AbstractRaftRequest {
+
   protected final RaftMember member;
 
   protected ConfigurationRequest(RaftMember member) {
@@ -64,15 +64,13 @@ public abstract class ConfigurationRequest extends AbstractRaftRequest {
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("member", member)
-        .toString();
+    return toStringHelper(this).add("member", member).toString();
   }
 
-  /**
-   * Configuration request builder.
-   */
-  public abstract static class Builder<T extends Builder<T, U>, U extends ConfigurationRequest> extends AbstractRaftRequest.Builder<T, U> {
+  /** Configuration request builder. */
+  public abstract static class Builder<T extends Builder<T, U>, U extends ConfigurationRequest>
+      extends AbstractRaftRequest.Builder<T, U> {
+
     protected RaftMember member;
 
     /**

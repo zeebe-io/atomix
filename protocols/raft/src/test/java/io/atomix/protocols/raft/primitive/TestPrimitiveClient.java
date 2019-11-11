@@ -2,10 +2,9 @@ package io.atomix.protocols.raft.primitive;
 
 import io.atomix.primitive.event.Event;
 
-/**
- * Test primitive client interface.
- */
+/** Test primitive client interface. */
 public interface TestPrimitiveClient {
+
   @Event("event")
   void event(long index);
 

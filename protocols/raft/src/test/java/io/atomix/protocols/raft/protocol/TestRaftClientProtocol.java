@@ -20,7 +20,6 @@ import io.atomix.cluster.MemberId;
 import io.atomix.primitive.session.SessionId;
 import io.atomix.utils.concurrent.Futures;
 import io.atomix.utils.concurrent.ThreadContext;
-
 import java.net.ConnectException;
 import java.util.Map;
 import java.util.Set;
@@ -29,12 +28,11 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-/**
- * Test Raft client protocol.
- */
+/** Test Raft client protocol. */
 public class TestRaftClientProtocol extends TestRaftProtocol implements RaftClientProtocol {
-  private Function<HeartbeatRequest, CompletableFuture<HeartbeatResponse>> heartbeatHandler;
+
   private final Map<Long, Consumer<PublishRequest>> publishListeners = Maps.newConcurrentMap();
+  private Function<HeartbeatRequest, CompletableFuture<HeartbeatResponse>> heartbeatHandler;
 
   public TestRaftClientProtocol(
       MemberId memberId,
@@ -43,15 +41,6 @@ public class TestRaftClientProtocol extends TestRaftProtocol implements RaftClie
       ThreadContext context) {
     super(servers, clients, context);
     clients.put(memberId, this);
-  }
-
-  private CompletableFuture<TestRaftServerProtocol> getServer(MemberId memberId) {
-    TestRaftServerProtocol server = server(memberId);
-    if (server != null) {
-      return Futures.completedFuture(server);
-    } else {
-      return Futures.exceptionalFuture(new ConnectException());
-    }
   }
 
   CompletableFuture<HeartbeatResponse> heartbeat(HeartbeatRequest request) {
@@ -63,28 +52,33 @@ public class TestRaftClientProtocol extends TestRaftProtocol implements RaftClie
   }
 
   @Override
-  public void registerHeartbeatHandler(Function<HeartbeatRequest, CompletableFuture<HeartbeatResponse>> handler) {
-    this.heartbeatHandler = handler;
+  public CompletableFuture<OpenSessionResponse> openSession(
+      MemberId memberId, OpenSessionRequest request) {
+    return scheduleTimeout(
+        getServer(memberId).thenCompose(protocol -> protocol.openSession(request)));
+  }
+
+  private CompletableFuture<TestRaftServerProtocol> getServer(MemberId memberId) {
+    final TestRaftServerProtocol server = server(memberId);
+    if (server != null) {
+      return Futures.completedFuture(server);
+    } else {
+      return Futures.exceptionalFuture(new ConnectException());
+    }
   }
 
   @Override
-  public void unregisterHeartbeatHandler() {
-    this.heartbeatHandler = null;
+  public CompletableFuture<CloseSessionResponse> closeSession(
+      MemberId memberId, CloseSessionRequest request) {
+    return scheduleTimeout(
+        getServer(memberId).thenCompose(protocol -> protocol.closeSession(request)));
   }
 
   @Override
-  public CompletableFuture<OpenSessionResponse> openSession(MemberId memberId, OpenSessionRequest request) {
-    return scheduleTimeout(getServer(memberId).thenCompose(protocol -> protocol.openSession(request)));
-  }
-
-  @Override
-  public CompletableFuture<CloseSessionResponse> closeSession(MemberId memberId, CloseSessionRequest request) {
-    return scheduleTimeout(getServer(memberId).thenCompose(protocol -> protocol.closeSession(request)));
-  }
-
-  @Override
-  public CompletableFuture<KeepAliveResponse> keepAlive(MemberId memberId, KeepAliveRequest request) {
-    return scheduleTimeout(getServer(memberId).thenCompose(protocol -> protocol.keepAlive(request)));
+  public CompletableFuture<KeepAliveResponse> keepAlive(
+      MemberId memberId, KeepAliveRequest request) {
+    return scheduleTimeout(
+        getServer(memberId).thenCompose(protocol -> protocol.keepAlive(request)));
   }
 
   @Override
@@ -104,28 +98,42 @@ public class TestRaftClientProtocol extends TestRaftProtocol implements RaftClie
 
   @Override
   public void reset(Set<MemberId> members, ResetRequest request) {
-    members.forEach(member -> {
-      TestRaftServerProtocol server = server(member);
-      if (server != null) {
-        server.reset(request);
-      }
-    });
-  }
-
-  void publish(PublishRequest request) {
-    Consumer<PublishRequest> listener = publishListeners.get(request.session());
-    if (listener != null) {
-      listener.accept(request);
-    }
+    members.forEach(
+        member -> {
+          final TestRaftServerProtocol server = server(member);
+          if (server != null) {
+            server.reset(request);
+          }
+        });
   }
 
   @Override
-  public void registerPublishListener(SessionId sessionId, Consumer<PublishRequest> listener, Executor executor) {
-    publishListeners.put(sessionId.id(), request -> executor.execute(() -> listener.accept(request)));
+  public void registerHeartbeatHandler(
+      Function<HeartbeatRequest, CompletableFuture<HeartbeatResponse>> handler) {
+    this.heartbeatHandler = handler;
+  }
+
+  @Override
+  public void unregisterHeartbeatHandler() {
+    this.heartbeatHandler = null;
+  }
+
+  @Override
+  public void registerPublishListener(
+      SessionId sessionId, Consumer<PublishRequest> listener, Executor executor) {
+    publishListeners.put(
+        sessionId.id(), request -> executor.execute(() -> listener.accept(request)));
   }
 
   @Override
   public void unregisterPublishListener(SessionId sessionId) {
     publishListeners.remove(sessionId.id());
+  }
+
+  void publish(PublishRequest request) {
+    final Consumer<PublishRequest> listener = publishListeners.get(request.session());
+    if (listener != null) {
+      listener.accept(request);
+    }
   }
 }

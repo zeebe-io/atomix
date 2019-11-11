@@ -15,7 +15,7 @@
  */
 
 /**
- * Provides {@link io.atomix.protocols.raft.storage.log.entry.RaftLogEntry} implementations used internally to replicate
- * state changes, sessions, and configuration changes in the cluster.
+ * Provides {@link io.atomix.protocols.raft.storage.log.entry.RaftLogEntry} implementations used
+ * internally to replicate state changes, sessions, and configuration changes in the cluster.
  */
 package io.atomix.protocols.raft.storage.log.entry;

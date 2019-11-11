@@ -15,8 +15,5 @@
  */
 package io.atomix.protocols.raft.protocol;
 
-/**
- * Base type for Raft protocol messages.
- */
-public interface RaftMessage {
-}
+/** Base type for Raft protocol messages. */
+public interface RaftMessage {}

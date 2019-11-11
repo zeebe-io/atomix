@@ -17,22 +17,19 @@ package io.atomix.protocols.raft.protocol;
 
 import io.atomix.cluster.MemberId;
 import io.atomix.primitive.session.SessionId;
-
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-/**
- * Raft client protocol.
- */
+/** Raft client protocol. */
 public interface RaftClientProtocol {
 
   /**
    * Sends an open session request to the given node.
    *
-   * @param memberId  the node to which to send the request
+   * @param memberId the node to which to send the request
    * @param request the request to send
    * @return a future to be completed with the response
    */
@@ -41,16 +38,17 @@ public interface RaftClientProtocol {
   /**
    * Sends a close session request to the given node.
    *
-   * @param memberId  the node to which to send the request
+   * @param memberId the node to which to send the request
    * @param request the request to send
    * @return a future to be completed with the response
    */
-  CompletableFuture<CloseSessionResponse> closeSession(MemberId memberId, CloseSessionRequest request);
+  CompletableFuture<CloseSessionResponse> closeSession(
+      MemberId memberId, CloseSessionRequest request);
 
   /**
    * Sends a keep alive request to the given node.
    *
-   * @param memberId  the node to which to send the request
+   * @param memberId the node to which to send the request
    * @param request the request to send
    * @return a future to be completed with the response
    */
@@ -59,7 +57,7 @@ public interface RaftClientProtocol {
   /**
    * Sends a query request to the given node.
    *
-   * @param memberId  the node to which to send the request
+   * @param memberId the node to which to send the request
    * @param request the request to send
    * @return a future to be completed with the response
    */
@@ -68,7 +66,7 @@ public interface RaftClientProtocol {
   /**
    * Sends a command request to the given node.
    *
-   * @param memberId  the node to which to send the request
+   * @param memberId the node to which to send the request
    * @param request the request to send
    * @return a future to be completed with the response
    */
@@ -77,7 +75,7 @@ public interface RaftClientProtocol {
   /**
    * Sends a metadata request to the given node.
    *
-   * @param memberId  the node to which to send the request
+   * @param memberId the node to which to send the request
    * @param request the request to send
    * @return a future to be completed with the response
    */
@@ -96,21 +94,21 @@ public interface RaftClientProtocol {
    *
    * @param handler the heartbeat request handler to register
    */
-  void registerHeartbeatHandler(Function<HeartbeatRequest, CompletableFuture<HeartbeatResponse>> handler);
+  void registerHeartbeatHandler(
+      Function<HeartbeatRequest, CompletableFuture<HeartbeatResponse>> handler);
 
-  /**
-   * Unregisters the heartbeat request handler.
-   */
+  /** Unregisters the heartbeat request handler. */
   void unregisterHeartbeatHandler();
 
   /**
    * Registers a publish request listener.
    *
    * @param sessionId the session for which to listen for the publish request
-   * @param listener  the listener to register
-   * @param executor  the executor with which to execute the listener callback
+   * @param listener the listener to register
+   * @param executor the executor with which to execute the listener callback
    */
-  void registerPublishListener(SessionId sessionId, Consumer<PublishRequest> listener, Executor executor);
+  void registerPublishListener(
+      SessionId sessionId, Consumer<PublishRequest> listener, Executor executor);
 
   /**
    * Unregisters the publish request listener for the given session.
@@ -118,5 +116,4 @@ public interface RaftClientProtocol {
    * @param sessionId the session for which to unregister the listener
    */
   void unregisterPublishListener(SessionId sessionId);
-
 }

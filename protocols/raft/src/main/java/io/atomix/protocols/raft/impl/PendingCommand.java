@@ -15,17 +15,15 @@
  */
 package io.atomix.protocols.raft.impl;
 
-import io.atomix.protocols.raft.protocol.CommandRequest;
-import io.atomix.protocols.raft.protocol.CommandResponse;
-
-import java.util.concurrent.CompletableFuture;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-/**
- * Pending command.
- */
+import io.atomix.protocols.raft.protocol.CommandRequest;
+import io.atomix.protocols.raft.protocol.CommandResponse;
+import java.util.concurrent.CompletableFuture;
+
+/** Pending command. */
 public final class PendingCommand {
+
   private final CommandRequest request;
   private final CompletableFuture<CommandResponse> future;
 
@@ -54,8 +52,6 @@ public final class PendingCommand {
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("request", request)
-        .toString();
+    return toStringHelper(this).add("request", request).toString();
   }
 }

@@ -73,55 +73,56 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
-/**
- * Raft service manager test.
- */
+/** Raft service manager test. */
 public class RaftServiceManagerTest {
+
   private static final Path PATH = Paths.get("target/test-logs/");
 
-  private static final Namespace NAMESPACE = Namespace.builder()
-      .register(CloseSessionEntry.class)
-      .register(CommandEntry.class)
-      .register(ConfigurationEntry.class)
-      .register(InitializeEntry.class)
-      .register(KeepAliveEntry.class)
-      .register(MetadataEntry.class)
-      .register(OpenSessionEntry.class)
-      .register(QueryEntry.class)
-      .register(ArrayList.class)
-      .register(HashSet.class)
-      .register(DefaultRaftMember.class)
-      .register(MemberId.class)
-      .register(RaftMember.Type.class)
-      .register(ReadConsistency.class)
-      .register(PrimitiveOperation.class)
-      .register(DefaultOperationId.class)
-      .register(OperationType.class)
-      .register(Instant.class)
-      .register(byte[].class)
-      .build();
-
+  private static final Namespace NAMESPACE =
+      Namespace.builder()
+          .register(CloseSessionEntry.class)
+          .register(CommandEntry.class)
+          .register(ConfigurationEntry.class)
+          .register(InitializeEntry.class)
+          .register(KeepAliveEntry.class)
+          .register(MetadataEntry.class)
+          .register(OpenSessionEntry.class)
+          .register(QueryEntry.class)
+          .register(ArrayList.class)
+          .register(HashSet.class)
+          .register(DefaultRaftMember.class)
+          .register(MemberId.class)
+          .register(RaftMember.Type.class)
+          .register(ReadConsistency.class)
+          .register(PrimitiveOperation.class)
+          .register(DefaultOperationId.class)
+          .register(OperationType.class)
+          .register(Instant.class)
+          .register(byte[].class)
+          .build();
+  private static final OperationId RUN = OperationId.command("run");
   private RaftContext raft;
   private AtomicBoolean snapshotTaken;
   private AtomicBoolean snapshotInstalled;
 
   @Test
   public void testSnapshotTakeInstall() throws Exception {
-    RaftLogWriter writer = raft.getLogWriter();
+    final RaftLogWriter writer = raft.getLogWriter();
     writer.append(new InitializeEntry(1, System.currentTimeMillis()));
-    writer.append(new OpenSessionEntry(
-        1,
-        System.currentTimeMillis(),
-        "test-1",
-        "test",
-        "test",
-        null,
-        ReadConsistency.LINEARIZABLE,
-        100,
-        1000));
+    writer.append(
+        new OpenSessionEntry(
+            1,
+            System.currentTimeMillis(),
+            "test-1",
+            "test",
+            "test",
+            null,
+            ReadConsistency.LINEARIZABLE,
+            100,
+            1000));
     writer.commit(2);
 
-    RaftServiceManager manager = (RaftServiceManager) raft.getServiceManager();
+    final RaftServiceManager manager = (RaftServiceManager) raft.getServiceManager();
 
     manager.apply(2).join();
 
@@ -139,25 +140,26 @@ public class RaftServiceManagerTest {
 
   @Test
   public void testInstallSnapshotOnApply() throws Exception {
-    RaftLogWriter writer = raft.getLogWriter();
+    final RaftLogWriter writer = raft.getLogWriter();
     writer.append(new InitializeEntry(1, System.currentTimeMillis()));
-    writer.append(new OpenSessionEntry(
-        1,
-        System.currentTimeMillis(),
-        "test-1",
-        "test",
-        "test",
-        null,
-        ReadConsistency.LINEARIZABLE,
-        100,
-        1000));
+    writer.append(
+        new OpenSessionEntry(
+            1,
+            System.currentTimeMillis(),
+            "test-1",
+            "test",
+            "test",
+            null,
+            ReadConsistency.LINEARIZABLE,
+            100,
+            1000));
     writer.commit(2);
 
-    RaftServiceManager manager = (RaftServiceManager) raft.getServiceManager();
+    final RaftServiceManager manager = (RaftServiceManager) raft.getServiceManager();
 
     manager.apply(2).join();
 
-    Snapshot snapshot = manager.snapshot();
+    final Snapshot snapshot = manager.snapshot();
     assertEquals(2, snapshot.index());
     assertTrue(snapshotTaken.get());
 
@@ -165,16 +167,88 @@ public class RaftServiceManagerTest {
 
     assertEquals(2, raft.getSnapshotStore().getCurrentSnapshot().index());
 
-    writer.append(new CommandEntry(1, System.currentTimeMillis(), 2, 1, new PrimitiveOperation(RUN, new byte[0])));
+    writer.append(
+        new CommandEntry(
+            1, System.currentTimeMillis(), 2, 1, new PrimitiveOperation(RUN, new byte[0])));
     writer.commit(3);
 
     manager.apply(3).join();
     assertTrue(snapshotInstalled.get());
   }
 
-  private static final OperationId RUN = OperationId.command("run");
+  @Before
+  public void setupContext() throws IOException {
+    deleteStorage();
+
+    final RaftStorage storage =
+        RaftStorage.builder()
+            .withPrefix("test")
+            .withDirectory(PATH.toFile())
+            .withNamespace(NAMESPACE)
+            .build();
+    final PrimitiveTypeRegistry registry =
+        new PrimitiveTypeRegistry() {
+          @Override
+          public Collection<PrimitiveType> getPrimitiveTypes() {
+            return Collections.singleton(new TestType());
+          }
+
+          @Override
+          public PrimitiveType getPrimitiveType(String typeName) {
+            return new TestType();
+          }
+        };
+    final ArrayList<MemberId> members = new ArrayList<>();
+    final MemberId member = MemberId.from("test-1");
+    members.add(member);
+    raft =
+        new RaftContext(
+            "test",
+            member,
+            mock(ClusterMembershipService.class),
+            mock(RaftServerProtocol.class),
+            storage,
+            registry,
+            ThreadModel.SHARED_THREAD_POOL.factory(
+                "raft-server-test-%d", 1, LoggerFactory.getLogger(RaftServer.class)),
+            true,
+            RaftServiceManager::new,
+            LoadMonitor::new);
+
+    snapshotTaken = new AtomicBoolean();
+    snapshotInstalled = new AtomicBoolean();
+  }
+
+  private void deleteStorage() throws IOException {
+    if (Files.exists(PATH)) {
+      Files.walkFileTree(
+          PATH,
+          new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+                throws IOException {
+              Files.delete(file);
+              return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException exc)
+                throws IOException {
+              Files.delete(dir);
+              return FileVisitResult.CONTINUE;
+            }
+          });
+    }
+  }
+
+  @After
+  public void teardownContext() throws IOException {
+    raft.close();
+    deleteStorage();
+  }
 
   private class TestService extends AbstractPrimitiveService {
+
     protected TestService(PrimitiveType primitiveType) {
       super(primitiveType);
     }
@@ -183,6 +257,8 @@ public class RaftServiceManagerTest {
     protected void configure(ServiceExecutor executor) {
       executor.register(RUN, this::run);
     }
+
+    private void run() {}
 
     @Override
     public void backup(BackupOutput output) {
@@ -195,20 +271,20 @@ public class RaftServiceManagerTest {
       assertEquals(10, input.readLong());
       snapshotInstalled.set(true);
     }
-
-    private void run() {
-
-    }
   }
 
   private class TestType implements PrimitiveType {
+
     @Override
     public PrimitiveConfig newConfig() {
       return null;
     }
 
     @Override
-    public PrimitiveBuilder newBuilder(String primitiveName, PrimitiveConfig config, PrimitiveManagementService managementService) {
+    public PrimitiveBuilder newBuilder(
+        String primitiveName,
+        PrimitiveConfig config,
+        PrimitiveManagementService managementService) {
       return null;
     }
 
@@ -220,69 +296,6 @@ public class RaftServiceManagerTest {
     @Override
     public String name() {
       return "test";
-    }
-  }
-
-  @Before
-  public void setupContext() throws IOException {
-    deleteStorage();
-
-    RaftStorage storage = RaftStorage.builder()
-        .withPrefix("test")
-        .withDirectory(PATH.toFile())
-        .withNamespace(NAMESPACE)
-        .build();
-    PrimitiveTypeRegistry registry = new PrimitiveTypeRegistry() {
-      @Override
-      public Collection<PrimitiveType> getPrimitiveTypes() {
-        return Collections.singleton(new TestType());
-      }
-
-      @Override
-      public PrimitiveType getPrimitiveType(String typeName) {
-        return new TestType();
-      }
-    };
-    final ArrayList<MemberId> members = new ArrayList<>();
-    final MemberId member = MemberId.from("test-1");
-    members.add(member);
-    raft = new RaftContext(
-        "test",
-        member,
-        mock(ClusterMembershipService.class),
-        mock(RaftServerProtocol.class),
-        storage,
-        registry,
-        ThreadModel.SHARED_THREAD_POOL.factory("raft-server-test-%d", 1, LoggerFactory.getLogger(RaftServer.class)),
-        true,
-        RaftServiceManager::new,
-        LoadMonitor::new);
-
-    snapshotTaken = new AtomicBoolean();
-    snapshotInstalled = new AtomicBoolean();
-  }
-
-  @After
-  public void teardownContext() throws IOException {
-    raft.close();
-    deleteStorage();
-  }
-
-  private void deleteStorage() throws IOException {
-    if (Files.exists(PATH)) {
-      Files.walkFileTree(PATH, new SimpleFileVisitor<Path>() {
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-          Files.delete(file);
-          return FileVisitResult.CONTINUE;
-        }
-
-        @Override
-        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-          Files.delete(dir);
-          return FileVisitResult.CONTINUE;
-        }
-      });
     }
   }
 }

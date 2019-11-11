@@ -15,31 +15,31 @@
  */
 package io.atomix.protocols.raft.storage.system;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.atomix.cluster.MemberId;
 import io.atomix.protocols.raft.storage.RaftStorage;
-import io.atomix.utils.serializer.Serializer;
 import io.atomix.storage.StorageLevel;
 import io.atomix.storage.buffer.Buffer;
 import io.atomix.storage.buffer.FileBuffer;
 import io.atomix.storage.buffer.HeapBuffer;
+import io.atomix.utils.serializer.Serializer;
+import java.io.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * Manages persistence of server configurations.
- * <p>
- * The server metastore is responsible for persisting server configurations according to the configured
- * {@link RaftStorage#storageLevel() storage level}. Each server persists their current {@link #loadTerm() term}
- * and last {@link #loadVote() vote} as is dictated by the Raft consensus algorithm. Additionally, the
- * metastore is responsible for storing the last know server {@link Configuration}, including cluster
- * membership.
+ *
+ * <p>The server metastore is responsible for persisting server configurations according to the
+ * configured {@link RaftStorage#storageLevel() storage level}. Each server persists their current
+ * {@link #loadTerm() term} and last {@link #loadVote() vote} as is dictated by the Raft consensus
+ * algorithm. Additionally, the metastore is responsible for storing the last know server {@link
+ * Configuration}, including cluster membership.
  */
 public class MetaStore implements AutoCloseable {
+
   private final Logger log = LoggerFactory.getLogger(getClass());
   private final Serializer serializer;
   private final FileBuffer metadataBuffer;
@@ -49,17 +49,20 @@ public class MetaStore implements AutoCloseable {
     this.serializer = checkNotNull(serializer, "serializer cannot be null");
 
     if (!(storage.directory().isDirectory() || storage.directory().mkdirs())) {
-      throw new IllegalArgumentException(String.format("Can't create storage directory [%s].", storage.directory()));
+      throw new IllegalArgumentException(
+          String.format("Can't create storage directory [%s].", storage.directory()));
     }
 
-    // Note that for raft safety, irrespective of the storage level, <term, vote> metadata is always persisted on disk.
-    File metaFile = new File(storage.directory(), String.format("%s.meta", storage.prefix()));
+    // Note that for raft safety, irrespective of the storage level, <term, vote> metadata is always
+    // persisted on disk.
+    final File metaFile = new File(storage.directory(), String.format("%s.meta", storage.prefix()));
     metadataBuffer = FileBuffer.allocate(metaFile, 12);
 
     if (storage.storageLevel() == StorageLevel.MEMORY) {
       configurationBuffer = HeapBuffer.allocate(32);
     } else {
-      File confFile = new File(storage.directory(), String.format("%s.conf", storage.prefix()));
+      final File confFile =
+          new File(storage.directory(), String.format("%s.conf", storage.prefix()));
       configurationBuffer = FileBuffer.allocate(confFile, 32);
     }
   }
@@ -99,7 +102,7 @@ public class MetaStore implements AutoCloseable {
    * @return The last vote for the server.
    */
   public synchronized MemberId loadVote() {
-    String id = metadataBuffer.readString(8);
+    final String id = metadataBuffer.readString(8);
     return id != null ? MemberId.from(id) : null;
   }
 
@@ -110,11 +113,8 @@ public class MetaStore implements AutoCloseable {
    */
   public synchronized void storeConfiguration(Configuration configuration) {
     log.trace("Store configuration {}", configuration);
-    byte[] bytes = serializer.encode(configuration);
-    configurationBuffer.position(0)
-        .writeByte(1)
-        .writeInt(bytes.length)
-        .write(bytes);
+    final byte[] bytes = serializer.encode(configuration);
+    configurationBuffer.position(0).writeByte(1).writeInt(bytes.length).write(bytes);
     configurationBuffer.flush();
   }
 
@@ -125,7 +125,7 @@ public class MetaStore implements AutoCloseable {
    */
   public synchronized Configuration loadConfiguration() {
     if (configurationBuffer.position(0).readByte() == 1) {
-      int bytesLength = configurationBuffer.readInt();
+      final int bytesLength = configurationBuffer.readInt();
       if (bytesLength == 0) {
         return null;
       }
@@ -144,5 +144,4 @@ public class MetaStore implements AutoCloseable {
   public String toString() {
     return toStringHelper(this).toString();
   }
-
 }

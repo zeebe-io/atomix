@@ -17,13 +17,20 @@ package io.atomix.protocols.raft.protocol;
 
 import io.atomix.protocols.raft.RaftError;
 import io.atomix.protocols.raft.cluster.RaftMember;
-
 import java.util.Collection;
 
-/**
- * Server configuration change response.
- */
+/** Server configuration change response. */
 public class ReconfigureResponse extends ConfigurationResponse {
+
+  public ReconfigureResponse(
+      Status status,
+      RaftError error,
+      long index,
+      long term,
+      long timestamp,
+      Collection<RaftMember> members) {
+    super(status, error, index, term, timestamp, members);
+  }
 
   /**
    * Returns a new reconfigure response builder.
@@ -34,14 +41,9 @@ public class ReconfigureResponse extends ConfigurationResponse {
     return new Builder();
   }
 
-  public ReconfigureResponse(Status status, RaftError error, long index, long term, long timestamp, Collection<RaftMember> members) {
-    super(status, error, index, term, timestamp, members);
-  }
-
-  /**
-   * Reconfigure response builder.
-   */
+  /** Reconfigure response builder. */
   public static class Builder extends ConfigurationResponse.Builder<Builder, ReconfigureResponse> {
+
     @Override
     public ReconfigureResponse build() {
       validate();

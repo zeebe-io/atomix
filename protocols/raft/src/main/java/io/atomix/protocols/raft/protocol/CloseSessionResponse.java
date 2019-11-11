@@ -16,13 +16,14 @@
 package io.atomix.protocols.raft.protocol;
 
 import io.atomix.protocols.raft.RaftError;
-
 import java.util.Objects;
 
-/**
- * Close session response.
- */
+/** Close session response. */
 public class CloseSessionResponse extends SessionResponse {
+
+  public CloseSessionResponse(Status status, RaftError error) {
+    super(status, error);
+  }
 
   /**
    * Returns a new keep alive response builder.
@@ -33,23 +34,23 @@ public class CloseSessionResponse extends SessionResponse {
     return new Builder();
   }
 
-  public CloseSessionResponse(Status status, RaftError error) {
-    super(status, error);
-  }
-
   @Override
   public boolean equals(Object object) {
     if (object instanceof CloseSessionResponse) {
-      CloseSessionResponse response = (CloseSessionResponse) object;
+      final CloseSessionResponse response = (CloseSessionResponse) object;
       return response.status == status && Objects.equals(response.error, error);
     }
     return false;
   }
 
-  /**
-   * Status response builder.
-   */
+  @Override
+  public int hashCode() {
+    return super.hashCode();
+  }
+
+  /** Status response builder. */
   public static class Builder extends SessionResponse.Builder<Builder, CloseSessionResponse> {
+
     @Override
     public CloseSessionResponse build() {
       validate();

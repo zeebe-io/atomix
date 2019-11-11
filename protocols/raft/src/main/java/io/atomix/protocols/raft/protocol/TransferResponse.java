@@ -17,10 +17,12 @@ package io.atomix.protocols.raft.protocol;
 
 import io.atomix.protocols.raft.RaftError;
 
-/**
- * Leadership transfer response.
- */
+/** Leadership transfer response. */
 public class TransferResponse extends AbstractRaftResponse {
+
+  public TransferResponse(Status status, RaftError error) {
+    super(status, error);
+  }
 
   /**
    * Returns a new transfer response builder.
@@ -31,14 +33,9 @@ public class TransferResponse extends AbstractRaftResponse {
     return new Builder();
   }
 
-  public TransferResponse(Status status, RaftError error) {
-    super(status, error);
-  }
-
-  /**
-   * Join response builder.
-   */
+  /** Join response builder. */
   public static class Builder extends AbstractRaftResponse.Builder<Builder, TransferResponse> {
+
     @Override
     public TransferResponse build() {
       validate();

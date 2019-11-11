@@ -15,27 +15,38 @@
  */
 package io.atomix.protocols.raft.protocol;
 
-import io.atomix.primitive.event.PrimitiveEvent;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import io.atomix.primitive.event.PrimitiveEvent;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+
 /**
  * Event publish request.
- * <p>
- * Publish requests are used by servers to publish event messages to clients. Event messages are
+ *
+ * <p>Publish requests are used by servers to publish event messages to clients. Event messages are
  * sequenced based on the point in the Raft log at which they were published to the client. The
- * {@link #eventIndex()} indicates the index at which the event was sent, and the {@link #previousIndex()}
- * indicates the index of the prior event messages sent to the client. Clients must ensure that event
- * messages are received in sequence by tracking the last index for which they received an event message
- * and validating {@link #previousIndex()} against that index.
+ * {@link #eventIndex()} indicates the index at which the event was sent, and the {@link
+ * #previousIndex()} indicates the index of the prior event messages sent to the client. Clients
+ * must ensure that event messages are received in sequence by tracking the last index for which
+ * they received an event message and validating {@link #previousIndex()} against that index.
  */
 public class PublishRequest extends SessionRequest {
+
+  private final long eventIndex;
+  private final long previousIndex;
+  private final List<PrimitiveEvent> events;
+
+  public PublishRequest(
+      long session, long eventIndex, long previousIndex, List<PrimitiveEvent> events) {
+    super(session);
+    this.eventIndex = eventIndex;
+    this.previousIndex = previousIndex;
+    this.events = events;
+  }
 
   /**
    * Returns a new publish request builder.
@@ -44,17 +55,6 @@ public class PublishRequest extends SessionRequest {
    */
   public static Builder builder() {
     return new Builder();
-  }
-
-  private final long eventIndex;
-  private final long previousIndex;
-  private final List<PrimitiveEvent> events;
-
-  public PublishRequest(long session, long eventIndex, long previousIndex, List<PrimitiveEvent> events) {
-    super(session);
-    this.eventIndex = eventIndex;
-    this.previousIndex = previousIndex;
-    this.events = events;
   }
 
   /**
@@ -92,7 +92,7 @@ public class PublishRequest extends SessionRequest {
   @Override
   public boolean equals(Object object) {
     if (object instanceof PublishRequest) {
-      PublishRequest request = (PublishRequest) object;
+      final PublishRequest request = (PublishRequest) object;
       return request.session == session
           && request.eventIndex == eventIndex
           && request.previousIndex == previousIndex
@@ -111,10 +111,9 @@ public class PublishRequest extends SessionRequest {
         .toString();
   }
 
-  /**
-   * Publish request builder.
-   */
+  /** Publish request builder. */
   public static class Builder extends SessionRequest.Builder<Builder, PublishRequest> {
+
     private long eventIndex;
     private long previousIndex;
     private List<PrimitiveEvent> events;
@@ -166,21 +165,19 @@ public class PublishRequest extends SessionRequest {
       return this;
     }
 
+    /** @throws IllegalStateException if sequence is less than 1 or message is null */
+    @Override
+    public PublishRequest build() {
+      validate();
+      return new PublishRequest(session, eventIndex, previousIndex, events);
+    }
+
     @Override
     protected void validate() {
       super.validate();
       checkArgument(eventIndex > 0, "eventIndex must be positive");
       checkArgument(previousIndex >= 0, "previousIndex must be positive");
       checkNotNull(events, "events cannot be null");
-    }
-
-    /**
-     * @throws IllegalStateException if sequence is less than 1 or message is null
-     */
-    @Override
-    public PublishRequest build() {
-      validate();
-      return new PublishRequest(session, eventIndex, previousIndex, events);
     }
   }
 }

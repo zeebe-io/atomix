@@ -15,11 +15,11 @@
  */
 package io.atomix.protocols.raft.storage.snapshot;
 
-import io.atomix.utils.time.WallClockTimestamp;
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+
+import io.atomix.utils.time.WallClockTimestamp;
+import org.junit.Test;
 
 /**
  * Snapshot store test.
@@ -28,19 +28,12 @@ import static org.junit.Assert.assertNull;
  */
 public abstract class AbstractSnapshotStoreTest {
 
-  /**
-   * Returns a new snapshot store.
-   */
-  protected abstract SnapshotStore createSnapshotStore();
-
-  /**
-   * Tests writing a snapshot.
-   */
+  /** Tests writing a snapshot. */
   @Test
   public void testWriteSnapshotChunks() {
-    SnapshotStore store = createSnapshotStore();
-    WallClockTimestamp timestamp = new WallClockTimestamp();
-    Snapshot snapshot = store.newSnapshot(2, 1, timestamp);
+    final SnapshotStore store = createSnapshotStore();
+    final WallClockTimestamp timestamp = new WallClockTimestamp();
+    final Snapshot snapshot = store.newSnapshot(2, 1, timestamp);
     assertEquals(2, snapshot.index());
     assertEquals(timestamp, snapshot.timestamp());
 
@@ -74,4 +67,6 @@ public abstract class AbstractSnapshotStoreTest {
     }
   }
 
+  /** Returns a new snapshot store. */
+  protected abstract SnapshotStore createSnapshotStore();
 }

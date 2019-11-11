@@ -14,14 +14,14 @@
   ~ limitations under the License.
   -->
 <configuration>
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
-            </pattern>
-        </encoder>
-    </appender>
+  <appender class="ch.qos.logback.core.ConsoleAppender" name="STDOUT">
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
+      </pattern>
+    </encoder>
+  </appender>
 
-    <root level="${root.logging.level:-DEBUG}">
-        <appender-ref ref="STDOUT" />
-    </root>
+  <root level="${root.logging.level:-DEBUG}">
+    <appender-ref ref="STDOUT"/>
+  </root>
 </configuration>

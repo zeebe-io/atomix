@@ -15,25 +15,28 @@
  */
 package io.atomix.protocols.raft.storage.log.entry;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 import io.atomix.primitive.operation.PrimitiveOperation;
 import io.atomix.utils.misc.TimestampPrinter;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 /**
  * Stores a state machine operation.
- * <p>
- * Each state machine operation is stored with a client-provided {@link #sequenceNumber() sequence number}.
- * The sequence number is used by state machines to apply client operations in the order in which they
- * were submitted by the client (FIFO order). Additionally, each operation is written with the leader's
- * {@link #timestamp() timestamp} at the time the entry was logged. This gives state machines an
- * approximation of time with which to react to the application of operations to the state machine.
+ *
+ * <p>Each state machine operation is stored with a client-provided {@link #sequenceNumber()
+ * sequence number}. The sequence number is used by state machines to apply client operations in the
+ * order in which they were submitted by the client (FIFO order). Additionally, each operation is
+ * written with the leader's {@link #timestamp() timestamp} at the time the entry was logged. This
+ * gives state machines an approximation of time with which to react to the application of
+ * operations to the state machine.
  */
 public abstract class OperationEntry extends SessionEntry {
+
   protected final long sequence;
   protected final PrimitiveOperation operation;
 
-  public OperationEntry(long term, long timestamp, long session, long sequence, PrimitiveOperation operation) {
+  public OperationEntry(
+      long term, long timestamp, long session, long sequence, PrimitiveOperation operation) {
     super(term, timestamp, session);
     this.sequence = sequence;
     this.operation = operation;

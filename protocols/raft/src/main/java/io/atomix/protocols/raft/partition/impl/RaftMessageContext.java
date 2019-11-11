@@ -15,11 +15,9 @@
  */
 package io.atomix.protocols.raft.partition.impl;
 
-/**
- * Protocol message context.
- */
+/** Protocol message context. */
 class RaftMessageContext {
-  private final String prefix;
+
   final String heartbeatSubject;
   final String openSessionSubject;
   final String closeSessionSubject;
@@ -37,6 +35,7 @@ class RaftMessageContext {
   final String voteSubject;
   final String appendSubject;
   final String leaderHeartbeatSubject;
+  private final String prefix;
 
   RaftMessageContext(String prefix) {
     this.prefix = prefix;

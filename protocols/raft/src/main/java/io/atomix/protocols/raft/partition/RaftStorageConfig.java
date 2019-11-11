@@ -15,15 +15,14 @@
  */
 package io.atomix.protocols.raft.partition;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.atomix.storage.StorageLevel;
 import io.atomix.utils.memory.MemorySize;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * Raft storage configuration.
- */
+/** Raft storage configuration. */
 public class RaftStorageConfig {
+
   private static final String DATA_PREFIX = ".data";
   private static final StorageLevel DEFAULT_STORAGE_LEVEL = StorageLevel.DISK;
   private static final int DEFAULT_MAX_SEGMENT_SIZE = 1024 * 1024 * 32;
@@ -37,43 +36,24 @@ public class RaftStorageConfig {
   private boolean flushOnCommit = DEFAULT_FLUSH_ON_COMMIT;
 
   /**
+   * Returns the partition data directory.
+   *
+   * @param groupName the partition group name
+   * @return the partition data directory
+   */
+  public String getDirectory(String groupName) {
+    return directory != null
+        ? directory
+        : System.getProperty("atomix.data", DATA_PREFIX) + "/" + groupName;
+  }
+
+  /**
    * Returns the partition storage level.
    *
    * @return the partition storage level
    */
   public StorageLevel getLevel() {
     return level;
-  }
-
-  /**
-   * Sets the partition storage level.
-   *
-   * @param storageLevel the partition storage level
-   * @return the Raft partition group configuration
-   */
-  public RaftStorageConfig setLevel(StorageLevel storageLevel) {
-    this.level = checkNotNull(storageLevel);
-    return this;
-  }
-
-  /**
-   * Returns the Raft log segment size.
-   *
-   * @return the Raft log segment size
-   */
-  public MemorySize getSegmentSize() {
-    return MemorySize.from(segmentSize);
-  }
-
-  /**
-   * Sets the Raft log segment size.
-   *
-   * @param segmentSize the Raft log segment size
-   * @return the partition group configuration
-   */
-  public RaftStorageConfig setSegmentSize(MemorySize segmentSize) {
-    this.segmentSize = segmentSize.bytes();
-    return this;
   }
 
   /**
@@ -86,14 +66,12 @@ public class RaftStorageConfig {
   }
 
   /**
-   * Sets the maximum entry size.
+   * Returns the Raft log segment size.
    *
-   * @param maxEntrySize the maximum entry size
-   * @return the Raft storage configuration
+   * @return the Raft log segment size
    */
-  public RaftStorageConfig setMaxEntrySize(MemorySize maxEntrySize) {
-    this.maxEntrySize = (int) maxEntrySize.bytes();
-    return this;
+  public MemorySize getSegmentSize() {
+    return MemorySize.from(segmentSize);
   }
 
   /**
@@ -103,6 +81,17 @@ public class RaftStorageConfig {
    */
   public boolean isFlushOnCommit() {
     return flushOnCommit;
+  }
+
+  /**
+   * Sets the partition data directory.
+   *
+   * @param directory the partition data directory
+   * @return the Raft partition group configuration
+   */
+  public RaftStorageConfig setDirectory(String directory) {
+    this.directory = directory;
+    return this;
   }
 
   /**
@@ -117,23 +106,35 @@ public class RaftStorageConfig {
   }
 
   /**
-   * Returns the partition data directory.
+   * Sets the partition storage level.
    *
-   * @param groupName the partition group name
-   * @return the partition data directory
+   * @param storageLevel the partition storage level
+   * @return the Raft partition group configuration
    */
-  public String getDirectory(String groupName) {
-    return directory != null ? directory : System.getProperty("atomix.data", DATA_PREFIX) + "/" + groupName;
+  public RaftStorageConfig setLevel(StorageLevel storageLevel) {
+    this.level = checkNotNull(storageLevel);
+    return this;
   }
 
   /**
-   * Sets the partition data directory.
+   * Sets the maximum entry size.
    *
-   * @param directory the partition data directory
-   * @return the Raft partition group configuration
+   * @param maxEntrySize the maximum entry size
+   * @return the Raft storage configuration
    */
-  public RaftStorageConfig setDirectory(String directory) {
-    this.directory = directory;
+  public RaftStorageConfig setMaxEntrySize(MemorySize maxEntrySize) {
+    this.maxEntrySize = (int) maxEntrySize.bytes();
+    return this;
+  }
+
+  /**
+   * Sets the Raft log segment size.
+   *
+   * @param segmentSize the Raft log segment size
+   * @return the partition group configuration
+   */
+  public RaftStorageConfig setSegmentSize(MemorySize segmentSize) {
+    this.segmentSize = segmentSize.bytes();
     return this;
   }
 }

@@ -15,10 +15,12 @@
  */
 package io.atomix.protocols.raft.protocol;
 
-/**
- * Cluster metadata request.
- */
+/** Cluster metadata request. */
 public class MetadataRequest extends SessionRequest {
+
+  public MetadataRequest(long session) {
+    super(session);
+  }
 
   /**
    * Returns a new metadata request builder.
@@ -29,14 +31,9 @@ public class MetadataRequest extends SessionRequest {
     return new Builder();
   }
 
-  public MetadataRequest(long session) {
-    super(session);
-  }
-
-  /**
-   * Metadata request builder.
-   */
+  /** Metadata request builder. */
   public static class Builder extends SessionRequest.Builder<Builder, MetadataRequest> {
+
     @Override
     public MetadataRequest build() {
       return new MetadataRequest(session);

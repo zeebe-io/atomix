@@ -15,13 +15,12 @@
  */
 package io.atomix.protocols.raft.session.impl;
 
-import java.util.UUID;
+import static org.junit.Assert.assertEquals;
 
 import io.atomix.primitive.session.SessionId;
 import io.atomix.protocols.raft.session.TestPrimitiveType;
+import java.util.UUID;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Client session state test.
@@ -30,13 +29,13 @@ import static org.junit.Assert.assertEquals;
  */
 public class RaftSessionStateTest {
 
-  /**
-   * Tests session state defaults.
-   */
+  /** Tests session state defaults. */
   @Test
   public void testSessionStateDefaults() {
-    String sessionName = UUID.randomUUID().toString();
-    RaftSessionState state = new RaftSessionState("test", SessionId.from(1), sessionName, TestPrimitiveType.instance(), 1000);
+    final String sessionName = UUID.randomUUID().toString();
+    final RaftSessionState state =
+        new RaftSessionState(
+            "test", SessionId.from(1), sessionName, TestPrimitiveType.instance(), 1000);
     assertEquals(state.getSessionId(), SessionId.from(1));
     assertEquals(sessionName, state.getPrimitiveName());
     assertEquals("test", state.getPrimitiveType().name());
@@ -46,12 +45,16 @@ public class RaftSessionStateTest {
     assertEquals(1, state.getEventIndex());
   }
 
-  /**
-   * Tests updating client session state.
-   */
+  /** Tests updating client session state. */
   @Test
   public void testSessionState() {
-    RaftSessionState state = new RaftSessionState("test", SessionId.from(1), UUID.randomUUID().toString(), TestPrimitiveType.instance(), 1000);
+    final RaftSessionState state =
+        new RaftSessionState(
+            "test",
+            SessionId.from(1),
+            UUID.randomUUID().toString(),
+            TestPrimitiveType.instance(),
+            1000);
     assertEquals(state.getSessionId(), SessionId.from(1));
     assertEquals(1, state.getResponseIndex());
     assertEquals(1, state.getEventIndex());
@@ -68,5 +71,4 @@ public class RaftSessionStateTest {
     state.setEventIndex(5);
     assertEquals(5, state.getEventIndex());
   }
-
 }

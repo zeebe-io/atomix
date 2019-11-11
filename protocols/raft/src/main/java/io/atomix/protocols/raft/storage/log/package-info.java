@@ -14,7 +14,5 @@
  * limitations under the License
  */
 
-/**
- * Provides a standalone segmented log for use in the Raft consensus protocol implementation.
- */
+/** Provides a standalone segmented log for use in the Raft consensus protocol implementation. */
 package io.atomix.protocols.raft.storage.log;

@@ -15,9 +15,9 @@
  */
 package io.atomix.protocols.raft.storage;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,20 +27,18 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-/**
- * Raft storage test.
- */
+/** Raft storage test. */
 public class RaftStorageTest {
+
   private static final Path PATH = Paths.get("target/test-logs/");
 
   @Test
   public void testDefaultConfiguration() throws Exception {
-    RaftStorage storage = RaftStorage.builder().build();
+    final RaftStorage storage = RaftStorage.builder().build();
     assertEquals("atomix", storage.prefix());
     assertEquals(new File(System.getProperty("user.dir")), storage.directory());
     assertEquals(1024 * 1024 * 32, storage.maxLogSegmentSize());
@@ -54,16 +52,17 @@ public class RaftStorageTest {
 
   @Test
   public void testCustomConfiguration() throws Exception {
-    RaftStorage storage = RaftStorage.builder()
-        .withPrefix("foo")
-        .withDirectory(new File(PATH.toFile(), "foo"))
-        .withMaxSegmentSize(1024 * 1024)
-        .withMaxEntriesPerSegment(1024)
-        .withDynamicCompaction(false)
-        .withFreeDiskBuffer(.5)
-        .withFlushOnCommit(false)
-        .withRetainStaleSnapshots()
-        .build();
+    final RaftStorage storage =
+        RaftStorage.builder()
+            .withPrefix("foo")
+            .withDirectory(new File(PATH.toFile(), "foo"))
+            .withMaxSegmentSize(1024 * 1024)
+            .withMaxEntriesPerSegment(1024)
+            .withDynamicCompaction(false)
+            .withFreeDiskBuffer(.5)
+            .withFlushOnCommit(false)
+            .withRetainStaleSnapshots()
+            .build();
     assertEquals("foo", storage.prefix());
     assertEquals(new File(PATH.toFile(), "foo"), storage.directory());
     assertEquals(1024 * 1024, storage.maxLogSegmentSize());
@@ -76,11 +75,12 @@ public class RaftStorageTest {
 
   @Test
   public void testCustomConfiguration2() throws Exception {
-    RaftStorage storage = RaftStorage.builder()
-        .withDirectory(PATH.toString() + "/baz")
-        .withDynamicCompaction()
-        .withFlushOnCommit()
-        .build();
+    final RaftStorage storage =
+        RaftStorage.builder()
+            .withDirectory(PATH.toString() + "/baz")
+            .withDynamicCompaction()
+            .withFlushOnCommit()
+            .build();
     assertEquals(new File(PATH.toFile(), "baz"), storage.directory());
     assertTrue(storage.dynamicCompaction());
     assertTrue(storage.isFlushOnCommit());
@@ -88,24 +88,18 @@ public class RaftStorageTest {
 
   @Test
   public void testStorageLock() throws Exception {
-    RaftStorage storage1 = RaftStorage.builder()
-        .withDirectory(PATH.toFile())
-        .withPrefix("test")
-        .build();
+    final RaftStorage storage1 =
+        RaftStorage.builder().withDirectory(PATH.toFile()).withPrefix("test").build();
 
     assertTrue(storage1.lock("a"));
 
-    RaftStorage storage2 = RaftStorage.builder()
-        .withDirectory(PATH.toFile())
-        .withPrefix("test")
-        .build();
+    final RaftStorage storage2 =
+        RaftStorage.builder().withDirectory(PATH.toFile()).withPrefix("test").build();
 
     assertFalse(storage2.lock("b"));
 
-    RaftStorage storage3 = RaftStorage.builder()
-        .withDirectory(PATH.toFile())
-        .withPrefix("test")
-        .build();
+    final RaftStorage storage3 =
+        RaftStorage.builder().withDirectory(PATH.toFile()).withPrefix("test").build();
 
     assertTrue(storage3.lock("a"));
   }
@@ -114,19 +108,23 @@ public class RaftStorageTest {
   @After
   public void cleanupStorage() throws IOException {
     if (Files.exists(PATH)) {
-      Files.walkFileTree(PATH, new SimpleFileVisitor<Path>() {
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-          Files.delete(file);
-          return FileVisitResult.CONTINUE;
-        }
+      Files.walkFileTree(
+          PATH,
+          new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+                throws IOException {
+              Files.delete(file);
+              return FileVisitResult.CONTINUE;
+            }
 
-        @Override
-        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-          Files.delete(dir);
-          return FileVisitResult.CONTINUE;
-        }
-      });
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException exc)
+                throws IOException {
+              Files.delete(dir);
+              return FileVisitResult.CONTINUE;
+            }
+          });
     }
   }
 }

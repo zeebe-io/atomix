@@ -15,24 +15,22 @@
  */
 package io.atomix.protocols.raft;
 
-import io.atomix.primitive.Recovery;
-import io.atomix.primitive.partition.Partitioner;
-import io.atomix.protocols.raft.session.CommunicationStrategy;
-import org.junit.Test;
-
-import java.time.Duration;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
-/**
- * Multi-Raft protocol configuration.
- */
+import io.atomix.primitive.Recovery;
+import io.atomix.primitive.partition.Partitioner;
+import io.atomix.protocols.raft.session.CommunicationStrategy;
+import java.time.Duration;
+import org.junit.Test;
+
+/** Multi-Raft protocol configuration. */
 public class MultiRaftProtocolConfigTest {
+
   @Test
   public void testConfig() throws Exception {
-    MultiRaftProtocolConfig config = new MultiRaftProtocolConfig();
+    final MultiRaftProtocolConfig config = new MultiRaftProtocolConfig();
     assertEquals(MultiRaftProtocol.TYPE, config.getType());
     assertNull(config.getGroup());
     assertSame(Partitioner.MURMUR3, config.getPartitioner());
@@ -44,7 +42,7 @@ public class MultiRaftProtocolConfigTest {
     assertEquals(0, config.getMaxRetries());
     assertEquals(Duration.ofMillis(100), config.getRetryDelay());
 
-    Partitioner<String> partitioner = (k, p) -> null;
+    final Partitioner<String> partitioner = (k, p) -> null;
     config.setGroup("test");
     config.setPartitioner(partitioner);
     config.setMinTimeout(Duration.ofSeconds(1));

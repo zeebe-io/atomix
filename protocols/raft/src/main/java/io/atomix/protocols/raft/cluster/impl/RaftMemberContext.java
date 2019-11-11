@@ -15,21 +15,22 @@
  */
 package io.atomix.protocols.raft.cluster.impl;
 
-import io.atomix.protocols.raft.storage.log.RaftLog;
-import io.atomix.protocols.raft.storage.log.RaftLogReader;
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Cluster member state.
- */
+import io.atomix.protocols.raft.storage.log.RaftLog;
+import io.atomix.protocols.raft.storage.log.RaftLogReader;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.slf4j.LoggerFactory;
+
+/** Cluster member state. */
 public final class RaftMemberContext {
+
   private static final int MAX_APPENDS = 2;
   private static final int APPEND_WINDOW_SIZE = 8;
   private final DefaultRaftMember member;
+  private final DescriptiveStatistics timeStats = new DescriptiveStatistics(APPEND_WINDOW_SIZE);
   private long term;
   private long configIndex;
   private long snapshotIndex;
@@ -46,15 +47,12 @@ public final class RaftMemberContext {
   private int failures;
   private long failureTime;
   private volatile RaftLogReader reader;
-  private final DescriptiveStatistics timeStats = new DescriptiveStatistics(APPEND_WINDOW_SIZE);
 
   RaftMemberContext(DefaultRaftMember member, RaftClusterContext cluster) {
     this.member = checkNotNull(member, "member cannot be null").setCluster(cluster);
   }
 
-  /**
-   * Resets the member state.
-   */
+  /** Resets the member state. */
   public void resetState(RaftLog log) {
     snapshotIndex = 0;
     nextSnapshotIndex = 0;
@@ -78,134 +76,11 @@ public final class RaftMemberContext {
       case ACTIVE:
         reader = log.openReader(log.writer().getLastIndex() + 1, RaftLogReader.Mode.ALL);
         break;
+      default:
+        LoggerFactory.getLogger(RaftMemberContext.class)
+            .error("ResetState: No case for Member type {}", member.getType());
+        break;
     }
-  }
-
-  /**
-   * Returns the member.
-   *
-   * @return The member.
-   */
-  public DefaultRaftMember getMember() {
-    return member;
-  }
-
-  /**
-   * Returns the member log reader.
-   *
-   * @return The member log reader.
-   */
-  public RaftLogReader getLogReader() {
-    return reader;
-  }
-
-  /**
-   * Returns the member term.
-   *
-   * @return The member term.
-   */
-  public long getConfigTerm() {
-    return term;
-  }
-
-  /**
-   * Sets the member term.
-   *
-   * @param term The member term.
-   */
-  public void setConfigTerm(long term) {
-    this.term = term;
-  }
-
-  /**
-   * Returns the member configuration index.
-   *
-   * @return The member configuration index.
-   */
-  public long getConfigIndex() {
-    return configIndex;
-  }
-
-  /**
-   * Sets the member configuration index.
-   *
-   * @param configIndex The member configuration index.
-   */
-  public void setConfigIndex(long configIndex) {
-    this.configIndex = configIndex;
-  }
-
-  /**
-   * Returns the member's current snapshot index.
-   *
-   * @return The member's current snapshot index.
-   */
-  public long getSnapshotIndex() {
-    return snapshotIndex;
-  }
-
-  /**
-   * Sets the member's current snapshot index.
-   *
-   * @param snapshotIndex The member's current snapshot index.
-   */
-  public void setSnapshotIndex(long snapshotIndex) {
-    this.snapshotIndex = snapshotIndex;
-  }
-
-  /**
-   * Returns the member's next snapshot index.
-   *
-   * @return The member's next snapshot index.
-   */
-  public long getNextSnapshotIndex() {
-    return nextSnapshotIndex;
-  }
-
-  /**
-   * Sets the member's next snapshot index.
-   *
-   * @param nextSnapshotIndex The member's next snapshot index.
-   */
-  public void setNextSnapshotIndex(long nextSnapshotIndex) {
-    this.nextSnapshotIndex = nextSnapshotIndex;
-  }
-
-  /**
-   * Returns the member's snapshot offset.
-   *
-   * @return The member's snapshot offset.
-   */
-  public int getNextSnapshotOffset() {
-    return nextSnapshotOffset;
-  }
-
-  /**
-   * Sets the member's snapshot offset.
-   *
-   * @param nextSnapshotOffset The member's snapshot offset.
-   */
-  public void setNextSnapshotOffset(int nextSnapshotOffset) {
-    this.nextSnapshotOffset = nextSnapshotOffset;
-  }
-
-  /**
-   * Returns the member's match index.
-   *
-   * @return The member's match index.
-   */
-  public long getMatchIndex() {
-    return matchIndex;
-  }
-
-  /**
-   * Sets the member's match index.
-   *
-   * @param matchIndex The member's match index.
-   */
-  public void setMatchIndex(long matchIndex) {
-    checkArgument(matchIndex >= 0, "matchIndex must be positive");
-    this.matchIndex = matchIndex;
   }
 
   /**
@@ -214,7 +89,10 @@ public final class RaftMemberContext {
    * @return Indicates whether an append request can be sent to the member.
    */
   public boolean canAppend() {
-    return appending == 0 || (appendSucceeded && appending < MAX_APPENDS && System.currentTimeMillis() - (timeStats.getMean() / MAX_APPENDS) >= appendTime);
+    return appending == 0
+        || (appendSucceeded
+            && appending < MAX_APPENDS
+            && System.currentTimeMillis() - (timeStats.getMean() / MAX_APPENDS) >= appendTime);
   }
 
   /**
@@ -226,18 +104,9 @@ public final class RaftMemberContext {
     return appending == 0;
   }
 
-  /**
-   * Flags the last append to the member as successful.
-   */
+  /** Flags the last append to the member as successful. */
   public void appendSucceeded() {
     appendSucceeded(true);
-  }
-
-  /**
-   * Flags the last append to the member is failed.
-   */
-  public void appendFailed() {
-    appendSucceeded(false);
   }
 
   /**
@@ -249,17 +118,18 @@ public final class RaftMemberContext {
     this.appendSucceeded = succeeded;
   }
 
-  /**
-   * Starts an append request to the member.
-   */
+  /** Flags the last append to the member is failed. */
+  public void appendFailed() {
+    appendSucceeded(false);
+  }
+
+  /** Starts an append request to the member. */
   public void startAppend() {
     appending++;
     appendTime = System.currentTimeMillis();
   }
 
-  /**
-   * Completes an append request to the member.
-   */
+  /** Completes an append request to the member. */
   public void completeAppend() {
     appending--;
   }
@@ -283,16 +153,12 @@ public final class RaftMemberContext {
     return !configuring;
   }
 
-  /**
-   * Starts a configure request to the member.
-   */
+  /** Starts a configure request to the member. */
   public void startConfigure() {
     configuring = true;
   }
 
-  /**
-   * Completes a configure request to the member.
-   */
+  /** Completes a configure request to the member. */
   public void completeConfigure() {
     configuring = false;
   }
@@ -306,63 +172,14 @@ public final class RaftMemberContext {
     return !installing;
   }
 
-  /**
-   * Starts an install request to the member.
-   */
+  /** Starts an install request to the member. */
   public void startInstall() {
     installing = true;
   }
 
-  /**
-   * Completes an install request to the member.
-   */
+  /** Completes an install request to the member. */
   public void completeInstall() {
     installing = false;
-  }
-
-  /**
-   * Returns the member heartbeat time.
-   *
-   * @return The member heartbeat time.
-   */
-  public long getHeartbeatTime() {
-    return heartbeatTime;
-  }
-
-  /**
-   * Sets the member heartbeat time.
-   *
-   * @param heartbeatTime The member heartbeat time.
-   */
-  public void setHeartbeatTime(long heartbeatTime) {
-    this.heartbeatTime = Math.max(this.heartbeatTime, heartbeatTime);
-  }
-
-  /**
-   * Returns the member response time.
-   *
-   * @return The member response time.
-   */
-  public long getResponseTime() {
-    return responseTime;
-  }
-
-  /**
-   * Sets the member response time.
-   *
-   * @param heartbeatTime The member response time.
-   */
-  public void setResponseTime(long responseTime) {
-    this.responseTime = Math.max(this.responseTime, responseTime);
-  }
-
-  /**
-   * Returns the member failure count.
-   *
-   * @return The member failure count.
-   */
-  public int getFailureCount() {
-    return failures;
   }
 
   /**
@@ -377,26 +194,15 @@ public final class RaftMemberContext {
     return failures;
   }
 
-  /**
-   * Resets the member failure count.
-   */
+  /** Resets the member failure count. */
   public void resetFailureCount() {
     failures = 0;
     failureTime = 0;
   }
 
-  /**
-   * Returns the member failure time.
-   *
-   * @return the member failure time
-   */
-  public long getFailureTime() {
-    return failureTime;
-  }
-
   @Override
   public String toString() {
-    RaftLogReader reader = this.reader;
+    final RaftLogReader reader = this.reader;
     return toStringHelper(this)
         .add("member", member.memberId())
         .add("term", term)
@@ -416,4 +222,184 @@ public final class RaftMemberContext {
         .toString();
   }
 
+  /**
+   * Returns the member configuration index.
+   *
+   * @return The member configuration index.
+   */
+  public long getConfigIndex() {
+    return configIndex;
+  }
+
+  /**
+   * Returns the member term.
+   *
+   * @return The member term.
+   */
+  public long getConfigTerm() {
+    return term;
+  }
+
+  /**
+   * Returns the member failure count.
+   *
+   * @return The member failure count.
+   */
+  public int getFailureCount() {
+    return failures;
+  }
+
+  /**
+   * Returns the member failure time.
+   *
+   * @return the member failure time
+   */
+  public long getFailureTime() {
+    return failureTime;
+  }
+
+  /**
+   * Returns the member heartbeat time.
+   *
+   * @return The member heartbeat time.
+   */
+  public long getHeartbeatTime() {
+    return heartbeatTime;
+  }
+
+  /**
+   * Returns the member log reader.
+   *
+   * @return The member log reader.
+   */
+  public RaftLogReader getLogReader() {
+    return reader;
+  }
+
+  /**
+   * Returns the member's match index.
+   *
+   * @return The member's match index.
+   */
+  public long getMatchIndex() {
+    return matchIndex;
+  }
+
+  /**
+   * Returns the member.
+   *
+   * @return The member.
+   */
+  public DefaultRaftMember getMember() {
+    return member;
+  }
+
+  /**
+   * Returns the member's next snapshot index.
+   *
+   * @return The member's next snapshot index.
+   */
+  public long getNextSnapshotIndex() {
+    return nextSnapshotIndex;
+  }
+
+  /**
+   * Returns the member's snapshot offset.
+   *
+   * @return The member's snapshot offset.
+   */
+  public int getNextSnapshotOffset() {
+    return nextSnapshotOffset;
+  }
+
+  /**
+   * Returns the member response time.
+   *
+   * @return The member response time.
+   */
+  public long getResponseTime() {
+    return responseTime;
+  }
+
+  /**
+   * Returns the member's current snapshot index.
+   *
+   * @return The member's current snapshot index.
+   */
+  public long getSnapshotIndex() {
+    return snapshotIndex;
+  }
+
+  /**
+   * Sets the member configuration index.
+   *
+   * @param configIndex The member configuration index.
+   */
+  public void setConfigIndex(long configIndex) {
+    this.configIndex = configIndex;
+  }
+
+  /**
+   * Sets the member term.
+   *
+   * @param term The member term.
+   */
+  public void setConfigTerm(long term) {
+    this.term = term;
+  }
+
+  /**
+   * Sets the member heartbeat time.
+   *
+   * @param heartbeatTime The member heartbeat time.
+   */
+  public void setHeartbeatTime(long heartbeatTime) {
+    this.heartbeatTime = Math.max(this.heartbeatTime, heartbeatTime);
+  }
+
+  /**
+   * Sets the member's match index.
+   *
+   * @param matchIndex The member's match index.
+   */
+  public void setMatchIndex(long matchIndex) {
+    checkArgument(matchIndex >= 0, "matchIndex must be positive");
+    this.matchIndex = matchIndex;
+  }
+
+  /**
+   * Sets the member's next snapshot index.
+   *
+   * @param nextSnapshotIndex The member's next snapshot index.
+   */
+  public void setNextSnapshotIndex(long nextSnapshotIndex) {
+    this.nextSnapshotIndex = nextSnapshotIndex;
+  }
+
+  /**
+   * Sets the member's snapshot offset.
+   *
+   * @param nextSnapshotOffset The member's snapshot offset.
+   */
+  public void setNextSnapshotOffset(int nextSnapshotOffset) {
+    this.nextSnapshotOffset = nextSnapshotOffset;
+  }
+
+  /**
+   * Sets the member response time.
+   *
+   * @param heartbeatTime The member response time.
+   */
+  public void setResponseTime(long responseTime) {
+    this.responseTime = Math.max(this.responseTime, responseTime);
+  }
+
+  /**
+   * Sets the member's current snapshot index.
+   *
+   * @param snapshotIndex The member's current snapshot index.
+   */
+  public void setSnapshotIndex(long snapshotIndex) {
+    this.snapshotIndex = snapshotIndex;
+  }
 }

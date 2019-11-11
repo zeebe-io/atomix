@@ -15,26 +15,25 @@
  */
 package io.atomix.protocols.raft.storage.snapshot;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import io.atomix.protocols.raft.storage.RaftStorage;
 import io.atomix.storage.StorageLevel;
 import io.atomix.utils.time.WallClockTimestamp;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.Files;
-import java.nio.file.FileVisitResult;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.UUID;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertNotNull;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Snapshot store test.
@@ -42,28 +41,15 @@ import static org.junit.Assert.assertNotNull;
  * @author <a href="http://github.com/kuujo">Jordan Halterman</a>
  */
 public class FileSnapshotStoreTest extends AbstractSnapshotStoreTest {
+
   private String testId;
 
-  /**
-   * Returns a new snapshot store.
-   */
-  protected SnapshotStore createSnapshotStore() {
-    RaftStorage storage = RaftStorage.builder()
-        .withPrefix("test")
-        .withDirectory(new File(String.format("target/test-logs/%s", testId)))
-        .withStorageLevel(StorageLevel.DISK)
-        .build();
-    return new SnapshotStore(storage);
-  }
-
-  /**
-   * Tests storing and loading snapshots.
-   */
+  /** Tests storing and loading snapshots. */
   @Test
   public void testStoreLoadSnapshot() {
     SnapshotStore store = createSnapshotStore();
 
-    Snapshot snapshot = store.newSnapshot(2, 3, new WallClockTimestamp());
+    final Snapshot snapshot = store.newSnapshot(2, 3, new WallClockTimestamp());
     try (SnapshotWriter writer = snapshot.openWriter()) {
       writer.writeLong(10);
     }
@@ -81,9 +67,18 @@ public class FileSnapshotStoreTest extends AbstractSnapshotStoreTest {
     }
   }
 
-  /**
-   * Tests persisting and loading snapshots.
-   */
+  /** Returns a new snapshot store. */
+  protected SnapshotStore createSnapshotStore() {
+    final RaftStorage storage =
+        RaftStorage.builder()
+            .withPrefix("test")
+            .withDirectory(new File(String.format("target/test-logs/%s", testId)))
+            .withStorageLevel(StorageLevel.DISK)
+            .build();
+    return new SnapshotStore(storage);
+  }
+
+  /** Tests persisting and loading snapshots. */
   @Test
   public void testPersistLoadSnapshot() {
     SnapshotStore store = createSnapshotStore();
@@ -118,7 +113,7 @@ public class FileSnapshotStoreTest extends AbstractSnapshotStoreTest {
    */
   @Test
   public void testStreamSnapshot() {
-    SnapshotStore store = createSnapshotStore();
+    final SnapshotStore store = createSnapshotStore();
 
     Snapshot snapshot = store.newSnapshot(1, 1, new WallClockTimestamp());
     for (long i = 1; i <= 10; i++) {
@@ -136,15 +131,13 @@ public class FileSnapshotStoreTest extends AbstractSnapshotStoreTest {
     }
   }
 
-  /**
-   * Tests case where two {@link FileSnapshot} instances are trying to write the same snapshot
-   */
+  /** Tests case where two {@link FileSnapshot} instances are trying to write the same snapshot */
   @Test
   public void testConcurrentSnapshotWriters() {
-    SnapshotStore store = createSnapshotStore();
+    final SnapshotStore store = createSnapshotStore();
     final WallClockTimestamp timestamp = new WallClockTimestamp();
-    Snapshot first = store.newSnapshot(1, 1, timestamp);
-    Snapshot second = store.newSnapshot(1, 1, timestamp);
+    final Snapshot first = store.newSnapshot(1, 1, timestamp);
+    final Snapshot second = store.newSnapshot(1, 1, timestamp);
 
     try (SnapshotWriter firstWriter = first.openWriter()) {
       firstWriter.writeLong(1);
@@ -157,7 +150,7 @@ public class FileSnapshotStoreTest extends AbstractSnapshotStoreTest {
     first.complete();
     second.complete();
 
-    Snapshot completed = store.getSnapshot(first.index());
+    final Snapshot completed = store.getSnapshot(first.index());
     assertNotNull(completed);
     long result = 0;
     try (SnapshotReader reader = completed.openReader()) {
@@ -172,21 +165,25 @@ public class FileSnapshotStoreTest extends AbstractSnapshotStoreTest {
   @Before
   @After
   public void cleanupStorage() throws IOException {
-    Path directory = Paths.get("target/test-logs/");
+    final Path directory = Paths.get("target/test-logs/");
     if (Files.exists(directory)) {
-      Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-          Files.delete(file);
-          return FileVisitResult.CONTINUE;
-        }
+      Files.walkFileTree(
+          directory,
+          new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+                throws IOException {
+              Files.delete(file);
+              return FileVisitResult.CONTINUE;
+            }
 
-        @Override
-        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-          Files.delete(dir);
-          return FileVisitResult.CONTINUE;
-        }
-      });
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException exc)
+                throws IOException {
+              Files.delete(dir);
+              return FileVisitResult.CONTINUE;
+            }
+          });
     }
     testId = UUID.randomUUID().toString();
   }

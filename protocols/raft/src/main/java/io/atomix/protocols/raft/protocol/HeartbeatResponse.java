@@ -17,10 +17,12 @@ package io.atomix.protocols.raft.protocol;
 
 import io.atomix.protocols.raft.RaftError;
 
-/**
- * Client heartbeat response.
- */
+/** Client heartbeat response. */
 public class HeartbeatResponse extends AbstractRaftResponse {
+
+  public HeartbeatResponse(Status status, RaftError error) {
+    super(status, error);
+  }
 
   /**
    * Returns a new heartbeat response builder.
@@ -31,14 +33,9 @@ public class HeartbeatResponse extends AbstractRaftResponse {
     return new Builder();
   }
 
-  public HeartbeatResponse(Status status, RaftError error) {
-    super(status, error);
-  }
-
-  /**
-   * Heartbeat response builder.
-   */
+  /** Heartbeat response builder. */
   public static class Builder extends AbstractRaftResponse.Builder<Builder, HeartbeatResponse> {
+
     @Override
     public HeartbeatResponse build() {
       validate();

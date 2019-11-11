@@ -15,6 +15,8 @@
  */
 package io.atomix.protocols.raft.partition;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 import io.atomix.cluster.MemberId;
 import io.atomix.primitive.partition.Partition;
 import io.atomix.primitive.partition.PartitionId;
@@ -27,7 +29,6 @@ import io.atomix.protocols.raft.partition.impl.RaftPartitionClient;
 import io.atomix.protocols.raft.partition.impl.RaftPartitionServer;
 import io.atomix.utils.concurrent.ThreadContextFactory;
 import io.atomix.utils.serializer.Serializer;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,12 +38,9 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
-/**
- * Abstract partition.
- */
+/** Abstract partition. */
 public class RaftPartition implements Partition {
+
   private final PartitionId partitionId;
   private final RaftPartitionGroupConfig config;
   private final File dataDirectory;
@@ -63,39 +61,6 @@ public class RaftPartition implements Partition {
     this.threadContextFactory = threadContextFactory;
   }
 
-  @Override
-  public PartitionId id() {
-    return partitionId;
-  }
-
-  /**
-   * Returns the partition name.
-   *
-   * @return the partition name
-   */
-  public String name() {
-
-    return String.format("%s-partition-%d", partitionId.group(), partitionId.id());
-  }
-
-  @Override
-  public long term() {
-    return server != null ? server.getTerm() : 0;
-  }
-
-  @Override
-  public MemberId primary() {
-    return client != null ? client.leader() : null;
-  }
-
-  public Role getRole() {
-    return server != null ? server.getRole() : null;
-  }
-
-  public RaftPartitionServer getServer() {
-    return server;
-  }
-
   public void addRoleChangeListener(Consumer<Role> listener) {
     if (server == null) {
       deferredRoleChangeListeners.add(listener);
@@ -107,22 +72,6 @@ public class RaftPartition implements Partition {
   public void removeRoleChangeListener(Consumer<Role> listener) {
     deferredRoleChangeListeners.remove(listener);
     server.removeRoleChangeListener(listener);
-  }
-
-  @Override
-  public Collection<MemberId> backups() {
-    MemberId leader = primary();
-    if (leader == null) {
-      return members();
-    }
-    return members().stream()
-        .filter(m -> !m.equals(leader))
-        .collect(Collectors.toSet());
-  }
-
-  @Override
-  public Collection<MemberId> members() {
-    return partitionMetadata != null ? partitionMetadata.members() : Collections.emptyList();
   }
 
   /**
@@ -140,51 +89,89 @@ public class RaftPartition implements Partition {
    * @return a future to be completed once the snapshot is complete
    */
   public CompletableFuture<Void> snapshot() {
-    RaftPartitionServer server = this.server;
+    final RaftPartitionServer server = this.server;
     if (server != null) {
       return server.snapshot();
     }
     return CompletableFuture.completedFuture(null);
   }
 
-  @Override
-  public RaftPartitionClient getClient() {
-    return client;
-  }
-
-  /**
-   * Opens the partition.
-   */
-  CompletableFuture<Partition> open(PartitionMetadata metadata, PartitionManagementService managementService) {
+  /** Opens the partition. */
+  CompletableFuture<Partition> open(
+      PartitionMetadata metadata, PartitionManagementService managementService) {
     this.partitionMetadata = metadata;
     this.client = createClient(managementService);
     if (partitionMetadata
-        .members().contains(managementService.getMembershipService().getLocalMember().id())) {
+        .members()
+        .contains(managementService.getMembershipService().getLocalMember().id())) {
       initServer(managementService);
-      return server.start()
-          .thenCompose(v -> client.start())
-          .thenApply(v -> null);
+      return server.start().thenCompose(v -> client.start()).thenApply(v -> null);
     }
-    return client.start()
-        .thenApply(v -> this);
+    return client.start().thenApply(v -> this);
+  }
+
+  private void initServer(PartitionManagementService managementService) {
+    server = createServer(managementService);
+
+    if (!deferredRoleChangeListeners.isEmpty()) {
+      deferredRoleChangeListeners.forEach(server::addRoleChangeListener);
+      deferredRoleChangeListeners.clear();
+    }
+  }
+
+  /** Creates a Raft server. */
+  protected RaftPartitionServer createServer(PartitionManagementService managementService) {
+    return new RaftPartitionServer(
+        this,
+        config,
+        managementService.getMembershipService().getLocalMember().id(),
+        managementService.getMembershipService(),
+        managementService.getMessagingService(),
+        managementService.getPrimitiveTypes(),
+        threadContextFactory);
+  }
+
+  /** Creates a Raft client. */
+  private RaftPartitionClient createClient(PartitionManagementService managementService) {
+    return new RaftPartitionClient(
+        this,
+        managementService.getMembershipService().getLocalMember().id(),
+        new RaftClientCommunicator(
+            name(),
+            Serializer.using(RaftNamespaces.RAFT_PROTOCOL),
+            managementService.getMessagingService()),
+        threadContextFactory);
   }
 
   /**
-   * Updates the partition with the given metadata.
+   * Returns the partition name.
+   *
+   * @return the partition name
    */
-  CompletableFuture<Void> update(PartitionMetadata metadata, PartitionManagementService managementService) {
-    if (server == null && metadata.members().contains(managementService.getMembershipService().getLocalMember().id())) {
+  public String name() {
+
+    return String.format("%s-partition-%d", partitionId.group(), partitionId.id());
+  }
+
+  /** Updates the partition with the given metadata. */
+  CompletableFuture<Void> update(
+      PartitionMetadata metadata, PartitionManagementService managementService) {
+    if (server == null
+        && metadata
+            .members()
+            .contains(managementService.getMembershipService().getLocalMember().id())) {
       initServer(managementService);
       return server.join(metadata.members());
-    } else if (server != null && !metadata.members().contains(managementService.getMembershipService().getLocalMember().id())) {
+    } else if (server != null
+        && !metadata
+            .members()
+            .contains(managementService.getMembershipService().getLocalMember().id())) {
       return server.leave().thenRun(() -> server = null);
     }
     return CompletableFuture.completedFuture(null);
   }
 
-  /**
-   * Closes the partition.
-   */
+  /** Closes the partition. */
   CompletableFuture<Void> close() {
     return closeClient()
         .exceptionally(v -> null)
@@ -207,59 +194,66 @@ public class RaftPartition implements Partition {
   }
 
   /**
-   * Creates a Raft server.
-   */
-  protected RaftPartitionServer createServer(PartitionManagementService managementService) {
-    return new RaftPartitionServer(
-        this,
-        config,
-        managementService.getMembershipService().getLocalMember().id(),
-        managementService.getMembershipService(),
-        managementService.getMessagingService(),
-        managementService.getPrimitiveTypes(),
-        threadContextFactory);
-  }
-
-  private void initServer(final PartitionManagementService managementService) {
-    server = createServer(managementService);
-
-    if (!deferredRoleChangeListeners.isEmpty()) {
-      deferredRoleChangeListeners.forEach(server::addRoleChangeListener);
-      deferredRoleChangeListeners.clear();
-    }
-  }
-
-  /**
-   * Creates a Raft client.
-   */
-  private RaftPartitionClient createClient(PartitionManagementService managementService) {
-    return new RaftPartitionClient(
-        this,
-        managementService.getMembershipService().getLocalMember().id(),
-        new RaftClientCommunicator(
-            name(),
-            Serializer.using(RaftNamespaces.RAFT_PROTOCOL),
-            managementService.getMessagingService()),
-        threadContextFactory);
-  }
-
-  /**
    * Deletes the partition.
    *
    * @return future to be completed once the partition has been deleted
    */
   public CompletableFuture<Void> delete() {
-    return server.stop().thenCompose(v -> client.stop()).thenRun(() -> {
-      if (server != null) {
-        server.delete();
-      }
-    });
+    return server
+        .stop()
+        .thenCompose(v -> client.stop())
+        .thenRun(
+            () -> {
+              if (server != null) {
+                server.delete();
+              }
+            });
   }
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("partitionId", id())
-        .toString();
+    return toStringHelper(this).add("partitionId", id()).toString();
+  }
+
+  @Override
+  public PartitionId id() {
+    return partitionId;
+  }
+
+  @Override
+  public long term() {
+    return server != null ? server.getTerm() : 0;
+  }
+
+  @Override
+  public Collection<MemberId> members() {
+    return partitionMetadata != null ? partitionMetadata.members() : Collections.emptyList();
+  }
+
+  @Override
+  public MemberId primary() {
+    return client != null ? client.leader() : null;
+  }
+
+  @Override
+  public Collection<MemberId> backups() {
+    final MemberId leader = primary();
+    if (leader == null) {
+      return members();
+    }
+    return members().stream().filter(m -> !m.equals(leader)).collect(Collectors.toSet());
+  }
+
+  @Override
+  public RaftPartitionClient getClient() {
+    return client;
+  }
+
+  public Role getRole() {
+    return server != null ? server.getRole() : null;
+  }
+
+  public RaftPartitionServer getServer() {
+    return server;
   }
 }

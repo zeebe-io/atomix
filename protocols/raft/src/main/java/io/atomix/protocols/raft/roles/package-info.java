@@ -15,6 +15,7 @@
  */
 
 /**
- * Provides classes for role-based management of leader election and replication in the Raft consensus protocol.
+ * Provides classes for role-based management of leader election and replication in the Raft
+ * consensus protocol.
  */
 package io.atomix.protocols.raft.roles;

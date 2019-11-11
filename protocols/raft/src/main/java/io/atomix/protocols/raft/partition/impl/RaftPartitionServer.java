@@ -15,6 +15,8 @@
  */
 package io.atomix.protocols.raft.partition.impl;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import io.atomix.cluster.ClusterMembershipService;
 import io.atomix.cluster.MemberId;
 import io.atomix.cluster.messaging.ClusterCommunicationService;
@@ -34,12 +36,6 @@ import io.atomix.utils.Managed;
 import io.atomix.utils.concurrent.Futures;
 import io.atomix.utils.concurrent.ThreadContextFactory;
 import io.atomix.utils.serializer.Serializer;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.function.Consumer;
-import java.util.function.LongConsumer;
-import org.slf4j.Logger;
-
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -48,13 +44,14 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.function.Consumer;
+import java.util.function.LongConsumer;
+import org.slf4j.Logger;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-/**
- * {@link Partition} server.
- */
+/** {@link Partition} server. */
 public class RaftPartitionServer implements Managed<RaftPartitionServer> {
 
   private final Logger log = getLogger(getClass());
@@ -90,7 +87,7 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
   @Override
   public CompletableFuture<RaftPartitionServer> start() {
     log.info("Starting server for partition {}", partition.id());
-    CompletableFuture<RaftServer> serverOpenFuture;
+    final CompletableFuture<RaftServer> serverOpenFuture;
     if (partition.members().contains(localMemberId)) {
       if (server != null && server.isRunning()) {
         return CompletableFuture.completedFuture(null);
@@ -106,13 +103,61 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
     } else {
       serverOpenFuture = CompletableFuture.completedFuture(null);
     }
-    return serverOpenFuture.whenComplete((r, e) -> {
-      if (e == null) {
-        log.debug("Successfully started server for partition {}", partition.id());
-      } else {
-        log.warn("Failed to start server for partition {}", partition.id(), e);
-      }
-    }).thenApply(v -> this);
+    return serverOpenFuture
+        .whenComplete(
+            (r, e) -> {
+              if (e == null) {
+                log.debug("Successfully started server for partition {}", partition.id());
+              } else {
+                log.warn("Failed to start server for partition {}", partition.id(), e);
+              }
+            })
+        .thenApply(v -> this);
+  }
+
+  private void initServer() {
+    server = buildServer();
+
+    if (!deferredRoleChangeListeners.isEmpty()) {
+      deferredRoleChangeListeners.forEach(server::addRoleChangeListener);
+      deferredRoleChangeListeners.clear();
+    }
+  }
+
+  private RaftServer buildServer() {
+    return RaftServer.builder(localMemberId)
+        .withName(partition.name())
+        .withMembershipService(membershipService)
+        .withProtocol(
+            new RaftServerCommunicator(
+                partition.name(),
+                Serializer.using(RaftNamespaces.RAFT_PROTOCOL),
+                clusterCommunicator))
+        .withPrimitiveTypes(primitiveTypes)
+        .withHeartbeatInterval(config.getHeartbeatInterval())
+        .withElectionTimeout(config.getElectionTimeout())
+        .withSessionTimeout(config.getDefaultSessionTimeout())
+        .withStorage(
+            RaftStorage.builder()
+                .withPrefix(partition.name())
+                .withDirectory(partition.dataDirectory())
+                .withStorageLevel(config.getStorageConfig().getLevel())
+                .withMaxSegmentSize((int) config.getStorageConfig().getSegmentSize().bytes())
+                .withMaxEntrySize((int) config.getStorageConfig().getMaxEntrySize().bytes())
+                .withFlushOnCommit(config.getStorageConfig().isFlushOnCommit())
+                .withDynamicCompaction(config.getCompactionConfig().isDynamic())
+                .withFreeDiskBuffer(config.getCompactionConfig().getFreeDiskBuffer())
+                .withFreeMemoryBuffer(config.getCompactionConfig().getFreeMemoryBuffer())
+                .withNamespace(RaftNamespaces.RAFT_STORAGE)
+                .build())
+        .withThreadContextFactory(threadContextFactory)
+        .withStateMachineFactory(config.getStateMachineFactory())
+        .build();
+  }
+
+  @Override
+  public boolean isRunning() {
+    return server.isRunning();
   }
 
   @Override
@@ -138,29 +183,12 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
     return server.compact();
   }
 
-  public Role getRole() {
-    return server.getRole();
-  }
-
   public void setCompactablePosition(long index, long term) {
     server.getContext().getServiceManager().setCompactablePosition(index, term);
   }
 
   public RaftLogReader openReader(long index, RaftLogReader.Mode mode) {
     return server.getContext().getLog().openReader(index, mode);
-  }
-
-  public Optional<ZeebeLogAppender> getAppender() {
-    final RaftRole role = server.getContext().getRaftRole();
-    if (role instanceof ZeebeLogAppender) {
-      return Optional.of((ZeebeLogAppender) role);
-    }
-
-    return Optional.empty();
-  }
-
-  public long getTerm() {
-    return server.getTerm();
   }
 
   public void addRoleChangeListener(Consumer<Role> listener) {
@@ -176,95 +204,72 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
     server.removeRoleChangeListener(listener);
   }
 
-  /**
-   * @see io.atomix.protocols.raft.impl.RaftContext#addCommitListener(RaftCommitListener)
-   */
+  /** @see io.atomix.protocols.raft.impl.RaftContext#addCommitListener(RaftCommitListener) */
   public void addCommitListener(RaftCommitListener commitListener) {
     server.getContext().addCommitListener(commitListener);
   }
 
-  /**
-   * @see io.atomix.protocols.raft.impl.RaftContext#removeCommitListener(RaftCommitListener)
-   */
+  /** @see io.atomix.protocols.raft.impl.RaftContext#removeCommitListener(RaftCommitListener) */
   public void removeCommitListener(RaftCommitListener commitListener) {
     server.getContext().removeCommitListener(commitListener);
   }
 
-  /**
-   * Deletes the server.
-   */
+  /** Deletes the server. */
   public void delete() {
     try {
-      Files.walkFileTree(partition.dataDirectory().toPath(), new SimpleFileVisitor<Path>() {
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-          Files.delete(file);
-          return FileVisitResult.CONTINUE;
-        }
+      Files.walkFileTree(
+          partition.dataDirectory().toPath(),
+          new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+                throws IOException {
+              Files.delete(file);
+              return FileVisitResult.CONTINUE;
+            }
 
-        @Override
-        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-          Files.delete(dir);
-          return FileVisitResult.CONTINUE;
-        }
-      });
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException exc)
+                throws IOException {
+              Files.delete(dir);
+              return FileVisitResult.CONTINUE;
+            }
+          });
     } catch (IOException e) {
       log.error("Failed to delete partition: {}", partition, e);
-    }
-  }
-
-  private RaftServer buildServer() {
-    return RaftServer.builder(localMemberId)
-        .withName(partition.name())
-        .withMembershipService(membershipService)
-        .withProtocol(new RaftServerCommunicator(
-            partition.name(),
-            Serializer.using(RaftNamespaces.RAFT_PROTOCOL),
-            clusterCommunicator))
-        .withPrimitiveTypes(primitiveTypes)
-        .withHeartbeatInterval(config.getHeartbeatInterval())
-        .withElectionTimeout(config.getElectionTimeout())
-        .withSessionTimeout(config.getDefaultSessionTimeout())
-        .withStorage(RaftStorage.builder()
-            .withPrefix(partition.name())
-            .withDirectory(partition.dataDirectory())
-            .withStorageLevel(config.getStorageConfig().getLevel())
-            .withMaxSegmentSize((int) config.getStorageConfig().getSegmentSize().bytes())
-            .withMaxEntrySize((int) config.getStorageConfig().getMaxEntrySize().bytes())
-            .withFlushOnCommit(config.getStorageConfig().isFlushOnCommit())
-            .withDynamicCompaction(config.getCompactionConfig().isDynamic())
-            .withFreeDiskBuffer(config.getCompactionConfig().getFreeDiskBuffer())
-            .withFreeMemoryBuffer(config.getCompactionConfig().getFreeMemoryBuffer())
-            .withNamespace(RaftNamespaces.RAFT_STORAGE)
-            .build())
-        .withThreadContextFactory(threadContextFactory)
-        .withStateMachineFactory(config.getStateMachineFactory())
-        .build();
-  }
-
-  private void initServer() {
-    server = buildServer();
-
-    if (!deferredRoleChangeListeners.isEmpty()) {
-      deferredRoleChangeListeners.forEach(server::addRoleChangeListener);
-      deferredRoleChangeListeners.clear();
     }
   }
 
   public CompletableFuture<Void> join(Collection<MemberId> otherMembers) {
     log.info("Joining partition {} ({})", partition.id(), partition.name());
     initServer();
-    return server.join(otherMembers).whenComplete((r, e) -> {
-      if (e == null) {
-        log.debug("Successfully joined partition {} ({})", partition.id(), partition.name());
-      } else {
-        log.warn("Failed to join partition {} ({})", partition.id(), partition.name(), e);
-      }
-    }).thenApply(v -> null);
+    return server
+        .join(otherMembers)
+        .whenComplete(
+            (r, e) -> {
+              if (e == null) {
+                log.debug(
+                    "Successfully joined partition {} ({})", partition.id(), partition.name());
+              } else {
+                log.warn("Failed to join partition {} ({})", partition.id(), partition.name(), e);
+              }
+            })
+        .thenApply(v -> null);
   }
 
-  @Override
-  public boolean isRunning() {
-    return server.isRunning();
+  public Optional<ZeebeLogAppender> getAppender() {
+    final RaftRole role = server.getContext().getRaftRole();
+    if (role instanceof ZeebeLogAppender) {
+      return Optional.of((ZeebeLogAppender) role);
+    }
+
+    return Optional.empty();
+  }
+
+  public Role getRole() {
+    return server.getRole();
+  }
+
+  public long getTerm() {
+    return server.getTerm();
   }
 }

@@ -15,30 +15,20 @@
  */
 package io.atomix.protocols.raft.protocol;
 
-import io.atomix.protocols.raft.RaftError;
-
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 
+import io.atomix.protocols.raft.RaftError;
+import java.util.Objects;
+
 /**
  * Server vote response.
- * <p>
- * Vote responses are sent by active servers in response to vote requests by candidate to indicate
- * whether the responding server voted for the requesting candidate. This is indicated by the
- * {@link #voted()} field of the response.
+ *
+ * <p>Vote responses are sent by active servers in response to vote requests by candidate to
+ * indicate whether the responding server voted for the requesting candidate. This is indicated by
+ * the {@link #voted()} field of the response.
  */
 public class VoteResponse extends AbstractRaftResponse {
-
-  /**
-   * Returns a new vote response builder.
-   *
-   * @return A new vote response builder.
-   */
-  public static Builder builder() {
-    return new Builder();
-  }
 
   private final long term;
   private final boolean voted;
@@ -47,6 +37,15 @@ public class VoteResponse extends AbstractRaftResponse {
     super(status, error);
     this.term = term;
     this.voted = voted;
+  }
+
+  /**
+   * Returns a new vote response builder.
+   *
+   * @return A new vote response builder.
+   */
+  public static Builder builder() {
+    return new Builder();
   }
 
   /**
@@ -75,10 +74,8 @@ public class VoteResponse extends AbstractRaftResponse {
   @Override
   public boolean equals(Object object) {
     if (object instanceof VoteResponse) {
-      VoteResponse response = (VoteResponse) object;
-      return response.status == status
-          && response.term == term
-          && response.voted == voted;
+      final VoteResponse response = (VoteResponse) object;
+      return response.status == status && response.term == term && response.voted == voted;
     }
     return false;
   }
@@ -92,17 +89,13 @@ public class VoteResponse extends AbstractRaftResponse {
           .add("voted", voted)
           .toString();
     } else {
-      return toStringHelper(this)
-          .add("status", status)
-          .add("error", error)
-          .toString();
+      return toStringHelper(this).add("status", status).add("error", error).toString();
     }
   }
 
-  /**
-   * Poll response builder.
-   */
+  /** Poll response builder. */
   public static class Builder extends AbstractRaftResponse.Builder<Builder, VoteResponse> {
+
     private long term = -1;
     private boolean voted;
 
@@ -131,17 +124,17 @@ public class VoteResponse extends AbstractRaftResponse {
     }
 
     @Override
+    public VoteResponse build() {
+      validate();
+      return new VoteResponse(status, error, term, voted);
+    }
+
+    @Override
     protected void validate() {
       super.validate();
       if (status == Status.OK) {
         checkArgument(term >= 0, "term must be positive");
       }
-    }
-
-    @Override
-    public VoteResponse build() {
-      validate();
-      return new VoteResponse(status, error, term, voted);
     }
   }
 }

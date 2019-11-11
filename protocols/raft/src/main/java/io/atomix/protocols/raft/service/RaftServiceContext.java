@@ -16,6 +16,9 @@
 
 package io.atomix.protocols.raft.service;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.atomix.cluster.MemberId;
 import io.atomix.primitive.PrimitiveId;
 import io.atomix.primitive.PrimitiveType;
@@ -48,17 +51,12 @@ import io.atomix.utils.time.LogicalClock;
 import io.atomix.utils.time.LogicalTimestamp;
 import io.atomix.utils.time.WallClock;
 import io.atomix.utils.time.WallClockTimestamp;
+import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 
-import java.util.concurrent.CompletableFuture;
-
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * Raft server state machine executor.
- */
+/** Raft server state machine executor. */
 public class RaftServiceContext implements ServiceContext {
+
   private final Logger log;
   private final PrimitiveId primitiveId;
   private final String serviceName;
@@ -69,23 +67,25 @@ public class RaftServiceContext implements ServiceContext {
   private final RaftSessionRegistry sessions;
   private final ThreadContextFactory threadContextFactory;
   private long currentIndex;
+  private final LogicalClock logicalClock =
+      new LogicalClock() {
+        @Override
+        public LogicalTimestamp getTime() {
+          return new LogicalTimestamp(currentIndex);
+        }
+      };
   private Session currentSession;
   private long currentTimestamp;
+  private final WallClock wallClock =
+      new WallClock() {
+        @Override
+        public WallClockTimestamp getTime() {
+          return new WallClockTimestamp(currentTimestamp);
+        }
+      };
   private long timestampDelta;
   private OperationType currentOperation;
   private boolean deleted;
-  private final LogicalClock logicalClock = new LogicalClock() {
-    @Override
-    public LogicalTimestamp getTime() {
-      return new LogicalTimestamp(currentIndex);
-    }
-  };
-  private final WallClock wallClock = new WallClock() {
-    @Override
-    public WallClockTimestamp getTime() {
-      return new WallClockTimestamp(currentTimestamp);
-    }
-  };
 
   public RaftServiceContext(
       PrimitiveId primitiveId,
@@ -103,11 +103,14 @@ public class RaftServiceContext implements ServiceContext {
     this.raft = checkNotNull(raft);
     this.sessions = raft.getSessions();
     this.threadContextFactory = threadContextFactory;
-    this.log = ContextualLoggerFactory.getLogger(getClass(), LoggerContext.builder(PrimitiveService.class)
-        .addValue(primitiveId)
-        .add("type", primitiveType)
-        .add("name", serviceName)
-        .build());
+    this.log =
+        ContextualLoggerFactory.getLogger(
+            getClass(),
+            LoggerContext.builder(PrimitiveService.class)
+                .addValue(primitiveId)
+                .add("type", primitiveType)
+                .add("name", serviceName)
+                .build());
     service.init(this);
   }
 
@@ -120,123 +123,15 @@ public class RaftServiceContext implements ServiceContext {
     return deleted;
   }
 
-  @Override
-  public MemberId localMemberId() {
-    return raft.localMemberId();
-  }
-
-  @Override
-  public PrimitiveId serviceId() {
-    return primitiveId;
-  }
-
-  @Override
-  public String serviceName() {
-    return serviceName;
-  }
-
-  @Override
-  public PrimitiveType serviceType() {
-    return primitiveType;
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public <C extends ServiceConfig> C serviceConfig() {
-    return (C) config;
-  }
-
   public Serializer serializer() {
     return service.serializer();
   }
 
-  @Override
-  public long currentIndex() {
-    return currentIndex;
-  }
-
-  @Override
-  public Session currentSession() {
-    return currentSession;
-  }
-
-  @Override
-  public OperationType currentOperation() {
-    return currentOperation;
-  }
-
-  @Override
-  public LogicalClock logicalClock() {
-    return logicalClock;
-  }
-
-  @Override
-  public WallClock wallClock() {
-    return wallClock;
-  }
-
-  /**
-   * Sets the current state machine operation type.
-   *
-   * @param operation the current state machine operation type
-   */
-  private void setOperation(OperationType operation) {
-    this.currentOperation = operation;
-  }
-
-  /**
-   * Executes scheduled callbacks based on the provided time.
-   */
-  private void tick(long index, long timestamp) {
-    this.currentIndex = index;
-
-    // If the entry timestamp is less than the current state machine timestamp
-    // and the delta is not yet set, set the delta and do not change the current timestamp.
-    // If the entry timestamp is less than the current state machine timestamp
-    // and the delta is set, update the current timestamp to the entry timestamp plus the delta.
-    // If the entry timestamp is greater than or equal to the current timestamp, update the current
-    // timestamp and reset the delta.
-    if (timestamp < currentTimestamp) {
-      if (timestampDelta == 0) {
-        timestampDelta = currentTimestamp - timestamp;
-      } else {
-        currentTimestamp = timestamp + timestampDelta;
-      }
-    } else {
-      currentTimestamp = timestamp;
-      timestampDelta = 0;
-    }
-
-    // Set the current operation type to COMMAND to allow events to be sent.
-    setOperation(OperationType.COMMAND);
-
-    service.tick(WallClockTimestamp.from(timestamp));
-  }
-
-  /**
-   * Expires sessions that have timed out.
-   */
-  private void expireSessions(long timestamp) {
-    // Iterate through registered sessions.
-    for (RaftSession session : sessions.getSessions(primitiveId)) {
-      if (session.isTimedOut(timestamp)) {
-        log.debug("Session expired in {} milliseconds: {}", timestamp - session.getLastUpdated(), session);
-        session = sessions.removeSession(session.sessionId());
-        if (session != null) {
-          session.expire();
-          service.expire(session.sessionId());
-        }
-      }
-    }
-  }
-
-  /**
-   * Installs a snapshot.
-   */
+  /** Installs a snapshot. */
   public void installSnapshot(SnapshotReader reader) {
     log.debug("Installing snapshot {}", reader.snapshot().index());
     reader.skip(Bytes.LONG); // Skip the service ID
-    PrimitiveType primitiveType;
+    final PrimitiveType primitiveType;
     try {
       primitiveType = raft.getPrimitiveTypes().getPrimitiveType(reader.readString());
     } catch (ConfigurationException e) {
@@ -244,35 +139,39 @@ public class RaftServiceContext implements ServiceContext {
       return;
     }
 
-    String serviceName = reader.readString();
+    final String serviceName = reader.readString();
     currentIndex = reader.readLong();
     currentTimestamp = reader.readLong();
     timestampDelta = reader.readLong();
 
-    int sessionCount = reader.readInt();
+    final int sessionCount = reader.readInt();
     for (int i = 0; i < sessionCount; i++) {
-      SessionId sessionId = SessionId.from(reader.readLong());
-      MemberId node = MemberId.from(reader.readString());
-      ReadConsistency readConsistency = ReadConsistency.valueOf(reader.readString());
-      long minTimeout = reader.readLong();
-      long maxTimeout = reader.readLong();
-      long sessionTimestamp = reader.readLong();
+      final SessionId sessionId = SessionId.from(reader.readLong());
+      final MemberId node = MemberId.from(reader.readString());
+      final ReadConsistency readConsistency = ReadConsistency.valueOf(reader.readString());
+      final long minTimeout = reader.readLong();
+      final long maxTimeout = reader.readLong();
+      final long sessionTimestamp = reader.readLong();
 
-      // Only create a new session if one does not already exist. This is necessary to ensure only a single session
+      // Only create a new session if one does not already exist. This is necessary to ensure only a
+      // single session
       // is ever opened and exposed to the state machine.
-      RaftSession session = raft.getSessions().addSession(new RaftSession(
-          sessionId,
-          node,
-          serviceName,
-          primitiveType,
-          readConsistency,
-          minTimeout,
-          maxTimeout,
-          sessionTimestamp,
-          service.serializer(),
-          this,
-          raft,
-          threadContextFactory));
+      final RaftSession session =
+          raft.getSessions()
+              .addSession(
+                  new RaftSession(
+                      sessionId,
+                      node,
+                      serviceName,
+                      primitiveType,
+                      readConsistency,
+                      minTimeout,
+                      maxTimeout,
+                      sessionTimestamp,
+                      service.serializer(),
+                      this,
+                      raft,
+                      threadContextFactory));
 
       session.setRequestSequence(reader.readLong());
       session.setCommandSequence(reader.readLong());
@@ -286,9 +185,7 @@ public class RaftServiceContext implements ServiceContext {
     service.restore(new DefaultBackupInput(reader, service.serializer()));
   }
 
-  /**
-   * Takes a snapshot of the service state.
-   */
+  /** Takes a snapshot of the service state. */
   public void takeSnapshot(SnapshotWriter writer) {
     log.debug("Taking snapshot {}", writer.snapshot().index());
 
@@ -319,9 +216,9 @@ public class RaftServiceContext implements ServiceContext {
   /**
    * Registers the given session.
    *
-   * @param index     The index of the registration.
+   * @param index The index of the registration.
    * @param timestamp The timestamp of the registration.
-   * @param session   The session to register.
+   * @param session The session to register.
    */
   public long openSession(long index, long timestamp, RaftSession session) {
     log.debug("Opening session {}", session.sessionId());
@@ -346,16 +243,80 @@ public class RaftServiceContext implements ServiceContext {
     return session.sessionId().id();
   }
 
+  /** Executes scheduled callbacks based on the provided time. */
+  private void tick(long index, long timestamp) {
+    this.currentIndex = index;
+
+    // If the entry timestamp is less than the current state machine timestamp
+    // and the delta is not yet set, set the delta and do not change the current timestamp.
+    // If the entry timestamp is less than the current state machine timestamp
+    // and the delta is set, update the current timestamp to the entry timestamp plus the delta.
+    // If the entry timestamp is greater than or equal to the current timestamp, update the current
+    // timestamp and reset the delta.
+    if (timestamp < currentTimestamp) {
+      if (timestampDelta == 0) {
+        timestampDelta = currentTimestamp - timestamp;
+      } else {
+        currentTimestamp = timestamp + timestampDelta;
+      }
+    } else {
+      currentTimestamp = timestamp;
+      timestampDelta = 0;
+    }
+
+    // Set the current operation type to COMMAND to allow events to be sent.
+    setOperation(OperationType.COMMAND);
+
+    service.tick(WallClockTimestamp.from(timestamp));
+  }
+
+  /**
+   * Sets the current state machine operation type.
+   *
+   * @param operation the current state machine operation type
+   */
+  private void setOperation(OperationType operation) {
+    this.currentOperation = operation;
+  }
+
+  /** Expires sessions that have timed out. */
+  private void expireSessions(long timestamp) {
+    // Iterate through registered sessions.
+    for (RaftSession session : sessions.getSessions(primitiveId)) {
+      if (session.isTimedOut(timestamp)) {
+        log.debug(
+            "Session expired in {} milliseconds: {}",
+            timestamp - session.getLastUpdated(),
+            session);
+        session = sessions.removeSession(session.sessionId());
+        if (session != null) {
+          session.expire();
+          service.expire(session.sessionId());
+        }
+      }
+    }
+  }
+
+  /** Commits the application of a command to the state machine. */
+  @SuppressWarnings("unchecked")
+  private void commit() {
+    final long index = this.currentIndex;
+    for (RaftSession session : sessions.getSessions(primitiveId)) {
+      session.commit(index);
+    }
+  }
+
   /**
    * Keeps the given session alive.
    *
-   * @param index           The index of the keep-alive.
-   * @param timestamp       The timestamp of the keep-alive.
-   * @param session         The session to keep-alive.
+   * @param index The index of the keep-alive.
+   * @param timestamp The timestamp of the keep-alive.
+   * @param session The session to keep-alive.
    * @param commandSequence The session command sequence number.
-   * @param eventIndex      The session event index.
+   * @param eventIndex The session event index.
    */
-  public boolean keepAlive(long index, long timestamp, RaftSession session, long commandSequence, long eventIndex) {
+  public boolean keepAlive(
+      long index, long timestamp, RaftSession session, long commandSequence, long eventIndex) {
     // If the service has been deleted, just return false to ignore the keep-alive.
     if (deleted) {
       return false;
@@ -376,17 +337,24 @@ public class RaftServiceContext implements ServiceContext {
       session.resendEvents(eventIndex);
 
       // Update the session's request sequence number. The command sequence number will be applied
-      // iff the existing request sequence number is less than the command sequence number. This must
-      // be applied to ensure that request sequence numbers are reset after a leader change since leaders
+      // iff the existing request sequence number is less than the command sequence number. This
+      // must
+      // be applied to ensure that request sequence numbers are reset after a leader change since
+      // leaders
       // track request sequence numbers in local memory.
       session.resetRequestSequence(commandSequence);
 
       // Update the sessions' command sequence number. The command sequence number will be applied
-      // iff the existing sequence number is less than the keep-alive command sequence number. This should
-      // not be the case under normal operation since the command sequence number in keep-alive requests
-      // represents the highest sequence for which a client has received a response (the command has already
-      // been completed), but since the log compaction algorithm can exclude individual entries from replication,
-      // the command sequence number must be applied for keep-alive requests to reset the sequence number in
+      // iff the existing sequence number is less than the keep-alive command sequence number. This
+      // should
+      // not be the case under normal operation since the command sequence number in keep-alive
+      // requests
+      // represents the highest sequence for which a client has received a response (the command has
+      // already
+      // been completed), but since the log compaction algorithm can exclude individual entries from
+      // replication,
+      // the command sequence number must be applied for keep-alive requests to reset the sequence
+      // number in
       // the event the last command for the session was cleaned/compacted from the log.
       session.setCommandSequence(commandSequence);
 
@@ -400,7 +368,7 @@ public class RaftServiceContext implements ServiceContext {
   /**
    * Completes a keep-alive.
    *
-   * @param index     the keep-alive index
+   * @param index the keep-alive index
    * @param timestamp the keep-alive timestamp
    */
   public void completeKeepAlive(long index, long timestamp) {
@@ -417,7 +385,7 @@ public class RaftServiceContext implements ServiceContext {
   /**
    * Keeps all sessions alive using the given timestamp.
    *
-   * @param index     the index of the timestamp
+   * @param index the index of the timestamp
    * @param timestamp the timestamp with which to reset session timeouts
    */
   public void keepAliveSessions(long index, long timestamp) {
@@ -434,10 +402,10 @@ public class RaftServiceContext implements ServiceContext {
   /**
    * Unregister the given session.
    *
-   * @param index     The index of the unregister.
+   * @param index The index of the unregister.
    * @param timestamp The timestamp of the unregister.
-   * @param session   The session to unregister.
-   * @param expired   Whether the session was expired by the leader.
+   * @param session The session to unregister.
+   * @param expired Whether the session was expired by the leader.
    */
   public void closeSession(long index, long timestamp, RaftSession session, boolean expired) {
     log.debug("Closing session {}", session.sessionId());
@@ -473,14 +441,19 @@ public class RaftServiceContext implements ServiceContext {
   /**
    * Executes the given command on the state machine.
    *
-   * @param index     The index of the command.
+   * @param index The index of the command.
    * @param timestamp The timestamp of the command.
-   * @param sequence  The command sequence number.
-   * @param session   The session that submitted the command.
+   * @param sequence The command sequence number.
+   * @param session The session that submitted the command.
    * @param operation The command to execute.
    * @return A future to be completed with the command result.
    */
-  public OperationResult executeCommand(long index, long sequence, long timestamp, RaftSession session, PrimitiveOperation operation) {
+  public OperationResult executeCommand(
+      long index,
+      long sequence,
+      long timestamp,
+      RaftSession session,
+      PrimitiveOperation operation) {
     // If the service has been deleted then throw an unknown service exception.
     if (deleted) {
       log.warn("Service {} has been deleted by another process", serviceName);
@@ -499,47 +472,57 @@ public class RaftServiceContext implements ServiceContext {
     // Update the state machine index/timestamp.
     tick(index, timestamp);
 
-    // If the command's sequence number is less than the next session sequence number then that indicates that
-    // we've received a command that was previously applied to the state machine. Ensure linearizability by
+    // If the command's sequence number is less than the next session sequence number then that
+    // indicates that
+    // we've received a command that was previously applied to the state machine. Ensure
+    // linearizability by
     // returning the cached response instead of applying it to the user defined state machine.
     if (sequence > 0 && sequence < session.nextCommandSequence()) {
-      log.trace("Returning cached result for command with sequence number {} < {}", sequence, session.nextCommandSequence());
+      log.trace(
+          "Returning cached result for command with sequence number {} < {}",
+          sequence,
+          session.nextCommandSequence());
       return sequenceCommand(index, sequence, session);
     }
-    // If we've made it this far, the command must have been applied in the proper order as sequenced by the
+    // If we've made it this far, the command must have been applied in the proper order as
+    // sequenced by the
     // session. This should be the case for most commands applied to the state machine.
     else {
-      // Execute the command in the state machine thread. Once complete, the CompletableFuture callback will be completed
-      // in the state machine thread. Register the result in that thread and then complete the future in the caller's thread.
+      // Execute the command in the state machine thread. Once complete, the CompletableFuture
+      // callback will be completed
+      // in the state machine thread. Register the result in that thread and then complete the
+      // future in the caller's thread.
       return applyCommand(index, sequence, timestamp, operation, session);
     }
   }
 
-  /**
-   * Loads and returns a cached command result according to the sequence number.
-   */
+  /** Loads and returns a cached command result according to the sequence number. */
   private OperationResult sequenceCommand(long index, long sequence, RaftSession session) {
-    OperationResult result = session.getResult(sequence);
+    final OperationResult result = session.getResult(sequence);
     if (result == null) {
       log.debug("Missing command result at index {}", index);
     }
     return result;
   }
 
-  /**
-   * Applies the given commit to the state machine.
-   */
-  private OperationResult applyCommand(long index, long sequence, long timestamp, PrimitiveOperation operation, RaftSession session) {
-    long eventIndex = session.getEventIndex();
+  /** Applies the given commit to the state machine. */
+  private OperationResult applyCommand(
+      long index,
+      long sequence,
+      long timestamp,
+      PrimitiveOperation operation,
+      RaftSession session) {
+    final long eventIndex = session.getEventIndex();
 
-    Commit<byte[]> commit = new DefaultCommit<>(index, operation.id(), operation.value(), session, timestamp);
+    final Commit<byte[]> commit =
+        new DefaultCommit<>(index, operation.id(), operation.value(), session, timestamp);
 
     OperationResult result;
     try {
       currentSession = session;
 
       // Execute the state machine operation and get the result.
-      byte[] output = service.apply(commit);
+      final byte[] output = service.apply(commit);
 
       // Store the result for linearizability and complete the command.
       result = OperationResult.succeeded(index, eventIndex, output);
@@ -550,7 +533,8 @@ public class RaftServiceContext implements ServiceContext {
       currentSession = null;
     }
 
-    // Once the operation has been applied to the state machine, commit events published by the command.
+    // Once the operation has been applied to the state machine, commit events published by the
+    // command.
     // The state machine context will build a composite future for events published to all sessions.
     commit();
 
@@ -567,10 +551,10 @@ public class RaftServiceContext implements ServiceContext {
   /**
    * Executes the given query on the state machine.
    *
-   * @param index     The index of the query.
-   * @param sequence  The query sequence number.
+   * @param index The index of the query.
+   * @param sequence The query sequence number.
    * @param timestamp The timestamp of the query.
-   * @param session   The session that submitted the query.
+   * @param session The session that submitted the query.
    * @param operation The query to execute.
    * @return A future to be completed with the query result.
    */
@@ -580,14 +564,12 @@ public class RaftServiceContext implements ServiceContext {
       long timestamp,
       RaftSession session,
       PrimitiveOperation operation) {
-    CompletableFuture<OperationResult> future = new CompletableFuture<>();
+    final CompletableFuture<OperationResult> future = new CompletableFuture<>();
     executeQuery(index, sequence, timestamp, session, operation, future);
     return future;
   }
 
-  /**
-   * Executes a query on the state machine thread.
-   */
+  /** Executes a query on the state machine thread. */
   private void executeQuery(
       long index,
       long sequence,
@@ -598,14 +580,16 @@ public class RaftServiceContext implements ServiceContext {
     // If the service has been deleted then throw an unknown service exception.
     if (deleted) {
       log.warn("Service {} has been deleted by another process", serviceName);
-      future.completeExceptionally(new RaftException.UnknownService("Service " + serviceName + " has been deleted"));
+      future.completeExceptionally(
+          new RaftException.UnknownService("Service " + serviceName + " has been deleted"));
       return;
     }
 
     // If the session is not open, fail the request.
     if (!session.getState().active()) {
       log.warn("Inactive session: " + session.sessionId());
-      future.completeExceptionally(new RaftException.UnknownSession("Unknown session: " + session.sessionId()));
+      future.completeExceptionally(
+          new RaftException.UnknownSession("Unknown session: " + session.sessionId()));
       return;
     }
 
@@ -613,9 +597,7 @@ public class RaftServiceContext implements ServiceContext {
     sequenceQuery(index, sequence, timestamp, session, operation, future);
   }
 
-  /**
-   * Sequences the given query.
-   */
+  /** Sequences the given query. */
   private void sequenceQuery(
       long index,
       long sequence,
@@ -623,27 +605,28 @@ public class RaftServiceContext implements ServiceContext {
       RaftSession session,
       PrimitiveOperation operation,
       CompletableFuture<OperationResult> future) {
-    // If the query's sequence number is greater than the session's current sequence number, queue the request for
+    // If the query's sequence number is greater than the session's current sequence number, queue
+    // the request for
     // handling once the state machine is caught up.
-    long commandSequence = session.getCommandSequence();
+    final long commandSequence = session.getCommandSequence();
     if (sequence > commandSequence) {
       log.trace("Registering query with sequence number " + sequence + " > " + commandSequence);
-      session.registerSequenceQuery(sequence, () -> indexQuery(index, timestamp, session, operation, future));
+      session.registerSequenceQuery(
+          sequence, () -> indexQuery(index, timestamp, session, operation, future));
     } else {
       indexQuery(index, timestamp, session, operation, future);
     }
   }
 
-  /**
-   * Ensures the given query is applied after the appropriate index.
-   */
+  /** Ensures the given query is applied after the appropriate index. */
   private void indexQuery(
       long index,
       long timestamp,
       RaftSession session,
       PrimitiveOperation operation,
       CompletableFuture<OperationResult> future) {
-    // If the query index is greater than the session's last applied index, queue the request for handling once the
+    // If the query index is greater than the session's last applied index, queue the request for
+    // handling once the
     // state machine is caught up.
     if (index > currentIndex) {
       log.trace("Registering query with index " + index + " > " + currentIndex);
@@ -653,30 +636,35 @@ public class RaftServiceContext implements ServiceContext {
     }
   }
 
-  /**
-   * Applies a query to the state machine.
-   */
-  private void applyQuery(long timestamp, RaftSession session, PrimitiveOperation operation, CompletableFuture<OperationResult> future) {
+  /** Applies a query to the state machine. */
+  private void applyQuery(
+      long timestamp,
+      RaftSession session,
+      PrimitiveOperation operation,
+      CompletableFuture<OperationResult> future) {
     // If the service has been deleted then throw an unknown service exception.
     if (deleted) {
       log.warn("Service {} has been deleted by another process", serviceName);
-      future.completeExceptionally(new RaftException.UnknownService("Service " + serviceName + " has been deleted"));
+      future.completeExceptionally(
+          new RaftException.UnknownService("Service " + serviceName + " has been deleted"));
       return;
     }
 
     // If the session is not open, fail the request.
     if (!session.getState().active()) {
       log.warn("Inactive session: " + session.sessionId());
-      future.completeExceptionally(new RaftException.UnknownSession("Unknown session: " + session.sessionId()));
+      future.completeExceptionally(
+          new RaftException.UnknownSession("Unknown session: " + session.sessionId()));
       return;
     }
 
     // Set the current operation type to QUERY to prevent events from being sent to clients.
     setOperation(OperationType.QUERY);
 
-    Commit<byte[]> commit = new DefaultCommit<>(currentIndex, operation.id(), operation.value(), session, timestamp);
+    final Commit<byte[]> commit =
+        new DefaultCommit<>(currentIndex, operation.id(), operation.value(), session, timestamp);
 
-    long eventIndex = session.getEventIndex();
+    final long eventIndex = session.getEventIndex();
 
     OperationResult result;
     try {
@@ -690,20 +678,7 @@ public class RaftServiceContext implements ServiceContext {
     future.complete(result);
   }
 
-  /**
-   * Commits the application of a command to the state machine.
-   */
-  @SuppressWarnings("unchecked")
-  private void commit() {
-    long index = this.currentIndex;
-    for (RaftSession session : sessions.getSessions(primitiveId)) {
-      session.commit(index);
-    }
-  }
-
-  /**
-   * Closes the service context.
-   */
+  /** Closes the service context. */
   public void close() {
     for (RaftSession serviceSession : sessions.getSessions(serviceId())) {
       serviceSession.close();
@@ -711,6 +686,57 @@ public class RaftServiceContext implements ServiceContext {
     }
     service.close();
     deleted = true;
+  }
+
+  @Override
+  public PrimitiveId serviceId() {
+    return primitiveId;
+  }
+
+  @Override
+  public String serviceName() {
+    return serviceName;
+  }
+
+  @Override
+  public PrimitiveType serviceType() {
+    return primitiveType;
+  }
+
+  @Override
+  public MemberId localMemberId() {
+    return raft.localMemberId();
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public <C extends ServiceConfig> C serviceConfig() {
+    return (C) config;
+  }
+
+  @Override
+  public long currentIndex() {
+    return currentIndex;
+  }
+
+  @Override
+  public Session currentSession() {
+    return currentSession;
+  }
+
+  @Override
+  public OperationType currentOperation() {
+    return currentOperation;
+  }
+
+  @Override
+  public LogicalClock logicalClock() {
+    return logicalClock;
+  }
+
+  @Override
+  public WallClock wallClock() {
+    return wallClock;
   }
 
   @Override

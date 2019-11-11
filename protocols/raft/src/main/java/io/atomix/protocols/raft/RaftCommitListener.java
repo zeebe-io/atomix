@@ -20,5 +20,6 @@ import io.atomix.storage.journal.Indexed;
 
 @FunctionalInterface
 public interface RaftCommitListener {
+
   <T extends RaftLogEntry> void onCommit(Indexed<T> entry);
 }

@@ -15,25 +15,39 @@
  */
 package io.atomix.protocols.raft.protocol;
 
-import io.atomix.cluster.MemberId;
-import io.atomix.protocols.raft.cluster.RaftMember;
-
-import java.util.Collection;
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import io.atomix.cluster.MemberId;
+import io.atomix.protocols.raft.cluster.RaftMember;
+import java.util.Collection;
+import java.util.Objects;
+
 /**
  * Configuration installation request.
- * <p>
- * Configuration requests are special requests that aid in installing committed configurations
- * to passive and reserve members of the cluster. Prior to the start of replication from an active
+ *
+ * <p>Configuration requests are special requests that aid in installing committed configurations to
+ * passive and reserve members of the cluster. Prior to the start of replication from an active
  * member to a passive or reserve member, the active member must update the passive/reserve member's
  * configuration to ensure it is in the expected state.
  */
 public class ConfigureRequest extends AbstractRaftRequest {
+
+  private final long term;
+  private final String leader;
+  private final long index;
+  private final long timestamp;
+  private final Collection<RaftMember> members;
+
+  public ConfigureRequest(
+      long term, String leader, long index, long timestamp, Collection<RaftMember> members) {
+    this.term = term;
+    this.leader = leader;
+    this.index = index;
+    this.timestamp = timestamp;
+    this.members = members;
+  }
 
   /**
    * Returns a new configuration request builder.
@@ -42,20 +56,6 @@ public class ConfigureRequest extends AbstractRaftRequest {
    */
   public static Builder builder() {
     return new Builder();
-  }
-
-  private final long term;
-  private final String leader;
-  private final long index;
-  private final long timestamp;
-  private final Collection<RaftMember> members;
-
-  public ConfigureRequest(long term, String leader, long index, long timestamp, Collection<RaftMember> members) {
-    this.term = term;
-    this.leader = leader;
-    this.index = index;
-    this.timestamp = timestamp;
-    this.members = members;
   }
 
   /**
@@ -111,7 +111,7 @@ public class ConfigureRequest extends AbstractRaftRequest {
   @Override
   public boolean equals(Object object) {
     if (object instanceof ConfigureRequest) {
-      ConfigureRequest request = (ConfigureRequest) object;
+      final ConfigureRequest request = (ConfigureRequest) object;
       return request.term == term
           && request.leader == leader
           && request.index == index
@@ -132,10 +132,9 @@ public class ConfigureRequest extends AbstractRaftRequest {
         .toString();
   }
 
-  /**
-   * Heartbeat request builder.
-   */
+  /** Heartbeat request builder. */
   public static class Builder extends AbstractRaftRequest.Builder<Builder, ConfigureRequest> {
+
     private long term;
     private String leader;
     private long index;
@@ -203,6 +202,13 @@ public class ConfigureRequest extends AbstractRaftRequest {
       return this;
     }
 
+    /** @throws IllegalStateException if member is null */
+    @Override
+    public ConfigureRequest build() {
+      validate();
+      return new ConfigureRequest(term, leader, index, timestamp, members);
+    }
+
     @Override
     protected void validate() {
       super.validate();
@@ -212,15 +218,5 @@ public class ConfigureRequest extends AbstractRaftRequest {
       checkArgument(timestamp > 0, "timestamp must be positive");
       checkNotNull(members, "members cannot be null");
     }
-
-    /**
-     * @throws IllegalStateException if member is null
-     */
-    @Override
-    public ConfigureRequest build() {
-      validate();
-      return new ConfigureRequest(term, leader, index, timestamp, members);
-    }
   }
-
 }

@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Raft partition management utilities.
- */
+/** Raft partition management utilities. */
 package io.atomix.protocols.raft.partition.impl;

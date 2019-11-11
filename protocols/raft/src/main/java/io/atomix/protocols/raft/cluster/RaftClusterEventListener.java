@@ -17,9 +17,6 @@ package io.atomix.protocols.raft.cluster;
 
 import io.atomix.utils.event.EventListener;
 
-/**
- * Raft cluster event listener.
- */
+/** Raft cluster event listener. */
 @FunctionalInterface
-public interface RaftClusterEventListener extends EventListener<RaftClusterEvent> {
-}
+public interface RaftClusterEventListener extends EventListener<RaftClusterEvent> {}

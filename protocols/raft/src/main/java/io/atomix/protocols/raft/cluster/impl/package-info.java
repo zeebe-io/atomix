@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Implementations of Raft cluster management interfaces.
- */
+/** Implementations of Raft cluster management interfaces. */
 package io.atomix.protocols.raft.cluster.impl;

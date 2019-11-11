@@ -15,6 +15,9 @@
  */
 package io.atomix.protocols.raft.cluster.impl;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.hash.Hashing;
 import io.atomix.cluster.MemberId;
 import io.atomix.protocols.raft.RaftError;
@@ -23,7 +26,6 @@ import io.atomix.protocols.raft.protocol.RaftResponse;
 import io.atomix.protocols.raft.protocol.ReconfigureRequest;
 import io.atomix.protocols.raft.storage.system.Configuration;
 import io.atomix.utils.concurrent.Scheduled;
-
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Set;
@@ -31,45 +33,22 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.Consumer;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * Cluster member.
- */
+/** Cluster member. */
 public final class DefaultRaftMember implements RaftMember, AutoCloseable {
+
   private final MemberId id;
   private final int hash;
+  private final transient Set<Consumer<Type>> typeChangeListeners = new CopyOnWriteArraySet<>();
   private Type type;
   private Instant updated;
   private transient Scheduled configureTimeout;
   private transient RaftClusterContext cluster;
-  private final transient Set<Consumer<Type>> typeChangeListeners = new CopyOnWriteArraySet<>();
 
   public DefaultRaftMember(MemberId id, Type type, Instant updated) {
     this.id = checkNotNull(id, "id cannot be null");
-    this.hash = Hashing.murmur3_32()
-        .hashUnencodedChars(id.id())
-        .asInt();
+    this.hash = Hashing.murmur3_32().hashUnencodedChars(id.id()).asInt();
     this.type = checkNotNull(type, "type cannot be null");
     this.updated = checkNotNull(updated, "updated cannot be null");
-  }
-
-  /**
-   * Sets the member's parent cluster.
-   */
-  DefaultRaftMember setCluster(RaftClusterContext cluster) {
-    this.cluster = cluster;
-    return this;
-  }
-
-  /**
-   * Sets the member type.
-   *
-   * @param type the member type
-   */
-  void setType(Type type) {
-    this.type = type;
   }
 
   @Override
@@ -80,16 +59,6 @@ public final class DefaultRaftMember implements RaftMember, AutoCloseable {
   @Override
   public int hash() {
     return hash;
-  }
-
-  @Override
-  public RaftMember.Type getType() {
-    return type;
-  }
-
-  @Override
-  public Instant getLastUpdated() {
-    return updated;
   }
 
   @Override
@@ -133,6 +102,16 @@ public final class DefaultRaftMember implements RaftMember, AutoCloseable {
     return configure(Type.INACTIVE);
   }
 
+  @Override
+  public Instant getLastUpdated() {
+    return updated;
+  }
+
+  @Override
+  public RaftMember.Type getType() {
+    return type;
+  }
+
   /**
    * Updates the member type.
    *
@@ -152,69 +131,86 @@ public final class DefaultRaftMember implements RaftMember, AutoCloseable {
     return this;
   }
 
-  /**
-   * Demotes the server to the given type.
-   */
+  /** Demotes the server to the given type. */
   private CompletableFuture<Void> configure(RaftMember.Type type) {
     if (type == this.type) {
       return CompletableFuture.completedFuture(null);
     }
-    CompletableFuture<Void> future = new CompletableFuture<>();
+    final CompletableFuture<Void> future = new CompletableFuture<>();
     cluster.getContext().getThreadContext().execute(() -> configure(type, future));
     return future;
   }
 
-  /**
-   * Recursively reconfigures the cluster.
-   */
+  /** Recursively reconfigures the cluster. */
   private void configure(RaftMember.Type type, CompletableFuture<Void> future) {
     // Set a timer to retry the attempt to leave the cluster.
-    configureTimeout = cluster.getContext().getThreadContext().schedule(cluster.getContext().getElectionTimeout(), () -> {
-      configure(type, future);
-    });
+    configureTimeout =
+        cluster
+            .getContext()
+            .getThreadContext()
+            .schedule(
+                cluster.getContext().getElectionTimeout(),
+                () -> {
+                  configure(type, future);
+                });
 
     // Attempt to leave the cluster by submitting a LeaveRequest directly to the server state.
     // Non-leader states should forward the request to the leader if there is one. Leader states
     // will log, replicate, and commit the reconfiguration.
-    cluster.getContext().getRaftRole().onReconfigure(ReconfigureRequest.builder()
-        .withIndex(cluster.getConfiguration().index())
-        .withTerm(cluster.getConfiguration().term())
-        .withMember(new DefaultRaftMember(id, type, updated))
-        .build()).whenComplete((response, error) -> {
-          if (error == null) {
-            if (response.status() == RaftResponse.Status.OK) {
-              cancelConfigureTimer();
-              cluster.configure(new Configuration(response.index(), response.term(), response.timestamp(), response.members()));
-              future.complete(null);
-            } else if (response.error() == null
-                || response.error().type() == RaftError.Type.UNAVAILABLE
-                || response.error().type() == RaftError.Type.PROTOCOL_ERROR
-                || response.error().type() == RaftError.Type.NO_LEADER) {
-              cancelConfigureTimer();
-              configureTimeout = cluster.getContext().getThreadContext().schedule(cluster.getContext().getElectionTimeout().multipliedBy(2), () -> configure(type, future));
-            } else {
-              cancelConfigureTimer();
-              future.completeExceptionally(response.error().createException());
-            }
-          } else {
-            future.completeExceptionally(error);
-          }
-        });
-  }
-
-  /**
-   * Cancels the configure timeout.
-   */
-  private void cancelConfigureTimer() {
-    if (configureTimeout != null) {
-      configureTimeout.cancel();
-      configureTimeout = null;
-    }
+    cluster
+        .getContext()
+        .getRaftRole()
+        .onReconfigure(
+            ReconfigureRequest.builder()
+                .withIndex(cluster.getConfiguration().index())
+                .withTerm(cluster.getConfiguration().term())
+                .withMember(new DefaultRaftMember(id, type, updated))
+                .build())
+        .whenComplete(
+            (response, error) -> {
+              if (error == null) {
+                if (response.status() == RaftResponse.Status.OK) {
+                  cancelConfigureTimer();
+                  cluster.configure(
+                      new Configuration(
+                          response.index(),
+                          response.term(),
+                          response.timestamp(),
+                          response.members()));
+                  future.complete(null);
+                } else if (response.error() == null
+                    || response.error().type() == RaftError.Type.UNAVAILABLE
+                    || response.error().type() == RaftError.Type.PROTOCOL_ERROR
+                    || response.error().type() == RaftError.Type.NO_LEADER) {
+                  cancelConfigureTimer();
+                  configureTimeout =
+                      cluster
+                          .getContext()
+                          .getThreadContext()
+                          .schedule(
+                              cluster.getContext().getElectionTimeout().multipliedBy(2),
+                              () -> configure(type, future));
+                } else {
+                  cancelConfigureTimer();
+                  future.completeExceptionally(response.error().createException());
+                }
+              } else {
+                future.completeExceptionally(error);
+              }
+            });
   }
 
   @Override
   public void close() {
     cancelConfigureTimer();
+  }
+
+  /** Cancels the configure timeout. */
+  private void cancelConfigureTimer() {
+    if (configureTimeout != null) {
+      configureTimeout.cancel();
+      configureTimeout = null;
+    }
   }
 
   @Override
@@ -229,11 +225,21 @@ public final class DefaultRaftMember implements RaftMember, AutoCloseable {
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("id", id)
-        .add("type", type)
-        .add("updated", updated)
-        .toString();
+    return toStringHelper(this).add("id", id).add("type", type).add("updated", updated).toString();
   }
 
+  /** Sets the member's parent cluster. */
+  DefaultRaftMember setCluster(RaftClusterContext cluster) {
+    this.cluster = cluster;
+    return this;
+  }
+
+  /**
+   * Sets the member type.
+   *
+   * @param type the member type
+   */
+  void setType(Type type) {
+    this.type = type;
+  }
 }

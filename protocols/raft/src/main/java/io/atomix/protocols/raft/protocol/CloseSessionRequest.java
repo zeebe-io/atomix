@@ -15,14 +15,19 @@
  */
 package io.atomix.protocols.raft.protocol;
 
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-/**
- * Close session request.
- */
+import java.util.Objects;
+
+/** Close session request. */
 public class CloseSessionRequest extends SessionRequest {
+
+  private final boolean delete;
+
+  public CloseSessionRequest(long session, boolean delete) {
+    super(session);
+    this.delete = delete;
+  }
 
   /**
    * Returns a new unregister request builder.
@@ -31,13 +36,6 @@ public class CloseSessionRequest extends SessionRequest {
    */
   public static Builder builder() {
     return new Builder();
-  }
-
-  private final boolean delete;
-
-  public CloseSessionRequest(long session, boolean delete) {
-    super(session);
-    this.delete = delete;
   }
 
   /**
@@ -63,22 +61,18 @@ public class CloseSessionRequest extends SessionRequest {
       return false;
     }
 
-    CloseSessionRequest request = (CloseSessionRequest) object;
+    final CloseSessionRequest request = (CloseSessionRequest) object;
     return request.session == session && request.delete == delete;
   }
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("session", session)
-        .add("delete", delete)
-        .toString();
+    return toStringHelper(this).add("session", session).add("delete", delete).toString();
   }
 
-  /**
-   * Close session request builder.
-   */
+  /** Close session request builder. */
   public static class Builder extends SessionRequest.Builder<Builder, CloseSessionRequest> {
+
     private boolean delete;
 
     /**

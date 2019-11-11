@@ -17,13 +17,20 @@ package io.atomix.protocols.raft.protocol;
 
 import io.atomix.protocols.raft.RaftError;
 import io.atomix.protocols.raft.cluster.RaftMember;
-
 import java.util.Collection;
 
-/**
- * Server leave configuration change response.
- */
+/** Server leave configuration change response. */
 public class LeaveResponse extends ConfigurationResponse {
+
+  public LeaveResponse(
+      Status status,
+      RaftError error,
+      long index,
+      long term,
+      long timestamp,
+      Collection<RaftMember> members) {
+    super(status, error, index, term, timestamp, members);
+  }
 
   /**
    * Returns a new leave response builder.
@@ -34,14 +41,9 @@ public class LeaveResponse extends ConfigurationResponse {
     return new Builder();
   }
 
-  public LeaveResponse(Status status, RaftError error, long index, long term, long timestamp, Collection<RaftMember> members) {
-    super(status, error, index, term, timestamp, members);
-  }
-
-  /**
-   * Leave response builder.
-   */
+  /** Leave response builder. */
   public static class Builder extends ConfigurationResponse.Builder<Builder, LeaveResponse> {
+
     @Override
     public LeaveResponse build() {
       validate();

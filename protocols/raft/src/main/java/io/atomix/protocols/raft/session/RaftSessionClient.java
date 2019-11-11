@@ -15,25 +15,21 @@
  */
 package io.atomix.protocols.raft.session;
 
-import io.atomix.primitive.Recovery;
-import io.atomix.primitive.session.SessionClient;
-import io.atomix.protocols.raft.ReadConsistency;
-
-import java.time.Duration;
-import java.util.concurrent.TimeUnit;
-
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Raft primitive proxy.
- */
+import io.atomix.primitive.Recovery;
+import io.atomix.primitive.session.SessionClient;
+import io.atomix.protocols.raft.ReadConsistency;
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
+
+/** Raft primitive proxy. */
 public interface RaftSessionClient extends SessionClient {
 
-  /**
-   * Raft proxy builder.
-   */
+  /** Raft proxy builder. */
   abstract class Builder extends SessionClient.Builder {
+
     protected Duration minTimeout = Duration.ofMillis(250);
     protected Duration maxTimeout = Duration.ofSeconds(30);
     protected ReadConsistency readConsistency = ReadConsistency.SEQUENTIAL;
@@ -82,7 +78,8 @@ public interface RaftSessionClient extends SessionClient {
      * @return the Raft protocol builder
      */
     public Builder withCommunicationStrategy(CommunicationStrategy communicationStrategy) {
-      this.communicationStrategy = checkNotNull(communicationStrategy, "communicationStrategy cannot be null");
+      this.communicationStrategy =
+          checkNotNull(communicationStrategy, "communicationStrategy cannot be null");
       return this;
     }
 
@@ -123,24 +120,24 @@ public interface RaftSessionClient extends SessionClient {
      * Sets the operation retry delay.
      *
      * @param retryDelay the delay between operation retries
-     * @param timeUnit   the delay time unit
-     * @return the proxy builder
-     * @throws NullPointerException if the time unit is null
-     */
-    public Builder withRetryDelay(long retryDelay, TimeUnit timeUnit) {
-      return withRetryDelay(Duration.ofMillis(timeUnit.toMillis(retryDelay)));
-    }
-
-    /**
-     * Sets the operation retry delay.
-     *
-     * @param retryDelay the delay between operation retries
      * @return the proxy builder
      * @throws NullPointerException if the delay is null
      */
     public Builder withRetryDelay(Duration retryDelay) {
       this.retryDelay = checkNotNull(retryDelay, "retryDelay cannot be null");
       return this;
+    }
+
+    /**
+     * Sets the operation retry delay.
+     *
+     * @param retryDelay the delay between operation retries
+     * @param timeUnit the delay time unit
+     * @return the proxy builder
+     * @throws NullPointerException if the time unit is null
+     */
+    public Builder withRetryDelay(long retryDelay, TimeUnit timeUnit) {
+      return withRetryDelay(Duration.ofMillis(timeUnit.toMillis(retryDelay)));
     }
   }
 }

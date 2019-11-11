@@ -22,6 +22,7 @@ import io.atomix.utils.concurrent.ThreadContextFactory;
 import java.time.Duration;
 
 public class ZeebeRaftStateMachine extends RaftServiceManager {
+
   private static final Duration SNAPSHOT_COMPLETION_DELAY = Duration.ofMillis(0);
   private static final Duration COMPACT_DELAY = Duration.ofMillis(0);
 
@@ -29,14 +30,12 @@ public class ZeebeRaftStateMachine extends RaftServiceManager {
   private volatile long compactableTerm;
 
   public ZeebeRaftStateMachine(
-      final RaftContext raft,
-      final ThreadContext stateContext,
-      final ThreadContextFactory threadContextFactory) {
+      RaftContext raft, ThreadContext stateContext, ThreadContextFactory threadContextFactory) {
     super(raft, stateContext, threadContextFactory);
   }
 
   @Override
-  public void setCompactablePosition(final long index, final long term) {
+  public void setCompactablePosition(long index, long term) {
     if (term > compactableTerm) {
       compactableIndex = index;
       compactableTerm = term;
@@ -56,12 +55,12 @@ public class ZeebeRaftStateMachine extends RaftServiceManager {
   }
 
   @Override
-  protected Duration getSnapshotCompletionDelay() {
-    return SNAPSHOT_COMPLETION_DELAY;
+  protected Duration getCompactDelay() {
+    return COMPACT_DELAY;
   }
 
   @Override
-  protected Duration getCompactDelay() {
-    return COMPACT_DELAY;
+  protected Duration getSnapshotCompletionDelay() {
+    return SNAPSHOT_COMPLETION_DELAY;
   }
 }

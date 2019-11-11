@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Implementations of core Raft server interfaces.
- */
+/** Implementations of core Raft server interfaces. */
 package io.atomix.protocols.raft.impl;

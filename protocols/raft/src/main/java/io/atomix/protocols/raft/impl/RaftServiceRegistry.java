@@ -16,17 +16,15 @@
 package io.atomix.protocols.raft.impl;
 
 import io.atomix.protocols.raft.service.RaftServiceContext;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Raft service registry.
- */
+/** Raft service registry. */
 public class RaftServiceRegistry implements Iterable<RaftServiceContext> {
+
   private final Map<String, RaftServiceContext> services = new ConcurrentHashMap<>();
 
   /**

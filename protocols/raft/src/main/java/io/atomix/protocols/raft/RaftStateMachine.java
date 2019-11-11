@@ -38,9 +38,9 @@ public interface RaftStateMachine extends AutoCloseable {
 
   /**
    * Applies all commits up to the given index.
-   * <p>
-   * Calls to this method are assumed not to expect a result. This allows some optimizations to be made internally since
-   * linearizable events don't have to be waited to complete the command.
+   *
+   * <p>Calls to this method are assumed not to expect a result. This allows some optimizations to
+   * be made internally since linearizable events don't have to be waited to complete the command.
    *
    * @param index The index up to which to apply commits.
    */
@@ -48,9 +48,10 @@ public interface RaftStateMachine extends AutoCloseable {
 
   /**
    * Applies the entry at the given index to the state machine.
-   * <p>
-   * Calls to this method are assumed to expect a result. This means linearizable session events triggered by the
-   * application of the command at the given index will be awaited before completing the returned future.
+   *
+   * <p>Calls to this method are assumed to expect a result. This means linearizable session events
+   * triggered by the application of the command at the given index will be awaited before
+   * completing the returned future.
    *
    * @param index The index to apply.
    * @return A completable future to be completed once the commit has been applied.
@@ -59,9 +60,10 @@ public interface RaftStateMachine extends AutoCloseable {
 
   /**
    * Applies an entry to the state machine.
-   * <p>
-   * Calls to this method are assumed to expect a result. This means linearizable session events triggered by the
-   * application of the given entry will be awaited before completing the returned future.
+   *
+   * <p>Calls to this method are assumed to expect a result. This means linearizable session events
+   * triggered by the application of the given entry will be awaited before completing the returned
+   * future.
    *
    * @param entry The entry to apply.
    * @return A completable future to be completed with the result.
@@ -78,12 +80,11 @@ public interface RaftStateMachine extends AutoCloseable {
   /**
    * Updates the compactable position; by default does nothing as the default behaviour is to use
    * the last applied index and term.
+   *
    * @param index index up to which the log can be compacted
    * @param term term of the entry with that index, used when snapshotting
    */
-  default void setCompactablePosition(long index, long term) {
-
-  }
+  default void setCompactablePosition(long index, long term) {}
 
   /**
    * Returns the current compactable index.
