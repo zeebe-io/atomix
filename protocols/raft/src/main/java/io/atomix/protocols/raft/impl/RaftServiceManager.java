@@ -211,7 +211,7 @@ public class RaftServiceManager implements RaftStateMachine {
       // Wait for snapshots in all state machines to be completed before compacting the log at the last applied index.
       takeSnapshots().whenComplete((snapshot, error) -> {
         if (error == null) {
-          scheduleCompletion(snapshot);
+          tryToCompleteSnapshot(snapshot);
         }
       });
 
@@ -265,32 +265,35 @@ public class RaftServiceManager implements RaftStateMachine {
    * @param snapshot the snapshot to complete
    */
   private void scheduleCompletion(Snapshot snapshot) {
-    stateContext.schedule(getSnapshotCompletionDelay(), () -> {
-      if (completeSnapshot(snapshot.index())) {
-        logger.debug("Completing snapshot {}", snapshot.index());
-        try {
-          snapshot.complete();
-        } catch (AtomixIOException e) {
-          logger.error("Failed to complete snapshot {}, rescheduling completion", snapshot, e);
-          scheduleCompletion(snapshot);
-          return;
-        } catch (Exception e) {
-          logger.error("Failed to complete snapshot {}, rescheduling snapshots", snapshot, e);
-          snapshot.close();
-          scheduleSnapshots();
-          return;
-        }
+    stateContext.schedule(getSnapshotCompletionDelay(), () -> tryToCompleteSnapshot(snapshot));
+  }
 
-        // If log compaction is being forced, immediately compact the logs.
-        if (!raft.getLoadMonitor().isUnderHighLoad() || isRunningOutOfDiskSpace() || isRunningOutOfMemory()) {
-          compactLogs(snapshot.index());
-        } else {
-          scheduleCompaction(snapshot.index());
-        }
-      } else {
+  private void tryToCompleteSnapshot(Snapshot snapshot) {
+    if (completeSnapshot(snapshot.index())) {
+      logger.debug("Completing snapshot {}", snapshot.index());
+      try {
+        snapshot.complete();
+      } catch (AtomixIOException e) {
+        logger.error("Failed to complete snapshot {}, rescheduling completion", snapshot, e);
         scheduleCompletion(snapshot);
+        return;
+      } catch (Exception e) {
+        logger.error("Failed to complete snapshot {}, rescheduling snapshots", snapshot, e);
+        snapshot.close();
+        scheduleSnapshots();
+        return;
       }
-    });
+
+      // If log compaction is being forced, immediately compact the logs.
+      if (!raft.getLoadMonitor().isUnderHighLoad() || isRunningOutOfDiskSpace()
+          || isRunningOutOfMemory()) {
+        compactLogs(snapshot.index());
+      } else {
+        scheduleCompaction(snapshot.index());
+      }
+    } else {
+      scheduleCompletion(snapshot);
+    }
   }
 
   /**
