@@ -26,7 +26,7 @@ public class RaftRoleMetrics extends RaftMetrics {
           .namespace("atomix")
           .name("role")
           .help("Shows current role")
-          .labelNames("partition")
+          .labelNames("partitionGroupName", "partition")
           .register();
 
   private static final Counter HEARTBEAT_MISS =
@@ -34,7 +34,7 @@ public class RaftRoleMetrics extends RaftMetrics {
           .namespace("atomix")
           .name("heartbeat_miss_count")
           .help("Count of missing heartbeats")
-          .labelNames("partition")
+          .labelNames("partitionGroupName", "partition")
           .register();
 
   private static final Histogram HEARTBEAT_TIME =
@@ -42,7 +42,7 @@ public class RaftRoleMetrics extends RaftMetrics {
           .namespace("atomix")
           .name("heartbeat_time_in_s")
           .help("Time between heartbeats")
-          .labelNames("partition")
+          .labelNames("partitionGroupName", "partition")
           .register();
 
   public RaftRoleMetrics(String partitionName) {
@@ -50,22 +50,22 @@ public class RaftRoleMetrics extends RaftMetrics {
   }
 
   public void becomingFollower() {
-    ROLE.labels(partition).set(1);
+    ROLE.labels(partitionGroupName, partition).set(1);
   }
 
   public void becomingCandidate() {
-    ROLE.labels(partition).set(2);
+    ROLE.labels(partitionGroupName, partition).set(2);
   }
 
   public void becomingLeader() {
-    ROLE.labels(partition).set(3);
+    ROLE.labels(partitionGroupName, partition).set(3);
   }
 
   public void countHeartbeatMiss() {
-    HEARTBEAT_MISS.labels(partition).inc();
+    HEARTBEAT_MISS.labels(partitionGroupName, partition).inc();
   }
 
   public void observeHeartbeatInterval(long milliseconds) {
-    HEARTBEAT_TIME.labels(partition).observe(milliseconds / 1000f);
+    HEARTBEAT_TIME.labels(partitionGroupName, partition).observe(milliseconds / 1000f);
   }
 }

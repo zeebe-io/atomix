@@ -20,17 +20,23 @@ import org.slf4j.LoggerFactory;
 public class RaftMetrics {
 
   protected final String partition;
+  protected final String partitionGroupName;
 
   public RaftMetrics(String partitionName) {
     int partitionId;
+    String groupName;
     try {
       final String[] parts = partitionName.split("-");
       partitionId = Integer.parseInt(parts[parts.length - 1]);
+      groupName = parts[0];
     } catch (Exception e) {
       LoggerFactory.getLogger(RaftMetrics.class)
-          .debug("Cannot extract partition id from name {}, defaulting to 0", partitionName);
+          .debug("Cannot extract partition group name and id from {}, defaulting to raft and 0",
+              partitionName);
       partitionId = 0;
+      groupName = "raft";
     }
     this.partition = String.valueOf(partitionId);
+    this.partitionGroupName = groupName;
   }
 }

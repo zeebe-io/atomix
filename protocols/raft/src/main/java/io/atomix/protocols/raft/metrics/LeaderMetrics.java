@@ -24,7 +24,7 @@ public class LeaderMetrics extends RaftMetrics {
           .namespace("atomix")
           .name("append_entries_latency")
           .help("Latency to append an entry to a follower")
-          .labelNames("follower", "partition")
+          .labelNames("follower", "partitionGroupName", "partition")
           .register();
 
   public LeaderMetrics(String partitionName) {
@@ -32,6 +32,6 @@ public class LeaderMetrics extends RaftMetrics {
   }
 
   public void appendComplete(long latencyms, String memberId) {
-    APPEND_LATENCY.labels(memberId, partition).observe(latencyms / 1000f);
+    APPEND_LATENCY.labels(memberId, partitionGroupName, partition).observe(latencyms / 1000f);
   }
 }
