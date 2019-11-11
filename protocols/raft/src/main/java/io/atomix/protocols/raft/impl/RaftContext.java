@@ -185,7 +185,7 @@ public class RaftContext implements AutoCloseable {
     this.logReader = raftLog.openReader(1, RaftLogReader.Mode.ALL);
 
     // Open the snapshot store.
-    this.snapshotStore = storage.openSnapshotStore();
+    this.snapshotStore = storage.getSnapshotStore();
 
     // Create a new internal server state machine.
     checkNotNull(stateMachineFactory, "stateMachineFactory must be not null");

@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.atomix.protocols.raft.storage.snapshot;
+package io.atomix.protocols.raft.storage.snapshot.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import io.atomix.protocols.raft.storage.RaftStorage;
+import io.atomix.protocols.raft.storage.snapshot.Snapshot;
+import io.atomix.protocols.raft.storage.snapshot.SnapshotReader;
+import io.atomix.protocols.raft.storage.snapshot.SnapshotStore;
+import io.atomix.protocols.raft.storage.snapshot.SnapshotWriter;
 import io.atomix.storage.StorageLevel;
 import io.atomix.utils.time.WallClockTimestamp;
 import java.io.File;
@@ -75,7 +79,7 @@ public class FileSnapshotStoreTest extends AbstractSnapshotStoreTest {
             .withDirectory(new File(String.format("target/test-logs/%s", testId)))
             .withStorageLevel(StorageLevel.DISK)
             .build();
-    return new SnapshotStore(storage);
+    return new DefaultSnapshotStore(storage);
   }
 
   /** Tests persisting and loading snapshots. */

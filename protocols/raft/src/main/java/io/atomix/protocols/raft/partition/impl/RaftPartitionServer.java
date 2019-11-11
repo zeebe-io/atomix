@@ -149,6 +149,7 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
                 .withFreeDiskBuffer(config.getCompactionConfig().getFreeDiskBuffer())
                 .withFreeMemoryBuffer(config.getCompactionConfig().getFreeMemoryBuffer())
                 .withNamespace(RaftNamespaces.RAFT_STORAGE)
+                .withSnapshotStoreFactory(config.getStorageConfig().getSnapshotStoreFactory())
                 .build())
         .withThreadContextFactory(threadContextFactory)
         .withStateMachineFactory(config.getStateMachineFactory())

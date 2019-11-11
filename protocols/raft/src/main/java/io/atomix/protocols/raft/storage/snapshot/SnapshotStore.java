@@ -1,36 +1,7 @@
-/*
- * Copyright 2015-present Open Networking Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License
- */
 package io.atomix.protocols.raft.storage.snapshot;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import io.atomix.protocols.raft.storage.RaftStorage;
-import io.atomix.storage.StorageLevel;
-import io.atomix.storage.buffer.FileBuffer;
-import io.atomix.storage.buffer.HeapBuffer;
 import io.atomix.utils.time.WallClockTimestamp;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.concurrent.ConcurrentSkipListMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Persists server snapshots via the {@link RaftStorage} module.
@@ -40,7 +11,7 @@ import org.slf4j.LoggerFactory;
  * snapshottable state machine persists the state machine state to allow commands to be removed from
  * disk.
  *
- * <p>When a snapshot store is {@link RaftStorage#openSnapshotStore() created} with a non-memory
+ * <p>When a snapshot store is {@link RaftStorage#getSnapshotStore() created} with a non-memory
  * storage level, the store will load any existing snapshots from disk and make them available for
  * reading. Only snapshots that have been written and {@link Snapshot#complete() completed} will be
  * read from disk.
@@ -73,84 +44,7 @@ import org.slf4j.LoggerFactory;
  * a snapshot of the state machine state and then clear their logs up to that point. However, in
  * Raft a snapshot may actually only represent a subset of the state machine's state.
  */
-public class SnapshotStore implements AutoCloseable {
-
-  final RaftStorage storage;
-  private final Logger log = LoggerFactory.getLogger(getClass());
-  private final NavigableMap<Long, Snapshot> snapshots = new ConcurrentSkipListMap<>();
-
-  public SnapshotStore(RaftStorage storage) {
-    this.storage = checkNotNull(storage, "storage cannot be null");
-    open();
-  }
-
-  /** Opens the snapshot manager. */
-  private void open() {
-    // load persisted snapshots only if storage level is persistent
-    if (storage.storageLevel() != StorageLevel.MEMORY) {
-      for (Snapshot snapshot : loadSnapshots()) {
-        completeSnapshot(snapshot);
-      }
-    }
-  }
-
-  /**
-   * Loads all available snapshots from disk.
-   *
-   * @return A list of available snapshots.
-   */
-  private Collection<Snapshot> loadSnapshots() {
-    // Ensure log directories are created.
-    storage.directory().mkdirs();
-
-    final List<Snapshot> snapshots = new ArrayList<>();
-
-    // Iterate through all files in the log directory.
-    for (File file : storage.directory().listFiles(File::isFile)) {
-
-      // If the file looks like a segment file, attempt to load the segment.
-      if (SnapshotFile.isSnapshotFile(file)) {
-        final SnapshotFile snapshotFile = new SnapshotFile(file, null);
-        final SnapshotDescriptor descriptor =
-            new SnapshotDescriptor(FileBuffer.allocate(file, SnapshotDescriptor.BYTES));
-
-        // Valid segments will have been locked. Segments that resulting from failures during log
-        // cleaning will be
-        // unlocked and should ultimately be deleted from disk.
-        if (descriptor.isLocked()) {
-          log.debug(
-              "Loaded disk snapshot: {} ({})", descriptor.index(), snapshotFile.file().getName());
-          snapshots.add(new FileSnapshot(snapshotFile, descriptor, this));
-          descriptor.close();
-        }
-      }
-    }
-
-    return snapshots;
-  }
-
-  /** Completes writing a snapshot. */
-  protected synchronized void completeSnapshot(Snapshot snapshot) {
-    checkNotNull(snapshot, "snapshot cannot be null");
-
-    final Map.Entry<Long, Snapshot> lastEntry = snapshots.lastEntry();
-    if (lastEntry == null) {
-      snapshots.put(snapshot.index(), snapshot);
-    } else if (lastEntry.getValue().index() == snapshot.index()) {
-      // in case of concurrently trying to complete the same snapshot
-      snapshot.close();
-    } else if (lastEntry.getValue().index() < snapshot.index()) {
-      snapshots.put(snapshot.index(), snapshot);
-      final Snapshot lastSnapshot = lastEntry.getValue();
-      lastSnapshot.close();
-      lastSnapshot.delete();
-    } else if (storage.isRetainStaleSnapshots()) {
-      snapshots.put(snapshot.index(), snapshot);
-    } else {
-      snapshot.close();
-      snapshot.delete();
-    }
-  }
+public interface SnapshotStore extends AutoCloseable {
 
   /**
    * Returns the snapshot at the given index.
@@ -158,9 +52,7 @@ public class SnapshotStore implements AutoCloseable {
    * @param index the index for which to lookup the snapshot
    * @return the snapshot at the given index or {@code null} if the snapshot doesn't exist
    */
-  public Snapshot getSnapshot(long index) {
-    return snapshots.get(index);
-  }
+  Snapshot getSnapshot(long index);
 
   /**
    * Creates a new snapshot.
@@ -169,66 +61,31 @@ public class SnapshotStore implements AutoCloseable {
    * @param timestamp The snapshot timestamp.
    * @return The snapshot.
    */
-  public Snapshot newSnapshot(long index, long term, WallClockTimestamp timestamp) {
-    final SnapshotDescriptor descriptor =
-        SnapshotDescriptor.builder()
-            .withIndex(index)
-            .withTerm(term)
-            .withTimestamp(timestamp.unixTimestamp())
-            .build();
-
-    if (storage.storageLevel() == StorageLevel.MEMORY) {
-      return createMemorySnapshot(descriptor);
-    } else {
-      return createDiskSnapshot(descriptor);
-    }
-  }
-
-  /** Creates a memory snapshot. */
-  private Snapshot createMemorySnapshot(SnapshotDescriptor descriptor) {
-    final HeapBuffer buffer = HeapBuffer.allocate(SnapshotDescriptor.BYTES, Integer.MAX_VALUE);
-    final Snapshot snapshot = new MemorySnapshot(buffer, descriptor.copyTo(buffer), this);
-    log.debug("Created memory snapshot: {}", snapshot);
-    return snapshot;
-  }
-
-  /** Creates a disk snapshot. */
-  private Snapshot createDiskSnapshot(SnapshotDescriptor descriptor) {
-    final File snapshotFile =
-        SnapshotFile.createSnapshotFile(storage.directory(), storage.prefix(), descriptor.index());
-    final File temporaryFile = SnapshotFile.createTemporaryFile(snapshotFile);
-
-    final SnapshotFile file = new SnapshotFile(snapshotFile, temporaryFile);
-    final Snapshot snapshot = new FileSnapshot(file, descriptor, this);
-    log.debug("Created disk snapshot: {}", snapshot);
-    return snapshot;
-  }
+  Snapshot newSnapshot(long index, long term, WallClockTimestamp timestamp);
 
   @Override
-  public void close() {}
-
-  @Override
-  public String toString() {
-    return getClass().getSimpleName();
-  }
+  void close();
 
   /**
    * Returns the index of the current snapshot. Defaults to 0.
    *
    * @return the index of the current snapshot
    */
-  public long getCurrentSnapshotIndex() {
-    final Snapshot snapshot = getCurrentSnapshot();
-    return snapshot != null ? snapshot.index() : 0L;
-  }
+  long getCurrentSnapshotIndex();
 
   /**
    * Returns the current snapshot.
    *
    * @return the current snapshot
    */
-  public Snapshot getCurrentSnapshot() {
-    final Map.Entry<Long, Snapshot> entry = snapshots.lastEntry();
-    return entry != null ? entry.getValue() : null;
-  }
+  Snapshot getCurrentSnapshot();
+
+  /**
+   * Deletes a {@link SnapshotStore} from disk.
+   *
+   * <p>The snapshot store will be deleted by simply reading {@code snapshot} file names from disk
+   * and deleting snapshot files directly. Deleting the snapshot store does not involve reading any
+   * snapshot files into memory.
+   */
+  void delete();
 }

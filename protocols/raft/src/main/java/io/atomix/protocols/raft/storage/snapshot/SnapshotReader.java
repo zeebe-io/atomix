@@ -18,6 +18,7 @@ package io.atomix.protocols.raft.storage.snapshot;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.atomix.protocols.raft.RaftServer;
+import io.atomix.protocols.raft.storage.snapshot.impl.DefaultSnapshot;
 import io.atomix.storage.StorageLevel;
 import io.atomix.storage.buffer.Buffer;
 import io.atomix.storage.buffer.BufferInput;
@@ -25,7 +26,7 @@ import io.atomix.storage.buffer.Bytes;
 import java.nio.charset.Charset;
 
 /**
- * Reads bytes from a state machine {@link Snapshot}.
+ * Reads bytes from a state machine {@link DefaultSnapshot}.
  *
  * <p>This class provides the primary interface for reading snapshot buffers from disk or memory.
  * Snapshot bytes are read from an underlying {@link Buffer} which is backed by either memory or
