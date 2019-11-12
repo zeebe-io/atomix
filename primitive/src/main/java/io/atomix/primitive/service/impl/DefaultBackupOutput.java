@@ -21,6 +21,7 @@ import io.atomix.storage.buffer.BufferOutput;
 import io.atomix.storage.buffer.Bytes;
 import io.atomix.utils.serializer.Serializer;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
 /**
@@ -49,6 +50,12 @@ public class DefaultBackupOutput implements BackupOutput {
 
   @Override
   public BackupOutput write(byte[] bytes) {
+    output.write(bytes);
+    return this;
+  }
+
+  @Override
+  public BackupOutput write(final ByteBuffer bytes) {
     output.write(bytes);
     return this;
   }

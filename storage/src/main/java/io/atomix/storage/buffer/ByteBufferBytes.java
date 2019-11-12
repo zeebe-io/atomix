@@ -123,7 +123,7 @@ public abstract class ByteBufferBytes extends AbstractBytes {
   @Override
   public Bytes read(final int offset, final ByteBuffer dst, final int dstOffset, final int length) {
     for (int i = 0; i < length; i++) {
-      dst.put(dstOffset + i, (byte)readByte(offset + i));
+      dst.put(dstOffset + i, (byte) readByte(offset + i));
     }
 
     return this;
