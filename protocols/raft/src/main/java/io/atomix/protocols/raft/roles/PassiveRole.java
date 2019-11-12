@@ -15,8 +15,6 @@
  */
 package io.atomix.protocols.raft.roles;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 import io.atomix.primitive.PrimitiveException;
 import io.atomix.protocols.raft.RaftError;
 import io.atomix.protocols.raft.RaftException;
@@ -57,8 +55,8 @@ import io.atomix.protocols.raft.storage.log.RaftLogReader;
 import io.atomix.protocols.raft.storage.log.RaftLogWriter;
 import io.atomix.protocols.raft.storage.log.entry.QueryEntry;
 import io.atomix.protocols.raft.storage.log.entry.RaftLogEntry;
+import io.atomix.protocols.raft.storage.snapshot.PendingSnapshot;
 import io.atomix.protocols.raft.storage.snapshot.Snapshot;
-import io.atomix.protocols.raft.storage.snapshot.SnapshotWriter;
 import io.atomix.storage.StorageException;
 import io.atomix.storage.journal.Indexed;
 import io.atomix.utils.time.WallClockTimestamp;
@@ -77,6 +75,14 @@ public class PassiveRole extends InactiveRole {
   @Override
   public CompletableFuture<RaftRole> start() {
     return super.start().thenRun(this::truncateUncommittedEntries).thenApply(v -> this);
+  }
+
+  @Override
+  public CompletableFuture<Void> stop() {
+    if (pendingSnapshot != null) {
+      pendingSnapshot.abort();
+    }
+    return super.stop();
   }
 
   /** Truncates uncommitted entries from the log. */
@@ -194,11 +200,7 @@ public class PassiveRole extends InactiveRole {
     logRequest(request);
     updateTermAndLeader(request.term(), request.leader());
 
-    log.debug(
-        "Received snapshot {} chunk {} from {}",
-        request.snapshotIndex(),
-        request.chunkOffset(),
-        request.leader());
+    log.debug("Received snapshot {} chunk from {}", request.snapshotIndex(), request.leader());
 
     // If the request is for a lesser term, reject the request.
     if (request.term() < raft.getTerm()) {
@@ -236,14 +238,15 @@ public class PassiveRole extends InactiveRole {
     // snapshot,
     // and so snapshots aren't simply sent at the beginning of the follower's log, but rather the
     // leader dictates when a snapshot needs to be sent.
-    if (pendingSnapshot != null && request.snapshotIndex() != pendingSnapshot.snapshot().index()) {
-      rollbackPendingSnapshot();
+    if (pendingSnapshot != null && request.snapshotIndex() != pendingSnapshot.index()) {
+      abortPendingSnapshot();
     }
 
     // If there is no pending snapshot, create a new snapshot.
     if (pendingSnapshot == null) {
-      // For new snapshots, the initial snapshot offset must be 0.
-      if (request.chunkOffset() > 0) {
+      // if we have no pending snapshot then the request must be the first chunk, otherwise we could
+      // receive an old request and end up in a strange state
+      if (!request.isInitial()) {
         return CompletableFuture.completedFuture(
             logResponse(
                 InstallResponse.builder()
@@ -253,49 +256,46 @@ public class PassiveRole extends InactiveRole {
                     .build()));
       }
 
-      final Snapshot snapshot =
+      pendingSnapshot =
           raft.getSnapshotStore()
-              .newSnapshot(
+              .newPendingSnapshot(
                   request.snapshotIndex(),
                   request.snapshotTerm(),
                   WallClockTimestamp.from(request.snapshotTimestamp()));
-      pendingSnapshot = new PendingSnapshot(snapshot);
     }
 
-    // If the request offset is greater than the next expected snapshot offset, fail the request.
-    if (request.chunkOffset() > pendingSnapshot.nextOffset()) {
+    // skip if we already have this chunk
+    if (pendingSnapshot.containsChunk(request.chunkId())) {
+      return CompletableFuture.completedFuture(
+          logResponse(InstallResponse.builder().withStatus(RaftResponse.Status.OK).build()));
+    }
+
+    // fail the request if this is not the expected next chunk
+    if (!pendingSnapshot.isExpectedChunk(request.chunkId())) {
       return CompletableFuture.completedFuture(
           logResponse(
               InstallResponse.builder()
                   .withStatus(RaftResponse.Status.ERROR)
                   .withError(
                       RaftError.Type.ILLEGAL_MEMBER_STATE,
-                      "Request chunk offset does not match the next chunk offset")
+                      "Request chunk is was received out of order")
                   .build()));
-    }
-    // If the request offset has already been written, return OK to skip to the next chunk.
-    else if (request.chunkOffset() < pendingSnapshot.nextOffset()) {
-      return CompletableFuture.completedFuture(
-          logResponse(InstallResponse.builder().withStatus(RaftResponse.Status.OK).build()));
     }
 
     // Write the data to the snapshot.
-    try (SnapshotWriter writer = pendingSnapshot.snapshot().openWriter()) {
-      writer.write(request.data());
-    }
+    pendingSnapshot.write(request.chunkId(), request.data());
 
     // If the snapshot is complete, store the snapshot and reset state, otherwise update the next
     // snapshot offset.
     if (request.complete()) {
-      final long index = pendingSnapshot.snapshot().index();
-      log.debug("Committing snapshot {}", index);
+      final long index = pendingSnapshot.index();
+      log.debug("Committing snapshot {}", pendingSnapshot);
       try {
         pendingSnapshot.commit();
+        pendingSnapshot = null;
       } catch (Exception e) {
-        log.error(
-            "Failed to commit pending snapshot {}, rolling back", pendingSnapshot.snapshot(), e);
-        rollbackPendingSnapshot();
-
+        log.error("Failed to commit pending snapshot {}, rolling back", pendingSnapshot, e);
+        abortPendingSnapshot();
         return CompletableFuture.completedFuture(
             logResponse(
                 InstallResponse.builder()
@@ -305,23 +305,18 @@ public class PassiveRole extends InactiveRole {
                     .build()));
       }
 
-      pendingSnapshot = null;
       // Throw away existing log if it is not up-to-date with the snapshot index.
       if (raft.getLogWriter().getLastIndex() < index) {
         raft.getLogWriter().reset(index + 1);
       }
     } else {
-      pendingSnapshot.incrementOffset();
+      // should probably handle the case where the leader did not mark the snapshot as complete but
+      // did not send a next chunk ID either
+      pendingSnapshot.setNextExpected(request.nextChunkId());
     }
 
     return CompletableFuture.completedFuture(
         logResponse(InstallResponse.builder().withStatus(RaftResponse.Status.OK).build()));
-  }
-
-  private void rollbackPendingSnapshot() {
-    log.debug("Rolling back snapshot {}", pendingSnapshot.snapshot().index());
-    pendingSnapshot.rollback();
-    pendingSnapshot = null;
   }
 
   @Override
@@ -505,6 +500,12 @@ public class PassiveRole extends InactiveRole {
     }
   }
 
+  private void abortPendingSnapshot() {
+    log.debug("Rolling back snapshot {}", pendingSnapshot);
+    pendingSnapshot.abort();
+    pendingSnapshot = null;
+  }
+
   /** Forwards the query to the leader. */
   private CompletableFuture<QueryResponse> queryForward(QueryRequest request) {
     if (raft.getLeader() == null) {
@@ -594,14 +595,6 @@ public class PassiveRole extends InactiveRole {
               .withError(RaftError.Type.PROTOCOL_ERROR, error.getMessage())
               .build());
     }
-  }
-
-  @Override
-  public CompletableFuture<Void> stop() {
-    if (pendingSnapshot != null) {
-      pendingSnapshot.rollback();
-    }
-    return super.stop();
   }
 
   /** Handles an AppendRequest. */
@@ -943,57 +936,5 @@ public class PassiveRole extends InactiveRole {
   /** Performs a local query. */
   protected CompletableFuture<QueryResponse> queryLocal(Indexed<QueryEntry> entry) {
     return applyQuery(entry);
-  }
-
-  /** Pending snapshot. */
-  private static class PendingSnapshot {
-
-    private final Snapshot snapshot;
-    private long nextOffset;
-
-    PendingSnapshot(Snapshot snapshot) {
-      this.snapshot = snapshot;
-    }
-
-    /**
-     * Returns the pending snapshot.
-     *
-     * @return the pending snapshot
-     */
-    public Snapshot snapshot() {
-      return snapshot;
-    }
-
-    /**
-     * Returns and increments the next snapshot offset.
-     *
-     * @return the next snapshot offset
-     */
-    public long nextOffset() {
-      return nextOffset;
-    }
-
-    /** Increments the next snapshot offset. */
-    public void incrementOffset() {
-      nextOffset++;
-    }
-
-    /** Commits the snapshot to disk. */
-    public void commit() {
-      snapshot.complete();
-    }
-
-    /** Closes the snapshot. */
-    public void rollback() {
-      snapshot.close();
-    }
-
-    @Override
-    public String toString() {
-      return toStringHelper(this)
-          .add("snapshot", snapshot)
-          .add("nextOffset", nextOffset)
-          .toString();
-    }
   }
 }

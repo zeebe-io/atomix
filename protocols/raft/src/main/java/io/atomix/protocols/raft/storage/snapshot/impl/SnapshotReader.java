@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
-package io.atomix.protocols.raft.storage.snapshot;
+package io.atomix.protocols.raft.storage.snapshot.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.atomix.protocols.raft.RaftServer;
-import io.atomix.protocols.raft.storage.snapshot.impl.DefaultSnapshot;
+import io.atomix.protocols.raft.storage.snapshot.Snapshot;
 import io.atomix.storage.StorageLevel;
 import io.atomix.storage.buffer.Buffer;
 import io.atomix.storage.buffer.BufferInput;

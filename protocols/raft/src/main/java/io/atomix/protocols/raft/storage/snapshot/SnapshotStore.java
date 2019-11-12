@@ -54,15 +54,6 @@ public interface SnapshotStore extends AutoCloseable {
    */
   Snapshot getSnapshot(long index);
 
-  /**
-   * Creates a new snapshot.
-   *
-   * @param index The snapshot index.
-   * @param timestamp The snapshot timestamp.
-   * @return The snapshot.
-   */
-  Snapshot newSnapshot(long index, long term, WallClockTimestamp timestamp);
-
   @Override
   void close();
 
@@ -88,4 +79,26 @@ public interface SnapshotStore extends AutoCloseable {
    * snapshot files into memory.
    */
   void delete();
+
+  /**
+   * Returns a new pending snapshot; this should be more or less like a snapshot, but is mainly used
+   * for replication, and is not valid until committed.
+   *
+   * @param index the snapshot index
+   * @param term the snapshot term
+   * @param timestamp the snapshot timestamp
+   * @return the new pending snapshot
+   */
+  PendingSnapshot newPendingSnapshot(long index, long term, WallClockTimestamp timestamp);
+
+  /**
+   * Creates a new snapshot.
+   *
+   * @param index The snapshot index.
+   * @param timestamp The snapshot timestamp.
+   * @return The snapshot.
+   * @deprecated used by the old implementation
+   */
+  @Deprecated
+  Snapshot newSnapshot(long index, long term, WallClockTimestamp timestamp);
 }

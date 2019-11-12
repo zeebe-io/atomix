@@ -20,9 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import io.atomix.protocols.raft.storage.snapshot.Snapshot;
-import io.atomix.protocols.raft.storage.snapshot.SnapshotReader;
-import io.atomix.protocols.raft.storage.snapshot.SnapshotWriter;
-import io.atomix.protocols.raft.storage.snapshot.Snapshottable;
+import io.atomix.protocols.raft.storage.snapshot.SnapshotChunkReader;
 import io.atomix.utils.time.WallClockTimestamp;
 import java.util.Objects;
 
@@ -97,30 +95,6 @@ public abstract class DefaultSnapshot implements Snapshot {
   }
 
   /**
-   * Completes writing the snapshot to persist it and make it available for reads.
-   *
-   * <p>Snapshot writers must call this method to persist a snapshot to disk. Prior to completing a
-   * snapshot, failure and recovery of the parent {@link DefaultSnapshotStore} will not result in
-   * recovery of this snapshot. Additionally, no {@link #openReader() readers} can be created until
-   * the snapshot has been completed.
-   *
-   * @return The completed snapshot.
-   */
-  @Override
-  public Snapshot complete() {
-    store.completeSnapshot(this);
-    return this;
-  }
-
-  /** Closes the snapshot. */
-  @Override
-  public void close() {}
-
-  /** Deletes the snapshot. */
-  @Override
-  public void delete() {}
-
-  /**
    * Returns the snapshot index.
    *
    * <p>The snapshot index is the index of the state machine at the point at which the snapshot was
@@ -145,6 +119,35 @@ public abstract class DefaultSnapshot implements Snapshot {
   public long term() {
     return descriptor.term();
   }
+
+  @Override
+  public SnapshotChunkReader newChunkReader() {
+    return new DefaultSnapshotChunkReader(openReader());
+  }
+
+  /**
+   * Completes writing the snapshot to persist it and make it available for reads.
+   *
+   * <p>Snapshot writers must call this method to persist a snapshot to disk. Prior to completing a
+   * snapshot, failure and recovery of the parent {@link DefaultSnapshotStore} will not result in
+   * recovery of this snapshot. Additionally, no {@link #openReader() readers} can be created until
+   * the snapshot has been completed.
+   *
+   * @return The completed snapshot.
+   */
+  @Override
+  public Snapshot complete() {
+    store.completeSnapshot(this);
+    return this;
+  }
+
+  /** Closes the snapshot. */
+  @Override
+  public void close() {}
+
+  /** Deletes the snapshot. */
+  @Override
+  public void delete() {}
 
   /** Closes the current snapshot reader. */
   @Override

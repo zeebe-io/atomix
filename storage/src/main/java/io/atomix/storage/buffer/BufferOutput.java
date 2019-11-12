@@ -45,7 +45,24 @@ public interface BufferOutput<T extends BufferOutput<?>> extends AutoCloseable {
    */
   T write(byte[] bytes);
 
+  /**
+   * Writes bytes to the buffer.
+   * @param bytes the bytes to write
+   * @return the written buffer
+   */
   T write(ByteBuffer bytes);
+
+  /**
+   * Writes the given bytes at offset {@code offset} up to a given {@code length}.
+   *
+   * Note that this should NOT mutate the given {@link ByteBuffer}.
+   *
+   * @param source the bytes to write
+   * @param offset the offset in the destination buffer to write to
+   * @param length the maximum number of bytes to write from
+   * @return the written buffer
+   */
+  T write(int offset, ByteBuffer source, int srcOffset, int length);
 
   /**
    * Writes an array of bytes to the buffer.

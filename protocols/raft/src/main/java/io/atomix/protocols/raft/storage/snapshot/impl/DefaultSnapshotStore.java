@@ -18,6 +18,7 @@ package io.atomix.protocols.raft.storage.snapshot.impl;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.atomix.protocols.raft.storage.RaftStorage;
+import io.atomix.protocols.raft.storage.snapshot.PendingSnapshot;
 import io.atomix.protocols.raft.storage.snapshot.Snapshot;
 import io.atomix.protocols.raft.storage.snapshot.SnapshotStore;
 import io.atomix.storage.StorageLevel;
@@ -224,6 +225,12 @@ public class DefaultSnapshotStore implements SnapshotStore {
     final Snapshot snapshot = new FileSnapshot(file, descriptor, this);
     log.debug("Created disk snapshot: {}", snapshot);
     return snapshot;
+  }
+
+  @Override
+  public PendingSnapshot newPendingSnapshot(
+      final long index, final long term, final WallClockTimestamp timestamp) {
+    return new DefaultPendingSnapshot(newSnapshot(index, term, timestamp));
   }
 
   @Override
