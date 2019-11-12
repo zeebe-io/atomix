@@ -24,7 +24,7 @@ public class RaftServiceMetrics extends RaftMetrics {
           .namespace("atomix")
           .name("snapshot_time_ms")
           .help("Time spend to take a snapshot")
-          .labelNames("partition")
+          .labelNames("partitionGroupName", "partition")
           .register();
 
   private static final Histogram COMPACTION_TIME =
@@ -32,7 +32,7 @@ public class RaftServiceMetrics extends RaftMetrics {
           .namespace("atomix")
           .name("compaction_time_ms")
           .help("Time spend to compact")
-          .labelNames("partition")
+          .labelNames("partitionGroupName", "partition")
           .register();
 
   public RaftServiceMetrics(String partitionName) {
@@ -41,10 +41,10 @@ public class RaftServiceMetrics extends RaftMetrics {
 
   public void snapshotTime(long latencyms) {
     // Historgram class expect seconds not milliseconds, for that we need to divied by 1000
-    SNAPSHOTING_TIME.labels(partition).observe(latencyms / 1000f);
+    SNAPSHOTING_TIME.labels(partitionGroupName, partition).observe(latencyms / 1000f);
   }
 
   public void compactionTime(long latencyms) {
-    COMPACTION_TIME.labels(partition).observe(latencyms / 1000f);
+    COMPACTION_TIME.labels(partitionGroupName, partition).observe(latencyms / 1000f);
   }
 }
