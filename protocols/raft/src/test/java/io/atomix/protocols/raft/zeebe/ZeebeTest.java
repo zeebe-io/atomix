@@ -15,6 +15,7 @@
  */
 package io.atomix.protocols.raft.zeebe;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
@@ -84,14 +85,14 @@ public class ZeebeTest {
         });
   }
 
-  private static Function<TemporaryFolder, ZeebeTestNode> provideNode(int id) {
+  private static Function<TemporaryFolder, ZeebeTestNode> provideNode(final int id) {
     return tmp -> new ZeebeTestNode(id, newFolderUnchecked(tmp, id));
   }
 
-  private static File newFolderUnchecked(TemporaryFolder tmp, int id) {
+  private static File newFolderUnchecked(final TemporaryFolder tmp, final int id) {
     try {
       return tmp.newFolder(String.valueOf(id));
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new UncheckedIOException(e);
     }
   }
@@ -144,7 +145,7 @@ public class ZeebeTest {
     helper.awaitAllContain(partitionId, appended);
   }
 
-  private ByteBuffer getIntAsBytes(int value) {
+  private ByteBuffer getIntAsBytes(final int value) {
     final ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
     buffer.putInt(value).flip();
 
@@ -198,13 +199,17 @@ public class ZeebeTest {
     // given
     final int partitionId = 1;
     final ZeebeTestNode originalLeader = helper.awaitLeader(partitionId);
+    final Collection<ZeebeTestNode> followers = new ArrayList<>(nodes);
+    followers.remove(originalLeader);
 
     // when
     originalLeader.stop().join();
+    final ZeebeTestNode newLeader = helper.awaitLeader(partitionId, followers);
     originalLeader.start(nodes).join();
 
     // then
     assertNotEquals(originalLeader, helper.awaitLeader(partitionId));
+    assertEquals(newLeader, helper.awaitLeader(partitionId));
   }
 
   @SuppressWarnings("squid:S2699") // awaitAllContain is the assert here
@@ -233,7 +238,7 @@ public class ZeebeTest {
     }
 
     // then
-    for (Indexed<ZeebeEntry> entry : entries) {
+    for (final Indexed<ZeebeEntry> entry : entries) {
       helper.awaitAllContain(partitionId, entry);
     }
   }
@@ -260,7 +265,7 @@ public class ZeebeTest {
       final int expectedCount = i + 1;
       helper.awaitAllContains(nodes, partitionId, entry);
 
-      for (ZeebeTestNode node : nodes) {
+      for (final ZeebeTestNode node : nodes) {
         final CommitListener listener = listeners.get(node);
         // it may take a little bit before the listener is called as this is done
         // asynchronously
@@ -276,7 +281,7 @@ public class ZeebeTest {
     private final AtomicInteger calledCount = new AtomicInteger(0);
 
     @Override
-    public <T extends RaftLogEntry> void onCommit(Indexed<T> entry) {
+    public <T extends RaftLogEntry> void onCommit(final Indexed<T> entry) {
       if (entry.type() == ZeebeEntry.class) {
         lastCommitted.set(entry.cast());
         calledCount.incrementAndGet();

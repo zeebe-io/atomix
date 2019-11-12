@@ -28,7 +28,7 @@ public interface ZeebeLogAppender {
    * @param lowestPosition lowest record position in the data buffer
    * @param highestPosition highest record position in the data buffer
    * @param data data to store in the entry
-   * @return a future which is completed with the indexed entry without waiting for replication
+   * @return a future which is completed with the indexed entry is committed
    */
   CompletableFuture<Indexed<ZeebeEntry>> appendEntry(
       long lowestPosition, long highestPosition, ByteBuffer data);

@@ -15,6 +15,7 @@
  */
 package io.atomix.protocols.raft.partition;
 
+import com.esotericsoftware.kryo.serializers.FieldSerializer.Optional;
 import io.atomix.primitive.partition.PartitionGroup;
 import io.atomix.primitive.partition.PartitionGroupConfig;
 import io.atomix.protocols.raft.RaftStateMachineFactory;
@@ -39,6 +40,14 @@ public class RaftPartitionGroupConfig extends PartitionGroupConfig<RaftPartition
   private RaftStorageConfig storageConfig = new RaftStorageConfig();
   private RaftCompactionConfig compactionConfig = new RaftCompactionConfig();
 
+  // IMPORTANT: do not remove the Optional annotation, as the config is serialized through Kryo and
+  // definitely does NOT know how to serialize random interfaces; a serialized configuration is used
+  // by a node when bootstrapping itself if it receives a partition group from a remote node that it
+  // was not aware of. The annotation tells Kryo to ignore this field unless a specific serializer
+  // is configured for the given key
+  @Optional("RaftStateMachineFactory")
+  private RaftStateMachineFactory stateMachineFactory = RaftServiceManager::new;
+
   /**
    * Returns the compaction configuration.
    *
@@ -46,6 +55,17 @@ public class RaftPartitionGroupConfig extends PartitionGroupConfig<RaftPartition
    */
   public RaftCompactionConfig getCompactionConfig() {
     return compactionConfig;
+  }
+
+  /**
+   * Sets the compaction configuration.
+   *
+   * @param compactionConfig the compaction configuration
+   * @return the Raft partition group configuration
+   */
+  public RaftPartitionGroupConfig setCompactionConfig(final RaftCompactionConfig compactionConfig) {
+    this.compactionConfig = compactionConfig;
+    return this;
   }
 
   @Override
@@ -63,12 +83,34 @@ public class RaftPartitionGroupConfig extends PartitionGroupConfig<RaftPartition
   }
 
   /**
+   * Sets the default session timeout.
+   *
+   * @param defaultSessionTimeout the default session timeout
+   * @return the Raft partition group configuration
+   */
+  public RaftPartitionGroupConfig setDefaultSessionTimeout(final Duration defaultSessionTimeout) {
+    this.defaultSessionTimeout = defaultSessionTimeout;
+    return this;
+  }
+
+  /**
    * Returns the Raft leader election timeout.
    *
    * @return the Raft leader election timeout
    */
   public Duration getElectionTimeout() {
     return electionTimeout;
+  }
+
+  /**
+   * Sets the leader election timeout.
+   *
+   * @param electionTimeout the leader election timeout
+   * @return the Raft partition group configuration
+   */
+  public RaftPartitionGroupConfig setElectionTimeout(final Duration electionTimeout) {
+    this.electionTimeout = electionTimeout;
+    return this;
   }
 
   /**
@@ -81,12 +123,34 @@ public class RaftPartitionGroupConfig extends PartitionGroupConfig<RaftPartition
   }
 
   /**
+   * Sets the heartbeat interval.
+   *
+   * @param heartbeatInterval the heartbeat interval
+   * @return the Raft partition group configuration
+   */
+  public RaftPartitionGroupConfig setHeartbeatInterval(final Duration heartbeatInterval) {
+    this.heartbeatInterval = heartbeatInterval;
+    return this;
+  }
+
+  /**
    * Returns the set of members in the partition group.
    *
    * @return the set of members in the partition group
    */
   public Set<String> getMembers() {
     return members;
+  }
+
+  /**
+   * Sets the set of members in the partition group.
+   *
+   * @param members the set of members in the partition group
+   * @return the Raft partition group configuration
+   */
+  public RaftPartitionGroupConfig setMembers(final Set<String> members) {
+    this.members = members;
+    return this;
   }
 
   /**
@@ -99,12 +163,35 @@ public class RaftPartitionGroupConfig extends PartitionGroupConfig<RaftPartition
   }
 
   /**
+   * Sets the partition size.
+   *
+   * @param partitionSize the partition size
+   * @return the Raft partition group configuration
+   */
+  public RaftPartitionGroupConfig setPartitionSize(final int partitionSize) {
+    this.partitionSize = partitionSize;
+    return this;
+  }
+
+  /**
    * Returns the raft state machine factory.
    *
    * @return the raft state machine factory
    */
   public RaftStateMachineFactory getStateMachineFactory() {
-    return RaftServiceManager::new;
+    return stateMachineFactory;
+  }
+
+  /**
+   * Sets the state machine factory.
+   *
+   * @param stateMachineFactory the new state machine factory
+   * @return the Raft partition group configuration
+   */
+  public RaftPartitionGroupConfig setStateMachineFactory(
+      final RaftStateMachineFactory stateMachineFactory) {
+    this.stateMachineFactory = stateMachineFactory;
+    return this;
   }
 
   /**
@@ -116,85 +203,19 @@ public class RaftPartitionGroupConfig extends PartitionGroupConfig<RaftPartition
     return storageConfig;
   }
 
-  @Override
-  public PartitionGroup.Type getType() {
-    return RaftPartitionGroup.TYPE;
-  }
-
-  /**
-   * Sets the compaction configuration.
-   *
-   * @param compactionConfig the compaction configuration
-   * @return the Raft partition group configuration
-   */
-  public RaftPartitionGroupConfig setCompactionConfig(RaftCompactionConfig compactionConfig) {
-    this.compactionConfig = compactionConfig;
-    return this;
-  }
-
-  /**
-   * Sets the default session timeout.
-   *
-   * @param defaultSessionTimeout the default session timeout
-   * @return the Raft partition group configuration
-   */
-  public RaftPartitionGroupConfig setDefaultSessionTimeout(Duration defaultSessionTimeout) {
-    this.defaultSessionTimeout = defaultSessionTimeout;
-    return this;
-  }
-
-  /**
-   * Sets the leader election timeout.
-   *
-   * @param electionTimeout the leader election timeout
-   * @return the Raft partition group configuration
-   */
-  public RaftPartitionGroupConfig setElectionTimeout(Duration electionTimeout) {
-    this.electionTimeout = electionTimeout;
-    return this;
-  }
-
-  /**
-   * Sets the heartbeat interval.
-   *
-   * @param heartbeatInterval the heartbeat interval
-   * @return the Raft partition group configuration
-   */
-  public RaftPartitionGroupConfig setHeartbeatInterval(Duration heartbeatInterval) {
-    this.heartbeatInterval = heartbeatInterval;
-    return this;
-  }
-
-  /**
-   * Sets the set of members in the partition group.
-   *
-   * @param members the set of members in the partition group
-   * @return the Raft partition group configuration
-   */
-  public RaftPartitionGroupConfig setMembers(Set<String> members) {
-    this.members = members;
-    return this;
-  }
-
-  /**
-   * Sets the partition size.
-   *
-   * @param partitionSize the partition size
-   * @return the Raft partition group configuration
-   */
-  public RaftPartitionGroupConfig setPartitionSize(int partitionSize) {
-    this.partitionSize = partitionSize;
-    return this;
-  }
-
   /**
    * Sets the storage configuration.
    *
    * @param storageConfig the storage configuration
    * @return the Raft partition group configuration
    */
-  public RaftPartitionGroupConfig setStorageConfig(RaftStorageConfig storageConfig) {
+  public RaftPartitionGroupConfig setStorageConfig(final RaftStorageConfig storageConfig) {
     this.storageConfig = storageConfig;
     return this;
+  }
+
+  @Override
+  public PartitionGroup.Type getType() {
+    return RaftPartitionGroup.TYPE;
   }
 }

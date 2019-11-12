@@ -1444,14 +1444,14 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
               if (error != null) {
                 result.completeExceptionally(Throwables.getRootCause(error));
               } else {
-                result.complete(indexed);
-                replicate(indexed);
+                replicate(indexed, result);
               }
             },
             raft.getThreadContext());
   }
 
-  private void replicate(Indexed<ZeebeEntry> indexed) {
+  private void replicate(
+      Indexed<ZeebeEntry> indexed, CompletableFuture<Indexed<ZeebeEntry>> result) {
     raft.checkThread();
     appender
         .appendEntries(indexed.index())
@@ -1465,10 +1465,12 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
               // up to date with the latest entries so it can handle configuration and initial
               // entries properly on fail over
               if (commitError == null) {
+                result.complete(indexed);
                 raft.getServiceManager().apply(indexed.index());
               } else {
                 // replicating the entry will be retried on the next append request
                 log.error("Failed to replicate entry: {}", indexed, commitError);
+                result.completeExceptionally(commitError);
               }
             },
             raft.getThreadContext());
