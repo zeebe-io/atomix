@@ -162,4 +162,9 @@ public class ZeebeTestNode {
   public AtomixCluster getCluster() {
     return cluster;
   }
+
+  @Override
+  public String toString() {
+    return "ZeebeTestNode{" + "member=" + member + '}';
+  }
 }

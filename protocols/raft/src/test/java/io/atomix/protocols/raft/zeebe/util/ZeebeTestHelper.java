@@ -39,44 +39,57 @@ public class ZeebeTestHelper {
   private static final long DEFAULT_TIMEOUT_MS = 10_000;
   private final Collection<ZeebeTestNode> nodes;
 
-  public ZeebeTestHelper(Collection<ZeebeTestNode> nodes) {
+  public ZeebeTestHelper(final Collection<ZeebeTestNode> nodes) {
     this.nodes = nodes;
   }
 
-  public ZeebeLogAppender awaitLeaderAppender(int partitionId) {
+  public ZeebeLogAppender awaitLeaderAppender(final int partitionId) {
     final RaftPartitionServer server = awaitLeaderServer(partitionId);
     return await(server::getAppender);
   }
 
-  public RaftPartitionServer awaitLeaderServer(int partitionId) {
+  public RaftPartitionServer awaitLeaderServer(final int partitionId) {
     return awaitLeader(partitionId).getPartitionServer(partitionId);
   }
 
-  public ZeebeTestNode awaitLeader(int partitionId) {
+  public ZeebeTestNode awaitLeader(final int partitionId) {
     return await(() -> getLeader(partitionId));
   }
 
-  public Optional<ZeebeTestNode> getLeader(int partitionId) {
+  public ZeebeTestNode awaitLeader(final int partitionId, final Collection<ZeebeTestNode> nodes) {
+    return await(() -> getLeader(partitionId, nodes));
+  }
+
+  public Optional<ZeebeTestNode> getLeader(final int partitionId) {
+    return getLeader(partitionId, nodes);
+  }
+
+  public Optional<ZeebeTestNode> getLeader(
+      final int partitionId, final Collection<ZeebeTestNode> nodes) {
     return nodes.stream()
         .filter(n -> n.getPartition(partitionId).getRole() == Role.LEADER)
         .findFirst();
   }
 
-  public void awaitAllContain(int partitionId, Indexed<ZeebeEntry> indexed) {
+  public void awaitAllContain(final int partitionId, final Indexed<ZeebeEntry> indexed) {
     awaitAllContains(nodes, partitionId, indexed);
   }
 
   public void awaitAllContains(
-      Collection<ZeebeTestNode> nodes, int partitionId, Indexed<ZeebeEntry> indexed) {
+      final Collection<ZeebeTestNode> nodes,
+      final int partitionId,
+      final Indexed<ZeebeEntry> indexed) {
     await(() -> nodes.stream().allMatch(node -> containsIndexed(node, partitionId, indexed)));
   }
 
-  public boolean containsIndexed(ZeebeTestNode node, int partitionId, Indexed<ZeebeEntry> indexed) {
+  public boolean containsIndexed(
+      final ZeebeTestNode node, final int partitionId, final Indexed<ZeebeEntry> indexed) {
     final RaftPartitionServer partition = node.getPartitionServer(partitionId);
     return containsIndexed(partition, indexed);
   }
 
-  public boolean containsIndexed(RaftPartitionServer partition, Indexed<ZeebeEntry> indexed) {
+  public boolean containsIndexed(
+      final RaftPartitionServer partition, final Indexed<ZeebeEntry> indexed) {
     try (RaftLogReader reader = partition.openReader(indexed.index(), Mode.COMMITS)) {
 
       if (reader.hasNext() && reader.getNextIndex() == indexed.index()) {
@@ -87,12 +100,13 @@ public class ZeebeTestHelper {
     return false;
   }
 
-  public boolean isEntryEqualTo(Indexed<ZeebeEntry> indexed, Indexed<ZeebeEntry> other) {
+  public boolean isEntryEqualTo(
+      final Indexed<ZeebeEntry> indexed, final Indexed<ZeebeEntry> other) {
     return indexed.entry().term() == other.entry().term()
         && indexed.entry().data().equals(other.entry().data());
   }
 
-  public void await(BooleanSupplier predicate) {
+  public void await(final BooleanSupplier predicate) {
     final long tries = Duration.ofMillis(DEFAULT_TIMEOUT_MS).toNanos() / 100;
     boolean result = predicate.getAsBoolean();
     for (long i = 0; i < tries && !result; i++) {
@@ -103,17 +117,18 @@ public class ZeebeTestHelper {
     assertTrue(result);
   }
 
-  public void awaitContains(ZeebeTestNode node, int partitionId, Indexed<ZeebeEntry> indexed) {
+  public void awaitContains(
+      final ZeebeTestNode node, final int partitionId, final Indexed<ZeebeEntry> indexed) {
     await(() -> containsIndexed(node, partitionId, indexed));
   }
 
-  public <T> T await(Supplier<Optional<T>> supplier) {
+  public <T> T await(final Supplier<Optional<T>> supplier) {
     await(supplier, Optional::isPresent);
     final Optional<T> result = supplier.get();
     return result.get();
   }
 
-  public <T> T await(Supplier<T> supplier, Predicate<T> condition) {
+  public <T> T await(final Supplier<T> supplier, final Predicate<T> condition) {
     await(() -> condition.test(supplier.get()));
     return supplier.get();
   }

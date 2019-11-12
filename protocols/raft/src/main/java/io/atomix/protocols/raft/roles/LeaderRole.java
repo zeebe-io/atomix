@@ -1450,7 +1450,8 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
             raft.getThreadContext());
   }
 
-  private void replicate(Indexed<ZeebeEntry> indexed, CompletableFuture<Indexed<ZeebeEntry>> result) {
+  private void replicate(
+      Indexed<ZeebeEntry> indexed, CompletableFuture<Indexed<ZeebeEntry>> result) {
     raft.checkThread();
     appender
         .appendEntries(indexed.index())
