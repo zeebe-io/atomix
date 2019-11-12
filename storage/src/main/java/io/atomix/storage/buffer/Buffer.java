@@ -16,7 +16,7 @@
 package io.atomix.storage.buffer;
 
 import io.atomix.utils.concurrent.ReferenceCounted;
-
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
@@ -908,6 +908,44 @@ public interface Buffer extends BytesInput<Buffer>, BufferInput<Buffer>, BytesOu
    */
   @Override
   Buffer write(byte[] bytes);
+
+  /**
+   * Writes the remaining bytes of the given buffer into this buffer, from the given buffer's {@link
+   * ByteBuffer#position()} to its {@link ByteBuffer#limit()}
+   *
+   * <p>When the bytes are written to the buffer, the buffer's {@code position} will be advanced by
+   * the number of bytes in the provided byte array. If the number of bytes exceeds {@link
+   * Buffer#limit()} then an {@link java.nio.BufferOverflowException} will be thrown.
+   *
+   * @param bytes the bytes to write
+   * @return the written buffer.
+   * @throws java.nio.BufferOverflowException if the number of bytes exceeds the buffer's remaining
+   *     bytes.
+   * @see Buffer#write(int, ByteBuffer, int, int)
+   */
+  Buffer write(ByteBuffer bytes);
+
+  /**
+   * Writes the {@code length} bytes from the {@code src}, starting at {@code srcOffset} into this
+   * buffer.
+   *
+   * <p>The bytes will be written starting at the given offset up to the given length. If the
+   * remaining bytes in the buffer is larger than the provided {@code length} then only {@code
+   * length} bytes will be read from the array. If the provided {@code length} is greater than
+   * {@link Buffer#limit()} minus {@code offset} then a {@link java.nio.BufferOverflowException}
+   * will be thrown.
+   *
+   * @param offset The offset at which to start writing the bytes.
+   * @param src The source buffer to write.
+   * @param srcOffset The offset at which to begin reading bytes from the source.
+   * @param length The number of bytes from the provided byte array to write to the buffer.
+   * @return The written buffer.
+   * @throws java.nio.BufferOverflowException If there are not enough bytes remaining in the buffer.
+   * @throws IndexOutOfBoundsException If the given offset is out of the bounds of the buffer.
+   * @see Buffer#write(ByteBuffer)
+   */
+  @Override
+  Buffer write(int offset, ByteBuffer src, int srcOffset, int length);
 
   /**
    * Writes an array of bytes to the buffer.

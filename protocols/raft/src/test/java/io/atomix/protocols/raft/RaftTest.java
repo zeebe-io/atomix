@@ -1525,8 +1525,7 @@ public class RaftTest extends ConcurrentTestCase {
     final RaftServer server = createServer(members.get(0).memberId());
     server.join(memberIds).get(15_000, TimeUnit.MILLISECONDS);
 
-    final SnapshotStore snapshotStore =
-        server.getContext().getStorage().getSnapshotStore();
+    final SnapshotStore snapshotStore = server.getContext().getStorage().getSnapshotStore();
 
     waitUntil(() -> snapshotStore.getCurrentSnapshot() != null, 100);
 

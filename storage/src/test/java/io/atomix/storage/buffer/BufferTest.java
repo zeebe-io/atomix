@@ -15,6 +15,7 @@
  */
 package io.atomix.storage.buffer;
 
+import java.nio.ByteBuffer;
 import org.junit.Test;
 
 import java.nio.BufferOverflowException;
@@ -671,4 +672,121 @@ public abstract class BufferTest {
     assertEquals(10, buffer.readLong(0));
   }
 
+  @Test
+  public void shouldWriteByteBuffer() {
+    // given
+    final Buffer dest = createBuffer(0, 1024);
+    final ByteBuffer src = ByteBuffer.allocateDirect(2 * Long.BYTES);
+    src.putLong(1L).putLong(Long.BYTES, 2L);
+
+    // when
+    dest.write(src);
+
+    // then
+    // check that we wrote that we expect
+    assertEquals(2L, dest.readLong(0));
+    // the destination buffer's position has been updated
+    assertEquals(Long.BYTES, dest.position());
+    // the source buffer's position remains unchanged
+    assertEquals(Long.BYTES, src.position());
+  }
+
+  @Test(expected = BufferOverflowException.class)
+  public void shouldFailByteBufferIfCapacityTooLow() {
+    // given
+    final Buffer dest = createBuffer(0, Integer.BYTES).limit(Integer.BYTES);
+    final ByteBuffer src = ByteBuffer.allocateDirect(Long.BYTES);
+    src.putLong(0, 1L);
+
+    // when - then: will throw an exception
+    dest.write(src);
+  }
+
+  @Test
+  public void shouldWritePartialByteBuffer() {
+    // given
+    final Buffer dest = createBuffer(0, 1024).zero();
+    final ByteBuffer src = ByteBuffer.allocateDirect(3 * Long.BYTES);
+    src.putLong(1L).putLong(2L).putLong(3L);
+
+    // when
+    dest.write(Long.BYTES, src, Long.BYTES, 2 * Long.BYTES);
+
+    // then
+    // check that we wrote that we expect
+    assertEquals(0L, dest.readLong(0));
+    assertEquals(2L, dest.readLong(Long.BYTES));
+    assertEquals(3L, dest.readLong(2 * Long.BYTES));
+
+    // the destination buffer's position has NOT been updated
+    assertEquals(0, dest.position());
+    // the source buffer's position remains unchanged
+    assertEquals(3 * Long.BYTES, src.position());
+  }
+
+  @Test(expected = BufferOverflowException.class)
+  public void shouldFailPartialByteBufferIfCapacityTooLow() {
+    // given
+    final Buffer dest = createBuffer(0, Long.BYTES).limit(Long.BYTES);
+    final ByteBuffer src = ByteBuffer.allocateDirect(3 * Long.BYTES);
+    src.putLong(1L).putLong(2L).putLong(3L);
+
+    // when - then: will throw an exception
+    dest.write(Long.BYTES, src, Long.BYTES, 2 * Long.BYTES);
+  }
+
+  @Test(expected = IndexOutOfBoundsException.class)
+  public void shouldFailPartialByteBufferIfBufferTooSmall() {
+    // given
+    final Buffer dest = createBuffer(0, 2 * Long.BYTES);
+    final ByteBuffer src = ByteBuffer.allocateDirect(Long.BYTES);
+    src.putLong(1L);
+
+    // when - then: will throw an exception
+    dest.write(0, src, 0, 2 * Long.BYTES);
+  }
+
+  @Test
+  public void shouldReadByteBuffer() {
+    // given
+    final Buffer src = createBuffer(0, 1024).zero();
+    final ByteBuffer dest = ByteBuffer.allocateDirect(2 * Long.BYTES);
+    src.writeLong(1L).writeLong(2L).writeLong(3L);
+    dest.position(Long.BYTES);
+
+    // when
+    src.position(Long.BYTES).read(dest);
+
+    // then
+    // check that we wrote that we expect
+    assertEquals(0L, dest.getLong(0));
+    assertEquals(2L, dest.getLong(Long.BYTES));
+
+    // the destination buffer's position has not been updated
+    assertEquals(Long.BYTES, dest.position());
+    // the source buffer's position has been updated by the amount of bytes read
+    assertEquals(2 * Long.BYTES, src.position());
+  }
+
+  @Test
+  public void shouldReadPartialByteBuffer() {
+    // given
+    final Buffer src = createBuffer(0, 1024).zero();
+    final ByteBuffer dest = ByteBuffer.allocateDirect(2 * Long.BYTES);
+    src.writeLong(1L).writeLong(2L).writeLong(3L);
+    dest.position(Long.BYTES);
+
+    // when
+    src.position(Long.BYTES).read(Long.BYTES, dest, Long.BYTES, Long.BYTES);
+
+    // then
+    // check that we wrote that we expect
+    assertEquals(0L, dest.getLong(0));
+    assertEquals(2L, dest.getLong(Long.BYTES));
+
+    // the destination buffer's position has not been updated
+    assertEquals(Long.BYTES, dest.position());
+    // the source buffer's position remains unchanged
+    assertEquals(Long.BYTES, src.position());
+  }
 }

@@ -15,6 +15,7 @@
  */
 package io.atomix.storage.buffer;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
 /**
@@ -71,6 +72,17 @@ public interface BytesOutput<T extends BytesOutput<T>> {
    * @return The written buffer.
    */
   T write(int offset, byte[] src, int srcOffset, int length);
+
+  /**
+   * Writes an array of bytes to the buffer.
+   *
+   * @param offset    The offset at which to start writing the bytes.
+   * @param src       The byte buffer to write.
+   * @param srcOffset The offset at which to start reading bytes from the given source.
+   * @param length    The number of bytes from the provided byte array to write to the buffer.
+   * @return The written buffer.
+   */
+  T write(int offset, ByteBuffer src, int srcOffset, int length);
 
   /**
    * Writes a byte to the buffer at the given offset.

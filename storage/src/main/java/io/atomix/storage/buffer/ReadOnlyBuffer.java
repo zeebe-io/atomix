@@ -16,7 +16,7 @@
 package io.atomix.storage.buffer;
 
 import io.atomix.utils.concurrent.ReferenceManager;
-
+import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
 
 /**
@@ -119,12 +119,23 @@ public class ReadOnlyBuffer extends AbstractBuffer {
   }
 
   @Override
+  public Buffer write(ByteBuffer src) {
+    throw new ReadOnlyBufferException();
+  }
+
+  @Override
   public Buffer write(byte[] bytes, int offset, int length) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
   public Buffer write(int offset, byte[] bytes, int srcOffset, int length) {
+    throw new ReadOnlyBufferException();
+  }
+
+  @Override
+  public Buffer write(
+      final int offset, final ByteBuffer src, final int srcOffset, final int length) {
     throw new ReadOnlyBufferException();
   }
 

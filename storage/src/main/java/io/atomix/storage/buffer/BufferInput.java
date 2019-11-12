@@ -15,14 +15,16 @@
  */
 package io.atomix.storage.buffer;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.function.Function;
 
 /**
  * Readable buffer.
- * <p>
- * This interface exposes methods for reading from a byte buffer. Readable buffers maintain a small amount of state
- * regarding current cursor positions and limits similar to the behavior of {@link java.nio.ByteBuffer}.
+ *
+ * <p>This interface exposes methods for reading from a byte buffer. Readable buffers maintain a
+ * small amount of state regarding current cursor positions and limits similar to the behavior of
+ * {@link java.nio.ByteBuffer}.
  *
  * @author <a href="http://github.com/kuujo">Jordan Halterman</a>
  */
@@ -30,9 +32,10 @@ public interface BufferInput<T extends BufferInput<?>> extends AutoCloseable {
 
   /**
    * Returns the buffer's current read/write position.
-   * <p>
-   * The position is an internal cursor that tracks where to write/read bytes in the underlying storage implementation.
-   * As bytes are written to or read from the buffer, the position will advance based on the number of bytes read.
+   *
+   * <p>The position is an internal cursor that tracks where to write/read bytes in the underlying
+   * storage implementation. As bytes are written to or read from the buffer, the position will
+   * advance based on the number of bytes read.
    *
    * @return The buffer's current position.
    */
@@ -79,7 +82,7 @@ public interface BufferInput<T extends BufferInput<?>> extends AutoCloseable {
   /**
    * Reads bytes into the given byte array starting at the current position.
    *
-   * @param bytes  The byte array into which to read bytes.
+   * @param bytes The byte array into which to read bytes.
    * @param offset The offset at which to write bytes into the given buffer
    * @return The buffer.
    */
@@ -88,7 +91,7 @@ public interface BufferInput<T extends BufferInput<?>> extends AutoCloseable {
   /**
    * Reads bytes into the given byte array starting at current position up to the given length.
    *
-   * @param bytes  The byte array into which to read bytes.
+   * @param bytes The byte array into which to read bytes.
    * @param offset The offset at which to write bytes into the given buffer
    * @return The buffer.
    */
@@ -101,6 +104,15 @@ public interface BufferInput<T extends BufferInput<?>> extends AutoCloseable {
    * @return The buffer.
    */
   T read(Buffer buffer);
+
+  /**
+   * Reads bytes into the given buffer; it will start writing at the current position and will
+   * advance the position, mutating this buffer.
+   *
+   * @param buffer the destination buffer
+   * @return the buffer input
+   */
+  T read(ByteBuffer buffer);
 
   /**
    * Reads an object from the buffer.
@@ -241,5 +253,4 @@ public interface BufferInput<T extends BufferInput<?>> extends AutoCloseable {
 
   @Override
   void close();
-
 }

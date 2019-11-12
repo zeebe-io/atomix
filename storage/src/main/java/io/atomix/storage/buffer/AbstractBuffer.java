@@ -20,6 +20,7 @@ import io.atomix.utils.memory.Memory;
 
 import java.nio.BufferOverflowException;
 import java.nio.BufferUnderflowException;
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.InvalidMarkException;
 import java.nio.charset.Charset;
@@ -471,6 +472,12 @@ public abstract class AbstractBuffer implements Buffer {
   }
 
   @Override
+  public Buffer read(final ByteBuffer buffer) {
+    this.bytes.read(checkRead(buffer.remaining()), buffer, buffer.position(), buffer.remaining());
+    return this;
+  }
+
+  @Override
   public Buffer read(Bytes bytes) {
     this.bytes.read(checkRead(bytes.size()), bytes, 0, bytes.size());
     return this;
@@ -503,6 +510,13 @@ public abstract class AbstractBuffer implements Buffer {
   @Override
   public Buffer read(int srcOffset, byte[] bytes, int dstOffset, int length) {
     this.bytes.read(checkRead(srcOffset, length), bytes, dstOffset, length);
+    return this;
+  }
+
+  @Override
+  public Buffer read(final int offset, final ByteBuffer dst, final int dstOffset,
+      final int length) {
+    this.bytes.read(checkRead(offset, length), dst, dstOffset, length);
     return this;
   }
 
@@ -708,6 +722,20 @@ public abstract class AbstractBuffer implements Buffer {
   @Override
   public Buffer write(byte[] bytes) {
     this.bytes.write(checkWrite(bytes.length), bytes, 0, bytes.length);
+    return this;
+  }
+
+  @Override
+  public Buffer write(final ByteBuffer src) {
+    final int length = src.remaining();
+    this.bytes.write(checkWrite(length), src, src.position(), length);
+    return this;
+  }
+
+  @Override
+  public Buffer write(final int offset, final ByteBuffer src, final int srcOffset,
+      final int length) {
+    this.bytes.write(checkWrite(offset, length), src, srcOffset, length);
     return this;
   }
 

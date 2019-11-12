@@ -16,10 +16,11 @@
 package io.atomix.storage.buffer;
 
 import io.atomix.utils.memory.Memory;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.io.UncheckedIOException;
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -298,6 +299,21 @@ public class FileBytes extends AbstractBytes {
   }
 
   @Override
+  public Bytes read(int offset, ByteBuffer dst, int dstOffset, int length) {
+    checkRead(offset, length);
+
+    try {
+      final ByteBuffer view = dst.duplicate();
+      view.position(dstOffset).limit(dstOffset + length);
+      randomAccessFile.getChannel().read(view, offset);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+
+    return this;
+  }
+
+  @Override
   public int readByte(int offset) {
     checkRead(offset, BYTE);
     try {
@@ -409,6 +425,24 @@ public class FileBytes extends AbstractBytes {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+    return this;
+  }
+
+  @Override
+  public Bytes write(int offset, ByteBuffer src, int srcOffset, int length) {
+    checkWrite(offset, length);
+
+    try {
+      final ByteBuffer view = src.asReadOnlyBuffer();
+      view.position(srcOffset).limit(srcOffset + length);
+      randomAccessFile.getChannel().write(view, offset);
+    } catch (IllegalArgumentException e) {
+      // this is necessary in order not to break the method contract
+      throw new IndexOutOfBoundsException(e.getMessage());
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+
     return this;
   }
 

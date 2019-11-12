@@ -15,10 +15,10 @@
  */
 package io.atomix.storage.buffer;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Byte buffer bytes.
@@ -121,6 +121,15 @@ public abstract class ByteBufferBytes extends AbstractBytes {
   }
 
   @Override
+  public Bytes read(final int offset, final ByteBuffer dst, final int dstOffset, final int length) {
+    for (int i = 0; i < length; i++) {
+      dst.put(dstOffset + i, (byte)readByte(offset + i));
+    }
+
+    return this;
+  }
+
+  @Override
   public Bytes read(int position, Bytes bytes, int offset, int length) {
     for (int i = 0; i < length; i++) {
       bytes.writeByte(offset + i, readByte(position + i));
@@ -132,6 +141,15 @@ public abstract class ByteBufferBytes extends AbstractBytes {
   public Bytes write(int position, byte[] bytes, int offset, int length) {
     for (int i = 0; i < length; i++) {
       buffer.put((int) position + i, (byte) bytes[index(offset) + i]);
+    }
+    return this;
+  }
+
+  @Override
+  public Bytes write(
+      final int offset, final ByteBuffer src, final int srcOffset, final int length) {
+    for (int i = 0; i < length; i++) {
+      buffer.put(offset + i, src.get(srcOffset + i));
     }
     return this;
   }

@@ -15,6 +15,7 @@
  */
 package io.atomix.storage.buffer;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.function.Function;
 
@@ -43,6 +44,8 @@ public interface BufferOutput<T extends BufferOutput<?>> extends AutoCloseable {
    * @return The written buffer.
    */
   T write(byte[] bytes);
+
+  T write(ByteBuffer bytes);
 
   /**
    * Writes an array of bytes to the buffer.
