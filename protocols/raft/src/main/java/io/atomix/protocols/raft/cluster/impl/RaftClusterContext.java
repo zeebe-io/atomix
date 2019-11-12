@@ -456,8 +456,10 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
                     // in a state that was incapable of handling the join request. Attempt to join
                     // the leader
                     // again after an election timeout.
-                    log.debug("Failed to join {}", member.getMember().memberId());
-                    resetJoinTimer();
+                    log.debug(
+                        "Failed to join {}, probably leader but currently not able to accept the join request. Retry later.",
+                        member.getMember().memberId());
+                    join(getActiveMemberStates().iterator());
                   } else {
                     // If the response error was non-null, attempt to join via the next server in
                     // the members list.
@@ -476,7 +478,7 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
     // for servers to potentially timeout and elect a leader.
     else {
       log.debug("Failed to join cluster, retrying...");
-      resetJoinTimer();
+      join(getActiveMemberStates().iterator());
     }
   }
 
