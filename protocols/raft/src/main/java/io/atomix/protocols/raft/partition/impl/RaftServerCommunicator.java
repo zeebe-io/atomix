@@ -180,6 +180,13 @@ public class RaftServerCommunicator implements RaftServerProtocol {
   }
 
   @Override
+  public void leaderHeartbeat(MemberId memberId, LeaderHeartbeatRequest request) {
+    metrics.sendMessage(memberId.id(), request.getClass().getSimpleName());
+    clusterCommunicator.unicast(
+        context.leaderHeartbeatSubject, request, serializer::encode, MemberId.from(memberId.id()));
+  }
+
+  @Override
   public void publish(MemberId memberId, PublishRequest request) {
     clusterCommunicator.unicast(
         context.publishSubject(request.session()), request, serializer::encode, memberId);
@@ -417,11 +424,6 @@ public class RaftServerCommunicator implements RaftServerProtocol {
   @Override
   public void unregisterResetListener(SessionId sessionId) {
     clusterCommunicator.unsubscribe(context.resetSubject(sessionId.id()));
-  }
-
-  @Override
-  public void leaderHeartbeat(MemberId memberId, LeaderHeartbeatRequest request) {
-    sendAndReceive(context.leaderHeartbeatSubject, request, memberId);
   }
 
   @Override
