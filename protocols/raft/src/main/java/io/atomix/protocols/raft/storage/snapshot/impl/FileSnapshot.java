@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
-package io.atomix.protocols.raft.storage.snapshot;
+package io.atomix.protocols.raft.storage.snapshot.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
+import io.atomix.protocols.raft.storage.snapshot.Snapshot;
+import io.atomix.protocols.raft.storage.snapshot.SnapshotReader;
+import io.atomix.protocols.raft.storage.snapshot.SnapshotWriter;
 import io.atomix.storage.buffer.Buffer;
 import io.atomix.storage.buffer.FileBuffer;
 import io.atomix.utils.AtomixIOException;
@@ -29,12 +32,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** File-based snapshot backed by a {@link FileBuffer}. */
-final class FileSnapshot extends Snapshot {
+final class FileSnapshot extends DefaultSnapshot {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FileSnapshot.class);
-  private final SnapshotFile file;
+  private final DefaultSnapshotFile file;
 
-  FileSnapshot(SnapshotFile file, SnapshotDescriptor descriptor, SnapshotStore store) {
+  FileSnapshot(
+      final DefaultSnapshotFile file,
+      final DefaultSnapshotDescriptor descriptor,
+      final DefaultSnapshotStore store) {
     super(descriptor, store);
     this.file = checkNotNull(file, "file cannot be null");
   }
@@ -44,29 +50,23 @@ final class FileSnapshot extends Snapshot {
     checkWriter();
     checkState(!file.file().exists(), "cannot write to completed snapshot");
     checkNotNull(file.temporaryFile(), "missing temporary snapshot file for writing");
-    final Buffer buffer = FileBuffer.allocate(file.temporaryFile(), SnapshotDescriptor.BYTES);
+    final Buffer buffer =
+        FileBuffer.allocate(file.temporaryFile(), DefaultSnapshotDescriptor.BYTES);
     descriptor.copyTo(buffer);
 
-    final int length = buffer.position(SnapshotDescriptor.BYTES).readInt();
+    final int length = buffer.position(DefaultSnapshotDescriptor.BYTES).readInt();
     return openWriter(new SnapshotWriter(buffer.skip(length).mark(), this), descriptor);
-  }
-
-  @Override
-  protected void closeWriter(SnapshotWriter writer) {
-    final int length = writer.buffer.position() - (SnapshotDescriptor.BYTES + Integer.BYTES);
-    writer.buffer.writeInt(SnapshotDescriptor.BYTES, length).flush();
-    super.closeWriter(writer);
   }
 
   @Override
   public synchronized SnapshotReader openReader() {
     checkState(file.file().exists(), "missing snapshot file: %s", file.file());
-    final Buffer buffer = FileBuffer.allocate(file.file(), SnapshotDescriptor.BYTES);
-    final SnapshotDescriptor descriptor = new SnapshotDescriptor(buffer);
-    final int length = buffer.position(SnapshotDescriptor.BYTES).readInt();
+    final Buffer buffer = FileBuffer.allocate(file.file(), DefaultSnapshotDescriptor.BYTES);
+    final DefaultSnapshotDescriptor descriptor = new DefaultSnapshotDescriptor(buffer);
+    final int length = buffer.position(DefaultSnapshotDescriptor.BYTES).readInt();
     return openReader(
         new SnapshotReader(
-            buffer.mark().limit(SnapshotDescriptor.BYTES + Integer.BYTES + length), this),
+            buffer.mark().limit(DefaultSnapshotDescriptor.BYTES + Integer.BYTES + length), this),
         descriptor);
   }
 
@@ -74,16 +74,17 @@ final class FileSnapshot extends Snapshot {
   public Snapshot complete() {
     checkNotNull(file.temporaryFile(), "no temporary snapshot file to read from");
 
-    final Buffer buffer = FileBuffer.allocate(file.temporaryFile(), SnapshotDescriptor.BYTES);
-    try (SnapshotDescriptor descriptor = new SnapshotDescriptor(buffer)) {
+    final Buffer buffer =
+        FileBuffer.allocate(file.temporaryFile(), DefaultSnapshotDescriptor.BYTES);
+    try (DefaultSnapshotDescriptor descriptor = new DefaultSnapshotDescriptor(buffer)) {
       descriptor.lock();
     }
 
     try {
       Files.move(file.temporaryFile().toPath(), file.file().toPath());
-    } catch (FileAlreadyExistsException e) {
+    } catch (final FileAlreadyExistsException e) {
       LOGGER.debug("Snapshot {} was already previously completed", this);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new AtomixIOException(e);
     }
 
@@ -112,10 +113,18 @@ final class FileSnapshot extends Snapshot {
     }
   }
 
-  private void deleteFileSilently(Path path) {
+  @Override
+  public void closeWriter(final SnapshotWriter writer) {
+    final int length =
+        writer.buffer().position() - (DefaultSnapshotDescriptor.BYTES + Integer.BYTES);
+    writer.buffer().writeInt(DefaultSnapshotDescriptor.BYTES, length).flush();
+    super.closeWriter(writer);
+  }
+
+  private void deleteFileSilently(final Path path) {
     try {
       Files.delete(path);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       LOGGER.debug("Failed to delete snapshot file {}", path, e);
     }
   }

@@ -21,8 +21,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.atomix.protocols.raft.storage.log.RaftLog;
 import io.atomix.protocols.raft.storage.log.entry.RaftLogEntry;
-import io.atomix.protocols.raft.storage.snapshot.SnapshotFile;
 import io.atomix.protocols.raft.storage.snapshot.SnapshotStore;
+import io.atomix.protocols.raft.storage.snapshot.SnapshotStoreFactory;
+import io.atomix.protocols.raft.storage.snapshot.impl.DefaultSnapshotStore;
 import io.atomix.protocols.raft.storage.system.MetaStore;
 import io.atomix.storage.StorageException;
 import io.atomix.storage.StorageLevel;
@@ -70,21 +71,23 @@ public final class RaftStorage {
   private final boolean flushOnCommit;
   private final boolean retainStaleSnapshots;
   private final StorageStatistics statistics;
+  private final SnapshotStore snapshotStore;
 
   private RaftStorage(
-      String prefix,
-      StorageLevel storageLevel,
-      File directory,
-      Namespace namespace,
-      int maxSegmentSize,
-      int maxEntrySize,
-      int maxEntriesPerSegment,
-      boolean dynamicCompaction,
-      double freeDiskBuffer,
-      double freeMemoryBuffer,
-      boolean flushOnCommit,
-      boolean retainStaleSnapshots,
-      StorageStatistics storageStatistics) {
+      final String prefix,
+      final StorageLevel storageLevel,
+      final File directory,
+      final Namespace namespace,
+      final int maxSegmentSize,
+      final int maxEntrySize,
+      final int maxEntriesPerSegment,
+      final boolean dynamicCompaction,
+      final double freeDiskBuffer,
+      final double freeMemoryBuffer,
+      final boolean flushOnCommit,
+      final boolean retainStaleSnapshots,
+      final StorageStatistics storageStatistics,
+      final SnapshotStoreFactory snapshotStoreFactory) {
     this.prefix = prefix;
     this.storageLevel = storageLevel;
     this.directory = directory;
@@ -98,6 +101,7 @@ public final class RaftStorage {
     this.flushOnCommit = flushOnCommit;
     this.retainStaleSnapshots = retainStaleSnapshots;
     this.statistics = storageStatistics;
+    this.snapshotStore = snapshotStoreFactory.createSnapshotStore(this);
     directory.mkdirs();
   }
 
@@ -208,7 +212,7 @@ public final class RaftStorage {
    * @param id the ID with which to lock the directory
    * @return indicates whether the lock was successfully acquired
    */
-  public boolean lock(String id) {
+  public boolean lock(final String id) {
     final File file = new File(directory, String.format(".%s.lock", prefix));
     try {
       if (file.createNewFile()) {
@@ -222,7 +226,7 @@ public final class RaftStorage {
           return lock != null && lock.equals(id);
         }
       }
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new StorageException("Failed to acquire storage lock");
     }
   }
@@ -233,14 +237,14 @@ public final class RaftStorage {
   }
 
   /** Deletes file in the storage directory that match the given predicate. */
-  private void deleteFiles(Predicate<File> predicate) {
+  private void deleteFiles(final Predicate<File> predicate) {
     directory.mkdirs();
 
     // Iterate through all files in the storage directory.
-    for (File file : directory.listFiles(f -> f.isFile() && predicate.test(f))) {
+    for (final File file : directory.listFiles(f -> f.isFile() && predicate.test(f))) {
       try {
         Files.delete(file.toPath());
-      } catch (IOException e) {
+      } catch (final IOException e) {
         // Ignore the exception.
       }
     }
@@ -274,27 +278,17 @@ public final class RaftStorage {
   }
 
   /**
-   * Opens a new {@link SnapshotStore}, recovering snapshots from disk if they exist.
-   *
-   * <p>The snapshot store will be loaded using based on the configured {@link StorageLevel}. If the
-   * storage level is persistent then the snapshot store will be loaded from disk, otherwise a new
-   * snapshot store will be created.
+   * Returns the {@link SnapshotStore}.
    *
    * @return The snapshot store.
    */
-  public SnapshotStore openSnapshotStore() {
-    return new SnapshotStore(this);
+  public SnapshotStore getSnapshotStore() {
+    return snapshotStore;
   }
 
-  /**
-   * Deletes a {@link SnapshotStore} from disk.
-   *
-   * <p>The snapshot store will be deleted by simply reading {@code snapshot} file names from disk
-   * and deleting snapshot files directly. Deleting the snapshot store does not involve reading any
-   * snapshot files into memory.
-   */
+  /** Deletes a {@link SnapshotStore} from disk. */
   public void deleteSnapshotStore() {
-    deleteFiles(f -> SnapshotFile.isSnapshotFile(f));
+    snapshotStore.delete();
   }
 
   /**
@@ -403,6 +397,8 @@ public final class RaftStorage {
     private static final double DEFAULT_FREE_MEMORY_BUFFER = .2;
     private static final boolean DEFAULT_FLUSH_ON_COMMIT = true;
     private static final boolean DEFAULT_RETAIN_STALE_SNAPSHOTS = false;
+    private static final SnapshotStoreFactory DEFAULT_SNAPSHOT_STORE_FACTORY =
+        DefaultSnapshotStore::new;
 
     private String prefix = DEFAULT_PREFIX;
     private StorageLevel storageLevel = StorageLevel.DISK;
@@ -417,6 +413,7 @@ public final class RaftStorage {
     private boolean flushOnCommit = DEFAULT_FLUSH_ON_COMMIT;
     private boolean retainStaleSnapshots = DEFAULT_RETAIN_STALE_SNAPSHOTS;
     private StorageStatistics storageStatistics;
+    private SnapshotStoreFactory snapshotStoreFactory = DEFAULT_SNAPSHOT_STORE_FACTORY;
 
     private Builder() {}
 
@@ -426,7 +423,7 @@ public final class RaftStorage {
      * @param prefix The storage prefix.
      * @return The storage builder.
      */
-    public Builder withPrefix(String prefix) {
+    public Builder withPrefix(final String prefix) {
       this.prefix = checkNotNull(prefix, "prefix cannot be null");
       return this;
     }
@@ -440,7 +437,7 @@ public final class RaftStorage {
      * @param storageLevel The log storage level.
      * @return The storage builder.
      */
-    public Builder withStorageLevel(StorageLevel storageLevel) {
+    public Builder withStorageLevel(final StorageLevel storageLevel) {
       this.storageLevel = checkNotNull(storageLevel, "storageLevel");
       return this;
     }
@@ -456,7 +453,7 @@ public final class RaftStorage {
      * @return The storage builder.
      * @throws NullPointerException If the {@code directory} is {@code null}
      */
-    public Builder withDirectory(String directory) {
+    public Builder withDirectory(final String directory) {
       return withDirectory(new File(checkNotNull(directory, "directory")));
     }
 
@@ -471,7 +468,7 @@ public final class RaftStorage {
      * @return The storage builder.
      * @throws NullPointerException If the {@code directory} is {@code null}
      */
-    public Builder withDirectory(File directory) {
+    public Builder withDirectory(final File directory) {
       this.directory = checkNotNull(directory, "directory");
       return this;
     }
@@ -483,7 +480,7 @@ public final class RaftStorage {
      * @return The storage builder.
      * @throws NullPointerException If the {@code namespace} is {@code null}
      */
-    public Builder withNamespace(Namespace namespace) {
+    public Builder withNamespace(final Namespace namespace) {
       this.namespace = checkNotNull(namespace, "namespace cannot be null");
       return this;
     }
@@ -502,7 +499,7 @@ public final class RaftStorage {
      * @return The storage builder.
      * @throws IllegalArgumentException If the {@code maxSegmentSize} is not positive
      */
-    public Builder withMaxSegmentSize(int maxSegmentSize) {
+    public Builder withMaxSegmentSize(final int maxSegmentSize) {
       checkArgument(
           maxSegmentSize > JournalSegmentDescriptor.BYTES,
           "maxSegmentSize must be greater than " + JournalSegmentDescriptor.BYTES);
@@ -517,7 +514,7 @@ public final class RaftStorage {
      * @return the storage builder
      * @throws IllegalArgumentException if the {@code maxEntrySize} is not positive
      */
-    public Builder withMaxEntrySize(int maxEntrySize) {
+    public Builder withMaxEntrySize(final int maxEntrySize) {
       checkArgument(maxEntrySize > 0, "maxEntrySize must be positive");
       this.maxEntrySize = maxEntrySize;
       return this;
@@ -541,7 +538,7 @@ public final class RaftStorage {
      * @deprecated since 3.0.2
      */
     @Deprecated
-    public Builder withMaxEntriesPerSegment(int maxEntriesPerSegment) {
+    public Builder withMaxEntriesPerSegment(final int maxEntriesPerSegment) {
       checkArgument(maxEntriesPerSegment > 0, "max entries per segment must be positive");
       checkArgument(
           maxEntriesPerSegment <= DEFAULT_MAX_ENTRIES_PER_SEGMENT,
@@ -571,7 +568,7 @@ public final class RaftStorage {
      * @param dynamicCompaction whether to enable dynamic compaction
      * @return the Raft storage builder
      */
-    public Builder withDynamicCompaction(boolean dynamicCompaction) {
+    public Builder withDynamicCompaction(final boolean dynamicCompaction) {
       this.dynamicCompaction = dynamicCompaction;
       return this;
     }
@@ -583,7 +580,7 @@ public final class RaftStorage {
      * @param freeDiskBuffer the free disk percentage
      * @return the Raft log builder
      */
-    public Builder withFreeDiskBuffer(double freeDiskBuffer) {
+    public Builder withFreeDiskBuffer(final double freeDiskBuffer) {
       checkArgument(freeDiskBuffer > 0, "freeDiskBuffer must be positive");
       checkArgument(freeDiskBuffer < 1, "freeDiskBuffer must be less than 1");
       this.freeDiskBuffer = freeDiskBuffer;
@@ -597,7 +594,7 @@ public final class RaftStorage {
      * @param freeMemoryBuffer the free disk percentage
      * @return the Raft log builder
      */
-    public Builder withFreeMemoryBuffer(double freeMemoryBuffer) {
+    public Builder withFreeMemoryBuffer(final double freeMemoryBuffer) {
       checkArgument(freeMemoryBuffer > 0, "freeMemoryBuffer must be positive");
       checkArgument(freeMemoryBuffer < 1, "freeMemoryBuffer must be less than 1");
       this.freeMemoryBuffer = freeMemoryBuffer;
@@ -628,7 +625,7 @@ public final class RaftStorage {
      *     segment.
      * @return The storage builder.
      */
-    public Builder withFlushOnCommit(boolean flushOnCommit) {
+    public Builder withFlushOnCommit(final boolean flushOnCommit) {
       this.flushOnCommit = flushOnCommit;
       return this;
     }
@@ -660,7 +657,7 @@ public final class RaftStorage {
      * @param retainStaleSnapshots Whether to retain stale snapshots on disk.
      * @return The storage builder.
      */
-    public Builder withRetainStaleSnapshots(boolean retainStaleSnapshots) {
+    public Builder withRetainStaleSnapshots(final boolean retainStaleSnapshots) {
       this.retainStaleSnapshots = retainStaleSnapshots;
       return this;
     }
@@ -672,8 +669,13 @@ public final class RaftStorage {
      * @param storageStatistics the statistics which are evaluated
      * @return The storage builder.
      */
-    public Builder withStorageStatistics(StorageStatistics storageStatistics) {
+    public Builder withStorageStatistics(final StorageStatistics storageStatistics) {
       this.storageStatistics = storageStatistics;
+      return this;
+    }
+
+    public Builder withSnapshotStoreFactory(final SnapshotStoreFactory snapshotStoreFactory) {
+      this.snapshotStoreFactory = snapshotStoreFactory;
       return this;
     }
 
@@ -697,7 +699,8 @@ public final class RaftStorage {
           freeMemoryBuffer,
           flushOnCommit,
           retainStaleSnapshots,
-          Optional.ofNullable(storageStatistics).orElse(new StorageStatistics(directory)));
+          Optional.ofNullable(storageStatistics).orElse(new StorageStatistics(directory)),
+          snapshotStoreFactory);
     }
   }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
-package io.atomix.protocols.raft.storage.snapshot;
+package io.atomix.protocols.raft.storage.snapshot.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -23,7 +23,7 @@ import java.io.File;
 import java.io.IOException;
 
 /** Represents a snapshot file on disk. */
-public final class SnapshotFile {
+public final class DefaultSnapshotFile {
 
   private static final char PART_SEPARATOR = '-';
   private static final char EXTENSION_SEPARATOR = '.';
@@ -32,14 +32,14 @@ public final class SnapshotFile {
   private File temporaryFile;
 
   /**
-   * Creates a new SnapshotFile with references to a permanent snapshot file (for reading) and a
-   * temporary snapshot file (for writing). The temporary file can be null if the snapshot is
+   * Creates a new DefaultSnapshotFile with references to a permanent snapshot file (for reading)
+   * and a temporary snapshot file (for writing). The temporary file can be null if the snapshot is
    * already completed and should not be written to.
    *
    * @param file the snapshot file which is used for reading
    * @param temporaryFile the snapshot file which is used for writing
    */
-  SnapshotFile(File file, File temporaryFile) {
+  public DefaultSnapshotFile(final File file, final File temporaryFile) {
     this.file = file;
     this.temporaryFile = temporaryFile;
   }
@@ -50,7 +50,7 @@ public final class SnapshotFile {
    *
    * @throws NullPointerException if {@code file} is null
    */
-  public static boolean isSnapshotFile(File file) {
+  public static boolean isSnapshotFile(final File file) {
     checkNotNull(file, "file cannot be null");
     final String fileName = file.getName();
 
@@ -88,8 +88,8 @@ public final class SnapshotFile {
    * @param value The value to check.
    * @return Indicates whether the given string value is numeric.
    */
-  private static boolean isNumeric(String value) {
-    for (char c : value.toCharArray()) {
+  private static boolean isNumeric(final String value) {
+    for (final char c : value.toCharArray()) {
       if (!Character.isDigit(c)) {
         return false;
       }
@@ -98,24 +98,23 @@ public final class SnapshotFile {
   }
 
   /** Creates a snapshot file for the given directory, log name, and snapshot index. */
-  @VisibleForTesting
-  static File createSnapshotFile(File directory, String serverName, long index) {
+  public static File createSnapshotFile(
+      final File directory, final String serverName, final long index) {
     return new File(directory, createSnapshotFileName(serverName, index));
   }
 
   /** Creates a snapshot file name from the given parameters. */
-  @VisibleForTesting
-  static String createSnapshotFileName(String serverName, long index) {
+  public static String createSnapshotFileName(final String serverName, final long index) {
     return String.format("%s-%d.%s", serverName, index, EXTENSION);
   }
 
   /** Creates a temporary file for writing snapshots. */
-  static File createTemporaryFile(File base) {
+  public static File createTemporaryFile(final File base) {
     try {
       final File file = File.createTempFile(base.getName(), null);
       file.deleteOnExit();
       return file;
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new AtomixIOException(e);
     }
   }
@@ -125,11 +124,11 @@ public final class SnapshotFile {
    *
    * @return the snapshot lock file name
    */
-  File temporaryFile() {
+  public File temporaryFile() {
     return temporaryFile;
   }
 
-  void clearTemporaryFile() {
+  public void clearTemporaryFile() {
     temporaryFile = null;
   }
 
@@ -152,7 +151,7 @@ public final class SnapshotFile {
   }
 
   @VisibleForTesting
-  static String parseName(String fileName) {
+  static String parseName(final String fileName) {
     return fileName.substring(
         0, fileName.lastIndexOf(PART_SEPARATOR, fileName.lastIndexOf(PART_SEPARATOR) - 1));
   }

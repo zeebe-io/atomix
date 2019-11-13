@@ -13,23 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
-package io.atomix.protocols.raft.storage.snapshot;
+package io.atomix.protocols.raft.storage.snapshot.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import io.atomix.protocols.raft.storage.snapshot.Snapshot;
+import io.atomix.protocols.raft.storage.snapshot.SnapshotReader;
+import io.atomix.protocols.raft.storage.snapshot.SnapshotWriter;
 import io.atomix.storage.buffer.HeapBuffer;
 
 /** In-memory snapshot backed by a {@link HeapBuffer}. */
-final class MemorySnapshot extends Snapshot {
+final class MemorySnapshot extends DefaultSnapshot {
 
   private final HeapBuffer buffer;
-  private final SnapshotDescriptor descriptor;
+  private final DefaultSnapshotDescriptor descriptor;
 
-  MemorySnapshot(HeapBuffer buffer, SnapshotDescriptor descriptor, SnapshotStore store) {
+  MemorySnapshot(
+      final HeapBuffer buffer,
+      final DefaultSnapshotDescriptor descriptor,
+      final DefaultSnapshotStore store) {
     super(descriptor, store);
     buffer.mark();
     this.buffer = checkNotNull(buffer, "buffer cannot be null");
-    this.buffer.position(SnapshotDescriptor.BYTES).mark();
+    this.buffer.position(DefaultSnapshotDescriptor.BYTES).mark();
     this.descriptor = checkNotNull(descriptor, "descriptor cannot be null");
   }
 
@@ -40,19 +46,13 @@ final class MemorySnapshot extends Snapshot {
   }
 
   @Override
-  protected void closeWriter(SnapshotWriter writer) {
-    buffer.skip(writer.buffer.position()).mark();
-    super.closeWriter(writer);
-  }
-
-  @Override
   public synchronized SnapshotReader openReader() {
     return openReader(new SnapshotReader(buffer.reset().slice(), this), descriptor);
   }
 
   @Override
   public Snapshot complete() {
-    buffer.flip().skip(SnapshotDescriptor.BYTES).mark();
+    buffer.flip().skip(DefaultSnapshotDescriptor.BYTES).mark();
     descriptor.lock();
     return super.complete();
   }
@@ -60,5 +60,11 @@ final class MemorySnapshot extends Snapshot {
   @Override
   public void close() {
     buffer.close();
+  }
+
+  @Override
+  public void closeWriter(final SnapshotWriter writer) {
+    buffer.skip(writer.buffer().position()).mark();
+    super.closeWriter(writer);
   }
 }

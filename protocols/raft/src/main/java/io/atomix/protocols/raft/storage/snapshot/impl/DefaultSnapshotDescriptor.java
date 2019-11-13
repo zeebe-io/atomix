@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
-package io.atomix.protocols.raft.storage.snapshot;
+package io.atomix.protocols.raft.storage.snapshot.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -22,13 +22,13 @@ import io.atomix.storage.buffer.FileBuffer;
 import io.atomix.storage.buffer.HeapBuffer;
 
 /**
- * Stores information about a {@link Snapshot} of the state machine.
+ * Stores information about a {@link DefaultSnapshot} of the state machine.
  *
  * <p>Snapshot descriptors represent the header of a snapshot file which stores metadata about the
  * snapshot contents. This API provides methods for reading and a builder for writing snapshot
  * headers/descriptors.
  */
-public final class SnapshotDescriptor implements AutoCloseable {
+public final class DefaultSnapshotDescriptor implements AutoCloseable {
 
   public static final int BYTES = 64;
 
@@ -56,7 +56,7 @@ public final class SnapshotDescriptor implements AutoCloseable {
   private final int version;
 
   /** @throws NullPointerException if {@code buffer} is null */
-  public SnapshotDescriptor(Buffer buffer) {
+  public DefaultSnapshotDescriptor(Buffer buffer) {
     this.buffer = checkNotNull(buffer, "buffer cannot be null");
     this.index = buffer.readLong();
     this.timestamp = buffer.readLong();
@@ -126,7 +126,7 @@ public final class SnapshotDescriptor implements AutoCloseable {
   }
 
   /** Copies the snapshot to a new buffer. */
-  SnapshotDescriptor copyTo(Buffer buffer) {
+  DefaultSnapshotDescriptor copyTo(Buffer buffer) {
     this.buffer =
         buffer
             .writeLong(index)
@@ -203,8 +203,8 @@ public final class SnapshotDescriptor implements AutoCloseable {
      *
      * @return The built snapshot descriptor.
      */
-    public SnapshotDescriptor build() {
-      return new SnapshotDescriptor(buffer.writeInt(VERSION_POSITION, VERSION));
+    public DefaultSnapshotDescriptor build() {
+      return new DefaultSnapshotDescriptor(buffer.writeInt(VERSION_POSITION, VERSION));
     }
   }
 }

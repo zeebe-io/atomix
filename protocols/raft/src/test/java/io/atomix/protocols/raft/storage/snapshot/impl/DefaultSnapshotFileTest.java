@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.atomix.protocols.raft.storage.snapshot;
+package io.atomix.protocols.raft.storage.snapshot.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -23,37 +23,41 @@ import java.io.File;
 import org.junit.Test;
 
 /** Snapshot file test. */
-public class SnapshotFileTest {
+public class DefaultSnapshotFileTest {
 
   /** Tests creating a snapshot file name. */
   @Test
   public void testCreateSnapshotFileName() throws Exception {
-    assertEquals("test-1.snapshot", SnapshotFile.createSnapshotFileName("test", 1));
-    assertEquals("test-2.snapshot", SnapshotFile.createSnapshotFileName("test", 2));
+    assertEquals("test-1.snapshot", DefaultSnapshotFile.createSnapshotFileName("test", 1));
+    assertEquals("test-2.snapshot", DefaultSnapshotFile.createSnapshotFileName("test", 2));
   }
 
   /** Tests determining whether a file is a snapshot file. */
   @Test
   public void testCreateValidateSnapshotFile() throws Exception {
     assertTrue(
-        SnapshotFile.isSnapshotFile(
-            SnapshotFile.createSnapshotFile(new File(System.getProperty("user.dir")), "foo", 1)));
+        DefaultSnapshotFile.isSnapshotFile(
+            DefaultSnapshotFile.createSnapshotFile(
+                new File(System.getProperty("user.dir")), "foo", 1)));
     assertTrue(
-        SnapshotFile.isSnapshotFile(
-            SnapshotFile.createSnapshotFile(
+        DefaultSnapshotFile.isSnapshotFile(
+            DefaultSnapshotFile.createSnapshotFile(
                 new File(System.getProperty("user.dir")), "foo-bar", 1)));
-    assertFalse(SnapshotFile.isSnapshotFile(new File(System.getProperty("user.dir") + "/foo")));
-    assertFalse(SnapshotFile.isSnapshotFile(new File(System.getProperty("user.dir") + "/foo.bar")));
     assertFalse(
-        SnapshotFile.isSnapshotFile(new File(System.getProperty("user.dir") + "/foo.snapshot")));
+        DefaultSnapshotFile.isSnapshotFile(new File(System.getProperty("user.dir") + "/foo")));
     assertFalse(
-        SnapshotFile.isSnapshotFile(
+        DefaultSnapshotFile.isSnapshotFile(new File(System.getProperty("user.dir") + "/foo.bar")));
+    assertFalse(
+        DefaultSnapshotFile.isSnapshotFile(
+            new File(System.getProperty("user.dir") + "/foo.snapshot")));
+    assertFalse(
+        DefaultSnapshotFile.isSnapshotFile(
             new File(System.getProperty("user.dir") + "/foo-bar.snapshot")));
   }
 
   @Test
   public void testParseSnapshotName() throws Exception {
-    assertEquals("foo", SnapshotFile.parseName("foo-1-2.snapshot"));
-    assertEquals("foo-bar", SnapshotFile.parseName("foo-bar-1-2.snapshot"));
+    assertEquals("foo", DefaultSnapshotFile.parseName("foo-1-2.snapshot"));
+    assertEquals("foo-bar", DefaultSnapshotFile.parseName("foo-bar-1-2.snapshot"));
   }
 }
