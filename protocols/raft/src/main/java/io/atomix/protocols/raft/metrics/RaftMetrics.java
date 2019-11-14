@@ -31,7 +31,8 @@ public class RaftMetrics {
       groupName = parts[0];
     } catch (Exception e) {
       LoggerFactory.getLogger(RaftMetrics.class)
-          .debug("Cannot extract partition group name and id from {}, defaulting to raft and 0",
+          .debug(
+              "Cannot extract partition group name and id from {}, defaulting to raft and 0",
               partitionName);
       partitionId = 0;
       groupName = "raft";

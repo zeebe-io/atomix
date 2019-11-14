@@ -15,6 +15,7 @@
  */
 package io.atomix.storage.buffer;
 
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
@@ -82,6 +83,12 @@ public class WrappedBytes extends AbstractBytes {
 
   @Override
   public Bytes read(int offset, byte[] dst, int dstOffset, int length) {
+    bytes.read(offset, dst, dstOffset, length);
+    return this;
+  }
+
+  @Override
+  public Bytes read(final int offset, final ByteBuffer dst, final int dstOffset, final int length) {
     bytes.read(offset, dst, dstOffset, length);
     return this;
   }
@@ -169,6 +176,13 @@ public class WrappedBytes extends AbstractBytes {
 
   @Override
   public Bytes write(int offset, byte[] src, int srcOffset, int length) {
+    bytes.write(offset, src, srcOffset, length);
+    return this;
+  }
+
+  @Override
+  public Bytes write(
+      final int offset, final ByteBuffer src, final int srcOffset, final int length) {
     bytes.write(offset, src, srcOffset, length);
     return this;
   }

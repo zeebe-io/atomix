@@ -23,6 +23,7 @@ import io.atomix.storage.StorageLevel;
 import io.atomix.storage.buffer.Buffer;
 import io.atomix.storage.buffer.BufferOutput;
 import io.atomix.storage.buffer.Bytes;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
 /**
@@ -73,6 +74,12 @@ public class SnapshotWriter implements BufferOutput<SnapshotWriter> {
 
   @Override
   public SnapshotWriter write(byte[] bytes) {
+    buffer.write(bytes);
+    return this;
+  }
+
+  @Override
+  public SnapshotWriter write(final ByteBuffer bytes) {
     buffer.write(bytes);
     return this;
   }

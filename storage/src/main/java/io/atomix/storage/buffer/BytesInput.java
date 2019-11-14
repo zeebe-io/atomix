@@ -15,6 +15,7 @@
  */
 package io.atomix.storage.buffer;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
 /**
@@ -47,6 +48,17 @@ public interface BytesInput<T extends BytesInput<T>> {
    * @return The buffer.
    */
   T read(int offset, byte[] dst, int dstOffset, int length);
+
+  /**
+   * Reads bytes into the given byte buffer starting at the given offset up to the given length.
+   *
+   * @param offset    The offset from which to start reading bytes.
+   * @param dst       The byte buffer into which to read bytes.
+   * @param dstOffset The offset at which to write bytes into the given buffer
+   * @param length    The total number of bytes to read.
+   * @return the input buffer
+   */
+  T read(int offset, ByteBuffer dst, int dstOffset, int length);
 
   /**
    * Reads a byte from the buffer at the given offset.

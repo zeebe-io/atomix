@@ -20,7 +20,7 @@ import io.atomix.storage.buffer.Buffer;
 import io.atomix.storage.buffer.BufferInput;
 import io.atomix.storage.buffer.Bytes;
 import io.atomix.utils.serializer.Serializer;
-
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
 /**
@@ -87,6 +87,12 @@ public class DefaultBackupInput implements BackupInput {
 
   @Override
   public BackupInput read(Buffer buffer) {
+    input.read(buffer);
+    return this;
+  }
+
+  @Override
+  public BackupInput read(final ByteBuffer buffer) {
     input.read(buffer);
     return this;
   }

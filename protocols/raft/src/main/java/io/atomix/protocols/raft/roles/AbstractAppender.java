@@ -37,6 +37,7 @@ import io.atomix.protocols.raft.storage.snapshot.SnapshotReader;
 import io.atomix.storage.journal.Indexed;
 import io.atomix.utils.logging.ContextualLoggerFactory;
 import io.atomix.utils.logging.LoggerContext;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -49,6 +50,8 @@ abstract class AbstractAppender implements AutoCloseable {
   protected final Logger log;
   protected final RaftContext raft;
   protected boolean open = true;
+
+  private final ByteBuffer snapshotChunkBuffer = ByteBuffer.allocateDirect(MAX_BATCH_SIZE);
   private final LeaderMetrics metrics;
 
   AbstractAppender(RaftContext raft) {
@@ -435,7 +438,8 @@ abstract class AbstractAppender implements AutoCloseable {
   }
 
   /** Builds an install request for the given member. */
-  protected InstallRequest buildInstallRequest(RaftMemberContext member, Snapshot snapshot) {
+  protected InstallRequest buildInstallRequest(
+      final RaftMemberContext member, final Snapshot snapshot) {
     if (member.getNextSnapshotIndex() != snapshot.index()) {
       member.setNextSnapshotIndex(snapshot.index());
       member.setNextSnapshotOffset(0);
@@ -447,8 +451,9 @@ abstract class AbstractAppender implements AutoCloseable {
       try (SnapshotReader reader = snapshot.openReader()) {
         // Skip to the next batch of bytes according to the snapshot chunk size and current offset.
         reader.skip(member.getNextSnapshotOffset() * MAX_BATCH_SIZE);
-        final byte[] data = new byte[Math.min(MAX_BATCH_SIZE, reader.remaining())];
-        reader.read(data);
+        // clears previous limit, position, mark, and reset the limit to the next chunk size
+        snapshotChunkBuffer.clear().limit(Math.min(reader.remaining(), MAX_BATCH_SIZE));
+        reader.read(snapshotChunkBuffer);
 
         // Create the install request, indicating whether this is the last chunk of data based on
         // the number
@@ -463,7 +468,7 @@ abstract class AbstractAppender implements AutoCloseable {
                 .withTimestamp(snapshot.timestamp().unixTimestamp())
                 .withVersion(snapshot.version())
                 .withOffset(member.getNextSnapshotOffset())
-                .withData(data)
+                .withData(snapshotChunkBuffer)
                 .withComplete(!reader.hasRemaining())
                 .build();
       }

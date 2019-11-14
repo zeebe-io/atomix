@@ -19,9 +19,9 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.base.MoreObjects;
 import io.atomix.cluster.MemberId;
-import io.atomix.utils.misc.ArraySizeHashPrinter;
-import java.util.Arrays;
+import java.nio.ByteBuffer;
 import java.util.Objects;
 
 /**
@@ -43,19 +43,19 @@ public class InstallRequest extends AbstractRaftRequest {
   private final long timestamp;
   private final int version;
   private final int offset;
-  private final byte[] data;
+  private final ByteBuffer data;
   private final boolean complete;
 
   public InstallRequest(
-      long term,
-      MemberId leader,
-      long index,
-      long snapshotTerm,
-      long timestamp,
-      int version,
-      int offset,
-      byte[] data,
-      boolean complete) {
+      final long term,
+      final MemberId leader,
+      final long index,
+      final long snapshotTerm,
+      final long timestamp,
+      final int version,
+      final int offset,
+      final ByteBuffer data,
+      final boolean complete) {
     this.term = term;
     this.leader = leader;
     this.index = index;
@@ -144,7 +144,7 @@ public class InstallRequest extends AbstractRaftRequest {
    *
    * @return The snapshot data.
    */
-  public byte[] data() {
+  public ByteBuffer data() {
     return data;
   }
 
@@ -163,7 +163,7 @@ public class InstallRequest extends AbstractRaftRequest {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof InstallRequest) {
       final InstallRequest request = (InstallRequest) object;
       return request.term == term
@@ -172,7 +172,7 @@ public class InstallRequest extends AbstractRaftRequest {
           && request.offset == offset
           && request.complete == complete
           && request.snapshotTerm == snapshotTerm
-          && Arrays.equals(request.data, data);
+          && request.data.equals(data);
     }
     return false;
   }
@@ -187,7 +187,11 @@ public class InstallRequest extends AbstractRaftRequest {
         .add("timestamp", timestamp)
         .add("version", version)
         .add("offset", offset)
-        .add("data", ArraySizeHashPrinter.of(data))
+        .add(
+            "data",
+            MoreObjects.toStringHelper(ByteBuffer.class)
+                .add("size", data.remaining())
+                .add("hash", data.hashCode()))
         .add("complete", complete)
         .toString();
   }
@@ -201,7 +205,7 @@ public class InstallRequest extends AbstractRaftRequest {
     private long timestamp;
     private int version;
     private int offset;
-    private byte[] data;
+    private ByteBuffer data;
     private boolean complete;
     private long snapshotTerm;
 
@@ -212,7 +216,7 @@ public class InstallRequest extends AbstractRaftRequest {
      * @return The append request builder.
      * @throws IllegalArgumentException if the {@code term} is not positive
      */
-    public Builder withTerm(long term) {
+    public Builder withTerm(final long term) {
       checkArgument(term > 0, "term must be positive");
       this.term = term;
       return this;
@@ -225,12 +229,12 @@ public class InstallRequest extends AbstractRaftRequest {
      * @return The append request builder.
      * @throws IllegalArgumentException if the {@code leader} is not positive
      */
-    public Builder withLeader(MemberId leader) {
+    public Builder withLeader(final MemberId leader) {
       this.leader = checkNotNull(leader, "leader cannot be null");
       return this;
     }
 
-    public Builder withSnapshotTerm(long term) {
+    public Builder withSnapshotTerm(final long term) {
       checkArgument(term > 0, "snapshotTerm must be positive");
       this.snapshotTerm = term;
       return this;
@@ -242,7 +246,7 @@ public class InstallRequest extends AbstractRaftRequest {
      * @param index The request index.
      * @return The request builder.
      */
-    public Builder withIndex(long index) {
+    public Builder withIndex(final long index) {
       checkArgument(index >= 0, "index must be positive");
       this.index = index;
       return this;
@@ -254,7 +258,7 @@ public class InstallRequest extends AbstractRaftRequest {
      * @param timestamp The request timestamp.
      * @return The request builder.
      */
-    public Builder withTimestamp(long timestamp) {
+    public Builder withTimestamp(final long timestamp) {
       checkArgument(timestamp >= 0, "timestamp must be positive");
       this.timestamp = timestamp;
       return this;
@@ -266,7 +270,7 @@ public class InstallRequest extends AbstractRaftRequest {
      * @param version the request version
      * @return the request builder
      */
-    public Builder withVersion(int version) {
+    public Builder withVersion(final int version) {
       checkArgument(version > 0, "version must be positive");
       this.version = version;
       return this;
@@ -278,7 +282,7 @@ public class InstallRequest extends AbstractRaftRequest {
      * @param offset The request offset.
      * @return The request builder.
      */
-    public Builder withOffset(int offset) {
+    public Builder withOffset(final int offset) {
       checkArgument(offset >= 0, "offset must be positive");
       this.offset = offset;
       return this;
@@ -290,7 +294,7 @@ public class InstallRequest extends AbstractRaftRequest {
      * @param data The snapshot bytes.
      * @return The request builder.
      */
-    public Builder withData(byte[] data) {
+    public Builder withData(final ByteBuffer data) {
       this.data = checkNotNull(data, "data cannot be null");
       return this;
     }
@@ -302,7 +306,7 @@ public class InstallRequest extends AbstractRaftRequest {
      * @return The request builder.
      * @throws NullPointerException if {@code member} is null
      */
-    public Builder withComplete(boolean complete) {
+    public Builder withComplete(final boolean complete) {
       this.complete = complete;
       return this;
     }

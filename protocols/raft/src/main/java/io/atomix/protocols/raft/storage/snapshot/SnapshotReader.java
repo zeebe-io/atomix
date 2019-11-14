@@ -23,6 +23,7 @@ import io.atomix.storage.StorageLevel;
 import io.atomix.storage.buffer.Buffer;
 import io.atomix.storage.buffer.BufferInput;
 import io.atomix.storage.buffer.Bytes;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
 /**
@@ -88,6 +89,11 @@ public class SnapshotReader implements BufferInput<SnapshotReader> {
 
   @Override
   public SnapshotReader read(Bytes bytes) {
+    buffer.read(bytes);
+    return this;
+  }
+
+  public SnapshotReader read(ByteBuffer bytes) {
     buffer.read(bytes);
     return this;
   }
