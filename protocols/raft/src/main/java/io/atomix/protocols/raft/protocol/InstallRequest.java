@@ -19,8 +19,8 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.base.MoreObjects;
 import io.atomix.cluster.MemberId;
+import io.atomix.utils.misc.StringUtils;
 import java.nio.ByteBuffer;
 import java.util.Objects;
 
@@ -30,9 +30,9 @@ import java.util.Objects;
  * <p>Snapshot installation requests are sent by the leader to a follower when the follower
  * indicates that its log is further behind than the last snapshot taken by the leader. Snapshots
  * are sent in chunks, with each chunk being sent in a separate install request. As requests are
- * received by the follower, the snapshot is reconstructed based on the provided {@link
- * #chunkOffset()} and other metadata. The last install request will be sent with {@link
- * #complete()} being {@code true} to indicate that all chunks of the snapshot have been sent.
+ * received by the follower, the snapshot is reconstructed based on the provided {@link #chunkId()}
+ * and other metadata. The last install request will be sent with {@link #complete()} being {@code
+ * true} to indicate that all chunks of the snapshot have been sent.
  */
 public class InstallRequest extends AbstractRaftRequest {
 
@@ -42,8 +42,10 @@ public class InstallRequest extends AbstractRaftRequest {
   private final long snapshotTerm;
   private final long timestamp;
   private final int version;
-  private final int offset;
+  private final ByteBuffer chunkId;
+  private final ByteBuffer nextChunkId;
   private final ByteBuffer data;
+  private final boolean initial;
   private final boolean complete;
 
   public InstallRequest(
@@ -53,16 +55,20 @@ public class InstallRequest extends AbstractRaftRequest {
       final long snapshotTerm,
       final long timestamp,
       final int version,
-      final int offset,
+      final ByteBuffer chunkId,
+      final ByteBuffer nextChunkId,
       final ByteBuffer data,
+      final boolean initial,
       final boolean complete) {
     this.term = term;
     this.leader = leader;
     this.index = index;
     this.timestamp = timestamp;
     this.version = version;
-    this.offset = offset;
+    this.chunkId = chunkId;
+    this.nextChunkId = nextChunkId;
     this.data = data;
+    this.initial = initial;
     this.complete = complete;
     this.snapshotTerm = snapshotTerm;
   }
@@ -131,12 +137,26 @@ public class InstallRequest extends AbstractRaftRequest {
   }
 
   /**
-   * Returns the offset of the snapshot chunk.
+   * Returns the id of the snapshot chunk.
    *
-   * @return The offset of the snapshot chunk.
+   * @return The id of the snapshot chunk.
    */
-  public int chunkOffset() {
-    return offset;
+  public ByteBuffer chunkId() {
+    return chunkId;
+  }
+
+  /**
+   * Returns the ID of the next expected chunk; may be null
+   *
+   * @return the Id of the next expected chunk.
+   */
+  public ByteBuffer nextChunkId() {
+    return nextChunkId;
+  }
+
+  /** @return true if this is the first chunk of a snapshot */
+  public boolean isInitial() {
+    return initial;
   }
 
   /**
@@ -159,7 +179,17 @@ public class InstallRequest extends AbstractRaftRequest {
 
   @Override
   public int hashCode() {
-    return Objects.hash(getClass(), term, leader, index, offset, complete, data, snapshotTerm);
+    return Objects.hash(
+        getClass(),
+        term,
+        leader,
+        index,
+        chunkId,
+        nextChunkId,
+        complete,
+        initial,
+        data,
+        snapshotTerm);
   }
 
   @Override
@@ -169,9 +199,11 @@ public class InstallRequest extends AbstractRaftRequest {
       return request.term == term
           && request.leader == leader
           && request.index == index
-          && request.offset == offset
+          && request.chunkId.equals(chunkId)
           && request.complete == complete
+          && request.initial == initial
           && request.snapshotTerm == snapshotTerm
+          && request.nextChunkId.equals(nextChunkId)
           && request.data.equals(data);
     }
     return false;
@@ -186,12 +218,10 @@ public class InstallRequest extends AbstractRaftRequest {
         .add("snapshotTerm", snapshotTerm)
         .add("timestamp", timestamp)
         .add("version", version)
-        .add("offset", offset)
-        .add(
-            "data",
-            MoreObjects.toStringHelper(ByteBuffer.class)
-                .add("size", data.remaining())
-                .add("hash", data.hashCode()))
+        .add("chunkId", StringUtils.printShortBuffer(chunkId))
+        .add("nextChunkId", StringUtils.printShortBuffer(nextChunkId))
+        .add("data", StringUtils.printShortBuffer(data))
+        .add("initial", initial)
         .add("complete", complete)
         .toString();
   }
@@ -204,9 +234,11 @@ public class InstallRequest extends AbstractRaftRequest {
     private long index;
     private long timestamp;
     private int version;
-    private int offset;
+    private ByteBuffer chunkId;
+    private ByteBuffer nextChunkId;
     private ByteBuffer data;
     private boolean complete;
+    private boolean initial;
     private long snapshotTerm;
 
     /**
@@ -277,14 +309,25 @@ public class InstallRequest extends AbstractRaftRequest {
     }
 
     /**
-     * Sets the request offset.
+     * Sets the request chunk ID.
      *
-     * @param offset The request offset.
+     * @param chunkId The request chunk ID.
      * @return The request builder.
      */
-    public Builder withOffset(final int offset) {
-      checkArgument(offset >= 0, "offset must be positive");
-      this.offset = offset;
+    public Builder withChunkId(final ByteBuffer chunkId) {
+      checkNotNull(chunkId, "chunkId cannot be null");
+      this.chunkId = chunkId;
+      return this;
+    }
+
+    /**
+     * Sets the request offset.
+     *
+     * @param nextChunkId The request offset.
+     * @return The request builder.
+     */
+    public Builder withNextChunkId(final ByteBuffer nextChunkId) {
+      this.nextChunkId = nextChunkId;
       return this;
     }
 
@@ -311,12 +354,33 @@ public class InstallRequest extends AbstractRaftRequest {
       return this;
     }
 
+    /**
+     * Sets whether this is the first chunk of a snapshot.
+     *
+     * @param initial whether this is the first chunk of a snapshot
+     * @return the request builder
+     */
+    public Builder withInitial(final boolean initial) {
+      this.initial = initial;
+      return this;
+    }
+
     /** @throws IllegalStateException if member is null */
     @Override
     public InstallRequest build() {
       validate();
       return new InstallRequest(
-          term, leader, index, snapshotTerm, timestamp, version, offset, data, complete);
+          term,
+          leader,
+          index,
+          snapshotTerm,
+          timestamp,
+          version,
+          chunkId,
+          nextChunkId,
+          data,
+          initial,
+          complete);
     }
 
     @Override
@@ -326,7 +390,7 @@ public class InstallRequest extends AbstractRaftRequest {
       checkNotNull(leader, "leader cannot be null");
       checkArgument(index >= 0, "index must be positive");
       checkArgument(snapshotTerm > 0, "snapshotTerm must be positive");
-      checkArgument(offset >= 0, "offset must be positive");
+      checkNotNull(chunkId, "chunkId cannot be null");
       checkNotNull(data, "data cannot be null");
     }
   }

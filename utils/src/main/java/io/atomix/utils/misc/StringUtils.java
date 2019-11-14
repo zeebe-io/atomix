@@ -15,6 +15,8 @@
  */
 package io.atomix.utils.misc;
 
+import com.google.common.base.MoreObjects;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,5 +46,26 @@ public final class StringUtils {
       }
     }
     return results.toArray(new String[0]);
+  }
+
+  /**
+   * Small utility to print diagnostic information about {@link ByteBuffer}
+   *
+   * @param buffer the buffer to print-out
+   * @return diagnostic information about the buffer
+   */
+  public static String printShortBuffer(final ByteBuffer buffer) {
+    if (buffer == null) {
+      return "null";
+    }
+
+    return MoreObjects.toStringHelper(buffer.getClass())
+        .add("position", buffer.position())
+        .add("remaining", buffer.remaining())
+        .add("limit", buffer.limit())
+        .add("capacity", buffer.capacity())
+        .add("mark", buffer.mark())
+        .add("hash", buffer.hashCode())
+        .toString();
   }
 }

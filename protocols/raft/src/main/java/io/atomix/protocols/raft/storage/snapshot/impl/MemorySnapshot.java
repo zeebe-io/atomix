@@ -18,8 +18,6 @@ package io.atomix.protocols.raft.storage.snapshot.impl;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.atomix.protocols.raft.storage.snapshot.Snapshot;
-import io.atomix.protocols.raft.storage.snapshot.SnapshotReader;
-import io.atomix.protocols.raft.storage.snapshot.SnapshotWriter;
 import io.atomix.storage.buffer.HeapBuffer;
 
 /** In-memory snapshot backed by a {@link HeapBuffer}. */

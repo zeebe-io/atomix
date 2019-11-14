@@ -33,11 +33,11 @@ import io.atomix.protocols.raft.protocol.RaftResponse;
 import io.atomix.protocols.raft.storage.log.RaftLogReader;
 import io.atomix.protocols.raft.storage.log.entry.RaftLogEntry;
 import io.atomix.protocols.raft.storage.snapshot.Snapshot;
-import io.atomix.protocols.raft.storage.snapshot.SnapshotReader;
+import io.atomix.protocols.raft.storage.snapshot.SnapshotChunk;
+import io.atomix.protocols.raft.storage.snapshot.SnapshotChunkReader;
 import io.atomix.storage.journal.Indexed;
 import io.atomix.utils.logging.ContextualLoggerFactory;
 import io.atomix.utils.logging.LoggerContext;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -51,7 +51,6 @@ abstract class AbstractAppender implements AutoCloseable {
   protected final RaftContext raft;
   protected boolean open = true;
 
-  private final ByteBuffer snapshotChunkBuffer = ByteBuffer.allocateDirect(MAX_BATCH_SIZE);
   private final LeaderMetrics metrics;
 
   AbstractAppender(RaftContext raft) {
@@ -442,18 +441,15 @@ abstract class AbstractAppender implements AutoCloseable {
       final RaftMemberContext member, final Snapshot snapshot) {
     if (member.getNextSnapshotIndex() != snapshot.index()) {
       member.setNextSnapshotIndex(snapshot.index());
-      member.setNextSnapshotOffset(0);
+      member.setNextSnapshotChunk(null);
     }
 
     final InstallRequest request;
     synchronized (snapshot) {
       // Open a new snapshot reader.
-      try (SnapshotReader reader = snapshot.openReader()) {
-        // Skip to the next batch of bytes according to the snapshot chunk size and current offset.
-        reader.skip(member.getNextSnapshotOffset() * MAX_BATCH_SIZE);
-        // clears previous limit, position, mark, and reset the limit to the next chunk size
-        snapshotChunkBuffer.clear().limit(Math.min(reader.remaining(), MAX_BATCH_SIZE));
-        reader.read(snapshotChunkBuffer);
+      try (SnapshotChunkReader reader = snapshot.newChunkReader()) {
+        reader.seek(member.getNextSnapshotChunk());
+        final SnapshotChunk chunk = reader.next();
 
         // Create the install request, indicating whether this is the last chunk of data based on
         // the number
@@ -467,10 +463,14 @@ abstract class AbstractAppender implements AutoCloseable {
                 .withSnapshotTerm(snapshot.term())
                 .withTimestamp(snapshot.timestamp().unixTimestamp())
                 .withVersion(snapshot.version())
-                .withOffset(member.getNextSnapshotOffset())
-                .withData(snapshotChunkBuffer)
-                .withComplete(!reader.hasRemaining())
+                .withData(chunk.data())
+                .withChunkId(chunk.id())
+                .withInitial(member.getNextSnapshotChunk() == null)
+                .withComplete(!reader.hasNext())
+                .withNextChunkId(reader.nextId())
                 .build();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
       }
     }
 
@@ -513,7 +513,7 @@ abstract class AbstractAppender implements AutoCloseable {
     // Reset the member's snapshot index and offset to resend the snapshot from the start
     // once a connection to the member is re-established.
     member.setNextSnapshotIndex(0);
-    member.setNextSnapshotOffset(0);
+    member.setNextSnapshotChunk(null);
 
     // Log the failed attempt to contact the member.
     failAttempt(member, request, error);
@@ -540,13 +540,13 @@ abstract class AbstractAppender implements AutoCloseable {
     // the next snapshot index/offset.
     if (request.complete()) {
       member.setNextSnapshotIndex(0);
-      member.setNextSnapshotOffset(0);
+      member.setNextSnapshotChunk(null);
       member.setSnapshotIndex(request.snapshotIndex());
       resetNextIndex(member, request.snapshotIndex() + 1);
     }
     // If more install requests remain, increment the member's snapshot offset.
     else {
-      member.setNextSnapshotOffset(request.chunkOffset() + 1);
+      member.setNextSnapshotChunk(request.nextChunkId());
     }
 
     // Recursively append entries to the member.
@@ -559,7 +559,7 @@ abstract class AbstractAppender implements AutoCloseable {
       RaftMemberContext member, InstallRequest request, InstallResponse response) {
     log.warn("Failed to install {}", member.getMember().memberId());
     member.setNextSnapshotIndex(0);
-    member.setNextSnapshotOffset(0);
+    member.setNextSnapshotChunk(null);
   }
 
   @Override

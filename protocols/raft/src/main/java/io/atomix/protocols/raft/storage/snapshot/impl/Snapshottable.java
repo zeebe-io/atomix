@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
-package io.atomix.protocols.raft.storage.snapshot;
+package io.atomix.protocols.raft.storage.snapshot.impl;
 
 import io.atomix.primitive.service.PrimitiveService;
 import io.atomix.protocols.raft.storage.log.RaftLog;

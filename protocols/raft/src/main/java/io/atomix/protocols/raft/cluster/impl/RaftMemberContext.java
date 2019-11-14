@@ -21,6 +21,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.atomix.protocols.raft.storage.log.RaftLog;
 import io.atomix.protocols.raft.storage.log.RaftLogReader;
+import io.atomix.storage.journal.JournalReader.Mode;
+import java.nio.ByteBuffer;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +37,7 @@ public final class RaftMemberContext {
   private long configIndex;
   private long snapshotIndex;
   private long nextSnapshotIndex;
-  private int nextSnapshotOffset;
+  private ByteBuffer nextSnapshotChunk;
   private long matchIndex;
   private long heartbeatTime;
   private long responseTime;
@@ -56,7 +58,7 @@ public final class RaftMemberContext {
   public void resetState(RaftLog log) {
     snapshotIndex = 0;
     nextSnapshotIndex = 0;
-    nextSnapshotOffset = 0;
+    nextSnapshotChunk = null;
     matchIndex = 0;
     heartbeatTime = 0;
     responseTime = 0;
@@ -70,11 +72,11 @@ public final class RaftMemberContext {
 
     switch (member.getType()) {
       case PASSIVE:
-        reader = log.openReader(log.writer().getLastIndex() + 1, RaftLogReader.Mode.COMMITS);
+        reader = log.openReader(log.writer().getLastIndex() + 1, Mode.COMMITS);
         break;
       case PROMOTABLE:
       case ACTIVE:
-        reader = log.openReader(log.writer().getLastIndex() + 1, RaftLogReader.Mode.ALL);
+        reader = log.openReader(log.writer().getLastIndex() + 1, Mode.ALL);
         break;
       default:
         LoggerFactory.getLogger(RaftMemberContext.class)
@@ -209,7 +211,7 @@ public final class RaftMemberContext {
         .add("configIndex", configIndex)
         .add("snapshotIndex", snapshotIndex)
         .add("nextSnapshotIndex", nextSnapshotIndex)
-        .add("nextSnapshotOffset", nextSnapshotOffset)
+        .add("nextSnapshotChunk", nextSnapshotChunk)
         .add("matchIndex", matchIndex)
         .add("nextIndex", reader != null ? reader.getNextIndex() : matchIndex + 1)
         .add("heartbeatTime", heartbeatTime)
@@ -304,12 +306,12 @@ public final class RaftMemberContext {
   }
 
   /**
-   * Returns the member's snapshot offset.
+   * Returns the member's next expected snapshot chunk ID.
    *
-   * @return The member's snapshot offset.
+   * @return The member's next expected chunk ID.
    */
-  public int getNextSnapshotOffset() {
-    return nextSnapshotOffset;
+  public ByteBuffer getNextSnapshotChunk() {
+    return nextSnapshotChunk;
   }
 
   /**
@@ -377,18 +379,18 @@ public final class RaftMemberContext {
   }
 
   /**
-   * Sets the member's snapshot offset.
+   * Sets the member's next expected snapshot chunk ID.
    *
-   * @param nextSnapshotOffset The member's snapshot offset.
+   * @param nextSnapshotChunk The member's next expected snapshot chunk ID.
    */
-  public void setNextSnapshotOffset(int nextSnapshotOffset) {
-    this.nextSnapshotOffset = nextSnapshotOffset;
+  public void setNextSnapshotChunk(ByteBuffer nextSnapshotChunk) {
+    this.nextSnapshotChunk = nextSnapshotChunk;
   }
 
   /**
    * Sets the member response time.
    *
-   * @param heartbeatTime The member response time.
+   * @param responseTime The member response time.
    */
   public void setResponseTime(long responseTime) {
     this.responseTime = Math.max(this.responseTime, responseTime);
