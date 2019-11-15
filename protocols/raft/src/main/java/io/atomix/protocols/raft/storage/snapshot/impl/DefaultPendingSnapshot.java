@@ -42,8 +42,7 @@ public class DefaultPendingSnapshot implements PendingSnapshot {
   @Override
   public void write(final ByteBuffer chunkId, final ByteBuffer chunkData) {
     try (SnapshotWriter writer = snapshot.openWriter()) {
-      final ByteBuffer view = chunkData.slice();
-      writer.write(chunkId.getInt(0), view, 0, view.remaining());
+      writer.write(chunkData.asReadOnlyBuffer());
     }
   }
 
