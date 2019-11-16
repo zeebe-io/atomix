@@ -28,6 +28,7 @@ import io.atomix.primitive.session.SessionId;
 import io.atomix.primitive.session.SessionMetadata;
 import io.atomix.protocols.raft.RaftException;
 import io.atomix.protocols.raft.RaftServer;
+import io.atomix.protocols.raft.RaftServer.Role;
 import io.atomix.protocols.raft.RaftStateMachine;
 import io.atomix.protocols.raft.metrics.RaftServiceMetrics;
 import io.atomix.protocols.raft.service.RaftServiceContext;
@@ -199,7 +200,7 @@ public class RaftServiceManager implements RaftStateMachine {
               // operation.
               // If the snapshot is for the prior index, install it.
               final Snapshot snapshot = raft.getSnapshotStore().getCurrentSnapshot();
-              if (snapshot != null) {
+              if (raft.getRole() != Role.LEADER && snapshot != null) {
                 if (snapshot.index() >= entry.index()) {
                   future.complete(null);
                   return;
