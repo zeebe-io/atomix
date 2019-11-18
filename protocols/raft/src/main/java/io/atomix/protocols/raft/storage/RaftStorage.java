@@ -56,7 +56,7 @@ import java.util.function.Predicate;
  *
  * @see RaftLog
  */
-public final class RaftStorage {
+public class RaftStorage {
 
   private final String prefix;
   private final StorageLevel storageLevel;
@@ -73,7 +73,7 @@ public final class RaftStorage {
   private final StorageStatistics statistics;
   private final SnapshotStore snapshotStore;
 
-  private RaftStorage(
+  RaftStorage(
       final String prefix,
       final StorageLevel storageLevel,
       final File directory,
