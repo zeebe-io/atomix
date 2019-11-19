@@ -22,6 +22,7 @@ import static com.google.common.base.Preconditions.checkState;
 import io.atomix.protocols.raft.storage.snapshot.Snapshot;
 import io.atomix.protocols.raft.storage.snapshot.SnapshotChunkReader;
 import io.atomix.utils.time.WallClockTimestamp;
+import java.util.Comparator;
 import java.util.Objects;
 
 /**
@@ -125,6 +126,14 @@ public abstract class DefaultSnapshot implements Snapshot {
     return new DefaultSnapshotChunkReader(openReader());
   }
 
+  /** Closes the snapshot. */
+  @Override
+  public void close() {}
+
+  /** Deletes the snapshot. */
+  @Override
+  public void delete() {}
+
   /**
    * Completes writing the snapshot to persist it and make it available for reads.
    *
@@ -141,14 +150,6 @@ public abstract class DefaultSnapshot implements Snapshot {
     return this;
   }
 
-  /** Closes the snapshot. */
-  @Override
-  public void close() {}
-
-  /** Deletes the snapshot. */
-  @Override
-  public void delete() {}
-
   /** Closes the current snapshot reader. */
   @Override
   public void closeReader(final SnapshotReader reader) {}
@@ -157,6 +158,14 @@ public abstract class DefaultSnapshot implements Snapshot {
   @Override
   public void closeWriter(final SnapshotWriter writer) {
     this.writer = null;
+  }
+
+  @Override
+  public int compareTo(final Snapshot other) {
+    return Comparator.comparingLong(Snapshot::index)
+        .thenComparingLong(Snapshot::term)
+        .thenComparing(Snapshot::timestamp)
+        .compare(this, other);
   }
 
   /** Opens the given snapshot writer. */

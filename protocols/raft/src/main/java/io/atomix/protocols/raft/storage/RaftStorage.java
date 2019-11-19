@@ -22,7 +22,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import io.atomix.protocols.raft.storage.log.RaftLog;
 import io.atomix.protocols.raft.storage.log.entry.RaftLogEntry;
 import io.atomix.protocols.raft.storage.snapshot.SnapshotStore;
-import io.atomix.protocols.raft.storage.snapshot.SnapshotStoreFactory;
 import io.atomix.protocols.raft.storage.snapshot.impl.DefaultSnapshotStore;
 import io.atomix.protocols.raft.storage.system.MetaStore;
 import io.atomix.storage.StorageException;
@@ -87,7 +86,7 @@ public final class RaftStorage {
       final boolean flushOnCommit,
       final boolean retainStaleSnapshots,
       final StorageStatistics storageStatistics,
-      final SnapshotStoreFactory snapshotStoreFactory) {
+      final SnapshotStore snapshotStore) {
     this.prefix = prefix;
     this.storageLevel = storageLevel;
     this.directory = directory;
@@ -101,7 +100,7 @@ public final class RaftStorage {
     this.flushOnCommit = flushOnCommit;
     this.retainStaleSnapshots = retainStaleSnapshots;
     this.statistics = storageStatistics;
-    this.snapshotStore = snapshotStoreFactory.createSnapshotStore(this);
+    this.snapshotStore = snapshotStore;
     directory.mkdirs();
   }
 
@@ -397,8 +396,6 @@ public final class RaftStorage {
     private static final double DEFAULT_FREE_MEMORY_BUFFER = .2;
     private static final boolean DEFAULT_FLUSH_ON_COMMIT = true;
     private static final boolean DEFAULT_RETAIN_STALE_SNAPSHOTS = false;
-    private static final SnapshotStoreFactory DEFAULT_SNAPSHOT_STORE_FACTORY =
-        DefaultSnapshotStore::new;
 
     private String prefix = DEFAULT_PREFIX;
     private StorageLevel storageLevel = StorageLevel.DISK;
@@ -413,7 +410,7 @@ public final class RaftStorage {
     private boolean flushOnCommit = DEFAULT_FLUSH_ON_COMMIT;
     private boolean retainStaleSnapshots = DEFAULT_RETAIN_STALE_SNAPSHOTS;
     private StorageStatistics storageStatistics;
-    private SnapshotStoreFactory snapshotStoreFactory = DEFAULT_SNAPSHOT_STORE_FACTORY;
+    private SnapshotStore snapshotStore;
 
     private Builder() {}
 
@@ -674,8 +671,14 @@ public final class RaftStorage {
       return this;
     }
 
-    public Builder withSnapshotStoreFactory(final SnapshotStoreFactory snapshotStoreFactory) {
-      this.snapshotStoreFactory = snapshotStoreFactory;
+    /**
+     * Sets the snapshot store to use for remote snapshot installation.
+     *
+     * @param snapshotStore the snapshot store for this Raft
+     * @return the storage builder
+     */
+    public Builder withSnapshotStore(final SnapshotStore snapshotStore) {
+      this.snapshotStore = snapshotStore;
       return this;
     }
 
@@ -686,6 +689,10 @@ public final class RaftStorage {
      */
     @Override
     public RaftStorage build() {
+      if (snapshotStore == null) {
+        snapshotStore = new DefaultSnapshotStore(directory.toPath(), prefix);
+      }
+
       return new RaftStorage(
           prefix,
           storageLevel,
@@ -700,7 +707,7 @@ public final class RaftStorage {
           flushOnCommit,
           retainStaleSnapshots,
           Optional.ofNullable(storageStatistics).orElse(new StorageStatistics(directory)),
-          snapshotStoreFactory);
+          snapshotStore);
     }
   }
 }

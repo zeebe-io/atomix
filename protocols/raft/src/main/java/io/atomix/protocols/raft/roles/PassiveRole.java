@@ -198,26 +198,26 @@ public class PassiveRole extends InactiveRole {
   public CompletableFuture<InstallResponse> onInstall(InstallRequest request) {
     raft.checkThread();
     logRequest(request);
-    updateTermAndLeader(request.term(), request.leader());
+    updateTermAndLeader(request.currentTerm(), request.leader());
 
-    log.debug("Received snapshot {} chunk from {}", request.snapshotIndex(), request.leader());
+    log.debug("Received snapshot {} chunk from {}", request.index(), request.leader());
 
     // If the request is for a lesser term, reject the request.
-    if (request.term() < raft.getTerm()) {
+    if (request.currentTerm() < raft.getTerm()) {
       return CompletableFuture.completedFuture(
           logResponse(
               InstallResponse.builder()
                   .withStatus(RaftResponse.Status.ERROR)
                   .withError(
                       RaftError.Type.ILLEGAL_MEMBER_STATE,
-                      "Request term is less than the local term " + request.term())
+                      "Request term is less than the local term " + request.currentTerm())
                   .build()));
     }
 
     // If the index has already been applied, we have enough state to populate the state machine up
     // to this index.
     // Skip the snapshot and response successfully.
-    if (raft.getLastApplied() > request.snapshotIndex()) {
+    if (raft.getLastApplied() > request.index()) {
       return CompletableFuture.completedFuture(
           logResponse(InstallResponse.builder().withStatus(RaftResponse.Status.OK).build()));
     }
@@ -225,7 +225,7 @@ public class PassiveRole extends InactiveRole {
     // If the snapshot already exists locally, do not overwrite it with a replicated snapshot.
     // Simply reply to the
     // request successfully.
-    final Snapshot existingSnapshot = raft.getSnapshotStore().getSnapshot(request.snapshotIndex());
+    final Snapshot existingSnapshot = raft.getSnapshotStore().getSnapshot(request.index());
     if (existingSnapshot != null) {
       return CompletableFuture.completedFuture(
           logResponse(InstallResponse.builder().withStatus(RaftResponse.Status.OK).build()));
@@ -238,7 +238,7 @@ public class PassiveRole extends InactiveRole {
     // snapshot,
     // and so snapshots aren't simply sent at the beginning of the follower's log, but rather the
     // leader dictates when a snapshot needs to be sent.
-    if (pendingSnapshot != null && request.snapshotIndex() != pendingSnapshot.index()) {
+    if (pendingSnapshot != null && request.index() != pendingSnapshot.index()) {
       abortPendingSnapshot();
     }
 
@@ -259,27 +259,25 @@ public class PassiveRole extends InactiveRole {
       pendingSnapshot =
           raft.getSnapshotStore()
               .newPendingSnapshot(
-                  request.snapshotIndex(),
-                  request.snapshotTerm(),
-                  WallClockTimestamp.from(request.snapshotTimestamp()));
-    }
+                  request.index(), request.term(), WallClockTimestamp.from(request.timestamp()));
+    } else {
+      // skip if we already have this chunk
+      if (pendingSnapshot.containsChunk(request.chunkId())) {
+        return CompletableFuture.completedFuture(
+            logResponse(InstallResponse.builder().withStatus(RaftResponse.Status.OK).build()));
+      }
 
-    // skip if we already have this chunk
-    if (pendingSnapshot.containsChunk(request.chunkId())) {
-      return CompletableFuture.completedFuture(
-          logResponse(InstallResponse.builder().withStatus(RaftResponse.Status.OK).build()));
-    }
-
-    // fail the request if this is not the expected next chunk
-    if (!pendingSnapshot.isExpectedChunk(request.chunkId())) {
-      return CompletableFuture.completedFuture(
-          logResponse(
-              InstallResponse.builder()
-                  .withStatus(RaftResponse.Status.ERROR)
-                  .withError(
-                      RaftError.Type.ILLEGAL_MEMBER_STATE,
-                      "Request chunk is was received out of order")
-                  .build()));
+      // fail the request if this is not the expected next chunk
+      if (!pendingSnapshot.isExpectedChunk(request.chunkId())) {
+        return CompletableFuture.completedFuture(
+            logResponse(
+                InstallResponse.builder()
+                    .withStatus(RaftResponse.Status.ERROR)
+                    .withError(
+                        RaftError.Type.ILLEGAL_MEMBER_STATE,
+                        "Request chunk is was received out of order")
+                    .build()));
+      }
     }
 
     // Write the data to the snapshot.
