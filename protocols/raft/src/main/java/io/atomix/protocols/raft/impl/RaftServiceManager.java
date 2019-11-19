@@ -200,11 +200,13 @@ public class RaftServiceManager implements RaftStateMachine {
               // If the snapshot is for the prior index, install it.
               final Snapshot snapshot = raft.getSnapshotStore().getCurrentSnapshot();
               if (snapshot != null) {
-                if (snapshot.index() >= entry.index()) {
+                if (snapshot.index() > entry.index()) {
                   future.complete(null);
                   return;
-                } else if (snapshot.index() == entry.index() - 1) {
+                } else if (snapshot.index() == entry.index()) {
                   install(snapshot);
+                  future.complete(null);
+                  return;
                 }
               }
 
