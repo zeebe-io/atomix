@@ -162,7 +162,7 @@ public class DefaultClusterCommunicationService implements ManagedClusterCommuni
   @Override
   public void unsubscribe(String subject) {
     messagingService.unregisterHandler(subject);
-    BiConsumer<Address, byte[]> consumer = unicastConsumers.get(subject);
+    BiConsumer<Address, byte[]> consumer = unicastConsumers.remove(subject);
     if (consumer != null) {
       unicastService.removeListener(subject, consumer);
     }
