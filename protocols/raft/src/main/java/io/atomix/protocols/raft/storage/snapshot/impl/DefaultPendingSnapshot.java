@@ -5,6 +5,7 @@ import io.atomix.protocols.raft.storage.snapshot.PendingSnapshot;
 import io.atomix.protocols.raft.storage.snapshot.Snapshot;
 import io.atomix.utils.time.WallClockTimestamp;
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
 
 public class DefaultPendingSnapshot implements PendingSnapshot {
   private final Snapshot snapshot;
@@ -59,6 +60,11 @@ public class DefaultPendingSnapshot implements PendingSnapshot {
   @Override
   public void abort() {
     snapshot.close();
+  }
+
+  @Override
+  public Path getPath() {
+    return snapshot.getPath();
   }
 
   @Override

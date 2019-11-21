@@ -42,7 +42,7 @@ import org.junit.Test;
  *
  * @author <a href="http://github.com/kuujo">Jordan Halterman</a>
  */
-public class FileSnapshotStoreTest extends AbstractSnapshotStoreTest {
+public class FileSnapshotStoreTest {
 
   private String testId;
 
@@ -71,13 +71,16 @@ public class FileSnapshotStoreTest extends AbstractSnapshotStoreTest {
 
   /** Returns a new snapshot store. */
   protected SnapshotStore createSnapshotStore() {
+    final File directory = new File(String.format("target/test-logs/%s", testId));
+    final DefaultSnapshotStore store = new DefaultSnapshotStore(directory.toPath(), "test");
     final RaftStorage storage =
         RaftStorage.builder()
             .withPrefix("test")
-            .withDirectory(new File(String.format("target/test-logs/%s", testId)))
+            .withDirectory(directory)
+            .withSnapshotStore(store)
             .withStorageLevel(StorageLevel.DISK)
             .build();
-    return new DefaultSnapshotStore(storage);
+    return new DefaultSnapshotStore(directory.toPath(), "test");
   }
 
   /** Tests persisting and loading snapshots. */
@@ -188,5 +191,44 @@ public class FileSnapshotStoreTest extends AbstractSnapshotStoreTest {
           });
     }
     testId = UUID.randomUUID().toString();
+  }
+
+  /** Tests writing a snapshot. */
+  @Test
+  public void testWriteSnapshotChunks() {
+    final SnapshotStore store = createSnapshotStore();
+    final WallClockTimestamp timestamp = new WallClockTimestamp();
+    final Snapshot snapshot = store.newSnapshot(2, 1, timestamp);
+    assertEquals(2, snapshot.index());
+    assertEquals(timestamp, snapshot.timestamp());
+
+    assertNull(store.getSnapshot(2));
+
+    try (SnapshotWriter writer = snapshot.openWriter()) {
+      writer.writeLong(10);
+    }
+
+    assertNull(store.getSnapshot(2));
+
+    try (SnapshotWriter writer = snapshot.openWriter()) {
+      writer.writeLong(11);
+    }
+
+    assertNull(store.getSnapshot(2));
+
+    try (SnapshotWriter writer = snapshot.openWriter()) {
+      writer.writeLong(12);
+    }
+
+    assertNull(store.getSnapshot(2));
+    snapshot.complete();
+
+    assertEquals(2, store.getSnapshot(2).index());
+
+    try (SnapshotReader reader = store.getSnapshot(2).openReader()) {
+      assertEquals(10, reader.readLong());
+      assertEquals(11, reader.readLong());
+      assertEquals(12, reader.readLong());
+    }
   }
 }

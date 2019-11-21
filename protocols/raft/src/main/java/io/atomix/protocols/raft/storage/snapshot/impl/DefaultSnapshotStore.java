@@ -17,19 +17,19 @@ package io.atomix.protocols.raft.storage.snapshot.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import io.atomix.protocols.raft.storage.RaftStorage;
 import io.atomix.protocols.raft.storage.snapshot.PendingSnapshot;
 import io.atomix.protocols.raft.storage.snapshot.Snapshot;
+import io.atomix.protocols.raft.storage.snapshot.SnapshotListener;
 import io.atomix.protocols.raft.storage.snapshot.SnapshotStore;
-import io.atomix.storage.StorageLevel;
 import io.atomix.storage.buffer.FileBuffer;
-import io.atomix.storage.buffer.HeapBuffer;
 import io.atomix.utils.time.WallClockTimestamp;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -39,22 +39,21 @@ import org.slf4j.LoggerFactory;
 
 public class DefaultSnapshotStore implements SnapshotStore {
 
-  final RaftStorage storage;
+  private final File directory;
+  private final String partitionName;
   private final Logger log = LoggerFactory.getLogger(getClass());
   private final NavigableMap<Long, Snapshot> snapshots = new ConcurrentSkipListMap<>();
 
-  public DefaultSnapshotStore(final RaftStorage storage) {
-    this.storage = checkNotNull(storage, "storage cannot be null");
+  public DefaultSnapshotStore(final Path directory, final String partitionName) {
+    this.directory = checkNotNull(directory, "directory cannot be null").toFile();
+    this.partitionName = partitionName;
     open();
   }
 
   /** Opens the snapshot manager. */
   private void open() {
-    // load persisted snapshots only if storage level is persistent
-    if (storage.storageLevel() != StorageLevel.MEMORY) {
-      for (final Snapshot snapshot : loadSnapshots()) {
-        completeSnapshot(snapshot);
-      }
+    for (final Snapshot snapshot : loadSnapshots()) {
+      completeSnapshot(snapshot);
     }
   }
 
@@ -65,12 +64,16 @@ public class DefaultSnapshotStore implements SnapshotStore {
    */
   private Collection<Snapshot> loadSnapshots() {
     // Ensure log directories are created.
-    storage.directory().mkdirs();
+    directory.mkdirs();
 
-    final List<Snapshot> snapshots = new ArrayList<>();
+    final File[] files = directory.listFiles(File::isFile);
+    if (files == null) {
+      return Collections.emptyList();
+    }
 
     // Iterate through all files in the log directory.
-    for (final File file : storage.directory().listFiles(File::isFile)) {
+    final List<Snapshot> snapshots = new ArrayList<>();
+    for (final File file : files) {
 
       // If the file looks like a segment file, attempt to load the segment.
       if (DefaultSnapshotFile.isSnapshotFile(file)) {
@@ -111,8 +114,6 @@ public class DefaultSnapshotStore implements SnapshotStore {
       final Snapshot lastSnapshot = lastEntry.getValue();
       lastSnapshot.close();
       lastSnapshot.delete();
-    } else if (storage.isRetainStaleSnapshots()) {
-      snapshots.put(snapshot.index(), snapshot);
     } else {
       snapshot.close();
       snapshot.delete();
@@ -128,30 +129,6 @@ public class DefaultSnapshotStore implements SnapshotStore {
   @Override
   public Snapshot getSnapshot(final long index) {
     return snapshots.get(index);
-  }
-
-  /**
-   * Creates a new snapshot.
-   *
-   * @param index The snapshot index.
-   * @param timestamp The snapshot timestamp.
-   * @return The snapshot.
-   */
-  @Override
-  public Snapshot newSnapshot(
-      final long index, final long term, final WallClockTimestamp timestamp) {
-    final DefaultSnapshotDescriptor descriptor =
-        DefaultSnapshotDescriptor.builder()
-            .withIndex(index)
-            .withTerm(term)
-            .withTimestamp(timestamp.unixTimestamp())
-            .build();
-
-    if (storage.storageLevel() == StorageLevel.MEMORY) {
-      return createMemorySnapshot(descriptor);
-    } else {
-      return createDiskSnapshot(descriptor);
-    }
   }
 
   @Override
@@ -188,7 +165,6 @@ public class DefaultSnapshotStore implements SnapshotStore {
    */
   @Override
   public void delete() {
-    final File directory = storage.directory();
     final File[] files =
         directory.listFiles(f -> f.isFile() && DefaultSnapshotFile.isSnapshotFile(f));
     if (files == null) {
@@ -205,32 +181,70 @@ public class DefaultSnapshotStore implements SnapshotStore {
     }
   }
 
-  /** Creates a memory snapshot. */
-  private Snapshot createMemorySnapshot(final DefaultSnapshotDescriptor descriptor) {
-    final HeapBuffer buffer =
-        HeapBuffer.allocate(DefaultSnapshotDescriptor.BYTES, Integer.MAX_VALUE);
-    final Snapshot snapshot = new MemorySnapshot(buffer, descriptor.copyTo(buffer), this);
-    log.debug("Created memory snapshot: {}", snapshot);
-    return snapshot;
+  @Override
+  public PendingSnapshot newPendingSnapshot(
+      final long index, final long term, final WallClockTimestamp timestamp) {
+    return new DefaultPendingSnapshot(newSnapshot(index, term, timestamp));
+  }
+
+  /**
+   * Creates a new snapshot.
+   *
+   * @param index The snapshot index.
+   * @param timestamp The snapshot timestamp.
+   * @return The snapshot.
+   */
+  @Override
+  public Snapshot newSnapshot(
+      final long index, final long term, final WallClockTimestamp timestamp) {
+    final DefaultSnapshotDescriptor descriptor =
+        DefaultSnapshotDescriptor.builder()
+            .withIndex(index)
+            .withTerm(term)
+            .withTimestamp(timestamp.unixTimestamp())
+            .build();
+
+    return createDiskSnapshot(descriptor);
+  }
+
+  @Override
+  public void purgeSnapshots(final Snapshot snapshot) {
+    throw new UnsupportedOperationException(
+        "This operation is not supported in the old implementation");
+  }
+
+  @Override
+  public Path getPath() {
+    return directory.toPath();
+  }
+
+  @Override
+  public Collection<? extends Snapshot> getSnapshots() {
+    return snapshots.values();
+  }
+
+  @Override
+  public void addListener(final SnapshotListener listener) {
+    throw new UnsupportedOperationException(
+        "This operation is not supported on the old implementation");
+  }
+
+  @Override
+  public void removeListener(final SnapshotListener listener) {
+    throw new UnsupportedOperationException(
+        "This operation is not supported on the old implementation");
   }
 
   /** Creates a disk snapshot. */
   private Snapshot createDiskSnapshot(final DefaultSnapshotDescriptor descriptor) {
     final File snapshotFile =
-        DefaultSnapshotFile.createSnapshotFile(
-            storage.directory(), storage.prefix(), descriptor.index());
+        DefaultSnapshotFile.createSnapshotFile(directory, partitionName, descriptor.index());
     final File temporaryFile = DefaultSnapshotFile.createTemporaryFile(snapshotFile);
 
     final DefaultSnapshotFile file = new DefaultSnapshotFile(snapshotFile, temporaryFile);
     final Snapshot snapshot = new FileSnapshot(file, descriptor, this);
     log.debug("Created disk snapshot: {}", snapshot);
     return snapshot;
-  }
-
-  @Override
-  public PendingSnapshot newPendingSnapshot(
-      final long index, final long term, final WallClockTimestamp timestamp) {
-    return new DefaultPendingSnapshot(newSnapshot(index, term, timestamp));
   }
 
   @Override

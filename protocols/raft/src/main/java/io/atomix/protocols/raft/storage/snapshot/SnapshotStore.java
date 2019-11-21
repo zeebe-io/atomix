@@ -2,6 +2,8 @@ package io.atomix.protocols.raft.storage.snapshot;
 
 import io.atomix.protocols.raft.storage.RaftStorage;
 import io.atomix.utils.time.WallClockTimestamp;
+import java.nio.file.Path;
+import java.util.Collection;
 
 /**
  * Persists server snapshots via the {@link RaftStorage} module.
@@ -91,14 +93,48 @@ public interface SnapshotStore extends AutoCloseable {
    */
   PendingSnapshot newPendingSnapshot(long index, long term, WallClockTimestamp timestamp);
 
+  default PendingSnapshot newPendingSnapshot(
+      long index, long term, WallClockTimestamp timestamp, Path directory) {
+    return newPendingSnapshot(index, term, timestamp);
+  }
+
   /**
    * Creates a new snapshot.
    *
-   * @param index The snapshot index.
-   * @param timestamp The snapshot timestamp.
-   * @return The snapshot.
-   * @deprecated used by the old implementation
+   * @param index the snapshot index
+   * @param term the snapshot term
+   * @param timestamp the snapshot timestamp
+   * @param directory the snapshot directory
    */
-  @Deprecated
+  default Snapshot newSnapshot(
+      long index, long term, WallClockTimestamp timestamp, Path directory) {
+    return newSnapshot(index, term, timestamp);
+  }
+
   Snapshot newSnapshot(long index, long term, WallClockTimestamp timestamp);
+
+  /**
+   * Removes committed and non-committed snapshots older than the given snapshot.
+   *
+   * @param snapshot the snapshot to remove
+   */
+  void purgeSnapshots(Snapshot snapshot);
+
+  /**
+   * Returns the path to the directory containing valid snapshots.
+   *
+   * @return root path of the snapshot store
+   */
+  Path getPath();
+
+  /**
+   * Returns all known, committed snapshots in order of oldest to newest.
+   *
+   * @return sorted, committed snapshots
+   */
+  Collection<? extends Snapshot> getSnapshots();
+
+  void addListener(SnapshotListener listener);
+
+  void removeListener(SnapshotListener listener);
 }

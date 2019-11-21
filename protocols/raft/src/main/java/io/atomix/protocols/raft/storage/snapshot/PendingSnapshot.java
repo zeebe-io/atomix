@@ -2,6 +2,7 @@ package io.atomix.protocols.raft.storage.snapshot;
 
 import io.atomix.utils.time.WallClockTimestamp;
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
 
 /** Represents a snapshot being written, e.g. during snapshot replication */
 public interface PendingSnapshot {
@@ -53,4 +54,7 @@ public interface PendingSnapshot {
    * Aborts the pending snapshot, closing all allocated resources and removing any partial files.
    */
   void abort();
+
+  /** @return the working directory of the pending snapshot */
+  Path getPath();
 }
