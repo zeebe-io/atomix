@@ -81,7 +81,7 @@ spec:
     stage('Upload') {
       when {
         allOf {
-            branch 'zeebe'; not { expression { params.RELEASE } }
+            branch 'develop'; not { expression { params.RELEASE } }
         }
       }
       steps {
@@ -94,7 +94,7 @@ spec:
     stage('Release') {
       when {
         allOf {
-          branch 'zeebe'; expression { params.RELEASE }
+          branch 'develop'; expression { params.RELEASE }
         }
       }
 
