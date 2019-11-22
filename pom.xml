@@ -58,7 +58,7 @@
     <jackson.version>2.9.6</jackson.version>
     <config.version>1.3.2</config.version>
     <classgraph.version>4.2.3</classgraph.version>
-    <resteasy.version>3.1.4.Final</resteasy.version>
+    <resteasy.version>4.4.1.Final</resteasy.version>
     <rest-assured.version>3.0.7</rest-assured.version>
     <argparse4j.version>0.7.0</argparse4j.version>
     <prometheus.client.version>0.7.0</prometheus.client.version>
@@ -433,7 +433,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
-        <version>2.1</version><!--$NO-MVN-MAN-VER$ -->
+        <version>2.5.3</version><!--$NO-MVN-MAN-VER$ -->
         <configuration>
           <arguments>-s settings.xml -Psonatype-oss-release -DskipTests -Ddockerfile.skip -Dgpg.passphrase='${env.GPG_PASS}'</arguments>
           <resume>false</resume>
