@@ -68,4 +68,8 @@ public class RaftRoleMetrics extends RaftMetrics {
   public void observeHeartbeatInterval(long milliseconds) {
     HEARTBEAT_TIME.labels(partitionGroupName, partition).observe(milliseconds / 1000f);
   }
+
+  public static double getHeartbeatMissCount(String partition) {
+    return HEARTBEAT_MISS.labels(partition, partition).get();
+  }
 }
