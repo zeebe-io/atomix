@@ -1,9 +1,10 @@
-pipeline {
+def buildName = "${env.JOB_BASE_NAME.replaceAll("%2F", "-").replaceAll("\\.", "-").take(20)}-${env.BUILD_ID}"
 
+pipeline {
   agent {
     kubernetes {
       cloud 'zeebe-ci'
-      label "zeebe-ci-build_${env.JOB_BASE_NAME}-${env.BUILD_ID}"
+      label "zeebe-ci-build_${buildName}"
       defaultContainer 'jnlp'
       yaml '''\
 apiVersion: v1
@@ -81,7 +82,7 @@ spec:
     stage('Upload') {
       when {
         allOf {
-            branch 'zeebe'; not { expression { params.RELEASE } }
+            branch 'develop'; not { expression { params.RELEASE } }
         }
       }
       steps {
@@ -94,7 +95,7 @@ spec:
     stage('Release') {
       when {
         allOf {
-          branch 'zeebe'; expression { params.RELEASE }
+          branch 'develop'; expression { params.RELEASE }
         }
       }
 

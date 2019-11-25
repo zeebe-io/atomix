@@ -15,8 +15,10 @@
  */
 package io.atomix.protocols.raft;
 
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -42,6 +44,7 @@ import io.atomix.protocols.raft.RaftServer.Role;
 import io.atomix.protocols.raft.cluster.RaftClusterEvent;
 import io.atomix.protocols.raft.cluster.RaftMember;
 import io.atomix.protocols.raft.cluster.impl.DefaultRaftMember;
+import io.atomix.protocols.raft.metrics.RaftRoleMetrics;
 import io.atomix.protocols.raft.primitive.FakeStateMachine;
 import io.atomix.protocols.raft.primitive.TestMember;
 import io.atomix.protocols.raft.primitive.TestPrimitive;
@@ -1397,6 +1400,32 @@ public class RaftTest extends ConcurrentTestCase {
   @Test
   public void testFiveNodeCloseEvent() throws Throwable {
     testSessionClose(5);
+  }
+
+  @Test
+  public void testThreeNodeManyEventsDoNotMissHeartbeats() throws Throwable {
+    // given
+    createServers(3);
+
+    final RaftClient client = createClient();
+    final TestPrimitive primitive = createPrimitive(client);
+    primitive.onEvent(
+        message -> {
+          threadAssertNotNull(message);
+          resume();
+        });
+
+    final double startMissedHeartBeats = RaftRoleMetrics.getHeartbeatMissCount("1");
+
+    // when
+    for (int i = 0; i < 1_000; i++) {
+      primitive.sendEvent(true);
+    }
+    await(10000, 1_000);
+
+    // then
+    final double missedHeartBeats = RaftRoleMetrics.getHeartbeatMissCount("1");
+    assertThat(0.0, is(missedHeartBeats - startMissedHeartBeats));
   }
 
   @Test

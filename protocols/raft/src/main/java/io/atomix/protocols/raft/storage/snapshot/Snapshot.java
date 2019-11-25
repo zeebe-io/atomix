@@ -3,6 +3,8 @@ package io.atomix.protocols.raft.storage.snapshot;
 import io.atomix.protocols.raft.storage.snapshot.impl.SnapshotReader;
 import io.atomix.protocols.raft.storage.snapshot.impl.SnapshotWriter;
 import io.atomix.utils.time.WallClockTimestamp;
+import java.nio.file.Path;
+import java.util.Comparator;
 
 /**
  * Manages reading and writing a single snapshot.
@@ -24,7 +26,7 @@ import io.atomix.utils.time.WallClockTimestamp;
  * }
  * }</pre>
  */
-public interface Snapshot extends AutoCloseable {
+public interface Snapshot extends AutoCloseable, Comparable<Snapshot> {
 
   /**
    * Returns the snapshot timestamp.
@@ -77,6 +79,17 @@ public interface Snapshot extends AutoCloseable {
 
   /** Deletes the snapshot. */
   void delete();
+
+  /** returns a path to the snapshot location */
+  Path getPath();
+
+  @Override
+  default int compareTo(Snapshot other) {
+    return Comparator.comparingLong(Snapshot::index)
+        .thenComparingLong(Snapshot::term)
+        .thenComparing(Snapshot::timestamp)
+        .compare(this, other);
+  }
 
   /**
    * Completes writing the snapshot to persist it and make it available for reads.

@@ -38,6 +38,7 @@ import io.atomix.protocols.raft.MultiRaftProtocol;
 import io.atomix.protocols.raft.RaftClient;
 import io.atomix.protocols.raft.RaftStateMachineFactory;
 import io.atomix.protocols.raft.impl.DefaultRaftClient;
+import io.atomix.protocols.raft.storage.snapshot.SnapshotStoreFactory;
 import io.atomix.storage.StorageLevel;
 import io.atomix.utils.concurrent.BlockingAwareThreadPoolContextFactory;
 import io.atomix.utils.concurrent.Futures;
@@ -525,6 +526,17 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
      */
     public Builder withStateMachineFactory(RaftStateMachineFactory stateMachineFactory) {
       config.setStateMachineFactory(stateMachineFactory);
+      return this;
+    }
+
+    /**
+     * Sets the Raft snapshot store factory to use.
+     *
+     * @param snapshotStoreFactory the new snapshot store factory to use
+     * @return the Raft partition group builder
+     */
+    public Builder withSnapshotStoreFactory(SnapshotStoreFactory snapshotStoreFactory) {
+      config.getStorageConfig().setSnapshotStoreFactory(snapshotStoreFactory);
       return this;
     }
 

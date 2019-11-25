@@ -457,10 +457,10 @@ abstract class AbstractAppender implements AutoCloseable {
         final DefaultRaftMember leader = raft.getLeader();
         request =
             InstallRequest.builder()
-                .withTerm(raft.getTerm())
+                .withCurrentTerm(raft.getTerm())
                 .withLeader(leader != null ? leader.memberId() : null)
                 .withIndex(snapshot.index())
-                .withSnapshotTerm(snapshot.term())
+                .withTerm(snapshot.term())
                 .withTimestamp(snapshot.timestamp().unixTimestamp())
                 .withVersion(snapshot.version())
                 .withData(chunk.data())
@@ -541,8 +541,8 @@ abstract class AbstractAppender implements AutoCloseable {
     if (request.complete()) {
       member.setNextSnapshotIndex(0);
       member.setNextSnapshotChunk(null);
-      member.setSnapshotIndex(request.snapshotIndex());
-      resetNextIndex(member, request.snapshotIndex() + 1);
+      member.setSnapshotIndex(request.index());
+      resetNextIndex(member, request.index() + 1);
     }
     // If more install requests remain, increment the member's snapshot offset.
     else {

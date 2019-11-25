@@ -119,6 +119,11 @@ final class FileSnapshot extends DefaultSnapshot {
     super.closeWriter(writer);
   }
 
+  @Override
+  public Path getPath() {
+    return file.file().toPath();
+  }
+
   private void deleteFileSilently(final Path path) {
     try {
       Files.delete(path);

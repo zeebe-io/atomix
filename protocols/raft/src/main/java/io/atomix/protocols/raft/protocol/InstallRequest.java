@@ -36,23 +36,34 @@ import java.util.Objects;
  */
 public class InstallRequest extends AbstractRaftRequest {
 
-  private final long term;
+  // the term of the node sending the install request
+  private final long currentTerm;
+  // the current leader (i.e. the node sending the request) at currentTerm
   private final MemberId leader;
+  // the index associated to the snapshot
   private final long index;
-  private final long snapshotTerm;
+  // the term associated to the snapshot
+  private final long term;
+  // the timestamp when the snapshot was taken
   private final long timestamp;
+  // the version of the snapshot
   private final int version;
+  // the ID of the current chunk (implementation specific)
   private final ByteBuffer chunkId;
+  // the next expected ID (or null if none)
   private final ByteBuffer nextChunkId;
+  // the data of the chunk
   private final ByteBuffer data;
+  // true if this is the first chunk
   private final boolean initial;
+  // true if this is the last chunk
   private final boolean complete;
 
   public InstallRequest(
-      final long term,
+      final long currentTerm,
       final MemberId leader,
       final long index,
-      final long snapshotTerm,
+      final long term,
       final long timestamp,
       final int version,
       final ByteBuffer chunkId,
@@ -60,7 +71,7 @@ public class InstallRequest extends AbstractRaftRequest {
       final ByteBuffer data,
       final boolean initial,
       final boolean complete) {
-    this.term = term;
+    this.currentTerm = currentTerm;
     this.leader = leader;
     this.index = index;
     this.timestamp = timestamp;
@@ -70,7 +81,7 @@ public class InstallRequest extends AbstractRaftRequest {
     this.data = data;
     this.initial = initial;
     this.complete = complete;
-    this.snapshotTerm = snapshotTerm;
+    this.term = term;
   }
 
   /**
@@ -87,8 +98,8 @@ public class InstallRequest extends AbstractRaftRequest {
    *
    * @return The requesting node's current term.
    */
-  public long term() {
-    return term;
+  public long currentTerm() {
+    return currentTerm;
   }
 
   /**
@@ -96,8 +107,8 @@ public class InstallRequest extends AbstractRaftRequest {
    *
    * @return The snapshot term.
    */
-  public long snapshotTerm() {
-    return snapshotTerm;
+  public long term() {
+    return term;
   }
 
   /**
@@ -114,7 +125,7 @@ public class InstallRequest extends AbstractRaftRequest {
    *
    * @return The snapshot index.
    */
-  public long snapshotIndex() {
+  public long index() {
     return index;
   }
 
@@ -123,17 +134,8 @@ public class InstallRequest extends AbstractRaftRequest {
    *
    * @return The snapshot timestamp.
    */
-  public long snapshotTimestamp() {
+  public long timestamp() {
     return timestamp;
-  }
-
-  /**
-   * Returns the snapshot version.
-   *
-   * @return the snapshot version
-   */
-  public int snapshotVersion() {
-    return version;
   }
 
   /**
@@ -181,28 +183,28 @@ public class InstallRequest extends AbstractRaftRequest {
   public int hashCode() {
     return Objects.hash(
         getClass(),
-        term,
+        currentTerm,
         leader,
         index,
+        term,
         chunkId,
         nextChunkId,
         complete,
         initial,
-        data,
-        snapshotTerm);
+        data);
   }
 
   @Override
   public boolean equals(final Object object) {
     if (object instanceof InstallRequest) {
       final InstallRequest request = (InstallRequest) object;
-      return request.term == term
+      return request.currentTerm == currentTerm
           && request.leader == leader
           && request.index == index
           && request.chunkId.equals(chunkId)
           && request.complete == complete
           && request.initial == initial
-          && request.snapshotTerm == snapshotTerm
+          && request.term == term
           && request.nextChunkId.equals(nextChunkId)
           && request.data.equals(data);
     }
@@ -212,10 +214,10 @@ public class InstallRequest extends AbstractRaftRequest {
   @Override
   public String toString() {
     return toStringHelper(this)
-        .add("term", term)
+        .add("currentTerm", currentTerm)
         .add("leader", leader)
         .add("index", index)
-        .add("snapshotTerm", snapshotTerm)
+        .add("term", term)
         .add("timestamp", timestamp)
         .add("version", version)
         .add("chunkId", StringUtils.printShortBuffer(chunkId))
@@ -229,7 +231,7 @@ public class InstallRequest extends AbstractRaftRequest {
   /** Snapshot request builder. */
   public static class Builder extends AbstractRaftRequest.Builder<Builder, InstallRequest> {
 
-    private long term;
+    private long currentTerm;
     private MemberId leader;
     private long index;
     private long timestamp;
@@ -239,18 +241,18 @@ public class InstallRequest extends AbstractRaftRequest {
     private ByteBuffer data;
     private boolean complete;
     private boolean initial;
-    private long snapshotTerm;
+    private long term;
 
     /**
-     * Sets the request term.
+     * Sets the request current term.
      *
-     * @param term The request term.
+     * @param currentTerm The request current term.
      * @return The append request builder.
-     * @throws IllegalArgumentException if the {@code term} is not positive
+     * @throws IllegalArgumentException if the {@code currentTerm} is not positive
      */
-    public Builder withTerm(final long term) {
-      checkArgument(term > 0, "term must be positive");
-      this.term = term;
+    public Builder withCurrentTerm(final long currentTerm) {
+      checkArgument(currentTerm > 0, "currentTerm must be positive");
+      this.currentTerm = currentTerm;
       return this;
     }
 
@@ -266,9 +268,9 @@ public class InstallRequest extends AbstractRaftRequest {
       return this;
     }
 
-    public Builder withSnapshotTerm(final long term) {
-      checkArgument(term > 0, "snapshotTerm must be positive");
-      this.snapshotTerm = term;
+    public Builder withTerm(final long term) {
+      checkArgument(term > 0, "term must be positive");
+      this.term = term;
       return this;
     }
 
@@ -370,10 +372,10 @@ public class InstallRequest extends AbstractRaftRequest {
     public InstallRequest build() {
       validate();
       return new InstallRequest(
-          term,
+          currentTerm,
           leader,
           index,
-          snapshotTerm,
+          term,
           timestamp,
           version,
           chunkId,
@@ -386,10 +388,10 @@ public class InstallRequest extends AbstractRaftRequest {
     @Override
     protected void validate() {
       super.validate();
-      checkArgument(term > 0, "term must be positive");
+      checkArgument(currentTerm > 0, "term must be positive");
       checkNotNull(leader, "leader cannot be null");
       checkArgument(index >= 0, "index must be positive");
-      checkArgument(snapshotTerm > 0, "snapshotTerm must be positive");
+      checkArgument(term > 0, "snapshotTerm must be positive");
       checkNotNull(chunkId, "chunkId cannot be null");
       checkNotNull(data, "data cannot be null");
     }
