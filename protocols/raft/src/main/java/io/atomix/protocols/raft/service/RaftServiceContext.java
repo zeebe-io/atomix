@@ -681,6 +681,7 @@ public class RaftServiceContext implements ServiceContext {
   /** Closes the service context. */
   public void close() {
     for (RaftSession serviceSession : sessions.getSessions(serviceId())) {
+      sessions.removeSession(serviceSession.sessionId());
       serviceSession.close();
       service.close(serviceSession.sessionId());
     }
