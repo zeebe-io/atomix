@@ -25,7 +25,6 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.Lists;
 import io.atomix.cluster.ClusterMembershipService;
 import io.atomix.cluster.MemberId;
-import io.atomix.primitive.PrimitiveException;
 import io.atomix.primitive.PrimitiveInfo;
 import io.atomix.primitive.PrimitiveRegistry;
 import io.atomix.primitive.PrimitiveState;
@@ -1398,57 +1397,6 @@ public class RaftTest extends ConcurrentTestCase {
   @Test
   public void testFiveNodeCloseEvent() throws Throwable {
     testSessionClose(5);
-  }
-
-  @Test
-  public void testSessionDelete() throws Throwable {
-    createServers(3);
-
-    final RaftClient client1 = createClient();
-    final TestPrimitive primitive1 = createPrimitive(client1);
-
-    final RaftClient client2 = createClient();
-    final TestPrimitive primitive2 = createPrimitive(client2);
-
-    primitive1.write("foo").thenRun(this::resume);
-    primitive2.write("bar").thenRun(this::resume);
-    await(5000, 2);
-
-    primitive1.delete().thenRun(this::resume);
-    await(5000);
-
-    primitive2
-        .write("baz")
-        .whenComplete(
-            (result, error) -> {
-              threadAssertTrue(error.getCause() instanceof PrimitiveException.UnknownService);
-              resume();
-            });
-    primitive2
-        .read()
-        .whenComplete(
-            (result, error) -> {
-              threadAssertTrue(
-                  error.getCause() instanceof PrimitiveException.ClosedSession
-                      || error.getCause() instanceof PrimitiveException.UnknownService);
-              resume();
-            });
-    await(5000, 2);
-
-    primitive2
-        .read()
-        .whenComplete(
-            (result, error) -> {
-              threadAssertTrue(error.getCause() instanceof PrimitiveException.ClosedSession);
-              resume();
-            });
-    await(5000);
-
-    final RaftClient client3 = createClient();
-    final TestPrimitive primitive3 = createPrimitive(client3);
-
-    primitive3.write("foo").thenCompose(v -> primitive3.read()).thenRun(this::resume);
-    await(5000);
   }
 
   @Test

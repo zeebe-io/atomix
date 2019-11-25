@@ -285,13 +285,11 @@ public class RaftServiceManager implements RaftStateMachine {
     logger.debug("Installing service {} {}", primitiveId, serviceName);
     final RaftServiceContext service =
         initializeService(primitiveId, primitiveType, serviceName, serviceConfig);
-    if (service != null) {
-      try {
-        service.installSnapshot(reader);
-      } catch (Exception e) {
-        logger.error("Failed to install snapshot for service {}", serviceName, e);
-        throw e;
-      }
+    try {
+      service.installSnapshot(reader);
+    } catch (Exception e) {
+      logger.error("Failed to install snapshot for service {}", serviceName, e);
+      throw e;
     }
   }
 
@@ -317,7 +315,7 @@ public class RaftServiceManager implements RaftStateMachine {
 
     // If a service with this name was already registered, remove all of its sessions.
     if (oldService != null) {
-      raft.getSessions().removeSessions(oldService.serviceId());
+      oldService.close();
     }
     return service;
   }
@@ -444,10 +442,6 @@ public class RaftServiceManager implements RaftStateMachine {
             primitiveType,
             entry.entry().serviceName(),
             entry.entry().serviceConfig());
-
-    if (service == null) {
-      throw new RaftException.UnknownService("Unknown service type " + entry.entry().serviceType());
-    }
 
     final SessionId sessionId = SessionId.from(entry.index());
     final RaftSession session =
