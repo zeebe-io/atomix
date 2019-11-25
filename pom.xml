@@ -38,7 +38,7 @@
     <java.version>1.8</java.version>
 
     <!-- Logging -->
-    <slf4j.version>1.7.7</slf4j.version>
+    <slf4j.version>1.7.29</slf4j.version>
 
     <!-- Testing -->
     <junit.version>4.12</junit.version>
@@ -68,13 +68,13 @@
     <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
     <maven-jar-plugin.version>3.1.0</maven-jar-plugin.version>
     <maven.failsafe.plugin.version>2.21.0</maven.failsafe.plugin.version>
-    <maven.surefire.plugin.version>2.22.0</maven.surefire.plugin.version>
+    <maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
     <maven.clean.plugin.version>2.5</maven.clean.plugin.version>
     <maven.resources.plugin.version>2.6</maven.resources.plugin.version>
     <maven.dependency.plugin.version>2.7</maven.dependency.plugin.version>
     <maven.assembly.plugin.version>2.4</maven.assembly.plugin.version>
     <maven.javadoc.plugin.version>3.0.1</maven.javadoc.plugin.version>
-    <maven.bundle.plugin.version>2.5.3</maven.bundle.plugin.version>
+    <maven.bundle.plugin.version>4.2.1</maven.bundle.plugin.version>
     <maven.checkstyle.plugin.version>2.17</maven.checkstyle.plugin.version>
     <maven.dockerfile.plugin.version>1.4.3</maven.dockerfile.plugin.version>
 
@@ -476,7 +476,7 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.8.2</version>
+        <version>0.8.5</version>
         <executions>
           <execution>
             <id>prepare-agent</id>
