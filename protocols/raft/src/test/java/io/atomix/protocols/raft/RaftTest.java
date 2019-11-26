@@ -1611,7 +1611,7 @@ public class RaftTest extends ConcurrentTestCase {
 
   private RaftServer recreateServerWithDataLoss(
       final List<MemberId> others, final RaftMember member, final RaftServer server)
-      throws TimeoutException {
+      throws TimeoutException, InterruptedException {
     server.shutdown().thenRun(this::resume);
     await(30000);
     deleteStorage(server.getContext().getStorage());
@@ -1642,7 +1642,8 @@ public class RaftTest extends ConcurrentTestCase {
     return member;
   }
 
-  private void startCluster(final Map<MemberId, RaftServer> servers) throws TimeoutException {
+  private void startCluster(final Map<MemberId, RaftServer> servers)
+      throws TimeoutException, InterruptedException {
     final List<MemberId> members = new ArrayList<>(servers.keySet());
     for (final RaftServer s : servers.values()) {
       s.bootstrap(members).thenRun(this::resume);
