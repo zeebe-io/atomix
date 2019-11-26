@@ -21,7 +21,9 @@
     </encoder>
   </appender>
 
-  <root level="${root.logging.level:-DEBUG}">
+  <logger name="io.atomix" level="DEBUG" />
+
+  <root level="${root.logging.level:-WARN}">
     <appender-ref ref="STDOUT"/>
   </root>
 </configuration>

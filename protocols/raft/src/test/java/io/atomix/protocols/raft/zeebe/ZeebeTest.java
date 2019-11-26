@@ -25,6 +25,7 @@ import com.google.common.base.Stopwatch;
 import io.atomix.protocols.raft.RaftCommitListener;
 import io.atomix.protocols.raft.partition.impl.RaftPartitionServer;
 import io.atomix.protocols.raft.storage.log.entry.RaftLogEntry;
+import io.atomix.protocols.raft.zeebe.util.TestAppender;
 import io.atomix.protocols.raft.zeebe.util.ZeebeTestHelper;
 import io.atomix.protocols.raft.zeebe.util.ZeebeTestNode;
 import io.atomix.storage.journal.Indexed;
@@ -73,6 +74,8 @@ public class ZeebeTest {
 
   private final Logger logger = LoggerFactory.getLogger(this.getClass());
   private final Stopwatch stopwatch = Stopwatch.createUnstarted();
+  private final TestAppender appenderWrapper = new TestAppender();
+
   private Collection<ZeebeTestNode> nodes;
   private ZeebeTestHelper helper;
 
@@ -107,16 +110,6 @@ public class ZeebeTest {
     stopwatch.start();
   }
 
-  private Collection<ZeebeTestNode> buildNodes() {
-    return nodeSuppliers.stream()
-        .map(supplier -> supplier.apply(temporaryFolder))
-        .collect(Collectors.toList());
-  }
-
-  private void start() throws ExecutionException, InterruptedException, TimeoutException {
-    Futures.allOf(nodes.stream().map(n -> n.start(nodes))).get(30, TimeUnit.SECONDS);
-  }
-
   @After
   public void tearDown() throws Exception {
     if (stopwatch.isRunning()) {
@@ -127,10 +120,6 @@ public class ZeebeTest {
     stop();
   }
 
-  private void stop() throws InterruptedException, ExecutionException, TimeoutException {
-    Futures.allOf(nodes.stream().map(ZeebeTestNode::stop)).get(30, TimeUnit.SECONDS);
-  }
-
   @SuppressWarnings("squid:S2699") // awaitAllContain is the assert here
   @Test
   public void shouldAppendAndReplicate() {
@@ -139,17 +128,10 @@ public class ZeebeTest {
     final ZeebeLogAppender appender = helper.awaitLeaderAppender(partitionId);
 
     // when
-    final Indexed<ZeebeEntry> appended = appender.appendEntry(0, 0, getIntAsBytes(0)).join();
+    final Indexed<ZeebeEntry> appended = appenderWrapper.append(appender, 0, 0, getIntAsBytes(0));
 
     // then
     helper.awaitAllContain(partitionId, appended);
-  }
-
-  private ByteBuffer getIntAsBytes(final int value) {
-    final ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
-    buffer.putInt(value).flip();
-
-    return buffer;
   }
 
   @Test
@@ -160,9 +142,10 @@ public class ZeebeTest {
     final ZeebeLogAppender appender = helper.awaitLeaderAppender(partitionId);
 
     // when
-    final Indexed<ZeebeEntry> firstAppended = appender.appendEntry(0, 0, getIntAsBytes(0)).join();
+    final Indexed<ZeebeEntry> firstAppended =
+        appenderWrapper.append(appender, 0L, 0L, getIntAsBytes(0));
     for (int i = 1; i < ENTRIES_PER_SEGMENT; i++) {
-      helper.awaitAllContain(partitionId, appender.appendEntry(i, i, getIntAsBytes(i)).join());
+      helper.awaitAllContain(partitionId, appenderWrapper.append(appender, i, i, getIntAsBytes(i)));
     }
     server.snapshot().join();
 
@@ -178,10 +161,10 @@ public class ZeebeTest {
     final ZeebeLogAppender appender = helper.awaitLeaderAppender(partitionId);
 
     // when
-    Indexed<ZeebeEntry> appended = appender.appendEntry(0, 0, getIntAsBytes(0)).join();
+    Indexed<ZeebeEntry> appended = appenderWrapper.append(appender, 0L, 0L, getIntAsBytes(0));
     final Indexed<ZeebeEntry> firstAppended = appended;
     for (int i = 1; i < ENTRIES_PER_SEGMENT; i++) {
-      appended = appender.appendEntry(i, i, getIntAsBytes(i)).join();
+      appended = appenderWrapper.append(appender, i, i, getIntAsBytes(i));
       helper.awaitAllContain(partitionId, appended);
     }
     server.setCompactablePosition(appended.index(), appended.entry().term());
@@ -232,7 +215,7 @@ public class ZeebeTest {
           nodes.stream().filter(node -> !node.equals(follower)).collect(Collectors.toList());
       follower.stop().join();
 
-      entries.add(i, appender.appendEntry(i, i, getIntAsBytes(i)).join());
+      entries.add(i, appenderWrapper.append(appender, i, i, getIntAsBytes(i)));
       helper.awaitAllContains(others, partitionId, entries.get(i));
       follower.start(nodes).join();
     }
@@ -261,7 +244,7 @@ public class ZeebeTest {
 
     // when - then
     for (int i = 0; i < 5; i++) {
-      final Indexed<ZeebeEntry> entry = appender.appendEntry(i, i, getIntAsBytes(i)).join();
+      final Indexed<ZeebeEntry> entry = appenderWrapper.append(appender, i, i, getIntAsBytes(i));
       final int expectedCount = i + 1;
       helper.awaitAllContains(nodes, partitionId, entry);
 
@@ -273,6 +256,27 @@ public class ZeebeTest {
         assertTrue(helper.isEntryEqualTo(entry, listener.lastCommitted.get()));
       }
     }
+  }
+
+  private ByteBuffer getIntAsBytes(final int value) {
+    final ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
+    buffer.putInt(value).flip();
+
+    return buffer;
+  }
+
+  private Collection<ZeebeTestNode> buildNodes() {
+    return nodeSuppliers.stream()
+        .map(supplier -> supplier.apply(temporaryFolder))
+        .collect(Collectors.toList());
+  }
+
+  private void start() throws ExecutionException, InterruptedException, TimeoutException {
+    Futures.allOf(nodes.stream().map(n -> n.start(nodes))).get(30, TimeUnit.SECONDS);
+  }
+
+  private void stop() throws InterruptedException, ExecutionException, TimeoutException {
+    Futures.allOf(nodes.stream().map(ZeebeTestNode::stop)).get(30, TimeUnit.SECONDS);
   }
 
   static class CommitListener implements RaftCommitListener {
