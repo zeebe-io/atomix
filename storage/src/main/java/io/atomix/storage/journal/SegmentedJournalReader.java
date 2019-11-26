@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.atomix.storage.journal;
 
 import java.util.NoSuchElementException;
@@ -23,12 +24,12 @@ import java.util.NoSuchElementException;
 public class SegmentedJournalReader<E> implements JournalReader<E> {
 
   private final SegmentedJournal<E> journal;
+  private final Mode mode;
   private JournalSegment<E> currentSegment;
   private Indexed<E> previousEntry;
   private MappableJournalSegmentReader<E> currentReader;
-  private final Mode mode;
 
-  public SegmentedJournalReader(SegmentedJournal<E> journal, long index, Mode mode) {
+  SegmentedJournalReader(SegmentedJournal<E> journal, long index, Mode mode) {
     this.journal = journal;
     this.mode = mode;
     initialize(index);
@@ -60,7 +61,7 @@ public class SegmentedJournalReader<E> implements JournalReader<E> {
 
   @Override
   public long getCurrentIndex() {
-    long currentIndex = currentReader.getCurrentIndex();
+    final long currentIndex = currentReader.getCurrentIndex();
     if (currentIndex != 0) {
       return currentIndex;
     }
@@ -72,7 +73,7 @@ public class SegmentedJournalReader<E> implements JournalReader<E> {
 
   @Override
   public Indexed<E> getCurrentEntry() {
-    Indexed<E> currentEntry = currentReader.getCurrentEntry();
+    final Indexed<E> currentEntry = currentReader.getCurrentEntry();
     if (currentEntry != null) {
       return currentEntry;
     }
@@ -85,12 +86,36 @@ public class SegmentedJournalReader<E> implements JournalReader<E> {
   }
 
   @Override
+  public boolean hasNext() {
+    if (mode == Mode.ALL) {
+      return hasNextEntry();
+    }
+
+    final long nextIndex = getNextIndex();
+    final long commitIndex = journal.getCommitIndex();
+    return nextIndex <= commitIndex && hasNextEntry();
+  }
+
+  @Override
+  public Indexed<E> next() {
+    if (!currentReader.hasNext()) {
+      final JournalSegment<E> nextSegment = journal.getNextSegment(currentSegment.index());
+      if (nextSegment != null && nextSegment.index() == getNextIndex()) {
+        previousEntry = currentReader.getCurrentEntry();
+        replaceCurrentSegment(nextSegment);
+        return currentReader.next();
+      } else {
+        throw new NoSuchElementException();
+      }
+    } else {
+      previousEntry = currentReader.getCurrentEntry();
+      return currentReader.next();
+    }
+  }
+
+  @Override
   public void reset() {
-    currentReader.close();
-    currentSegment.release();
-    currentSegment = journal.getFirstSegment();
-    currentSegment.acquire();
-    currentReader = currentSegment.createReader();
+    replaceCurrentSegment(journal.getFirstSegment());
     previousEntry = null;
   }
 
@@ -110,18 +135,20 @@ public class SegmentedJournalReader<E> implements JournalReader<E> {
     }
   }
 
+  @Override
+  public void close() {
+    currentReader.close();
+    journal.closeReader(this);
+  }
+
   /**
    * Rewinds the journal to the given index.
    */
   private void rewind(long index) {
     if (currentSegment.index() >= index) {
-      JournalSegment<E> segment = journal.getSegment(index - 1);
+      final JournalSegment<E> segment = journal.getSegment(index - 1);
       if (segment != null) {
-        currentReader.close();
-        currentSegment.release();
-        currentSegment = segment;
-        currentSegment.acquire();
-        currentReader = currentSegment.createReader();
+        replaceCurrentSegment(segment);
       }
     }
 
@@ -138,26 +165,12 @@ public class SegmentedJournalReader<E> implements JournalReader<E> {
     }
   }
 
-  @Override
-  public boolean hasNext() {
-    if (mode == Mode.ALL) {
-      return hasNextEntry();
-    }
-
-    long nextIndex = getNextIndex();
-    long commitIndex = journal.getCommitIndex();
-    return nextIndex <= commitIndex && hasNextEntry();
-  }
-
   private boolean hasNextEntry() {
     if (!currentReader.hasNext()) {
-      JournalSegment<E> nextSegment = journal.getNextSegment(currentSegment.index());
+      final JournalSegment<E> nextSegment = journal.getNextSegment(currentSegment.index());
       if (nextSegment != null && nextSegment.index() == getNextIndex()) {
         previousEntry = currentReader.getCurrentEntry();
-        currentSegment.release();
-        currentSegment = nextSegment;
-        currentSegment.acquire();
-        currentReader = currentSegment.createReader();
+        replaceCurrentSegment(nextSegment);
         return currentReader.hasNext();
       }
       return false;
@@ -165,29 +178,11 @@ public class SegmentedJournalReader<E> implements JournalReader<E> {
     return true;
   }
 
-  @Override
-  public Indexed<E> next() {
-    if (!currentReader.hasNext()) {
-      JournalSegment<E> nextSegment = journal.getNextSegment(currentSegment.index());
-      if (nextSegment != null && nextSegment.index() == getNextIndex()) {
-        previousEntry = currentReader.getCurrentEntry();
-        currentSegment.release();
-        currentSegment = nextSegment;
-        currentSegment.acquire();
-        currentReader = currentSegment.createReader();
-        return currentReader.next();
-      } else {
-        throw new NoSuchElementException();
-      }
-    } else {
-      previousEntry = currentReader.getCurrentEntry();
-      return currentReader.next();
-    }
-  }
-
-  @Override
-  public void close() {
+  private void replaceCurrentSegment(JournalSegment<E> nextSegment) {
     currentReader.close();
-    journal.closeReader(this);
+    currentSegment.release();
+    currentSegment = nextSegment;
+    currentSegment.acquire();
+    currentReader = currentSegment.createReader();
   }
 }
