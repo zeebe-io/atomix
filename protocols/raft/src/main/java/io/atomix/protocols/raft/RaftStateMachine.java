@@ -82,9 +82,8 @@ public interface RaftStateMachine extends AutoCloseable {
    * the last applied index and term.
    *
    * @param index index up to which the log can be compacted
-   * @param term term of the entry with that index, used when snapshotting
    */
-  default void setCompactablePosition(long index, long term) {}
+  default void setCompactableIndex(long index) {}
 
   /**
    * Returns the current compactable index.

@@ -35,13 +35,8 @@ public class ZeebeRaftStateMachine extends RaftServiceManager {
   }
 
   @Override
-  public void setCompactablePosition(long index, long term) {
-    if (term > compactableTerm) {
-      compactableIndex = index;
-      compactableTerm = term;
-    } else if (term == compactableTerm && index > compactableIndex) {
-      compactableIndex = index;
-    }
+  public void setCompactableIndex(long index) {
+    compactableIndex = index;
   }
 
   @Override

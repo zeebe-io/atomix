@@ -184,7 +184,7 @@ public class ZeebeTest {
       appended = appender.appendEntry(i, i, getIntAsBytes(i)).join();
       helper.awaitAllContain(partitionId, appended);
     }
-    server.setCompactablePosition(appended.index(), appended.entry().term());
+    server.setCompactableIndex(appended.index());
     server.snapshot().join();
 
     // then
