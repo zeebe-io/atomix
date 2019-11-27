@@ -76,6 +76,7 @@ import io.atomix.storage.StorageException;
 import io.atomix.storage.journal.Indexed;
 import io.atomix.utils.concurrent.Futures;
 import io.atomix.utils.concurrent.Scheduled;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
@@ -1403,7 +1404,7 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
                   log.trace("Appended {}", indexed);
                   return indexed;
                 });
-      } catch (StorageException.TooLarge e) {
+      } catch (StorageException.TooLarge | BufferOverflowException e) {
         return Futures.exceptionalFuture(e);
       } catch (StorageException.OutOfDiskSpace e) {
         log.warn("Caught OutOfDiskSpace error! Force compacting logs...");
@@ -1415,25 +1416,28 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
   }
 
   @Override
-  public CompletableFuture<Indexed<ZeebeEntry>> appendEntry(
-      long lowestPosition, long highestPosition, ByteBuffer data) {
-    final CompletableFuture<Indexed<ZeebeEntry>> result = new CompletableFuture<>();
+  public void appendEntry(
+      final long lowestPosition,
+      final long highestPosition,
+      final ByteBuffer data,
+      final AppendListener appendListener) {
     raft.getThreadContext()
-        .execute(() -> appendEntry(lowestPosition, highestPosition, data, result));
-    return result;
+        .execute(() -> safeAppendEntry(lowestPosition, highestPosition, data, appendListener));
   }
 
-  private void appendEntry(
-      long lowestPosition,
-      long highestPosition,
-      ByteBuffer data,
-      CompletableFuture<Indexed<ZeebeEntry>> result) {
+  private void safeAppendEntry(
+      final long lowestPosition,
+      final long highestPosition,
+      final ByteBuffer data,
+      final AppendListener appendListener) {
+    raft.checkThread();
+
     final ZeebeEntry entry =
         new ZeebeEntry(
             raft.getTerm(), System.currentTimeMillis(), lowestPosition, highestPosition, data);
-    raft.checkThread();
+
     if (!isRunning()) {
-      result.completeExceptionally(
+      appendListener.onWriteError(
           new IllegalStateException("LeaderRole is closed and cannot be used as appender"));
       return;
     }
@@ -1442,16 +1446,16 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
         .whenCompleteAsync(
             (indexed, error) -> {
               if (error != null) {
-                result.completeExceptionally(Throwables.getRootCause(error));
+                appendListener.onWriteError(Throwables.getRootCause(error));
               } else {
-                replicate(indexed, result);
+                appendListener.onWrite(indexed);
+                replicate(indexed, appendListener);
               }
             },
             raft.getThreadContext());
   }
 
-  private void replicate(
-      Indexed<ZeebeEntry> indexed, CompletableFuture<Indexed<ZeebeEntry>> result) {
+  private void replicate(final Indexed<ZeebeEntry> indexed, final AppendListener appendListener) {
     raft.checkThread();
     appender
         .appendEntries(indexed.index())
@@ -1465,12 +1469,12 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
               // up to date with the latest entries so it can handle configuration and initial
               // entries properly on fail over
               if (commitError == null) {
-                result.complete(indexed);
+                appendListener.onCommit(indexed);
                 raft.getServiceManager().apply(indexed.index());
               } else {
+                appendListener.onCommitError(indexed, commitError);
                 // replicating the entry will be retried on the next append request
                 log.error("Failed to replicate entry: {}", indexed, commitError);
-                result.completeExceptionally(commitError);
               }
             },
             raft.getThreadContext());

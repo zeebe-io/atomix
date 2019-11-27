@@ -127,7 +127,8 @@ public class ZeebeTestNode {
         .withPartitionSize(members.size())
         .withFlushOnCommit()
         .withStorageLevel(StorageLevel.DISK)
-        .withSegmentSize(1024L);
+        .withSegmentSize(1024L)
+        .withMaxEntrySize(512);
   }
 
   public Member getMember() {
