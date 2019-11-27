@@ -377,8 +377,8 @@
               <value>bar</value>
             </property>
           </javaApiLinks>
+          <additionalOptions>-Xdoclint:none</additionalOptions>
           <quiet>true</quiet>
-          <additionalparam>${argLine.javadocs}</additionalparam>
           <show>public</show>
           <doctitle>Atomix API Reference (${jv})</doctitle>
           <windowtitle>Atomix API Reference (${jv})</windowtitle>
