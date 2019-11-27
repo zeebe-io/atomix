@@ -178,8 +178,8 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
     return server.compact();
   }
 
-  public void setCompactablePosition(final long index, final long term) {
-    server.getContext().getServiceManager().setCompactablePosition(index, term);
+  public void setCompactableIndex(final long index) {
+    server.getContext().getServiceManager().setCompactableIndex(index);
   }
 
   public RaftLogReader openReader(final long index, final Mode mode) {
