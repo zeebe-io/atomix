@@ -24,6 +24,7 @@ import io.atomix.primitive.session.SessionId;
 import io.atomix.protocols.raft.RaftError;
 import io.atomix.protocols.raft.RaftException;
 import io.atomix.protocols.raft.RaftServer;
+import io.atomix.protocols.raft.RaftServer.Role;
 import io.atomix.protocols.raft.cluster.RaftMember;
 import io.atomix.protocols.raft.cluster.impl.DefaultRaftMember;
 import io.atomix.protocols.raft.cluster.impl.RaftMemberContext;
@@ -76,7 +77,6 @@ import io.atomix.storage.StorageException;
 import io.atomix.storage.journal.Indexed;
 import io.atomix.utils.concurrent.Futures;
 import io.atomix.utils.concurrent.Scheduled;
-import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
@@ -190,7 +190,7 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
     logRequest(request);
 
     final CompletableFuture<OpenSessionResponse> future = new CompletableFuture<>();
-    appendAndCompact(
+    append(
             new OpenSessionEntry(
                 term,
                 timestamp,
@@ -201,7 +201,7 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
                 request.readConsistency(),
                 minTimeout,
                 maxTimeout))
-        .whenCompleteAsync(
+        .whenComplete(
             (entry, error) -> {
               if (error != null) {
                 future.complete(
@@ -280,8 +280,7 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
                                       .build()));
                         }
                       });
-            },
-            raft.getThreadContext());
+            });
 
     return future;
   }
@@ -295,14 +294,14 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
     logRequest(request);
 
     final CompletableFuture<KeepAliveResponse> future = new CompletableFuture<>();
-    appendAndCompact(
+    append(
             new KeepAliveEntry(
                 term,
                 timestamp,
                 request.sessionIds(),
                 request.commandSequenceNumbers(),
                 request.eventIndexes()))
-        .whenCompleteAsync(
+        .whenComplete(
             (entry, error) -> {
               if (error != null) {
                 future.complete(
@@ -398,8 +397,7 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
                                       .build()));
                         }
                       });
-            },
-            raft.getThreadContext());
+            });
 
     return future;
   }
@@ -413,9 +411,8 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
     logRequest(request);
 
     final CompletableFuture<CloseSessionResponse> future = new CompletableFuture<>();
-    appendAndCompact(
-            new CloseSessionEntry(term, timestamp, request.session(), false, request.delete()))
-        .whenCompleteAsync(
+    append(new CloseSessionEntry(term, timestamp, request.session(), false, request.delete()))
+        .whenComplete(
             (entry, error) -> {
               if (error != null) {
                 future.complete(
@@ -492,8 +489,7 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
                                       .build()));
                         }
                       });
-            },
-            raft.getThreadContext());
+            });
 
     return future;
   }
@@ -953,7 +949,7 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
   private CompletableFuture<Void> appendInitialEntries() {
     final long term = raft.getTerm();
 
-    return appendAndCompact(new InitializeEntry(term, appender.getTime())).thenApply(index -> null);
+    return append(new InitializeEntry(term, appender.getTime())).thenApply(index -> null);
   }
 
   /** Commits a no-op entry to the log, ensuring any entries from a previous term are committed. */
@@ -1053,14 +1049,14 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
   private void expireSession(RaftSession session) {
     if (expiring.add(session.sessionId())) {
       log.debug("Expiring session due to heartbeat failure: {}", session);
-      appendAndCompact(
+      append(
               new CloseSessionEntry(
                   raft.getTerm(),
                   System.currentTimeMillis(),
                   session.sessionId().id(),
                   true,
                   false))
-          .whenCompleteAsync(
+          .whenComplete(
               (entry, error) -> {
                 if (error != null) {
                   expiring.remove(session.sessionId());
@@ -1084,8 +1080,7 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
                             }
                           }
                         });
-              },
-              raft.getThreadContext());
+              });
     }
   }
 
@@ -1117,8 +1112,8 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
 
     final long term = raft.getTerm();
 
-    return appendAndCompact(new ConfigurationEntry(term, System.currentTimeMillis(), members))
-        .thenComposeAsync(
+    return append(new ConfigurationEntry(term, System.currentTimeMillis(), members))
+        .thenCompose(
             entry -> {
               // Store the index of the configuration entry in order to prevent other configurations
               // from
@@ -1143,8 +1138,7 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
                         }
                         configuring = 0;
                       });
-            },
-            raft.getThreadContext());
+            });
   }
 
   @Override
@@ -1315,8 +1309,8 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
     final CommandEntry command =
         new CommandEntry(
             term, timestamp, request.session(), request.sequenceNumber(), request.operation());
-    appendAndCompact(command)
-        .whenCompleteAsync(
+    append(command)
+        .whenComplete(
             (entry, error) -> {
               if (error != null) {
                 final Throwable cause = Throwables.getRootCause(error);
@@ -1368,51 +1362,71 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
                                   .build());
                         }
                       });
-            },
-            raft.getThreadContext());
+            });
   }
 
   /**
-   * Appends an entry to the Raft log and compacts logs if necessary.
+   * Appends an entry to the Raft log.
    *
    * @param entry the entry to append
    * @param <E> the entry type
    * @return a completable future to be completed once the entry has been appended
    */
-  private <E extends RaftLogEntry> CompletableFuture<Indexed<E>> appendAndCompact(E entry) {
-    return appendAndCompact(entry, 0);
-  }
+  private <E extends RaftLogEntry> CompletableFuture<Indexed<E>> append(E entry) {
+    CompletableFuture<Indexed<E>> resultingFuture = null;
+    int retries = 0;
 
-  /**
-   * Appends an entry to the Raft log and compacts logs if necessary.
-   *
-   * @param entry the entry to append
-   * @param attempt the append attempt count
-   * @param <E> the entry type
-   * @return a completable future to be completed once the entry has been appended
-   */
-  protected <E extends RaftLogEntry> CompletableFuture<Indexed<E>> appendAndCompact(
-      E entry, int attempt) {
-    if (attempt == MAX_APPEND_ATTEMPTS) {
-      return Futures.exceptionalFuture(
-          new StorageException.OutOfDiskSpace("Not enough space to append entry"));
-    } else {
+    do {
       try {
-        return CompletableFuture.completedFuture(raft.getLogWriter().append(entry))
-            .thenApply(
-                indexed -> {
-                  log.trace("Appended {}", indexed);
-                  return indexed;
-                });
-      } catch (StorageException.TooLarge | BufferOverflowException e) {
-        return Futures.exceptionalFuture(e);
-      } catch (StorageException.OutOfDiskSpace e) {
-        log.warn("Caught OutOfDiskSpace error! Force compacting logs...");
-        return raft.getServiceManager()
-            .compact()
-            .thenCompose(v -> appendAndCompact(entry, attempt + 1));
+        resultingFuture = tryToAppend(entry);
+      } catch (StorageException storageException) {
+
+        // storage exception wraps IOException's
+        retries++;
+        if (retries > MAX_APPEND_ATTEMPTS) {
+          // only solution is to step down now
+          raft.transition(Role.FOLLOWER);
+          resultingFuture = Futures.exceptionalFuture(storageException);
+        }
+
+        log.error("Error on appending entry {}, retry.", entry, storageException);
+
+      } catch (Exception e) {
+        // on any other exception - we will fail the append attempt
+        log.error("Unexpected exception on appending entry {}.", entry, e);
+        resultingFuture = Futures.exceptionalFuture(e);
       }
+    } while (resultingFuture == null);
+
+    return resultingFuture;
+  }
+
+  private <E extends RaftLogEntry> CompletableFuture<Indexed<E>> tryToAppend(E entry) {
+    CompletableFuture<Indexed<E>> resultingFuture = null;
+
+    try {
+      final Indexed<E> indexedEntry = raft.getLogWriter().append(entry);
+      log.trace("Appended {}", indexedEntry);
+      resultingFuture = CompletableFuture.completedFuture(indexedEntry);
+    } catch (StorageException.TooLarge e) {
+
+      // the entry was to large, we can't handle this case
+      log.error("Failed to append entry {}, because it was to large.", entry, e);
+      resultingFuture = Futures.exceptionalFuture(e);
+
+    } catch (StorageException.OutOfDiskSpace e) {
+
+      // if this happens then compact will also not help, since we need to create a snapshot
+      // before. Furthermore we do snapshot's on regular basis, which mean it had delete data
+      // if this were possible
+      log.warn("Caught OutOfDiskSpace error! ", e);
+
+      // only solution is to step down now
+      raft.transition(Role.FOLLOWER);
+      resultingFuture = Futures.exceptionalFuture(e);
     }
+
+    return resultingFuture;
   }
 
   @Override
@@ -1442,8 +1456,8 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
       return;
     }
 
-    appendAndCompact(entry)
-        .whenCompleteAsync(
+    append(entry)
+        .whenComplete(
             (indexed, error) -> {
               if (error != null) {
                 appendListener.onWriteError(Throwables.getRootCause(error));
@@ -1451,8 +1465,7 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
                 appendListener.onWrite(indexed);
                 replicate(indexed, appendListener);
               }
-            },
-            raft.getThreadContext());
+            });
   }
 
   private void replicate(final Indexed<ZeebeEntry> indexed, final AppendListener appendListener) {
