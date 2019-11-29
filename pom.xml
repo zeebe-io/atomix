@@ -13,7 +13,9 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -36,6 +38,7 @@
 
     <!-- Java -->
     <java.version>1.8</java.version>
+    <version.java>8</version.java>
 
     <!-- Logging -->
     <slf4j.version>1.7.29</slf4j.version>
@@ -80,26 +83,14 @@
 
     <dockerfile.version>latest</dockerfile.version>
 
-    <argLine.common>-Xss256k -Xms512m -Xmx2G -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -Dio.atomix.whitelistPackages=io.atomix</argLine.common>
-    <argLine.extras /> <!-- Overridden in some profiles -->
-    <argLine.javadocs />
+    <argLine.common>-Xss256k -Xms512m -Xmx2G -XX:+UseConcMarkSweepGC -XX:+UseParNewGC
+      -Dio.atomix.whitelistPackages=io.atomix
+    </argLine.common>
+    <argLine.extras/> <!-- Overridden in some profiles -->
+    <argLine.javadocs/>
   </properties>
 
   <profiles>
-    <!-- JDK9+ -->
-    <profile>
-      <id>java9</id>
-      <properties>
-        <argLine.common>-Xss256k -Xms512m -Xmx2G -Dio.atomix.whitelistPackages=io.atomix</argLine.common>
-        <argLine.extras>--add-modules jdk.unsupported --add-opens=java.base/java.nio=ALL-UNNAMED</argLine.extras>
-        <argLine.javadocs>-html5</argLine.javadocs>
-        <!-- coverall version 4.3.0 does not work with java 9, see https://github.com/trautonen/coveralls-maven-plugin/issues/112 -->
-        <coveralls.skip>true</coveralls.skip>
-      </properties>
-      <activation>
-        <jdk>[1.9,)</jdk>
-      </activation>
-    </profile>
     <profile>
       <id>sonatype-oss-release</id>
       <properties>
@@ -167,7 +158,8 @@
                 <configuration>
                   <detectBuildFailures>true</detectBuildFailures>
                   <keepStagingRepositoryOnFailure>true</keepStagingRepositoryOnFailure>
-                  <keepStagingRepositoryOnCloseRuleFailure>true</keepStagingRepositoryOnCloseRuleFailure>
+                  <keepStagingRepositoryOnCloseRuleFailure>true
+                  </keepStagingRepositoryOnCloseRuleFailure>
                   <serverId>central</serverId>
                   <nexusUrl>https://oss.sonatype.org</nexusUrl>
                   <skipStaging>false</skipStaging>
@@ -370,6 +362,7 @@
         </executions>
         <configuration>
           <verbose>false</verbose>
+          <source>${version.java}</source>
           <!-- workaround for https://bugs.openjdk.java.net/browse/JDK-8212233 -->
           <javaApiLinks>
             <property>
@@ -389,15 +382,21 @@
             </group>
             <group>
               <title>Primitives</title>
-              <packages>io.atomix.core.barrier:io.atomix.core.collection:io.atomix.core.counter:io.atomix.core.idgenerator:io.atomix.core.election:io.atomix.core.iterator:io.atomix.core.list:io.atomix.core.lock:io.atomix.core.map:io.atomix.core.multimap:io.atomix.core.multiset:io.atomix.core.queue:io.atomix.core.semaphore:io.atomix.core.set:io.atomix.core.transaction:io.atomix.core.tree:io.atomix.core.value:io.atomix.core.workqueue</packages>
+              <packages>
+                io.atomix.core.barrier:io.atomix.core.collection:io.atomix.core.counter:io.atomix.core.idgenerator:io.atomix.core.election:io.atomix.core.iterator:io.atomix.core.list:io.atomix.core.lock:io.atomix.core.map:io.atomix.core.multimap:io.atomix.core.multiset:io.atomix.core.queue:io.atomix.core.semaphore:io.atomix.core.set:io.atomix.core.transaction:io.atomix.core.tree:io.atomix.core.value:io.atomix.core.workqueue
+              </packages>
             </group>
             <group>
               <title>Cluster Management</title>
-              <packages>io.atomix.cluster*:io.atomix.cluster.discovery*:io.atomix.cluster.messaging*</packages>
+              <packages>
+                io.atomix.cluster*:io.atomix.cluster.discovery*:io.atomix.cluster.messaging*
+              </packages>
             </group>
             <group>
               <title>Primitive API</title>
-              <packages>io.atomix.primitive:io.atomix.primitive.config:io.atomix.primitive.event:io.atomix.primitive.operation:io.atomix.primitive.partition:io.atomix.primitive.proxy:io.atomix.primitive.resource:io.atomix.primitive.service:io.atomix.primitive.session</packages>
+              <packages>
+                io.atomix.primitive:io.atomix.primitive.config:io.atomix.primitive.event:io.atomix.primitive.operation:io.atomix.primitive.partition:io.atomix.primitive.proxy:io.atomix.primitive.resource:io.atomix.primitive.service:io.atomix.primitive.session
+              </packages>
             </group>
             <group>
               <title>Protocol API</title>
@@ -425,7 +424,8 @@
             </group>
           </groups>
           <stylesheetfile>${basedir}/docs/style.css</stylesheetfile>
-          <excludePackageNames>*.impl*:io.atomix.core.config.jackson:io.atomix.core.utils:io.atomix.rest*:io.atomix.agent*:io.atomix.storage.buffer:io.atomix.storage.journal*:io.atomix.storage.statistics:io.atomix.protocols.raft.utils:io.atomix.utils.serializer.serializers:io.atomix.utils.concurrent:io.atomix.utils.logging:io.atomix.utils.misc:io.atomix.utils.memory:io.atomix.protocols.raft.roles:io.atomix.protocols.raft.protocol:io.atomix.protocols.raft.storage:io.atomix.protocols.raft.cluster:io.atomix.protocols.raft.test:io.atomix.protocols.backup.roles:io.atomix.protocols.backup.protocol:io.atomix.protocols.gossip.*
+          <excludePackageNames>
+            *.impl*:io.atomix.core.config.jackson:io.atomix.core.utils:io.atomix.rest*:io.atomix.agent*:io.atomix.storage.buffer:io.atomix.storage.journal*:io.atomix.storage.statistics:io.atomix.protocols.raft.utils:io.atomix.utils.serializer.serializers:io.atomix.utils.concurrent:io.atomix.utils.logging:io.atomix.utils.misc:io.atomix.utils.memory:io.atomix.protocols.raft.roles:io.atomix.protocols.raft.protocol:io.atomix.protocols.raft.storage:io.atomix.protocols.raft.cluster:io.atomix.protocols.raft.test:io.atomix.protocols.backup.roles:io.atomix.protocols.backup.protocol:io.atomix.protocols.gossip.*
           </excludePackageNames>
         </configuration>
       </plugin>
@@ -435,7 +435,9 @@
         <artifactId>maven-release-plugin</artifactId>
         <version>2.5.3</version><!--$NO-MVN-MAN-VER$ -->
         <configuration>
-          <arguments>-s settings.xml -Psonatype-oss-release -DskipTests -Ddockerfile.skip -Dgpg.passphrase='${env.GPG_PASS}'</arguments>
+          <arguments>-s settings.xml -Psonatype-oss-release -DskipTests -Ddockerfile.skip
+            -Dgpg.passphrase='${env.GPG_PASS}'
+          </arguments>
           <resume>false</resume>
           <releaseVersion>${env.RELEASE_VERSION}</releaseVersion>
           <developmentVersion>${env.DEVELOPMENT_VERSION}</developmentVersion>
