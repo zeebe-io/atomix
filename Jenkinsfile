@@ -111,6 +111,7 @@ spec:
       steps {
         container('maven') {
           sshagent(['camunda-jenkins-github-ssh']) {
+            sh 'export GPG_TTY=$(tty)'
             sh 'gpg -q --import ${GPG_PUB_KEY} '
             sh 'gpg -q --allow-secret-key-import --import --no-tty --batch --yes ${GPG_SEC_KEY}'
             sh 'git config --global user.email "ci@camunda.com"'
