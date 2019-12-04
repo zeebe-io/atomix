@@ -425,7 +425,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
-        <version>2.5.3</version><!--$NO-MVN-MAN-VER$ -->
+        <version>2.1</version><!--$NO-MVN-MAN-VER$ -->
         <configuration>
           <arguments>
             -s settings.xml -Psonatype-oss-release -DskipTests -Ddockerfile.skip -Dgpg.passphrase='${env.GPG_PASS}'
