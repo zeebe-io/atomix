@@ -116,7 +116,7 @@ spec:
             sh 'git config --global user.email "ci@camunda.com"'
             sh 'git config --global user.name "camunda-jenkins"'
             sh 'mkdir ~/.ssh/ && ssh-keyscan github.com >> ~/.ssh/known_hosts'
-            sh 'mvn -B -s settings.xml -DskipTests source:jar javadoc:jar release:prepare release:perform'
+            sh '.ci/scripts/release.sh'
           }
         }
       }
