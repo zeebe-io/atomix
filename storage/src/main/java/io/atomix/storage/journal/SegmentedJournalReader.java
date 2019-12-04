@@ -160,6 +160,14 @@ public class SegmentedJournalReader<E> implements JournalReader<E> {
    * Fast forwards the journal to the given index.
    */
   private void forward(long index) {
+    // skip to the correct segment if there is one
+    if (!currentSegment.equals(journal.getLastSegment())) {
+      final JournalSegment<E> segment = journal.getSegment(index);
+      if (segment != null && !segment.equals(currentSegment)) {
+        replaceCurrentSegment(segment);
+      }
+    }
+
     while (getNextIndex() < index && hasNext()) {
       next();
     }
