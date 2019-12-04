@@ -427,8 +427,8 @@
         <artifactId>maven-release-plugin</artifactId>
         <version>2.5.3</version><!--$NO-MVN-MAN-VER$ -->
         <configuration>
-          <arguments>-s settings.xml -Psonatype-oss-release -DskipTests -Ddockerfile.skip
-            -Dgpg.passphrase='${env.GPG_PASS}'
+          <arguments>
+            -s settings.xml -Psonatype-oss-release -DskipTests -Ddockerfile.skip -Dgpg.passphrase='${env.GPG_PASS}'
           </arguments>
           <resume>false</resume>
           <releaseVersion>${env.RELEASE_VERSION}</releaseVersion>
