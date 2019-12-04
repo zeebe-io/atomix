@@ -95,7 +95,6 @@
       <id>sonatype-oss-release</id>
       <properties>
         <dockerfile.version>${project.version}</dockerfile.version>
-        <plugin.version.gpg>1.6</plugin.version.gpg>
       </properties>
       <build>
         <plugins>
@@ -128,6 +127,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.6</version>
             <configuration>
               <gpgArguments>
                 <arg>--pinentry-mode</arg>
