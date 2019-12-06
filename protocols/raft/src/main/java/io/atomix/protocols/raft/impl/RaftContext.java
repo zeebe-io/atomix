@@ -609,6 +609,10 @@ public class RaftContext implements AutoCloseable {
     // Unregister protocol listeners.
     unregisterHandlers(protocol);
 
+    // Close the state machine and thread context.
+    stateContext.close();
+    stateMachine.close();
+
     // Close the log.
     try {
       raftLog.close();
@@ -630,11 +634,9 @@ public class RaftContext implements AutoCloseable {
       log.error("Failed to close snapshot store", e);
     }
 
-    // Close the state machine and thread context.
-    stateMachine.close();
+    // close thread contexts
     threadContext.close();
     loadContext.close();
-    stateContext.close();
 
     // Only close the thread context factory if indicated.
     if (closeOnStop) {
