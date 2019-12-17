@@ -59,6 +59,15 @@ class FileChannelJournalSegmentReader<E> implements JournalReader<E> {
   }
 
   @Override
+  public boolean isEmpty() {
+    try {
+      return channel.size() == 0;
+    } catch (IOException e) {
+      throw new StorageException(e);
+    }
+  }
+
+  @Override
   public long getFirstIndex() {
     return segment.index();
   }

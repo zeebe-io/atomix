@@ -41,6 +41,14 @@ public interface JournalReader<E> extends Iterator<Indexed<E>>, AutoCloseable {
   }
 
   /**
+   * Returns true if there is nothing available to read regardless of the current reader position,
+   * meaning even if we reset the reader to any position there would be nothing to read.
+   *
+   * @return true if nothing to read, false otherwise
+   */
+  boolean isEmpty();
+
+  /**
    * Returns the first index in the journal.
    *
    * @return the first index in the journal

@@ -16,6 +16,7 @@
 package io.atomix.storage.journal;
 
 import io.atomix.storage.StorageLevel;
+import io.atomix.storage.journal.JournalReader.Mode;
 import io.atomix.utils.serializer.Namespace;
 import org.junit.After;
 import org.junit.Before;
@@ -89,6 +90,62 @@ public abstract class AbstractJournalTest {
         .withIndexDensity(.2)
         .withCacheSize(cacheSize)
         .build();
+  }
+
+  @Test
+  public void shouldBeEmpty() {
+    // given
+    final Journal<TestEntry> journal = createJournal();
+    final JournalReader<TestEntry> reader = journal.openReader(1, Mode.ALL);
+
+    // when
+    final boolean empty = reader.isEmpty();
+
+    // then
+    assertTrue(empty);
+  }
+
+  @Test
+  public void shouldNotBeEmpty() {
+    // given
+    final Journal<TestEntry> journal = createJournal();
+    final JournalReader<TestEntry> reader = journal.openReader(1, Mode.ALL);
+
+    // when
+    journal.writer().append(new TestEntry(8));
+    final boolean empty = reader.isEmpty();
+
+    // then
+    assertFalse(empty);
+  }
+
+  @Test
+  public void shouldBeEmptyIfNothingCommitted() {
+    // given
+    final Journal<TestEntry> journal = createJournal();
+    final JournalReader<TestEntry> reader = journal.openReader(1, Mode.COMMITS);
+
+    // when
+    journal.writer().append(new TestEntry(8));
+    final boolean empty = reader.isEmpty();
+
+    // then
+    assertTrue(empty);
+  }
+
+  @Test
+  public void shouldNotBeEmptyIfCommitted() {
+    // given
+    final Journal<TestEntry> journal = createJournal();
+    final JournalReader<TestEntry> reader = journal.openReader(1, Mode.COMMITS);
+
+    // when
+    final Indexed<TestEntry> indexed = journal.writer().append(new TestEntry(8));
+    journal.writer().commit(indexed.index());
+    final boolean empty = reader.isEmpty();
+
+    // then
+    assertFalse(empty);
   }
 
   @Test
