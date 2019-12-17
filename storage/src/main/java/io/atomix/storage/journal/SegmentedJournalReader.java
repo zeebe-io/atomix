@@ -50,6 +50,16 @@ public class SegmentedJournalReader<E> implements JournalReader<E> {
   }
 
   @Override
+  public boolean isEmpty() {
+    final JournalSegment<E> firstSegment = journal.getFirstSegment();
+    if (firstSegment.isEmpty()) {
+      return true;
+    }
+
+    return mode == Mode.COMMITS && journal.getCommitIndex() < firstSegment.index();
+  }
+
+  @Override
   public long getFirstIndex() {
     return journal.getFirstSegment().index();
   }

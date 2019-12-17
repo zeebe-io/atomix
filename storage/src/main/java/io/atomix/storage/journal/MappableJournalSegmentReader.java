@@ -75,6 +75,11 @@ class MappableJournalSegmentReader<E> implements JournalReader<E> {
   }
 
   @Override
+  public boolean isEmpty() {
+    return reader.isEmpty();
+  }
+
+  @Override
   public long getFirstIndex() {
     return reader.getFirstIndex();
   }

@@ -28,6 +28,11 @@ public class DelegatingJournalReader<E> implements JournalReader<E> {
   }
 
   @Override
+  public boolean isEmpty() {
+    return delegate.isEmpty();
+  }
+
+  @Override
   public long getFirstIndex() {
     return delegate.getFirstIndex();
   }

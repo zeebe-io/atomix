@@ -18,6 +18,7 @@ package io.atomix.protocols.raft.storage.log;
 import io.atomix.protocols.raft.storage.log.entry.RaftLogEntry;
 import io.atomix.storage.StorageLevel;
 import io.atomix.storage.journal.DelegatingJournal;
+import io.atomix.storage.journal.JournalReader;
 import io.atomix.storage.journal.SegmentedJournal;
 import io.atomix.utils.serializer.Namespace;
 import java.io.File;
@@ -51,12 +52,12 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
 
   @Override
   public RaftLogReader openReader(long index) {
-    return openReader(index, RaftLogReader.Mode.ALL);
+    return openReader(index, JournalReader.Mode.ALL);
   }
 
   @Override
-  public RaftLogReader openReader(long index, RaftLogReader.Mode mode) {
-    return new RaftLogReader(journal.openReader(index, mode), this, mode);
+  public RaftLogReader openReader(long index, JournalReader.Mode mode) {
+    return new RaftLogReader(journal.openReader(index, mode));
   }
 
   /**
