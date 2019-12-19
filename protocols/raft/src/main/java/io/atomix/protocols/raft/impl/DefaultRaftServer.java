@@ -216,6 +216,11 @@ public class DefaultRaftServer implements RaftServer {
     return started;
   }
 
+  @Override
+  public void stepDown() {
+    context.getThreadContext().execute(() -> context.transition(Role.FOLLOWER));
+  }
+
   /** Starts the server. */
   private CompletableFuture<RaftServer> start(Supplier<CompletableFuture<Void>> joiner) {
     if (started) {
