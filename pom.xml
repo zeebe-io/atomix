@@ -39,7 +39,7 @@
     <version.java>8</version.java>
 
     <!-- Logging -->
-    <slf4j.version>1.7.29</slf4j.version>
+    <slf4j.version>1.7.30</slf4j.version>
 
     <!-- Testing -->
     <junit.version>4.12</junit.version>
@@ -58,7 +58,7 @@
     <jaxrs.version>2.1.1</jaxrs.version>
     <jackson.version>2.10.1</jackson.version>
     <config.version>1.4.0</config.version>
-    <classgraph.version>4.8.58</classgraph.version>
+    <classgraph.version>4.8.59</classgraph.version>
     <resteasy.version>4.4.1.Final</resteasy.version>
     <rest-assured.version>4.1.2</rest-assured.version>
     <argparse4j.version>0.8.1</argparse4j.version>
