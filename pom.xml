@@ -56,7 +56,7 @@
     <netty.version>4.1.44.Final</netty.version>
     <vertx.version>3.5.0</vertx.version>
     <jaxrs.version>2.1.1</jaxrs.version>
-    <jackson.version>2.10.1</jackson.version>
+    <jackson.version>2.10.2</jackson.version>
     <config.version>1.4.0</config.version>
     <classgraph.version>4.8.59</classgraph.version>
     <resteasy.version>4.4.2.Final</resteasy.version>
