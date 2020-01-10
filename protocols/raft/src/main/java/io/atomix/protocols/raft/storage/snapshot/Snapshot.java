@@ -80,7 +80,7 @@ public interface Snapshot extends AutoCloseable, Comparable<Snapshot> {
   /** Deletes the snapshot. */
   void delete();
 
-  /** returns a path to the snapshot location */
+  /** @return a path to the snapshot location */
   Path getPath();
 
   @Override

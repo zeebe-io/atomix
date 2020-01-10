@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.nio.file.Path;
 
 public class DefaultPendingSnapshot implements PendingSnapshot {
+
   private final Snapshot snapshot;
   private int nextOffset;
 

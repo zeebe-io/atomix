@@ -22,6 +22,7 @@ import io.atomix.protocols.raft.RaftServer;
 import io.atomix.protocols.raft.ReadConsistency;
 import io.atomix.protocols.raft.impl.OperationResult;
 import io.atomix.protocols.raft.impl.RaftContext;
+import io.atomix.protocols.raft.metrics.SnapshotReplicationMetrics;
 import io.atomix.protocols.raft.protocol.AppendRequest;
 import io.atomix.protocols.raft.protocol.AppendResponse;
 import io.atomix.protocols.raft.protocol.CloseSessionRequest;
@@ -65,11 +66,16 @@ import java.util.concurrent.CompletionException;
 
 /** Passive state. */
 public class PassiveRole extends InactiveRole {
+  private final SnapshotReplicationMetrics snapshotReplicationMetrics;
 
+  private long pendingSnapshotStartTimestamp;
   private PendingSnapshot pendingSnapshot;
 
   public PassiveRole(RaftContext context) {
     super(context);
+
+    this.snapshotReplicationMetrics = new SnapshotReplicationMetrics(context.getName());
+    this.snapshotReplicationMetrics.setCount(0);
   }
 
   @Override
@@ -80,8 +86,9 @@ public class PassiveRole extends InactiveRole {
   @Override
   public CompletableFuture<Void> stop() {
     if (pendingSnapshot != null) {
-      pendingSnapshot.abort();
+      abortPendingSnapshot();
     }
+
     return super.stop();
   }
 
@@ -222,15 +229,6 @@ public class PassiveRole extends InactiveRole {
           logResponse(InstallResponse.builder().withStatus(RaftResponse.Status.OK).build()));
     }
 
-    // If the snapshot already exists locally, do not overwrite it with a replicated snapshot.
-    // Simply reply to the
-    // request successfully.
-    final Snapshot existingSnapshot = raft.getSnapshotStore().getSnapshot(request.index());
-    if (existingSnapshot != null) {
-      return CompletableFuture.completedFuture(
-          logResponse(InstallResponse.builder().withStatus(RaftResponse.Status.OK).build()));
-    }
-
     // If a snapshot is currently being received and the snapshot versions don't match, simply
     // close the existing snapshot. This is a naive implementation that assumes that the leader
     // will be responsible in sending the correct snapshot to this server. Leaders must dictate
@@ -240,6 +238,19 @@ public class PassiveRole extends InactiveRole {
     // leader dictates when a snapshot needs to be sent.
     if (pendingSnapshot != null && request.index() != pendingSnapshot.index()) {
       abortPendingSnapshot();
+    }
+
+    // If the snapshot already exists locally, do not overwrite it with a replicated snapshot.
+    // Simply reply to the
+    // request successfully.
+    final Snapshot existingSnapshot = raft.getSnapshotStore().getSnapshot(request.index());
+    if (existingSnapshot != null) {
+      if (pendingSnapshot != null) {
+        abortPendingSnapshot();
+      }
+
+      return CompletableFuture.completedFuture(
+          logResponse(InstallResponse.builder().withStatus(RaftResponse.Status.OK).build()));
     }
 
     // If there is no pending snapshot, create a new snapshot.
@@ -260,6 +271,8 @@ public class PassiveRole extends InactiveRole {
           raft.getSnapshotStore()
               .newPendingSnapshot(
                   request.index(), request.term(), WallClockTimestamp.from(request.timestamp()));
+      pendingSnapshotStartTimestamp = System.currentTimeMillis();
+      snapshotReplicationMetrics.incrementCount();
     } else {
       // skip if we already have this chunk
       if (pendingSnapshot.containsChunk(request.chunkId())) {
@@ -289,8 +302,13 @@ public class PassiveRole extends InactiveRole {
       final long index = pendingSnapshot.index();
       log.debug("Committing snapshot {}", pendingSnapshot);
       try {
+        final long elapsed = System.currentTimeMillis() - pendingSnapshotStartTimestamp;
         pendingSnapshot.commit();
         pendingSnapshot = null;
+        pendingSnapshotStartTimestamp = 0L;
+
+        snapshotReplicationMetrics.decrementCount();
+        snapshotReplicationMetrics.observeDuration(elapsed);
       } catch (Exception e) {
         log.error("Failed to commit pending snapshot {}, rolling back", pendingSnapshot, e);
         abortPendingSnapshot();
@@ -502,6 +520,10 @@ public class PassiveRole extends InactiveRole {
     log.debug("Rolling back snapshot {}", pendingSnapshot);
     pendingSnapshot.abort();
     pendingSnapshot = null;
+    pendingSnapshotStartTimestamp = 0L;
+
+    // should we also observe the current size when it was aborted? not sure, might skew results
+    snapshotReplicationMetrics.decrementCount();
   }
 
   /** Forwards the query to the leader. */
