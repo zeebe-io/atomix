@@ -22,7 +22,7 @@ public class RaftMetrics {
   protected final String partition;
   protected final String partitionGroupName;
 
-  public RaftMetrics(String partitionName) {
+  RaftMetrics(String partitionName) {
     int partitionId;
     String groupName;
     try {
