@@ -22,6 +22,7 @@ import io.atomix.primitive.partition.Partition;
 import io.atomix.primitive.partition.PartitionId;
 import io.atomix.primitive.partition.PartitionManagementService;
 import io.atomix.primitive.partition.PartitionMetadata;
+import io.atomix.protocols.raft.RaftRoleChangeListener;
 import io.atomix.protocols.raft.RaftServer.Role;
 import io.atomix.protocols.raft.partition.impl.RaftClientCommunicator;
 import io.atomix.protocols.raft.partition.impl.RaftNamespaces;
@@ -45,7 +46,8 @@ public class RaftPartition implements Partition {
   private final RaftPartitionGroupConfig config;
   private final File dataDirectory;
   private final ThreadContextFactory threadContextFactory;
-  private final Set<Consumer<Role>> deferredRoleChangeListeners = new CopyOnWriteArraySet<>();
+  private final Set<RaftRoleChangeListener> deferredRoleChangeListeners =
+      new CopyOnWriteArraySet<>();
   private PartitionMetadata partitionMetadata;
   private RaftPartitionClient client;
   private RaftPartitionServer server;
@@ -61,7 +63,7 @@ public class RaftPartition implements Partition {
     this.threadContextFactory = threadContextFactory;
   }
 
-  public void addRoleChangeListener(Consumer<Role> listener) {
+  public void addRoleChangeListener(RaftRoleChangeListener listener) {
     if (server == null) {
       deferredRoleChangeListeners.add(listener);
     } else {
@@ -69,7 +71,12 @@ public class RaftPartition implements Partition {
     }
   }
 
-  public void removeRoleChangeListener(Consumer<Role> listener) {
+  @Deprecated
+  public void addRoleChangeListener(Consumer<Role> listener) {
+    addRoleChangeListener((newRole, newTerm) -> listener.accept(newRole));
+  }
+
+  public void removeRoleChangeListener(RaftRoleChangeListener listener) {
     deferredRoleChangeListeners.remove(listener);
     server.removeRoleChangeListener(listener);
   }

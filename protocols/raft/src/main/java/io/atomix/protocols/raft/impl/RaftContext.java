@@ -26,6 +26,7 @@ import io.atomix.primitive.PrimitiveTypeRegistry;
 import io.atomix.protocols.raft.RaftCommitListener;
 import io.atomix.protocols.raft.RaftError;
 import io.atomix.protocols.raft.RaftException;
+import io.atomix.protocols.raft.RaftRoleChangeListener;
 import io.atomix.protocols.raft.RaftServer;
 import io.atomix.protocols.raft.RaftServer.Role;
 import io.atomix.protocols.raft.RaftStateMachine;
@@ -100,7 +101,7 @@ public class RaftContext implements AutoCloseable {
   protected final RaftServiceRegistry services = new RaftServiceRegistry();
   protected final RaftSessionRegistry sessions = new RaftSessionRegistry();
   private final Logger log;
-  private final Set<Consumer<RaftServer.Role>> roleChangeListeners = new CopyOnWriteArraySet<>();
+  private final Set<RaftRoleChangeListener> roleChangeListeners = new CopyOnWriteArraySet<>();
   private final Set<Consumer<State>> stateChangeListeners = new CopyOnWriteArraySet<>();
   private final Set<Consumer<RaftMember>> electionListeners = new CopyOnWriteArraySet<>();
   private final Set<RaftCommitListener> commitListeners = new CopyOnWriteArraySet<>();
@@ -277,7 +278,7 @@ public class RaftContext implements AutoCloseable {
    *
    * @param listener The role change listener.
    */
-  public void addRoleChangeListener(Consumer<RaftServer.Role> listener) {
+  public void addRoleChangeListener(RaftRoleChangeListener listener) {
     roleChangeListeners.add(listener);
   }
 
@@ -286,7 +287,7 @@ public class RaftContext implements AutoCloseable {
    *
    * @param listener The role change listener.
    */
-  public void removeRoleChangeListener(Consumer<RaftServer.Role> listener) {
+  public void removeRoleChangeListener(RaftRoleChangeListener listener) {
     roleChangeListeners.remove(listener);
   }
 
@@ -538,14 +539,13 @@ public class RaftContext implements AutoCloseable {
     try {
       this.role = createRole(role);
       this.role.start().get();
-
     } catch (InterruptedException | ExecutionException e) {
       throw new IllegalStateException("failed to initialize Raft state", e);
     }
 
     if (this.role.role() == role) {
       try {
-        roleChangeListeners.forEach(l -> l.accept(this.role.role()));
+        roleChangeListeners.forEach(l -> l.onNewRole(this.role.role(), getTerm()));
       } catch (Exception exception) {
         log.error("Unexpected error on calling role change listeners.", exception);
       }

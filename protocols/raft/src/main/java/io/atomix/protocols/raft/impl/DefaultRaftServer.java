@@ -21,6 +21,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import io.atomix.cluster.MemberId;
 import io.atomix.primitive.impl.ClasspathScanningPrimitiveTypeRegistry;
 import io.atomix.primitive.service.PrimitiveService;
+import io.atomix.protocols.raft.RaftRoleChangeListener;
 import io.atomix.protocols.raft.RaftServer;
 import io.atomix.protocols.raft.cluster.RaftCluster;
 import io.atomix.protocols.raft.storage.RaftStorage;
@@ -31,7 +32,6 @@ import io.atomix.utils.logging.ContextualLoggerFactory;
 import io.atomix.utils.logging.LoggerContext;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 
@@ -74,12 +74,12 @@ public class DefaultRaftServer implements RaftServer {
   }
 
   @Override
-  public void addRoleChangeListener(Consumer<Role> listener) {
+  public void addRoleChangeListener(RaftRoleChangeListener listener) {
     context.addRoleChangeListener(listener);
   }
 
   @Override
-  public void removeRoleChangeListener(Consumer<Role> listener) {
+  public void removeRoleChangeListener(RaftRoleChangeListener listener) {
     context.removeRoleChangeListener(listener);
   }
 

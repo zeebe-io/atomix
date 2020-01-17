@@ -45,7 +45,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -231,16 +230,16 @@ public interface RaftServer {
   /**
    * Adds a role change listener.
    *
-   * @param listener The role change listener to add.
+   * @param listener The role change listener that consumes the role and the raft term.
    */
-  void addRoleChangeListener(Consumer<Role> listener);
+  void addRoleChangeListener(RaftRoleChangeListener listener);
 
   /**
    * Removes a role change listener.
    *
    * @param listener The role change listener to remove.
    */
-  void removeRoleChangeListener(Consumer<Role> listener);
+  void removeRoleChangeListener(RaftRoleChangeListener listener);
 
   /**
    * Bootstraps a single-node cluster.

@@ -401,7 +401,7 @@ public class RaftTest extends ConcurrentTestCase {
     await(15000, 100);
     final RaftServer joiner = createServer(nextNodeId());
     joiner.addRoleChangeListener(
-        s -> {
+        (s, t) -> {
           if (s == role) {
             resume();
           }
