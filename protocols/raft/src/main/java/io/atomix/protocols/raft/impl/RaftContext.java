@@ -538,11 +538,18 @@ public class RaftContext implements AutoCloseable {
     try {
       this.role = createRole(role);
       this.role.start().get();
+
     } catch (InterruptedException | ExecutionException e) {
       throw new IllegalStateException("failed to initialize Raft state", e);
     }
 
-    roleChangeListeners.forEach(l -> l.accept(this.role.role()));
+    if (this.role.role() == role) {
+      try {
+        roleChangeListeners.forEach(l -> l.accept(this.role.role()));
+      } catch (Exception exception) {
+        log.error("Unexpected error on calling role change listeners.", exception);
+      }
+    }
   }
 
   /** Checks that the current thread is the state context thread. */

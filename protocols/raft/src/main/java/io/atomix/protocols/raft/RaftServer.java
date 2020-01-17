@@ -515,6 +515,11 @@ public interface RaftServer {
   boolean isRunning();
 
   /**
+   * Steps down from the current leadership, which means tries to transition directly to follower.
+   */
+  CompletableFuture<Void> stepDown();
+
+  /**
    * Raft server state types.
    *
    * <p>States represent the context of the server's internal state machine. Throughout the lifetime

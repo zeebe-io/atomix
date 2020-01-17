@@ -59,14 +59,10 @@ import io.atomix.core.tree.AtomicDocumentTreeType;
 import io.atomix.core.value.AtomicValueType;
 import io.atomix.core.value.DistributedValueType;
 import io.atomix.core.workqueue.WorkQueueType;
-import io.atomix.primitive.partition.impl.DefaultPartitionService;
 import io.atomix.primitive.protocol.ProxyProtocol;
 import io.atomix.protocols.log.DistributedLogProtocol;
 import io.atomix.protocols.log.partition.LogPartitionGroup;
 import io.atomix.protocols.raft.MultiRaftProtocol;
-import io.atomix.protocols.raft.RaftServer;
-import io.atomix.protocols.raft.RaftServer.Role;
-import io.atomix.protocols.raft.partition.RaftPartition;
 import io.atomix.protocols.raft.partition.RaftPartitionGroup;
 import io.atomix.utils.concurrent.Futures;
 import io.atomix.utils.config.ConfigurationException;
@@ -74,9 +70,7 @@ import io.atomix.utils.net.Address;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
@@ -96,6 +90,7 @@ import org.junit.Test;
  * Atomix test.
  */
 public class AtomixTest extends AbstractAtomixTest {
+
   private List<Atomix> instances;
 
   @Before
@@ -106,16 +101,19 @@ public class AtomixTest extends AbstractAtomixTest {
 
   @After
   public void teardownInstances() throws Exception {
-    List<CompletableFuture<Void>> futures = instances.stream().map(Atomix::stop).collect(Collectors.toList());
+    List<CompletableFuture<Void>> futures = instances.stream().map(Atomix::stop)
+        .collect(Collectors.toList());
     try {
-      CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()])).get(30, TimeUnit.SECONDS);
+      CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
+          .get(30, TimeUnit.SECONDS);
     } catch (Exception e) {
       // Do nothing
     }
     teardownAtomix();
   }
 
-  protected CompletableFuture<Atomix> startAtomix(int id, List<Integer> persistentNodes, Profile... profiles) {
+  protected CompletableFuture<Atomix> startAtomix(int id, List<Integer> persistentNodes,
+      Profile... profiles) {
     return startAtomix(id, persistentNodes, b -> b.withProfiles(profiles).build());
   }
 
@@ -129,7 +127,8 @@ public class AtomixTest extends AbstractAtomixTest {
   /**
    * Creates and starts a new test Atomix instance.
    */
-  protected CompletableFuture<Atomix> startAtomix(int id, List<Integer> persistentIds, Function<AtomixBuilder, Atomix> builderFunction) {
+  protected CompletableFuture<Atomix> startAtomix(int id, List<Integer> persistentIds,
+      Function<AtomixBuilder, Atomix> builderFunction) {
     Atomix atomix = createAtomix(id, persistentIds, builderFunction);
     instances.add(atomix);
     return atomix.start().thenApply(v -> atomix);
@@ -138,8 +137,10 @@ public class AtomixTest extends AbstractAtomixTest {
   /**
    * Creates and starts a new test Atomix instance.
    */
-  protected CompletableFuture<Atomix> startAtomix(int id, List<Integer> persistentIds, Properties properties, Profile... profiles) {
-    Atomix atomix = createAtomix(id, persistentIds, properties, builder -> builder.withProfiles(profiles).build());
+  protected CompletableFuture<Atomix> startAtomix(int id, List<Integer> persistentIds,
+      Properties properties, Profile... profiles) {
+    Atomix atomix = createAtomix(id, persistentIds, properties,
+        builder -> builder.withProfiles(profiles).build());
     instances.add(atomix);
     return atomix.start().thenApply(v -> atomix);
   }
@@ -147,7 +148,8 @@ public class AtomixTest extends AbstractAtomixTest {
   /**
    * Creates and starts a new test Atomix instance.
    */
-  protected CompletableFuture<Atomix> startAtomix(int id, List<Integer> persistentIds, Properties properties, Function<AtomixBuilder, Atomix> builderFunction) {
+  protected CompletableFuture<Atomix> startAtomix(int id, List<Integer> persistentIds,
+      Properties properties, Function<AtomixBuilder, Atomix> builderFunction) {
     Atomix atomix = createAtomix(id, persistentIds, properties, builderFunction);
     instances.add(atomix);
     return atomix.start().thenApply(v -> atomix);
@@ -163,8 +165,10 @@ public class AtomixTest extends AbstractAtomixTest {
         .withDataPath(new File(DATA_DIR, "scale-up"))
         .build())
         .get(30, TimeUnit.SECONDS);
-    Atomix atomix2 = startAtomix(2, Arrays.asList(1, 2), Profile.client()).get(30, TimeUnit.SECONDS);
-    Atomix atomix3 = startAtomix(3, Arrays.asList(1, 2, 3), Profile.client()).get(30, TimeUnit.SECONDS);
+    Atomix atomix2 = startAtomix(2, Arrays.asList(1, 2), Profile.client())
+        .get(30, TimeUnit.SECONDS);
+    Atomix atomix3 = startAtomix(3, Arrays.asList(1, 2, 3), Profile.client())
+        .get(30, TimeUnit.SECONDS);
   }
 
   /**
@@ -176,7 +180,8 @@ public class AtomixTest extends AbstractAtomixTest {
     futures.add(startAtomix(1, Arrays.asList(2), Profile.dataGrid()));
     futures.add(startAtomix(2, Arrays.asList(1), Profile.dataGrid()));
     futures.add(startAtomix(3, Arrays.asList(1), Profile.dataGrid()));
-    CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()])).get(30, TimeUnit.SECONDS);
+    CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
+        .get(30, TimeUnit.SECONDS);
   }
 
   /**
@@ -216,192 +221,6 @@ public class AtomixTest extends AbstractAtomixTest {
     assertEquals(3, atomix1.getMembershipService().getMembers().size());
     assertEquals(3, atomix2.getMembershipService().getMembers().size());
     assertEquals(3, atomix3.getMembershipService().getMembers().size());
-  }
-
-  @Test
-  public void testRoleChangedListener() throws Exception {
-    // given
-    final CompletableFuture<Void> roleChanged = new CompletableFuture<>();
-
-    final CompletableFuture<Atomix> nodeOneFuture = startAtomix(1, Arrays.asList(1),
-        builder -> {
-          final RaftPartitionGroup partitionGroup = RaftPartitionGroup.builder("system")
-              .withNumPartitions(1)
-              .withMembers(String.valueOf(1))
-              .withDataDirectory(new File(new File(DATA_DIR, "log"), "1"))
-              .build();
-
-          final Atomix atomix = builder.withManagementGroup(partitionGroup).build();
-
-          final DefaultPartitionService partitionService = (DefaultPartitionService) atomix.getPartitionService();
-          final RaftPartitionGroup raftPartitionGroup = (RaftPartitionGroup) partitionService.getSystemPartitionGroup();
-
-          // when
-          raftPartitionGroup.getPartitions().forEach(
-              partition -> {
-                final RaftPartition raftPartition = (RaftPartition) partition;
-                raftPartition.addRoleChangeListener((role) -> roleChanged.complete(null));
-              });
-          return atomix;
-        });
-
-    // then
-    nodeOneFuture.get();
-    roleChanged.get();
-  }
-
-  @Test
-  public void testAtomixBootstrapPartitions() throws Exception {
-    // given
-    // Partitions \ Nodes
-    //      \   0  1  2
-    //    0     L  F  F
-    //    1     F  L  F
-    //    2     F  F  L
-    final CountDownLatch latch = new CountDownLatch(3);
-    final List<Map<Integer, RaftServer.Role>> nodeRoles = new ArrayList<>();
-    nodeRoles.add(new HashMap<>());
-    nodeRoles.add(new HashMap<>());
-    nodeRoles.add(new HashMap<>());
-
-    final List<Integer> members = Arrays.asList(1, 2, 3);
-
-    final int firstNodeId = 1;
-    final CompletableFuture<Atomix> nodeOneFuture = setupAtomixWithListener(firstNodeId, members,
-        nodeRoles,
-        latch);
-
-    final int secondNodeId = 2;
-    final CompletableFuture<Atomix> nodeTwoFuture = setupAtomixWithListener(secondNodeId, members,
-        nodeRoles,
-        latch);
-
-    final int thirdNodeId = 3;
-    final CompletableFuture<Atomix> nodeThreeFuture = setupAtomixWithListener(thirdNodeId, members,
-        nodeRoles,
-        latch);
-
-    // then
-    CompletableFuture.allOf(nodeOneFuture, nodeTwoFuture, nodeThreeFuture).join();
-    latch.await(15_000, TimeUnit.MILLISECONDS);
-
-    final Map<Integer, RaftServer.Role> expectedNodeOneRoles = new HashMap<>();
-    expectedNodeOneRoles.put(1, Role.LEADER);
-    expectedNodeOneRoles.put(2, Role.FOLLOWER);
-    expectedNodeOneRoles.put(3, Role.FOLLOWER);
-    assertEquals(expectedNodeOneRoles, nodeRoles.get(0));
-
-    final Map<Integer, RaftServer.Role> expectedNodeTwoRoles = new HashMap<>();
-    expectedNodeTwoRoles.put(1, Role.FOLLOWER);
-    expectedNodeTwoRoles.put(2, Role.LEADER);
-    expectedNodeTwoRoles.put(3, Role.FOLLOWER);
-    assertEquals(expectedNodeTwoRoles, nodeRoles.get(1));
-
-    final Map<Integer, RaftServer.Role> expectedNodeThreeRoles = new HashMap<>();
-    expectedNodeThreeRoles.put(1, Role.FOLLOWER);
-    expectedNodeThreeRoles.put(2, Role.FOLLOWER);
-    expectedNodeThreeRoles.put(3, Role.LEADER);
-    assertEquals(expectedNodeThreeRoles, nodeRoles.get(2));
-  }
-
-  private CompletableFuture<Atomix> setupAtomixWithListener(int nodeId, List<Integer> members,
-      List<Map<Integer, Role>> nodeRoles, CountDownLatch latch) {
-    final List<String> memberIds = members.stream().map(Object::toString)
-        .collect(Collectors.toList());
-
-    return startAtomix(nodeId, members,
-        builder -> {
-          final RaftPartitionGroup partitionGroup = RaftPartitionGroup.builder("system")
-              .withNumPartitions(3)
-              .withPartitionSize(3)
-              .withMembers(memberIds)
-              .withDataDirectory(new File(new File(DATA_DIR, "log"), "" + nodeId))
-              .build();
-
-          final Atomix atomix = builder.withManagementGroup(partitionGroup).build();
-
-          final DefaultPartitionService partitionService = (DefaultPartitionService) atomix
-              .getPartitionService();
-          final RaftPartitionGroup raftPartitionGroup = (RaftPartitionGroup) partitionService
-              .getSystemPartitionGroup();
-
-          // when
-          raftPartitionGroup.getPartitions().forEach(
-              partition -> {
-                final Map<Integer, RaftServer.Role> roleMap = nodeRoles.get(nodeId - 1);
-                final RaftPartition raftPartition = (RaftPartition) partition;
-                raftPartition.addRoleChangeListener((role) -> {
-                  roleMap.put(partition.id().id(), role);
-                  if (roleMap.size() >= 3) {
-                    latch.countDown();
-                  }
-                });
-              });
-          return atomix;
-        });
-  }
-
-  @Test
-  public void testAtomixBootstrapPartitionsAndRestartingNode() throws Exception {
-    // given
-    // Partitions \ Nodes
-    //      \   0  1  2
-    //    0     L  F  F
-    //    1     F  L  F
-    //    2     F  F  L
-    final CountDownLatch latch = new CountDownLatch(3);
-    final List<Map<Integer, RaftServer.Role>> nodeRoles = new ArrayList<>();
-    nodeRoles.add(new HashMap<>());
-    nodeRoles.add(new HashMap<>());
-    nodeRoles.add(new HashMap<>());
-
-    final List<Integer> members = Arrays.asList(1, 2, 3);
-
-    final int firstNodeId = 1;
-    final CompletableFuture<Atomix> nodeOneFuture = setupAtomixWithListener(firstNodeId, members,
-        nodeRoles, latch);
-
-    final int secondNodeId = 2;
-    final CompletableFuture<Atomix> nodeTwoFuture = setupAtomixWithListener(secondNodeId, members,
-        nodeRoles,
-        latch);
-
-    final int thirdNodeId = 3;
-    final CompletableFuture<Atomix> nodeThreeFuture = setupAtomixWithListener(thirdNodeId, members,
-        nodeRoles,
-        latch);
-
-    // then
-    CompletableFuture.allOf(nodeOneFuture, nodeTwoFuture, nodeThreeFuture).join();
-    latch.await(15_000, TimeUnit.MILLISECONDS);
-
-    // when
-    final Atomix atomix = nodeTwoFuture.get();
-    atomix.stop().join();
-    nodeRoles.get(1).clear();
-    final CountDownLatch newLatch = new CountDownLatch(1);
-    final CompletableFuture<Atomix> nodeTwoSecondFuture = setupAtomixWithListener(secondNodeId,
-        members, nodeRoles, newLatch);
-
-    nodeTwoSecondFuture.join();
-    newLatch.await(5_000, TimeUnit.MILLISECONDS);
-
-    // then
-    final long nodeOneLeaderCount = nodeRoles.get(0).values().stream().filter(r -> r == Role.LEADER)
-        .count();
-    final long nodeTwoLeaderCount = nodeRoles.get(1).values().stream().filter(r -> r == Role.LEADER)
-        .count();
-    final long nodeThreeLeaderCount = nodeRoles.get(2).values().stream()
-        .filter(r -> r == Role.LEADER).count();
-
-    assertTrue(nodeOneLeaderCount == 2 || nodeThreeLeaderCount == 2);
-    assertEquals(0, nodeTwoLeaderCount);
-
-    final Map<Integer, RaftServer.Role> expectedNodeTwoRoles = new HashMap<>();
-    expectedNodeTwoRoles.put(1, Role.FOLLOWER);
-    expectedNodeTwoRoles.put(2, Role.FOLLOWER);
-    expectedNodeTwoRoles.put(3, Role.FOLLOWER);
-    assertEquals(expectedNodeTwoRoles, nodeRoles.get(1));
   }
 
   @Test
@@ -612,7 +431,8 @@ public class AtomixTest extends AbstractAtomixTest {
     TestClusterMembershipEventListener dataListener = new TestClusterMembershipEventListener();
     instances.get(0).getMembershipService().addListener(dataListener);
 
-    Atomix client1 = startAtomix(4, Arrays.asList(1, 2, 3), Profile.client()).get(30, TimeUnit.SECONDS);
+    Atomix client1 = startAtomix(4, Arrays.asList(1, 2, 3), Profile.client())
+        .get(30, TimeUnit.SECONDS);
     assertEquals(1, client1.getPartitionService().getPartitionGroups().size());
 
     // client1 added to data node
@@ -624,7 +444,8 @@ public class AtomixTest extends AbstractAtomixTest {
     TestClusterMembershipEventListener clientListener = new TestClusterMembershipEventListener();
     client1.getMembershipService().addListener(clientListener);
 
-    Atomix client2 = startAtomix(5, Arrays.asList(1, 2, 3), Profile.client()).get(30, TimeUnit.SECONDS);
+    Atomix client2 = startAtomix(5, Arrays.asList(1, 2, 3), Profile.client())
+        .get(30, TimeUnit.SECONDS);
     assertEquals(1, client2.getPartitionService().getPartitionGroups().size());
 
     // client2 added to data node
@@ -669,7 +490,8 @@ public class AtomixTest extends AbstractAtomixTest {
 
     Properties properties = new Properties();
     properties.setProperty("a-key", "a-value");
-    Atomix client1 = startAtomix(4, Arrays.asList(1, 2, 3), properties, Profile.client()).get(30, TimeUnit.SECONDS);
+    Atomix client1 = startAtomix(4, Arrays.asList(1, 2, 3), properties, Profile.client())
+        .get(30, TimeUnit.SECONDS);
     assertEquals(1, client1.getPartitionService().getPartitionGroups().size());
 
     // client1 added to data node
@@ -700,7 +522,8 @@ public class AtomixTest extends AbstractAtomixTest {
         .build()));
     Futures.allOf(futures).get(30, TimeUnit.SECONDS);
 
-    Atomix atomix = startAtomix(4, Arrays.asList(1, 2, 3), Profile.client()).get(30, TimeUnit.SECONDS);
+    Atomix atomix = startAtomix(4, Arrays.asList(1, 2, 3), Profile.client())
+        .get(30, TimeUnit.SECONDS);
 
     assertEquals("a", atomix.getAtomicCounter("a").name());
     assertEquals(AtomicCounterType.instance(), atomix.getAtomicCounter("a").type());
@@ -870,12 +693,6 @@ public class AtomixTest extends AbstractAtomixTest {
         .build();
     instances.add(atomix);
 
-    //try {
-    //  atomix.getAtomicCounter("foo");
-    //  fail();
-    //} catch (IllegalStateException e) {
-    //}
-
     atomix.start().get(30, TimeUnit.SECONDS);
 
     try {
@@ -896,119 +713,163 @@ public class AtomixTest extends AbstractAtomixTest {
       assertTrue(e instanceof ConfigurationException);
     }
 
-    assertEquals(AtomicCounterType.instance(), atomix.getPrimitive("atomic-counter", AtomicCounterType.instance()).type());
+    assertEquals(AtomicCounterType.instance(),
+        atomix.getPrimitive("atomic-counter", AtomicCounterType.instance()).type());
     assertEquals("atomic-counter", atomix.getAtomicCounter("atomic-counter").name());
-    assertEquals("two", ((ProxyProtocol) atomix.getAtomicCounter("atomic-counter").protocol()).group());
+    assertEquals("two",
+        ((ProxyProtocol) atomix.getAtomicCounter("atomic-counter").protocol()).group());
 
-    assertEquals(AtomicMapType.instance(), atomix.getPrimitive("atomic-map", AtomicMapType.instance()).type());
+    assertEquals(AtomicMapType.instance(),
+        atomix.getPrimitive("atomic-map", AtomicMapType.instance()).type());
     assertEquals("atomic-map", atomix.getAtomicMap("atomic-map").name());
     assertEquals("two", ((ProxyProtocol) atomix.getAtomicMap("atomic-map").protocol()).group());
 
-    assertEquals(AtomicCounterMapType.instance(), atomix.getPrimitive("atomic-counter-map", AtomicCounterMapType.instance()).type());
+    assertEquals(AtomicCounterMapType.instance(),
+        atomix.getPrimitive("atomic-counter-map", AtomicCounterMapType.instance()).type());
     assertEquals("atomic-counter-map", atomix.getAtomicCounterMap("atomic-counter-map").name());
-    assertEquals("two", ((ProxyProtocol) atomix.getAtomicCounterMap("atomic-counter-map").protocol()).group());
+    assertEquals("two",
+        ((ProxyProtocol) atomix.getAtomicCounterMap("atomic-counter-map").protocol()).group());
 
-    assertEquals(AtomicDocumentTreeType.instance(), atomix.getPrimitive("atomic-document-tree", AtomicDocumentTreeType.instance()).type());
-    assertEquals("atomic-document-tree", atomix.getAtomicDocumentTree("atomic-document-tree").name());
-    assertEquals("two", ((ProxyProtocol) atomix.getAtomicDocumentTree("atomic-document-tree").protocol()).group());
+    assertEquals(AtomicDocumentTreeType.instance(),
+        atomix.getPrimitive("atomic-document-tree", AtomicDocumentTreeType.instance()).type());
+    assertEquals("atomic-document-tree",
+        atomix.getAtomicDocumentTree("atomic-document-tree").name());
+    assertEquals("two",
+        ((ProxyProtocol) atomix.getAtomicDocumentTree("atomic-document-tree").protocol()).group());
 
-    assertEquals(AtomicIdGeneratorType.instance(), atomix.getPrimitive("atomic-id-generator", AtomicIdGeneratorType.instance()).type());
+    assertEquals(AtomicIdGeneratorType.instance(),
+        atomix.getPrimitive("atomic-id-generator", AtomicIdGeneratorType.instance()).type());
     assertEquals("atomic-id-generator", atomix.getAtomicIdGenerator("atomic-id-generator").name());
-    assertEquals("two", ((ProxyProtocol) atomix.getAtomicIdGenerator("atomic-id-generator").protocol()).group());
+    assertEquals("two",
+        ((ProxyProtocol) atomix.getAtomicIdGenerator("atomic-id-generator").protocol()).group());
 
-    assertEquals(AtomicLockType.instance(), atomix.getPrimitive("atomic-lock", AtomicLockType.instance()).type());
+    assertEquals(AtomicLockType.instance(),
+        atomix.getPrimitive("atomic-lock", AtomicLockType.instance()).type());
     assertEquals("atomic-lock", atomix.getAtomicLock("atomic-lock").name());
     assertEquals("two", ((ProxyProtocol) atomix.getAtomicLock("atomic-lock").protocol()).group());
 
-    assertEquals(AtomicMultimapType.instance(), atomix.getPrimitive("atomic-multimap", AtomicMultimapType.instance()).type());
+    assertEquals(AtomicMultimapType.instance(),
+        atomix.getPrimitive("atomic-multimap", AtomicMultimapType.instance()).type());
     assertEquals("atomic-multimap", atomix.getAtomicMultimap("atomic-multimap").name());
-    assertEquals("two", ((ProxyProtocol) atomix.getAtomicMultimap("atomic-multimap").protocol()).group());
+    assertEquals("two",
+        ((ProxyProtocol) atomix.getAtomicMultimap("atomic-multimap").protocol()).group());
 
-    assertEquals(AtomicNavigableMapType.instance(), atomix.getPrimitive("atomic-navigable-map", AtomicNavigableMapType.instance()).type());
-    assertEquals("atomic-navigable-map", atomix.getAtomicNavigableMap("atomic-navigable-map").name());
-    assertEquals("two", ((ProxyProtocol) atomix.getAtomicNavigableMap("atomic-navigable-map").protocol()).group());
+    assertEquals(AtomicNavigableMapType.instance(),
+        atomix.getPrimitive("atomic-navigable-map", AtomicNavigableMapType.instance()).type());
+    assertEquals("atomic-navigable-map",
+        atomix.getAtomicNavigableMap("atomic-navigable-map").name());
+    assertEquals("two",
+        ((ProxyProtocol) atomix.getAtomicNavigableMap("atomic-navigable-map").protocol()).group());
 
-    assertEquals(AtomicSemaphoreType.instance(), atomix.getPrimitive("atomic-semaphore", AtomicSemaphoreType.instance()).type());
+    assertEquals(AtomicSemaphoreType.instance(),
+        atomix.getPrimitive("atomic-semaphore", AtomicSemaphoreType.instance()).type());
     assertEquals("atomic-semaphore", atomix.getAtomicSemaphore("atomic-semaphore").name());
-    assertEquals("two", ((ProxyProtocol) atomix.getAtomicSemaphore("atomic-semaphore").protocol()).group());
+    assertEquals("two",
+        ((ProxyProtocol) atomix.getAtomicSemaphore("atomic-semaphore").protocol()).group());
 
-    assertEquals(AtomicSortedMapType.instance(), atomix.getPrimitive("atomic-sorted-map", AtomicSortedMapType.instance()).type());
+    assertEquals(AtomicSortedMapType.instance(),
+        atomix.getPrimitive("atomic-sorted-map", AtomicSortedMapType.instance()).type());
     assertEquals("atomic-sorted-map", atomix.getAtomicSortedMap("atomic-sorted-map").name());
-    assertEquals("two", ((ProxyProtocol) atomix.getAtomicSortedMap("atomic-sorted-map").protocol()).group());
+    assertEquals("two",
+        ((ProxyProtocol) atomix.getAtomicSortedMap("atomic-sorted-map").protocol()).group());
 
-    assertEquals(AtomicValueType.instance(), atomix.getPrimitive("atomic-value", AtomicValueType.instance()).type());
+    assertEquals(AtomicValueType.instance(),
+        atomix.getPrimitive("atomic-value", AtomicValueType.instance()).type());
     assertEquals("atomic-value", atomix.getAtomicValue("atomic-value").name());
     assertEquals("two", ((ProxyProtocol) atomix.getAtomicValue("atomic-value").protocol()).group());
 
-    assertEquals(DistributedCounterType.instance(), atomix.getPrimitive("counter", DistributedCounterType.instance()).type());
+    assertEquals(DistributedCounterType.instance(),
+        atomix.getPrimitive("counter", DistributedCounterType.instance()).type());
     assertEquals("counter", atomix.getCounter("counter").name());
     assertEquals("two", ((ProxyProtocol) atomix.getCounter("counter").protocol()).group());
 
-    assertEquals(DistributedCyclicBarrierType.instance(), atomix.getPrimitive("cyclic-barrier", DistributedCyclicBarrierType.instance()).type());
+    assertEquals(DistributedCyclicBarrierType.instance(),
+        atomix.getPrimitive("cyclic-barrier", DistributedCyclicBarrierType.instance()).type());
     assertEquals("cyclic-barrier", atomix.getCyclicBarrier("cyclic-barrier").name());
-    assertEquals("two", ((ProxyProtocol) atomix.getCyclicBarrier("cyclic-barrier").protocol()).group());
+    assertEquals("two",
+        ((ProxyProtocol) atomix.getCyclicBarrier("cyclic-barrier").protocol()).group());
 
-    assertEquals(LeaderElectionType.instance(), atomix.getPrimitive("leader-election", LeaderElectionType.instance()).type());
+    assertEquals(LeaderElectionType.instance(),
+        atomix.getPrimitive("leader-election", LeaderElectionType.instance()).type());
     assertEquals("leader-election", atomix.getLeaderElection("leader-election").name());
-    assertEquals("two", ((ProxyProtocol) atomix.getLeaderElection("leader-election").protocol()).group());
+    assertEquals("two",
+        ((ProxyProtocol) atomix.getLeaderElection("leader-election").protocol()).group());
 
-    assertEquals(LeaderElectorType.instance(), atomix.getPrimitive("leader-elector", LeaderElectorType.instance()).type());
+    assertEquals(LeaderElectorType.instance(),
+        atomix.getPrimitive("leader-elector", LeaderElectorType.instance()).type());
     assertEquals("leader-elector", atomix.getLeaderElector("leader-elector").name());
-    assertEquals("two", ((ProxyProtocol) atomix.getLeaderElector("leader-elector").protocol()).group());
+    assertEquals("two",
+        ((ProxyProtocol) atomix.getLeaderElector("leader-elector").protocol()).group());
 
-    assertEquals(DistributedListType.instance(), atomix.getPrimitive("list", DistributedListType.instance()).type());
+    assertEquals(DistributedListType.instance(),
+        atomix.getPrimitive("list", DistributedListType.instance()).type());
     assertEquals("list", atomix.getList("list").name());
     assertEquals("two", ((ProxyProtocol) atomix.getList("list").protocol()).group());
 
-    assertEquals(DistributedLockType.instance(), atomix.getPrimitive("lock", DistributedLockType.instance()).type());
+    assertEquals(DistributedLockType.instance(),
+        atomix.getPrimitive("lock", DistributedLockType.instance()).type());
     assertEquals("lock", atomix.getLock("lock").name());
     assertEquals("two", ((ProxyProtocol) atomix.getLock("lock").protocol()).group());
 
-    assertEquals(DistributedMapType.instance(), atomix.getPrimitive("map", DistributedMapType.instance()).type());
+    assertEquals(DistributedMapType.instance(),
+        atomix.getPrimitive("map", DistributedMapType.instance()).type());
     assertEquals("map", atomix.getMap("map").name());
     assertEquals("two", ((ProxyProtocol) atomix.getMap("map").protocol()).group());
 
-    assertEquals(DistributedMultimapType.instance(), atomix.getPrimitive("multimap", DistributedMultimapType.instance()).type());
+    assertEquals(DistributedMultimapType.instance(),
+        atomix.getPrimitive("multimap", DistributedMultimapType.instance()).type());
     assertEquals("multimap", atomix.getMultimap("multimap").name());
     assertEquals("two", ((ProxyProtocol) atomix.getMultimap("multimap").protocol()).group());
 
-    assertEquals(DistributedMultisetType.instance(), atomix.getPrimitive("multiset", DistributedMultisetType.instance()).type());
+    assertEquals(DistributedMultisetType.instance(),
+        atomix.getPrimitive("multiset", DistributedMultisetType.instance()).type());
     assertEquals("multiset", atomix.getMultiset("multiset").name());
     assertEquals("two", ((ProxyProtocol) atomix.getMultiset("multiset").protocol()).group());
 
-    assertEquals(DistributedNavigableMapType.instance(), atomix.getPrimitive("navigable-map", DistributedNavigableMapType.instance()).type());
+    assertEquals(DistributedNavigableMapType.instance(),
+        atomix.getPrimitive("navigable-map", DistributedNavigableMapType.instance()).type());
     assertEquals("navigable-map", atomix.getNavigableMap("navigable-map").name());
-    assertEquals("two", ((ProxyProtocol) atomix.getNavigableMap("navigable-map").protocol()).group());
+    assertEquals("two",
+        ((ProxyProtocol) atomix.getNavigableMap("navigable-map").protocol()).group());
 
-    assertEquals(DistributedNavigableSetType.instance(), atomix.getPrimitive("navigable-set", DistributedNavigableSetType.instance()).type());
+    assertEquals(DistributedNavigableSetType.instance(),
+        atomix.getPrimitive("navigable-set", DistributedNavigableSetType.instance()).type());
     assertEquals("navigable-set", atomix.getNavigableSet("navigable-set").name());
-    assertEquals("two", ((ProxyProtocol) atomix.getNavigableSet("navigable-set").protocol()).group());
+    assertEquals("two",
+        ((ProxyProtocol) atomix.getNavigableSet("navigable-set").protocol()).group());
 
-    assertEquals(DistributedQueueType.instance(), atomix.getPrimitive("queue", DistributedQueueType.instance()).type());
+    assertEquals(DistributedQueueType.instance(),
+        atomix.getPrimitive("queue", DistributedQueueType.instance()).type());
     assertEquals("queue", atomix.getQueue("queue").name());
     assertEquals("two", ((ProxyProtocol) atomix.getQueue("queue").protocol()).group());
 
-    assertEquals(DistributedSemaphoreType.instance(), atomix.getPrimitive("semaphore", DistributedSemaphoreType.instance()).type());
+    assertEquals(DistributedSemaphoreType.instance(),
+        atomix.getPrimitive("semaphore", DistributedSemaphoreType.instance()).type());
     assertEquals("semaphore", atomix.getSemaphore("semaphore").name());
     assertEquals("two", ((ProxyProtocol) atomix.getSemaphore("semaphore").protocol()).group());
 
-    assertEquals(DistributedSetType.instance(), atomix.getPrimitive("set", DistributedSetType.instance()).type());
+    assertEquals(DistributedSetType.instance(),
+        atomix.getPrimitive("set", DistributedSetType.instance()).type());
     assertEquals("set", atomix.getSet("set").name());
     assertEquals("two", ((ProxyProtocol) atomix.getSet("set").protocol()).group());
 
-    assertEquals(DistributedSortedMapType.instance(), atomix.getPrimitive("sorted-map", DistributedSortedMapType.instance()).type());
+    assertEquals(DistributedSortedMapType.instance(),
+        atomix.getPrimitive("sorted-map", DistributedSortedMapType.instance()).type());
     assertEquals("sorted-map", atomix.getSortedMap("sorted-map").name());
     assertEquals("two", ((ProxyProtocol) atomix.getSortedMap("sorted-map").protocol()).group());
 
-    assertEquals(DistributedSortedSetType.instance(), atomix.getPrimitive("sorted-set", DistributedSortedSetType.instance()).type());
+    assertEquals(DistributedSortedSetType.instance(),
+        atomix.getPrimitive("sorted-set", DistributedSortedSetType.instance()).type());
     assertEquals("sorted-set", atomix.getSortedSet("sorted-set").name());
     assertEquals("two", ((ProxyProtocol) atomix.getSortedSet("sorted-set").protocol()).group());
 
-    assertEquals(DistributedValueType.instance(), atomix.getPrimitive("value", DistributedValueType.instance()).type());
+    assertEquals(DistributedValueType.instance(),
+        atomix.getPrimitive("value", DistributedValueType.instance()).type());
     assertEquals("value", atomix.getValue("value").name());
     assertEquals("two", ((ProxyProtocol) atomix.getValue("value").protocol()).group());
 
-    assertEquals(WorkQueueType.instance(), atomix.getPrimitive("work-queue", WorkQueueType.instance()).type());
+    assertEquals(WorkQueueType.instance(),
+        atomix.getPrimitive("work-queue", WorkQueueType.instance()).type());
     assertEquals("work-queue", atomix.getWorkQueue("work-queue").name());
     assertEquals("two", ((ProxyProtocol) atomix.getWorkQueue("work-queue").protocol()).group());
   }
@@ -1030,7 +891,8 @@ public class AtomixTest extends AbstractAtomixTest {
         .build()));
     Futures.allOf(futures).get(30, TimeUnit.SECONDS);
 
-    Atomix atomix = startAtomix(4, Arrays.asList(1, 2, 3), Profile.client()).get(30, TimeUnit.SECONDS);
+    Atomix atomix = startAtomix(4, Arrays.asList(1, 2, 3), Profile.client())
+        .get(30, TimeUnit.SECONDS);
 
     assertEquals("a", atomix.atomicCounterBuilder("a").build().name());
     assertEquals(AtomicCounterType.instance(), atomix.atomicCounterBuilder("a").build().type());
@@ -1039,13 +901,16 @@ public class AtomixTest extends AbstractAtomixTest {
     assertEquals(AtomicMapType.instance(), atomix.atomicMapBuilder("b").build().type());
 
     assertEquals("c", atomix.atomicCounterMapBuilder("c").build().name());
-    assertEquals(AtomicCounterMapType.instance(), atomix.atomicCounterMapBuilder("c").build().type());
+    assertEquals(AtomicCounterMapType.instance(),
+        atomix.atomicCounterMapBuilder("c").build().type());
 
     assertEquals("d", atomix.atomicDocumentTreeBuilder("d").build().name());
-    assertEquals(AtomicDocumentTreeType.instance(), atomix.atomicDocumentTreeBuilder("d").build().type());
+    assertEquals(AtomicDocumentTreeType.instance(),
+        atomix.atomicDocumentTreeBuilder("d").build().type());
 
     assertEquals("e", atomix.atomicIdGeneratorBuilder("e").build().name());
-    assertEquals(AtomicIdGeneratorType.instance(), atomix.atomicIdGeneratorBuilder("e").build().type());
+    assertEquals(AtomicIdGeneratorType.instance(),
+        atomix.atomicIdGeneratorBuilder("e").build().type());
 
     assertEquals("f", atomix.atomicLockBuilder("f").build().name());
     assertEquals(AtomicLockType.instance(), atomix.atomicLockBuilder("f").build().type());
@@ -1054,7 +919,8 @@ public class AtomixTest extends AbstractAtomixTest {
     assertEquals(AtomicMultimapType.instance(), atomix.atomicMultimapBuilder("g").build().type());
 
     assertEquals("h", atomix.atomicNavigableMapBuilder("h").build().name());
-    assertEquals(AtomicNavigableMapType.instance(), atomix.atomicNavigableMapBuilder("h").build().type());
+    assertEquals(AtomicNavigableMapType.instance(),
+        atomix.atomicNavigableMapBuilder("h").build().type());
 
     assertEquals("i", atomix.atomicSemaphoreBuilder("i").build().name());
     assertEquals(AtomicSemaphoreType.instance(), atomix.atomicSemaphoreBuilder("i").build().type());
@@ -1069,7 +935,8 @@ public class AtomixTest extends AbstractAtomixTest {
     assertEquals(DistributedCounterType.instance(), atomix.counterBuilder("l").build().type());
 
     assertEquals("m", atomix.cyclicBarrierBuilder("m").build().name());
-    assertEquals(DistributedCyclicBarrierType.instance(), atomix.cyclicBarrierBuilder("m").build().type());
+    assertEquals(DistributedCyclicBarrierType.instance(),
+        atomix.cyclicBarrierBuilder("m").build().type());
 
     assertEquals("n", atomix.leaderElectionBuilder("n").build().name());
     assertEquals(LeaderElectionType.instance(), atomix.leaderElectionBuilder("n").build().type());
@@ -1093,10 +960,12 @@ public class AtomixTest extends AbstractAtomixTest {
     assertEquals(DistributedMultisetType.instance(), atomix.multisetBuilder("t").build().type());
 
     assertEquals("u", atomix.navigableMapBuilder("u").build().name());
-    assertEquals(DistributedNavigableMapType.instance(), atomix.navigableMapBuilder("u").build().type());
+    assertEquals(DistributedNavigableMapType.instance(),
+        atomix.navigableMapBuilder("u").build().type());
 
     assertEquals("v", atomix.navigableSetBuilder("v").build().name());
-    assertEquals(DistributedNavigableSetType.instance(), atomix.navigableSetBuilder("v").build().type());
+    assertEquals(DistributedNavigableSetType.instance(),
+        atomix.navigableSetBuilder("v").build().type());
 
     assertEquals("w", atomix.queueBuilder("w").build().name());
     assertEquals(DistributedQueueType.instance(), atomix.queueBuilder("w").build().type());
@@ -1120,7 +989,9 @@ public class AtomixTest extends AbstractAtomixTest {
     assertEquals(WorkQueueType.instance(), atomix.workQueueBuilder("cc").build().type());
   }
 
-  private static class TestClusterMembershipEventListener implements ClusterMembershipEventListener {
+  private static class TestClusterMembershipEventListener implements
+      ClusterMembershipEventListener {
+
     private final BlockingQueue<ClusterMembershipEvent> queue = new LinkedBlockingQueue<>();
 
     @Override

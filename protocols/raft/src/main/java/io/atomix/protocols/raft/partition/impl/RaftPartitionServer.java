@@ -294,4 +294,8 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
     return new RaftServerCommunicator(
         partition.name(), Serializer.using(RaftNamespaces.RAFT_PROTOCOL), clusterCommunicator);
   }
+
+  public CompletableFuture<Void> stepDown() {
+    return server.stepDown();
+  }
 }
