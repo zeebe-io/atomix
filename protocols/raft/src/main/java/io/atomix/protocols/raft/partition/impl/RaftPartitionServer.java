@@ -23,6 +23,7 @@ import io.atomix.cluster.messaging.ClusterCommunicationService;
 import io.atomix.primitive.PrimitiveTypeRegistry;
 import io.atomix.primitive.partition.Partition;
 import io.atomix.protocols.raft.RaftCommitListener;
+import io.atomix.protocols.raft.RaftRoleChangeListener;
 import io.atomix.protocols.raft.RaftServer;
 import io.atomix.protocols.raft.RaftServer.Role;
 import io.atomix.protocols.raft.partition.RaftCompactionConfig;
@@ -51,7 +52,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.function.Consumer;
 import org.slf4j.Logger;
 
 /** {@link Partition} server. */
@@ -66,7 +66,8 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
   private final ClusterCommunicationService clusterCommunicator;
   private final PrimitiveTypeRegistry primitiveTypes;
   private final ThreadContextFactory threadContextFactory;
-  private final Set<Consumer<Role>> deferredRoleChangeListeners = new CopyOnWriteArraySet<>();
+  private final Set<RaftRoleChangeListener> deferredRoleChangeListeners =
+      new CopyOnWriteArraySet<>();
   private final Set<RaftCommitListener> commitListeners = new CopyOnWriteArraySet<>();
 
   private RaftServer server;
@@ -186,7 +187,7 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
     return server.getContext().getLog().openReader(index, mode);
   }
 
-  public void addRoleChangeListener(final Consumer<Role> listener) {
+  public void addRoleChangeListener(final RaftRoleChangeListener listener) {
     if (server == null) {
       deferredRoleChangeListeners.add(listener);
     } else {
@@ -194,7 +195,7 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
     }
   }
 
-  public void removeRoleChangeListener(final Consumer<Role> listener) {
+  public void removeRoleChangeListener(final RaftRoleChangeListener listener) {
     deferredRoleChangeListeners.remove(listener);
     server.removeRoleChangeListener(listener);
   }
