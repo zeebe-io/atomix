@@ -517,7 +517,7 @@ public interface RaftServer {
   /**
    * Steps down from the current leadership, which means tries to transition directly to follower.
    */
-  void stepDown();
+  CompletableFuture<Void> stepDown();
 
   /**
    * Raft server state types.

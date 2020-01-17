@@ -257,7 +257,7 @@ public class RaftPartition implements Partition {
     return server;
   }
 
-  public void stepDown() {
-    server.stepDown();
+  public CompletableFuture<Void> stepDown() {
+    return server.stepDown();
   }
 }
