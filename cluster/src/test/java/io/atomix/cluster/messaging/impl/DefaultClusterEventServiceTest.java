@@ -15,6 +15,9 @@
  */
 package io.atomix.cluster.messaging.impl;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import com.google.common.util.concurrent.MoreExecutors;
 import io.atomix.cluster.BootstrapService;
 import io.atomix.cluster.ClusterMembershipService;
@@ -34,17 +37,17 @@ import io.atomix.utils.Version;
 import io.atomix.utils.net.Address;
 import io.atomix.utils.serializer.Namespaces;
 import io.atomix.utils.serializer.Serializer;
-import org.junit.Test;
-
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 
 /**
  * Cluster event service test.
@@ -202,5 +205,53 @@ public class DefaultClusterEventServiceTest {
 
     CompletableFuture.allOf(new CompletableFuture[]{clusterService1.stop(), clusterService2.stop(),
         clusterService3.stop()}).join();
+  }
+
+  @Test
+  public void shouldLogHandlerFailuresWithoutCrashing() throws InterruptedException {
+    final TestMessagingServiceFactory messagingServiceFactory = new TestMessagingServiceFactory();
+    final TestUnicastServiceFactory unicastServiceFactory = new TestUnicastServiceFactory();
+    final TestBroadcastServiceFactory broadcastServiceFactory = new TestBroadcastServiceFactory();
+    final Collection<Node> bootstrapLocations = buildBootstrapNodes(1);
+
+    final Member localMember1 = buildNode(1);
+    final MessagingService messagingService1 =
+        messagingServiceFactory.newMessagingService(localMember1.address()).start().join();
+    final BootstrapService bootstrapService1 =
+        new TestBootstrapService(
+            messagingService1,
+            unicastServiceFactory.newUnicastService(localMember1.address()).start().join(),
+            broadcastServiceFactory.newBroadcastService().start().join());
+    final ManagedClusterMembershipService clusterService1 =
+        new DefaultClusterMembershipService(
+            localMember1,
+            Version.from("1.0.0"),
+            new DefaultNodeDiscoveryService(
+                bootstrapService1,
+                localMember1,
+                new BootstrapDiscoveryProvider(bootstrapLocations)),
+            bootstrapService1,
+            new HeartbeatMembershipProtocol(new HeartbeatMembershipProtocolConfig()));
+    final ClusterMembershipService clusterMembershipService1 = clusterService1.start().join();
+    final ManagedClusterEventService clusterEventingService1 =
+        new DefaultClusterEventService(clusterMembershipService1, messagingService1);
+    final ClusterEventService eventService1 = clusterEventingService1.start().join();
+
+    final AtomicInteger eventsCounter = new AtomicInteger(0);
+    final CountDownLatch awaitCompletion = new CountDownLatch(1);
+    final AtomicReference<String> received = new AtomicReference<>("");
+    eventService1.<String>subscribe("test", SERIALIZER::decode, s -> {
+      received.set(s);
+
+      if (eventsCounter.getAndIncrement() == 0) {
+        throw new RuntimeException("e");
+      }
+
+      awaitCompletion.countDown();
+    }, MoreExecutors.directExecutor()).join();
+    eventService1.broadcast("test", "foo");
+    eventService1.broadcast("test", "bar");
+    awaitCompletion.await(10, TimeUnit.SECONDS);
+    assertEquals("bar", received.get());
   }
 }
