@@ -438,9 +438,18 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
         Function<byte[], M> decoder, Consumer<M> handler, Executor executor) {
       return addLocalSubscription(new InternalSubscription(this, payload -> {
         executor.execute(() -> {
+          final M decoded;
           try {
-            handler.accept(decoder.apply(payload));
-          } catch (Exception e) {
+            decoded = decoder.apply(payload);
+          } catch (RuntimeException e) {
+            LOGGER.error("Failed to decode message payload for topic {}", topic, e);
+            return;
+          }
+
+          try {
+            handler.accept(decoded);
+          } catch (RuntimeException e) {
+            LOGGER.error("Failed to handle message {} for topic {}", decoded, topic, e);
           }
         });
         return CompletableFuture.completedFuture(null);
