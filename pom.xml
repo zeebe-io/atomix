@@ -62,7 +62,7 @@
     <resteasy.version>4.4.2.Final</resteasy.version>
     <rest-assured.version>4.1.2</rest-assured.version>
     <argparse4j.version>0.8.1</argparse4j.version>
-    <prometheus.client.version>0.8.0</prometheus.client.version>
+    <prometheus.client.version>0.8.1</prometheus.client.version>
 
     <!-- Maven plugins -->
     <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
