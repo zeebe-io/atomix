@@ -317,7 +317,7 @@ public class DefaultServiceExecutor implements ServiceExecutor {
 
     @Override
     public synchronized boolean isDone() {
-      return scheduledTasks.contains(this);
+      return !scheduledTasks.contains(this);
     }
   }
 }

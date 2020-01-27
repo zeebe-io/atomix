@@ -727,15 +727,6 @@ public class RaftContext implements AutoCloseable {
   }
 
   public ThreadContext getHeartbeatThread() {
-    // we should avoid to use to many different threads
-    // it makes sense to accept incoming requests (like heartbeats, appends etc) by one thread
-    // then we do not need to synchronize the resource access
-    // for sending we need multiple threads such that we are able to send heartbeats in time
-
-    if (!(role instanceof LeaderRole)) {
-      throw new IllegalStateException("The heartbeat thread should only used by the leader!");
-    }
-
     return heartBeatThread;
   }
 
