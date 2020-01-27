@@ -13,26 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.atomix.utils.concurrent;
 
-/**
- * Scheduled task.
- *
- * @author <a href="http://github.com/kuujo">Jordan Halterman</a>
- */
-public interface Scheduled {
+import java.util.concurrent.Future;
 
-  /**
-   * Cancels the scheduled task.
-   */
-  void cancel();
+/** Simple wrapper class that delegates to a non-interruptible future */
+final class ScheduledFutureImpl<T> implements Scheduled {
+  private final Future<T> future;
 
-  /**
-   * Returns whether this scheduled entity was already completed or not, regardless of if it was
-   * cancelled or successfully executed.
-   *
-   * @return true if already completed, false otherwise
-   */
-  boolean isDone();
+  ScheduledFutureImpl(final Future<T> future) {
+    this.future = future;
+  }
+
+  @Override
+  public void cancel() {
+    future.cancel(false);
+  }
+
+  @Override
+  public boolean isDone() {
+    return future.isDone();
+  }
 }

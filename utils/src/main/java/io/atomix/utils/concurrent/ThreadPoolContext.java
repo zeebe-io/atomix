@@ -95,13 +95,13 @@ public class ThreadPoolContext extends AbstractThreadContext {
   @Override
   public Scheduled schedule(Duration delay, Runnable runnable) {
     ScheduledFuture<?> future = parent.schedule(() -> executor.execute(runnable), delay.toMillis(), TimeUnit.MILLISECONDS);
-    return () -> future.cancel(false);
+    return new ScheduledFutureImpl<>(future);
   }
 
   @Override
   public Scheduled schedule(Duration delay, Duration interval, Runnable runnable) {
     ScheduledFuture<?> future = parent.scheduleAtFixedRate(() -> executor.execute(runnable), delay.toMillis(), interval.toMillis(), TimeUnit.MILLISECONDS);
-    return () -> future.cancel(false);
+    return new ScheduledFutureImpl<>(future);
   }
 
   @Override
