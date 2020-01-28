@@ -119,13 +119,13 @@ public class SingleThreadContext extends AbstractThreadContext {
   @Override
   public Scheduled schedule(Duration delay, Runnable runnable) {
     ScheduledFuture<?> future = executor.schedule(runnable, delay.toMillis(), TimeUnit.MILLISECONDS);
-    return () -> future.cancel(false);
+    return new ScheduledFutureImpl<>(future);
   }
 
   @Override
   public Scheduled schedule(Duration delay, Duration interval, Runnable runnable) {
     ScheduledFuture<?> future = executor.scheduleAtFixedRate(runnable, delay.toMillis(), interval.toMillis(), TimeUnit.MILLISECONDS);
-    return () -> future.cancel(false);
+    return new ScheduledFutureImpl<>(future);
   }
 
   @Override

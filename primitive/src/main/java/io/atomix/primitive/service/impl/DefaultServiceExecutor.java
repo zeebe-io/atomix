@@ -314,5 +314,10 @@ public class DefaultServiceExecutor implements ServiceExecutor {
     public synchronized void cancel() {
       scheduledTasks.remove(this);
     }
+
+    @Override
+    public synchronized boolean isDone() {
+      return !scheduledTasks.contains(this);
+    }
   }
 }

@@ -30,6 +30,7 @@ import io.atomix.protocols.raft.protocol.InstallRequest;
 import io.atomix.protocols.raft.protocol.InstallResponse;
 import io.atomix.protocols.raft.protocol.LeaderHeartbeatRequest;
 import io.atomix.protocols.raft.protocol.PollRequest;
+import io.atomix.protocols.raft.protocol.PollResponse;
 import io.atomix.protocols.raft.protocol.VoteRequest;
 import io.atomix.protocols.raft.protocol.VoteResponse;
 import io.atomix.protocols.raft.storage.log.entry.RaftLogEntry;
@@ -47,7 +48,7 @@ import java.util.stream.Collectors;
 public final class FollowerRole extends ActiveRole {
 
   private final Random random = new Random();
-  private Scheduled heartbeatTimoutTimer;
+  private Scheduled heartbeatTimer;
   private final ClusterMembershipEventListener clusterListener = this::handleClusterEvent;
   private volatile long lastHeartbeat;
 
@@ -85,14 +86,19 @@ public final class FollowerRole extends ActiveRole {
   @Override
   public synchronized CompletableFuture<Void> stop() {
     raft.getMembershipService().removeListener(clusterListener);
-    return super.stop().thenRun(this::cancelHeartbeatTimers);
+    raft.getHeartbeatThread().execute(this::cancelHeartbeatTimer);
+
+    return super.stop();
   }
 
   /** Cancels the heartbeat timer. */
-  private void cancelHeartbeatTimers() {
-    if (heartbeatTimoutTimer != null) {
+  private void cancelHeartbeatTimer() {
+    raft.checkHeartbeatThread();
+
+    if (heartbeatTimer != null) {
       log.trace("Cancelling heartbeat timer");
-      heartbeatTimoutTimer.cancel();
+      heartbeatTimer.cancel();
+      heartbeatTimer = null;
     }
   }
 
@@ -116,18 +122,6 @@ public final class FollowerRole extends ActiveRole {
    * CANDIDATE state.
    */
   private void sendPollRequests() {
-    // Set a new timer within which other nodes must respond in order for this node to transition to
-    // candidate.
-    heartbeatTimoutTimer =
-        raft.getThreadContext()
-            .schedule(
-                raft.getElectionTimeout(),
-                () -> {
-                  log.debug(
-                      "Failed to poll a majority of the cluster in {}", raft.getElectionTimeout());
-                  resetHeartbeatTimeoutFromDifferentThread();
-                });
-
     // Create a quorum that will track the number of nodes that have responded to the poll request.
     final AtomicBoolean complete = new AtomicBoolean();
     final Set<DefaultRaftMember> votingMembers =
@@ -144,7 +138,7 @@ public final class FollowerRole extends ActiveRole {
     final Quorum quorum =
         new Quorum(
             raft.getCluster().getQuorum(),
-            (elected) -> {
+            elected -> {
               // If a majority of the cluster indicated they would vote for us then transition to
               // candidate.
               complete.set(true);
@@ -182,30 +176,7 @@ public final class FollowerRole extends ActiveRole {
       raft.getProtocol()
           .poll(member.memberId(), request)
           .whenCompleteAsync(
-              (response, error) -> {
-                raft.checkThread();
-                if (isRunning() && !complete.get()) {
-                  if (error != null) {
-                    log.warn("{}", error.getMessage());
-                    quorum.fail();
-                  } else {
-                    if (response.term() > raft.getTerm()) {
-                      raft.setTerm(response.term());
-                    }
-
-                    if (!response.accepted()) {
-                      log.debug("Received rejected poll from {}", member);
-                      quorum.fail();
-                    } else if (response.term() != raft.getTerm()) {
-                      log.debug("Received accepted poll for a different term from {}", member);
-                      quorum.fail();
-                    } else {
-                      log.debug("Received accepted poll from {}", member);
-                      quorum.succeed();
-                    }
-                  }
-                }
-              },
+              (response, error) -> handlePollResponse(complete, quorum, member, response, error),
               raft.getThreadContext());
     }
   }
@@ -237,7 +208,22 @@ public final class FollowerRole extends ActiveRole {
 
   @Override
   public void onLeaderHeartbeat(LeaderHeartbeatRequest request) {
+    raft.checkHeartbeatThread();
     logRequest(request);
+
+    final long currentTerm = raft.getTerm();
+    final RaftMember currentLeader = raft.getLeader();
+    if (request.term() < currentTerm
+        || (request.term() == currentTerm
+            && (currentLeader == null || !request.leader().equals(currentLeader.memberId())))) {
+      log.debug(
+          "Expected heartbeat from {} in term {}, but received one from {} in term {}, ignoring it",
+          currentLeader,
+          currentTerm,
+          request.leader(),
+          request.term());
+      return;
+    }
 
     // If the request indicates a term that is greater than the current term then
     // assign that term and leader to the current context
@@ -251,49 +237,109 @@ public final class FollowerRole extends ActiveRole {
     raft.runOnHeartbeatContext(this::resetHeartbeatTimeoutFromHeartbeatThread);
   }
 
-  /** Resets the heartbeat timer. */
   private void resetHeartbeatTimeoutFromHeartbeatThread() {
     raft.checkHeartbeatThread();
     if (!isRunning()) {
       return;
     }
 
-    final long currentHeartbeatTime = System.currentTimeMillis();
-    if (lastHeartbeat > 0) {
-      raft.getRaftRoleMetrics().observeHeartbeatInterval(currentHeartbeatTime - lastHeartbeat);
-    }
-    lastHeartbeat = currentHeartbeatTime;
-
-    // If a timer is already set, cancel the timer.
-    if (heartbeatTimoutTimer != null) {
-      heartbeatTimoutTimer.cancel();
-    }
+    cancelHeartbeatTimer();
+    updateHeartbeat(System.currentTimeMillis());
 
     // Set the election timeout in a semi-random fashion with the random range
     // being election timeout and 2 * election timeout.
     final Duration delay =
         raft.getElectionTimeout()
             .plus(Duration.ofMillis(random.nextInt((int) raft.getElectionTimeout().toMillis())));
-    heartbeatTimoutTimer =
-        raft.getThreadContext()
-            .schedule(
-                delay,
-                () -> {
-                  heartbeatTimoutTimer = null;
-                  if (isRunning()
-                      && (raft.getFirstCommitIndex() == 0
-                          || raft.getState() == RaftContext.State.READY)) {
-                    final long missTime = System.currentTimeMillis() - lastHeartbeat;
-                    log.info(
-                        "No heartbeat from {} in the last {} (calculated from last {} ms)",
-                        raft.getLeader(),
-                        delay,
-                        missTime);
-                    raft.getRaftRoleMetrics().countHeartbeatMiss();
+    heartbeatTimer = raft.getHeartbeatThread().schedule(delay, () -> onHeartbeatTimeout(delay));
+  }
 
-                    raft.setLeader(null);
-                    sendPollRequests();
-                  }
+  private void updateHeartbeat(final long currentTimestamp) {
+    raft.checkHeartbeatThread();
+
+    if (lastHeartbeat > 0) {
+      raft.getRaftRoleMetrics().observeHeartbeatInterval(currentTimestamp - lastHeartbeat);
+    }
+
+    lastHeartbeat = currentTimestamp;
+  }
+
+  private void schedulePollRequests(final Duration delay) {
+    raft.checkThread();
+
+    if (!isRunning()) {
+      return;
+    }
+
+    if (raft.getFirstCommitIndex() == 0 || raft.getState() == RaftContext.State.READY) {
+      final long missTime = System.currentTimeMillis() - lastHeartbeat;
+      log.info(
+          "No heartbeat from {} in the last {} (calculated from last {} ms)",
+          raft.getLeader(),
+          delay,
+          missTime);
+      raft.getRaftRoleMetrics().countHeartbeatMiss();
+
+      raft.setLeader(null);
+      sendPollRequests();
+    }
+  }
+
+  private void onHeartbeatTimeout(final Duration delay) {
+    raft.checkHeartbeatThread();
+
+    if (!isRunning()) {
+      return;
+    }
+
+    final Duration pollTimeout = raft.getElectionTimeout();
+
+    if (heartbeatTimer != null && !heartbeatTimer.isDone()) {
+      log.warn(
+          "Expected no heartbeat timer to be scheduled, but one was already scheduled, cancelling it");
+      heartbeatTimer.cancel();
+    }
+
+    heartbeatTimer =
+        raft.getHeartbeatThread()
+            .schedule(
+                pollTimeout,
+                () -> {
+                  log.debug("Failed to poll a majority of the cluster in {}", pollTimeout);
+                  resetHeartbeatTimeoutFromHeartbeatThread();
                 });
+
+    raft.getThreadContext().execute(() -> schedulePollRequests(delay));
+  }
+
+  private void handlePollResponse(
+      final AtomicBoolean complete,
+      final Quorum quorum,
+      final DefaultRaftMember member,
+      final PollResponse response,
+      final Throwable error) {
+    raft.checkThread();
+
+    if (isRunning() && !complete.get()) {
+      if (error != null) {
+        log.warn("{}", error.getMessage());
+        quorum.fail();
+      } else {
+        if (response.term() > raft.getTerm()) {
+          raft.setTerm(response.term());
+        }
+
+        if (!response.accepted()) {
+          log.debug("Received rejected poll from {}", member);
+          quorum.fail();
+        } else if (response.term() != raft.getTerm()) {
+          log.debug("Received accepted poll for a different term from {}", member);
+          quorum.fail();
+        } else {
+          log.debug("Received accepted poll from {}", member);
+          quorum.succeed();
+        }
+      }
+    }
   }
 }
