@@ -15,6 +15,12 @@
  */
 package io.atomix.cluster.protocol;
 
+import static io.atomix.cluster.protocol.GroupMembershipEvent.Type.MEMBER_ADDED;
+import static io.atomix.cluster.protocol.GroupMembershipEvent.Type.MEMBER_REMOVED;
+import static io.atomix.cluster.protocol.GroupMembershipEvent.Type.METADATA_CHANGED;
+import static io.atomix.cluster.protocol.GroupMembershipEvent.Type.REACHABILITY_CHANGED;
+import static org.junit.Assert.assertEquals;
+
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
@@ -33,10 +39,6 @@ import io.atomix.cluster.messaging.impl.TestMessagingServiceFactory;
 import io.atomix.cluster.messaging.impl.TestUnicastServiceFactory;
 import io.atomix.utils.Version;
 import io.atomix.utils.net.Address;
-import net.jodah.concurrentunit.ConcurrentTestCase;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
@@ -45,12 +47,10 @@ import java.util.Properties;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
-
-import static io.atomix.cluster.protocol.GroupMembershipEvent.Type.MEMBER_ADDED;
-import static io.atomix.cluster.protocol.GroupMembershipEvent.Type.MEMBER_REMOVED;
-import static io.atomix.cluster.protocol.GroupMembershipEvent.Type.METADATA_CHANGED;
-import static io.atomix.cluster.protocol.GroupMembershipEvent.Type.REACHABILITY_CHANGED;
-import static org.junit.Assert.assertEquals;
+import java.util.function.UnaryOperator;
+import net.jodah.concurrentunit.ConcurrentTestCase;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * SWIM membership protocol test.
@@ -192,9 +192,75 @@ public class SwimProtocolTest extends ConcurrentTestCase {
     checkEvent(member2, MEMBER_ADDED, member);
   }
 
+  @Test
+  public void shouldSynchronizePeriodically() throws InterruptedException {
+    // given
+    final Duration gossipInterval = Duration.ofMillis(100);
+    final Duration syncInterval = Duration.ofMillis(500);
+    startProtocol(member1, c -> c.setSyncInterval(syncInterval).setGossipInterval(gossipInterval));
+    startProtocol(member2, c -> c.setSyncInterval(syncInterval).setGossipInterval(gossipInterval));
+    final SwimMembershipProtocol protocol3 =
+        startProtocol(
+            member3, c -> c.setSyncInterval(syncInterval).setGossipInterval(gossipInterval));
+
+    // wait for all nodes to know about each other
+    checkEvents(
+        member1,
+        new GroupMembershipEvent(MEMBER_ADDED, member1),
+        new GroupMembershipEvent(MEMBER_ADDED, member2),
+        new GroupMembershipEvent(MEMBER_ADDED, member3));
+    checkEvents(
+        member2,
+        new GroupMembershipEvent(MEMBER_ADDED, member1),
+        new GroupMembershipEvent(MEMBER_ADDED, member2),
+        new GroupMembershipEvent(MEMBER_ADDED, member3));
+    checkEvents(
+        member3,
+        new GroupMembershipEvent(MEMBER_ADDED, member1),
+        new GroupMembershipEvent(MEMBER_ADDED, member2),
+        new GroupMembershipEvent(MEMBER_ADDED, member3));
+
+    // when
+    // isolate member3
+    partition(member3);
+    checkEvents(member1, new GroupMembershipEvent(REACHABILITY_CHANGED, member3), new GroupMembershipEvent(MEMBER_REMOVED, member3));
+    checkEvents(member2, new GroupMembershipEvent(REACHABILITY_CHANGED, member3), new GroupMembershipEvent(MEMBER_REMOVED, member3));
+    checkEvents(
+        member3,
+        new GroupMembershipEvent(REACHABILITY_CHANGED, member1),
+        new GroupMembershipEvent(MEMBER_REMOVED, member1),
+        new GroupMembershipEvent(REACHABILITY_CHANGED, member2),
+        new GroupMembershipEvent(MEMBER_REMOVED, member2));
+
+    // update member1 and wait for the property to be propagated
+    member1.properties().put("newProperty", 1);
+    checkEvents(member1, new GroupMembershipEvent(METADATA_CHANGED, member1));
+    checkEvents(member2, new GroupMembershipEvent(METADATA_CHANGED, member1));
+
+    // ensure member2 has already tried to propagate the new property, then reconnect it to member3
+    // it shouldn't try to update it with member1, and member1 is disconnected from member3 so will
+    // not send it probe requests - the only way for member3 to receive the new property is for it
+    // to sync with member2
+    Thread.sleep(gossipInterval.toMillis());
+    heal(member2, member3);
+    checkEvent(member2, MEMBER_ADDED, member3);
+    checkEvents(member3, new GroupMembershipEvent(MEMBER_ADDED, member2));
+
+    // then
+    // wait until member3 has tried to sync
+    Thread.sleep(syncInterval.toMillis());
+    assertEquals(1, protocol3.getMember(member1.id()).properties().get("newProperty"));
+  }
+
   private SwimMembershipProtocol startProtocol(Member member) {
-    SwimMembershipProtocol protocol = new SwimMembershipProtocol(new SwimMembershipProtocolConfig()
-        .setFailureTimeout(Duration.ofSeconds(2)));
+    return startProtocol(member, UnaryOperator.identity());
+  }
+
+  private SwimMembershipProtocol startProtocol(Member member, UnaryOperator<SwimMembershipProtocolConfig> configurator) {
+    SwimMembershipProtocol protocol =
+        new SwimMembershipProtocol(
+            configurator.apply(
+                new SwimMembershipProtocolConfig().setFailureTimeout(Duration.ofSeconds(2))));
     TestGroupMembershipEventListener listener = new TestGroupMembershipEventListener();
     listeners.put(member.id(), listener);
     protocol.addListener(listener);
@@ -247,7 +313,7 @@ public class SwimProtocolTest extends ConcurrentTestCase {
     for (int i = 0; i < types.length; i++) {
       GroupMembershipEvent event = nextEvent(member);
       if (!events.remove(event)) {
-        throw new AssertionError();
+        throw new AssertionError("Unexpected event " + event);
       }
     }
   }

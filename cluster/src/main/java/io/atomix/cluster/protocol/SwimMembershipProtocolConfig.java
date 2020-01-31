@@ -15,10 +15,10 @@
  */
 package io.atomix.cluster.protocol;
 
-import java.time.Duration;
-
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.time.Duration;
 
 /**
  * SWIM membership protocol configuration.
@@ -33,6 +33,7 @@ public class SwimMembershipProtocolConfig extends GroupMembershipProtocolConfig 
   private static final int DEFAULT_PROBE_TIMEOUT = 2000;
   private static final int DEFAULT_SUSPECT_PROBES = 3;
   private static final int DEFAULT_FAILURE_TIMEOUT = 10000;
+  private static final int DEFAULT_SYNC_INTERVAL = 10_000;
 
   private boolean broadcastUpdates = DEFAULT_BROADCAST_UPDATES;
   private boolean broadcastDisputes = DEFAULT_BROADCAST_DISPUTES;
@@ -43,6 +44,7 @@ public class SwimMembershipProtocolConfig extends GroupMembershipProtocolConfig 
   private Duration probeTimeout = Duration.ofMillis(DEFAULT_PROBE_TIMEOUT);
   private int suspectProbes = DEFAULT_SUSPECT_PROBES;
   private Duration failureTimeout = Duration.ofMillis(DEFAULT_FAILURE_TIMEOUT);
+  private Duration syncInterval = Duration.ofMillis(DEFAULT_SYNC_INTERVAL);
 
   /**
    * Returns whether to broadcast member updates to all peers.
@@ -229,6 +231,29 @@ public class SwimMembershipProtocolConfig extends GroupMembershipProtocolConfig 
     checkNotNull(failureTimeout, "failureTimeout cannot be null");
     checkArgument(!failureTimeout.isNegative() && !failureTimeout.isZero(), "failureTimeout must be positive");
     this.failureTimeout = checkNotNull(failureTimeout);
+    return this;
+  }
+
+  /**
+   * Returns the sync interval.
+   *
+   * @return the sync interval
+   */
+  public Duration getSyncInterval() {
+    return syncInterval;
+  }
+
+  /**
+   * Sets the sync interval.
+   *
+   * @param syncInterval the sync interval
+   * @return the membership configuration
+   */
+  public SwimMembershipProtocolConfig setSyncInterval(Duration syncInterval) {
+    checkNotNull(syncInterval, "syncInterval cannot be null");
+    checkArgument(
+        !syncInterval.isNegative() && !syncInterval.isZero(), "syncInterval must be positive");
+    this.syncInterval = syncInterval;
     return this;
   }
 

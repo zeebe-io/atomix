@@ -15,6 +15,26 @@
  */
 package io.atomix.cluster.protocol;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static io.atomix.utils.concurrent.Threads.namedThreads;
+
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import io.atomix.cluster.BootstrapService;
+import io.atomix.cluster.Member;
+import io.atomix.cluster.MemberId;
+import io.atomix.cluster.Node;
+import io.atomix.cluster.discovery.NodeDiscoveryEvent;
+import io.atomix.cluster.discovery.NodeDiscoveryEventListener;
+import io.atomix.cluster.discovery.NodeDiscoveryService;
+import io.atomix.cluster.impl.AddressSerializer;
+import io.atomix.utils.Version;
+import io.atomix.utils.event.AbstractListenerManager;
+import io.atomix.utils.net.Address;
+import io.atomix.utils.serializer.Namespace;
+import io.atomix.utils.serializer.Namespaces;
+import io.atomix.utils.serializer.Serializer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,31 +56,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
-
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import io.atomix.cluster.BootstrapService;
-import io.atomix.cluster.Member;
-import io.atomix.cluster.MemberId;
-import io.atomix.cluster.Node;
-import io.atomix.cluster.discovery.NodeDiscoveryEvent;
-import io.atomix.cluster.discovery.NodeDiscoveryEventListener;
-import io.atomix.cluster.discovery.NodeDiscoveryService;
-import io.atomix.cluster.impl.AddressSerializer;
-import io.atomix.utils.Version;
-import io.atomix.utils.event.AbstractListenerManager;
-import io.atomix.utils.net.Address;
-import io.atomix.utils.serializer.Namespace;
-import io.atomix.utils.serializer.Namespaces;
-import io.atomix.utils.serializer.Serializer;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static io.atomix.utils.concurrent.Threads.namedThreads;
 
 /**
  * SWIM group membership protocol implementation.
@@ -141,6 +140,7 @@ public class SwimMembershipProtocol
   private List<SwimMember> randomMembers = Lists.newCopyOnWriteArrayList();
   private final NodeDiscoveryEventListener discoveryEventListener = this::handleDiscoveryEvent;
   private final Map<MemberId, ImmutableMember> updates = new LinkedHashMap<>();
+  private final List<SwimMember> syncMembers = new ArrayList<>();
 
   private final ScheduledExecutorService swimScheduler = Executors.newSingleThreadScheduledExecutor(
       namedThreads("atomix-cluster-heartbeat-sender", LOGGER));
@@ -148,6 +148,7 @@ public class SwimMembershipProtocol
       namedThreads("atomix-cluster-events", LOGGER));
   private ScheduledFuture<?> gossipFuture;
   private ScheduledFuture<?> probeFuture;
+  private ScheduledFuture<?> syncFuture;
 
   private final AtomicInteger probeCounter = new AtomicInteger();
 
@@ -343,7 +344,7 @@ public class SwimMembershipProtocol
   /**
    * Synchronizes the node state with peers.
    */
-  private void sync() {
+  private void syncAll() {
     List<SwimMember> syncMembers = discoveryService.getNodes().stream()
         .map(node -> new SwimMember(MemberId.from(node.id().id()), node.address()))
         .filter(member -> !member.id().equals(localMember.id()))
@@ -359,17 +360,33 @@ public class SwimMembershipProtocol
    * @param member the peer with which to synchronize the node state
    */
   private void sync(ImmutableMember member) {
-    LOGGER.trace("{} - Synchronizing membership with {}", localMember.id(), member);
+    LOGGER.debug("{} - Synchronizing membership with {}", localMember.id(), member);
     bootstrapService.getMessagingService().sendAndReceive(
         member.address(), MEMBERSHIP_SYNC, SERIALIZER.encode(localMember.copy()), false, config.getProbeTimeout())
         .whenCompleteAsync((response, error) -> {
           if (error == null) {
             Collection<ImmutableMember> members = SERIALIZER.decode(response);
+            LOGGER.debug("{} - Synchronized membership with {}, received: {}", localMember.id(), member, members);
             members.forEach(this::updateState);
           } else {
             LOGGER.debug("{} - Failed to synchronize membership with {}", localMember.id(), member);
           }
         }, swimScheduler);
+  }
+
+  private void sync() {
+    if (syncMembers.isEmpty()) {
+      syncMembers.addAll(members.values());
+      syncMembers.remove(localMember);
+      Collections.shuffle(syncMembers);
+    }
+
+    if (!syncMembers.isEmpty()) {
+      final SwimMember member = syncMembers.remove(0);
+      if (member != null) {
+        sync(member.copy());
+      }
+    }
   }
 
   /**
@@ -730,7 +747,10 @@ public class SwimMembershipProtocol
           this::gossip, 0, config.getGossipInterval().toMillis(), TimeUnit.MILLISECONDS);
       probeFuture = swimScheduler.scheduleAtFixedRate(
           this::probe, 0, config.getProbeInterval().toMillis(), TimeUnit.MILLISECONDS);
-      swimScheduler.execute(this::sync);
+      swimScheduler.execute(this::syncAll);
+      syncFuture =
+          swimScheduler.scheduleAtFixedRate(
+              this::sync, 0, config.getSyncInterval().toMillis(), TimeUnit.MILLISECONDS);
       LOGGER.info("Started");
     }
     return CompletableFuture.completedFuture(null);
@@ -742,6 +762,7 @@ public class SwimMembershipProtocol
       discoveryService.removeListener(discoveryEventListener);
       gossipFuture.cancel(false);
       probeFuture.cancel(false);
+      syncFuture.cancel(false);
       swimScheduler.shutdownNow();
       eventExecutor.shutdownNow();
       LOGGER.info("{} - Member deactivated: {}", localMember.id(), localMember);
