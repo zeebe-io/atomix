@@ -24,6 +24,9 @@ import com.google.common.collect.Multisets;
 import com.google.common.collect.Sets;
 import io.atomix.utils.Version;
 import io.atomix.utils.serializer.serializers.ArraysAsListSerializer;
+import io.atomix.utils.serializer.serializers.AtomicBooleanSerializer;
+import io.atomix.utils.serializer.serializers.AtomicIntegerSerializer;
+import io.atomix.utils.serializer.serializers.AtomicLongSerializer;
 import io.atomix.utils.serializer.serializers.ByteBufferSerializer;
 import io.atomix.utils.serializer.serializers.ImmutableListSerializer;
 import io.atomix.utils.serializer.serializers.ImmutableMapSerializer;
@@ -54,9 +57,9 @@ public final class Namespaces {
   public static final Namespace BASIC = Namespace.builder()
       .nextId(Namespace.FLOATING_ID)
       .register(byte[].class)
-      .register(AtomicBoolean.class)
-      .register(AtomicInteger.class)
-      .register(AtomicLong.class)
+      .register(new AtomicBooleanSerializer(), AtomicBoolean.class)
+      .register(new AtomicIntegerSerializer(), AtomicInteger.class)
+      .register(new AtomicLongSerializer(), AtomicLong.class)
       .register(new ImmutableListSerializer(),
           ImmutableList.class,
           ImmutableList.of(1).getClass(),

@@ -358,11 +358,9 @@ public final class Namespace implements KryoFactory, KryoPool {
    * @param buffer to write to
    */
   public void serialize(final Object obj, final ByteBuffer buffer) {
-    ByteBufferOutput out = new ByteBufferOutput(buffer);
     Kryo kryo = borrow();
-    try {
+    try (ByteBufferOutput out = new ByteBufferOutput(buffer)) {
       kryo.writeClassAndObject(out, obj);
-      out.flush();
     } finally {
       release(kryo);
     }
@@ -386,11 +384,9 @@ public final class Namespace implements KryoFactory, KryoPool {
    * @param bufferSize size of the buffer in front of the stream
    */
   public void serialize(final Object obj, final OutputStream stream, final int bufferSize) {
-    ByteBufferOutput out = new ByteBufferOutput(stream, bufferSize);
     Kryo kryo = borrow();
-    try {
+    try (ByteBufferOutput out = new ByteBufferOutput(stream, bufferSize)) {
       kryo.writeClassAndObject(out, obj);
-      out.flush();
     } finally {
       release(kryo);
     }
@@ -422,9 +418,8 @@ public final class Namespace implements KryoFactory, KryoPool {
    * @return deserialized Object
    */
   public <T> T deserialize(final ByteBuffer buffer) {
-    ByteBufferInput in = new ByteBufferInput(buffer);
     Kryo kryo = borrow();
-    try {
+    try (ByteBufferInput in = new ByteBufferInput(buffer)) {
       @SuppressWarnings("unchecked")
       T obj = (T) kryo.readClassAndObject(in);
       return obj;
@@ -453,9 +448,8 @@ public final class Namespace implements KryoFactory, KryoPool {
    * @return deserialized Object
    */
   public <T> T deserialize(final InputStream stream, final int bufferSize) {
-    ByteBufferInput in = new ByteBufferInput(stream, bufferSize);
     Kryo kryo = borrow();
-    try {
+    try (ByteBufferInput in = new ByteBufferInput(stream, bufferSize)) {
       @SuppressWarnings("unchecked")
       T obj = (T) kryo.readClassAndObject(in);
       return obj;
@@ -580,7 +574,7 @@ public final class Namespace implements KryoFactory, KryoPool {
 
   @Override
   public String toString() {
-    if (friendlyName != NO_NAME) {
+    if (!friendlyName.equals(NO_NAME)) {
       return MoreObjects.toStringHelper(getClass())
           .omitNullValues()
           .add("friendlyName", friendlyName)
