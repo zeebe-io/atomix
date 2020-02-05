@@ -111,6 +111,18 @@ public class SwimMembershipProtocolBuilder extends GroupMembershipProtocolBuilde
     return this;
   }
 
+  /**
+   * Sets the sync interval to use to ensure a consistent view of a stable cluster within an upper
+   * bound.
+   *
+   * @param syncInterval the interval at which nodes should sync with another, random node
+   * @return the protocol builder
+   */
+  public SwimMembershipProtocolBuilder withSyncInterval(Duration syncInterval) {
+    config.setSyncInterval(syncInterval);
+    return this;
+  }
+
   @Override
   public GroupMembershipProtocol build() {
     return new SwimMembershipProtocol(config);
