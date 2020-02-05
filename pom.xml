@@ -58,7 +58,7 @@
     <jaxrs.version>2.1.1</jaxrs.version>
     <jackson.version>2.10.2.20200130</jackson.version>
     <config.version>1.4.0</config.version>
-    <classgraph.version>4.8.60</classgraph.version>
+    <classgraph.version>4.8.61</classgraph.version>
     <resteasy.version>4.4.2.Final</resteasy.version>
     <rest-assured.version>4.2.0</rest-assured.version>
     <argparse4j.version>0.8.1</argparse4j.version>
