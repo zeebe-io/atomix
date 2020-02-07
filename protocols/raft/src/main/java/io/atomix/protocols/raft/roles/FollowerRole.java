@@ -295,8 +295,8 @@ public final class FollowerRole extends ActiveRole {
     final Duration pollTimeout = raft.getElectionTimeout();
 
     if (heartbeatTimer != null && !heartbeatTimer.isDone()) {
-      log.warn(
-          "Expected no heartbeat timer to be scheduled, but one was already scheduled, cancelling it");
+      log.debug(
+          "Cancelling pre-existing heartbeatTimer, most likely the node is polling for an election...");
       heartbeatTimer.cancel();
     }
 
