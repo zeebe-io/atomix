@@ -84,6 +84,11 @@ public class DefaultRaftServer implements RaftServer {
   }
 
   @Override
+  public void addFailureListener(Runnable failureListener) {
+    context.addFailureListener(failureListener);
+  }
+
+  @Override
   public CompletableFuture<RaftServer> bootstrap(Collection<MemberId> cluster) {
     return start(() -> cluster().bootstrap(cluster));
   }

@@ -50,6 +50,7 @@ public class RaftPartition implements Partition {
   private final ThreadContextFactory threadContextFactory;
   private final Set<RaftRoleChangeListener> deferredRoleChangeListeners =
       new CopyOnWriteArraySet<>();
+  private final Set<Runnable> deferredFailureListeners = new CopyOnWriteArraySet<>();
   private PartitionMetadata partitionMetadata;
   private RaftPartitionClient client;
   private RaftPartitionServer server;
@@ -82,6 +83,14 @@ public class RaftPartition implements Partition {
   public void removeRoleChangeListener(RaftRoleChangeListener listener) {
     deferredRoleChangeListeners.remove(listener);
     server.removeRoleChangeListener(listener);
+  }
+
+  public void addFailureListener(Runnable failureListener) {
+    if (server == null) {
+      deferredFailureListeners.add(failureListener);
+    } else {
+      server.addFailureListener(failureListener);
+    }
   }
 
   public void setJournalIndexFactory(Supplier<JournalIndex> journalIndexFactory) {
@@ -135,6 +144,11 @@ public class RaftPartition implements Partition {
     if (!deferredRoleChangeListeners.isEmpty()) {
       deferredRoleChangeListeners.forEach(server::addRoleChangeListener);
       deferredRoleChangeListeners.clear();
+    }
+    server.addFailureListener(this::onFailure);
+    if (!deferredFailureListeners.isEmpty()) {
+      deferredFailureListeners.forEach(server::addFailureListener);
+      deferredFailureListeners.clear();
     }
   }
 
@@ -279,5 +293,9 @@ public class RaftPartition implements Partition {
 
   public CompletableFuture<Void> stepDown() {
     return server.stepDown();
+  }
+
+  private void onFailure() {
+    server.stop();
   }
 }

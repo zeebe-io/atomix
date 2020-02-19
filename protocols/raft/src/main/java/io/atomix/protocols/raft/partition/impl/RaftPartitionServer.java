@@ -70,6 +70,8 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
   private final ThreadContextFactory threadContextFactory;
   private final Set<RaftRoleChangeListener> deferredRoleChangeListeners =
       new CopyOnWriteArraySet<>();
+  private final Set<RaftCommitListener> commitListeners = new CopyOnWriteArraySet<>();
+  private final Set<Runnable> deferredFailureListeners = new CopyOnWriteArraySet<>();
 
   private RaftServer server;
   private SnapshotStore snapshotStore;
@@ -142,6 +144,10 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
       deferredRoleChangeListeners.forEach(server::addRoleChangeListener);
       deferredRoleChangeListeners.clear();
     }
+    if (!deferredFailureListeners.isEmpty()) {
+      deferredFailureListeners.forEach(server::addFailureListener);
+      deferredFailureListeners.clear();
+    }
   }
 
   private RaftServer buildServer() {
@@ -197,6 +203,14 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
       deferredRoleChangeListeners.add(listener);
     } else {
       server.addRoleChangeListener(listener);
+    }
+  }
+
+  public void addFailureListener(Runnable failureListener) {
+    if (server == null) {
+      deferredFailureListeners.add(failureListener);
+    } else {
+      server.addFailureListener(failureListener);
     }
   }
 

@@ -105,6 +105,7 @@ public class RaftContext implements AutoCloseable {
   private final Set<Consumer<State>> stateChangeListeners = new CopyOnWriteArraySet<>();
   private final Set<Consumer<RaftMember>> electionListeners = new CopyOnWriteArraySet<>();
   private final Set<RaftCommitListener> commitListeners = new CopyOnWriteArraySet<>();
+  private final Set<Runnable> failureListeners = new CopyOnWriteArraySet<>();
   private final LoadMonitor loadMonitor;
   private final RaftRoleMetrics raftRoleMetrics;
   private final SingleThreadContext heartBeatThread;
@@ -159,7 +160,8 @@ public class RaftContext implements AutoCloseable {
     }
 
     final String baseThreadName = String.format("raft-server-%s-%s", localMemberId.id(), name);
-    this.threadContext = new SingleThreadContext(namedThreads(baseThreadName, log));
+    this.threadContext =
+        new SingleThreadContext(namedThreads(baseThreadName, log), this::onUncaughtException);
     this.heartBeatThread =
         new SingleThreadContext(namedThreads(baseThreadName + "-heartbeat", log));
     this.loadContext = new SingleThreadContext(namedThreads(baseThreadName + "-load", log));
@@ -199,6 +201,15 @@ public class RaftContext implements AutoCloseable {
     registerHandlers(protocol);
 
     raftRoleMetrics = new RaftRoleMetrics(name);
+  }
+
+  private void onUncaughtException(Throwable error) {
+    log.error("An uncaught exception occurred", error);
+    try {
+      failureListeners.forEach(Runnable::run);
+    } catch (Exception exception) {
+      log.error("Could not notify failure listeners", exception);
+    }
   }
 
   /** Registers server handlers on the configured protocol. */
@@ -289,6 +300,15 @@ public class RaftContext implements AutoCloseable {
    */
   public void removeRoleChangeListener(RaftRoleChangeListener listener) {
     roleChangeListeners.remove(listener);
+  }
+
+  /**
+   * Adds a failure listener which will be invoked when an uncaught exception occurs
+   *
+   * @param failureListener
+   */
+  public void addFailureListener(Runnable failureListener) {
+    failureListeners.add(failureListener);
   }
 
   /**
