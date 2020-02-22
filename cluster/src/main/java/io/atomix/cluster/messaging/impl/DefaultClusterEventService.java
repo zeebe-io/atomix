@@ -15,6 +15,9 @@
  */
 package io.atomix.cluster.messaging.impl;
 
+import static io.atomix.utils.concurrent.Threads.namedThreads;
+
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -33,9 +36,6 @@ import io.atomix.utils.serializer.Namespaces;
 import io.atomix.utils.serializer.Serializer;
 import io.atomix.utils.time.LogicalTimestamp;
 import io.atomix.utils.time.WallClockTimestamp;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,8 +57,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static io.atomix.utils.concurrent.Threads.namedThreads;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Cluster event service.
@@ -146,7 +146,7 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
     }
     return topic.remoteSubscriptions().stream()
         .filter(s -> !s.isTombstone())
-        .map(s -> s.memberId())
+        .map(InternalSubscriptionInfo::memberId)
         .distinct();
   }
 
@@ -206,6 +206,7 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
    */
   private void update(Collection<InternalSubscriptionInfo> subscriptions) {
     for (InternalSubscriptionInfo subscription : subscriptions) {
+      LOGGER.warn("Updating remote subscription {}", subscription);
       InternalTopic topic = topics.computeIfAbsent(subscription.topic, InternalTopic::new);
       InternalSubscriptionInfo matchingSubscription = topic.remoteSubscriptions().stream()
           .filter(s -> s.memberId().equals(subscription.memberId()) && s.logicalTimestamp().equals(subscription.logicalTimestamp()))
@@ -213,8 +214,8 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
           .orElse(null);
       if (matchingSubscription == null) {
         topic.addRemoteSubscription(subscription);
-      } else if (subscription.isTombstone()) {
-        topic.removeRemoteSubscription(subscription);
+      } else if (matchingSubscription.isTombstone() != subscription.isTombstone()) {
+        topic.updateRemoteSubscription(matchingSubscription, subscription);
       }
     }
   }
@@ -226,7 +227,7 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
     List<Member> members = membershipService.getMembers()
         .stream()
         .filter(node -> !localMemberId.equals(node.id()))
-        .filter(node -> node.isReachable())
+        .filter(Member::isReachable)
         .collect(Collectors.toList());
 
     if (!members.isEmpty()) {
@@ -263,13 +264,24 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
         .collect(Collectors.toList());
 
     CompletableFuture<Void> future = new CompletableFuture<>();
-    messagingService.sendAndReceive(member.address(), GOSSIP_MESSAGE_SUBJECT, SERIALIZER.encode(subscriptions))
-        .whenComplete((result, error) -> {
-          if (error == null) {
-            updateTimes.put(member.id(), updateTime);
-          }
-          future.complete(null);
-        });
+    messagingService
+        .sendAndReceive(member.address(), GOSSIP_MESSAGE_SUBJECT, SERIALIZER.encode(subscriptions))
+        .whenComplete(
+            (result, error) -> {
+              if (error == null) {
+                updateTimes.put(member.id(), updateTime);
+              } else {
+                LOGGER.error(
+                    "{} - Failed to update member {} with subscriptions {}",
+                    localMemberId,
+                    member,
+                    subscriptions,
+                    error);
+                // future.completeExceptionally(error);
+              }
+
+              future.complete(null);
+            });
     return future;
   }
 
@@ -500,8 +512,8 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
      *
      * @param subscription the subscription to update
      */
-    synchronized void removeRemoteSubscription(InternalSubscriptionInfo subscription) {
-      subscriptions.remove(subscription);
+    synchronized void updateRemoteSubscription(InternalSubscriptionInfo existing, InternalSubscriptionInfo subscription) {
+      subscriptions.remove(existing);
       subscriptions.add(subscription);
       iterator = new TopicIterator(subscriptions);
     }
@@ -712,6 +724,17 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
      */
     InternalSubscriptionInfo asTombstone() {
       return new InternalSubscriptionInfo(memberId, topic, logicalTimestamp, true);
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("memberId", memberId)
+          .add("topic", topic)
+          .add("logicalTimestamp", logicalTimestamp)
+          .add("tombstone", tombstone)
+          .add("timestamp", timestamp)
+          .toString();
     }
   }
 }
