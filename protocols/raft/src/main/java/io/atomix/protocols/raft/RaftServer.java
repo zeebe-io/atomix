@@ -36,6 +36,8 @@ import io.atomix.protocols.raft.storage.snapshot.impl.DefaultSnapshotStore;
 import io.atomix.protocols.raft.utils.LoadMonitor;
 import io.atomix.protocols.raft.utils.LoadMonitorFactory;
 import io.atomix.storage.StorageLevel;
+import io.atomix.storage.journal.index.JournalIndex;
+import io.atomix.utils.Builder;
 import io.atomix.utils.concurrent.ThreadContextFactory;
 import io.atomix.utils.concurrent.ThreadModel;
 import java.net.InetAddress;
@@ -653,6 +655,7 @@ public interface RaftServer {
     protected ThreadContextFactory threadContextFactory;
     protected RaftStateMachineFactory stateMachineFactory = RaftServiceManager::new;
     protected LoadMonitorFactory loadMonitorFactory = LoadMonitor::new;
+    protected Supplier<JournalIndex> journalIndexFactory;
 
     protected Builder(MemberId localMemberId) {
       this.localMemberId = checkNotNull(localMemberId, "localMemberId cannot be null");
@@ -835,6 +838,11 @@ public interface RaftServer {
      */
     public Builder withLoadMonitorFactory(LoadMonitorFactory loadMonitorFactory) {
       this.loadMonitorFactory = loadMonitorFactory;
+      return this;
+    }
+
+    public Builder withJournalIndexFactory(final Supplier<JournalIndex> journalIndexFactory) {
+      this.journalIndexFactory = journalIndexFactory;
       return this;
     }
   }

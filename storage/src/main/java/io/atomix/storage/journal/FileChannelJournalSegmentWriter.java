@@ -19,7 +19,6 @@ import com.esotericsoftware.kryo.KryoException;
 import io.atomix.storage.StorageException;
 import io.atomix.storage.journal.index.JournalIndex;
 import io.atomix.utils.serializer.Namespace;
-
 import java.io.IOException;
 import java.nio.BufferOverflowException;
 import java.nio.BufferUnderflowException;
@@ -44,6 +43,7 @@ import java.util.zip.Checksum;
  * @author <a href="http://github.com/kuujo">Jordan Halterman</a>
  */
 class FileChannelJournalSegmentWriter<E> implements JournalWriter<E> {
+
   private final FileChannel channel;
   private final JournalSegment segment;
   private final int maxEntrySize;
@@ -111,7 +111,7 @@ class FileChannelJournalSegmentWriter<E> implements JournalWriter<E> {
           final E entry = namespace.deserialize(memory);
           memory.limit(limit);
           lastEntry = new Indexed<>(nextIndex, entry, length);
-          this.index.index(nextIndex, (int) position);
+          this.index.index(lastEntry, (int) position);
           nextIndex++;
         } else {
           break;
@@ -234,7 +234,8 @@ class FileChannelJournalSegmentWriter<E> implements JournalWriter<E> {
       try {
         namespace.serialize(entry, memory);
       } catch (KryoException e) {
-        throw new StorageException.TooLarge("Entry size exceeds maximum allowed bytes (" + maxEntrySize + ")");
+        throw new StorageException.TooLarge(
+            "Entry size exceeds maximum allowed bytes (" + maxEntrySize + ")");
       }
       memory.flip();
 
@@ -242,18 +243,21 @@ class FileChannelJournalSegmentWriter<E> implements JournalWriter<E> {
 
       // Ensure there's enough space left in the buffer to store the entry.
       long position = channel.position();
-      if (segment.descriptor().maxSegmentSize() - position < length + Integer.BYTES + Integer.BYTES) {
+      if (segment.descriptor().maxSegmentSize() - position
+          < length + Integer.BYTES + Integer.BYTES) {
         throw new BufferOverflowException();
       }
 
       // If the entry length exceeds the maximum entry size then throw an exception.
       if (length > maxEntrySize) {
-        throw new StorageException.TooLarge("Entry size " + length + " exceeds maximum allowed bytes (" + maxEntrySize + ")");
+        throw new StorageException.TooLarge(
+            "Entry size " + length + " exceeds maximum allowed bytes (" + maxEntrySize + ")");
       }
 
       // Compute the checksum for the entry.
       final Checksum crc32 = new CRC32();
-      crc32.update(memory.array(), Integer.BYTES + Integer.BYTES, memory.limit() - (Integer.BYTES + Integer.BYTES));
+      crc32.update(memory.array(), Integer.BYTES + Integer.BYTES,
+          memory.limit() - (Integer.BYTES + Integer.BYTES));
       final long checksum = crc32.getValue();
 
       // Create a single byte[] in memory for the entire entry and write it as a batch to the underlying buffer.
@@ -264,7 +268,7 @@ class FileChannelJournalSegmentWriter<E> implements JournalWriter<E> {
       // Update the last entry with the correct index/term/length.
       Indexed<E> indexedEntry = new Indexed<>(index, entry, length);
       this.lastEntry = indexedEntry;
-      this.index.index(index, (int) position);
+      this.index.index(lastEntry, (int) position);
       return (Indexed<T>) indexedEntry;
     } catch (IOException e) {
       throw new StorageException(e);

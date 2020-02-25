@@ -37,6 +37,7 @@ import io.atomix.protocols.raft.storage.snapshot.SnapshotStore;
 import io.atomix.protocols.raft.zeebe.ZeebeLogAppender;
 import io.atomix.storage.StorageException;
 import io.atomix.storage.journal.JournalReader.Mode;
+import io.atomix.storage.journal.index.JournalIndex;
 import io.atomix.utils.Managed;
 import io.atomix.utils.concurrent.Futures;
 import io.atomix.utils.concurrent.ThreadContextFactory;
@@ -52,6 +53,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 
 /** {@link Partition} server. */
@@ -68,10 +70,10 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
   private final ThreadContextFactory threadContextFactory;
   private final Set<RaftRoleChangeListener> deferredRoleChangeListeners =
       new CopyOnWriteArraySet<>();
-  private final Set<RaftCommitListener> commitListeners = new CopyOnWriteArraySet<>();
 
   private RaftServer server;
   private SnapshotStore snapshotStore;
+  private final Supplier<JournalIndex> journalIndexFactory;
 
   public RaftPartitionServer(
       final RaftPartition partition,
@@ -80,7 +82,8 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
       final ClusterMembershipService membershipService,
       final ClusterCommunicationService clusterCommunicator,
       final PrimitiveTypeRegistry primitiveTypes,
-      final ThreadContextFactory threadContextFactory) {
+      final ThreadContextFactory threadContextFactory,
+      final Supplier<JournalIndex> journalIndexFactory) {
     this.partition = partition;
     this.config = config;
     this.localMemberId = localMemberId;
@@ -88,6 +91,7 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
     this.clusterCommunicator = clusterCommunicator;
     this.primitiveTypes = primitiveTypes;
     this.threadContextFactory = threadContextFactory;
+    this.journalIndexFactory = journalIndexFactory;
   }
 
   @Override
@@ -158,6 +162,7 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
         .withStorage(createRaftStorage())
         .withThreadContextFactory(threadContextFactory)
         .withStateMachineFactory(config.getStateMachineFactory())
+        .withJournalIndexFactory(journalIndexFactory)
         .build();
   }
 
@@ -288,6 +293,7 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
         .withFreeMemoryBuffer(compactionConfig.getFreeMemoryBuffer())
         .withNamespace(RaftNamespaces.RAFT_STORAGE)
         .withSnapshotStore(snapshotStore)
+        .withJournalIndexFactory(journalIndexFactory)
         .build();
   }
 

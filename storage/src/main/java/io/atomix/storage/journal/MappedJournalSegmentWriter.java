@@ -20,7 +20,6 @@ import io.atomix.storage.StorageException;
 import io.atomix.storage.journal.index.JournalIndex;
 import io.atomix.utils.memory.BufferCleaner;
 import io.atomix.utils.serializer.Namespace;
-
 import java.io.IOException;
 import java.nio.BufferOverflowException;
 import java.nio.BufferUnderflowException;
@@ -44,6 +43,7 @@ import java.util.zip.CRC32;
  * @author <a href="http://github.com/kuujo">Jordan Halterman</a>
  */
 class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
+
   private final MappedByteBuffer mappedBuffer;
   private final ByteBuffer buffer;
   private final JournalSegment<E> segment;
@@ -111,7 +111,7 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
           slice.rewind();
           final E entry = namespace.deserialize(slice);
           lastEntry = new Indexed<>(nextIndex, entry, length);
-          this.index.index(nextIndex, position);
+          this.index.index(lastEntry, position);
           nextIndex++;
         } else {
           break;
@@ -212,7 +212,8 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
     if (length > maxEntrySize) {
       // Just reset the buffer. There's no need to zero the bytes since we haven't written the length or checksum.
       buffer.position(position);
-      throw new StorageException.TooLarge("Entry size " + length + " exceeds maximum allowed bytes (" + maxEntrySize + ")");
+      throw new StorageException.TooLarge(
+          "Entry size " + length + " exceeds maximum allowed bytes (" + maxEntrySize + ")");
     }
 
     // Compute the checksum for the entry.
@@ -232,7 +233,7 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
     // Update the last entry with the correct index/term/length.
     Indexed<E> indexedEntry = new Indexed<>(index, entry, length);
     this.lastEntry = indexedEntry;
-    this.index.index(index, position);
+    this.index.index(lastEntry, position);
     return (Indexed<T>) indexedEntry;
   }
 

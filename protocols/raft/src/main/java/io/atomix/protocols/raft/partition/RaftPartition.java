@@ -28,6 +28,7 @@ import io.atomix.protocols.raft.partition.impl.RaftClientCommunicator;
 import io.atomix.protocols.raft.partition.impl.RaftNamespaces;
 import io.atomix.protocols.raft.partition.impl.RaftPartitionClient;
 import io.atomix.protocols.raft.partition.impl.RaftPartitionServer;
+import io.atomix.storage.journal.index.JournalIndex;
 import io.atomix.utils.concurrent.ThreadContextFactory;
 import io.atomix.utils.serializer.Serializer;
 import java.io.File;
@@ -37,6 +38,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /** Abstract partition. */
@@ -51,6 +53,7 @@ public class RaftPartition implements Partition {
   private PartitionMetadata partitionMetadata;
   private RaftPartitionClient client;
   private RaftPartitionServer server;
+  private Supplier<JournalIndex> journalIndexFactory;
 
   public RaftPartition(
       PartitionId partitionId,
@@ -79,6 +82,15 @@ public class RaftPartition implements Partition {
   public void removeRoleChangeListener(RaftRoleChangeListener listener) {
     deferredRoleChangeListeners.remove(listener);
     server.removeRoleChangeListener(listener);
+  }
+
+  public void setJournalIndexFactory(Supplier<JournalIndex> journalIndexFactory) {
+    if (server != null) {
+      throw new IllegalStateException(
+          "Settings the JournalIndexFactory makes only sense when the RaftPartition is not already opened!");
+    }
+
+    this.journalIndexFactory = journalIndexFactory;
   }
 
   /**
@@ -135,7 +147,8 @@ public class RaftPartition implements Partition {
         managementService.getMembershipService(),
         managementService.getMessagingService(),
         managementService.getPrimitiveTypes(),
-        threadContextFactory);
+        threadContextFactory,
+        journalIndexFactory);
   }
 
   /** Creates a Raft client. */
