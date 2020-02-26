@@ -14,9 +14,9 @@ metadata:
     agent: zeebe-ci-build
 spec:
   nodeSelector:
-    cloud.google.com/gke-nodepool: slaves
+    cloud.google.com/gke-nodepool: agents-n1-standard-32-netssd-preempt
   tolerations:
-    - key: "slaves"
+    - key: "agents-n1-standard-32-netssd-preempt"
       operator: "Exists"
       effect: "NoSchedule"
   containers:
@@ -30,11 +30,11 @@ spec:
             -XX:+UseContainerSupport
       resources:
         limits:
-          cpu: 2
+          cpu: 4
           memory: 8Gi
         requests:
-          cpu: 1
-          memory: 4Gi
+          cpu: 4
+          memory: 8Gi
 '''
     }
   }
