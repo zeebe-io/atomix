@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
  * Segmented journal.
  */
 public class SegmentedJournal<E> implements Journal<E> {
-
+  private static final int DEFAULT_INDEX_DENSITY = 200;
   private final JournalMetrics journalMetrics;
   private final Supplier<JournalIndex> journalIndexFactory;
 
@@ -88,7 +88,6 @@ public class SegmentedJournal<E> implements Journal<E> {
       int maxSegmentSize,
       int maxEntrySize,
       int maxEntriesPerSegment,
-      int indexDensity,
       boolean flushOnCommit,
       final Supplier<JournalIndex> journalIndexFactory) {
     this.name = checkNotNull(name, "name cannot be null");
@@ -101,7 +100,7 @@ public class SegmentedJournal<E> implements Journal<E> {
     this.flushOnCommit = flushOnCommit;
     journalMetrics = new JournalMetrics(name);
     this.journalIndexFactory =
-        journalIndexFactory == null ? () -> new SparseJournalIndex(indexDensity)
+        journalIndexFactory == null ? () -> new SparseJournalIndex(DEFAULT_INDEX_DENSITY)
             : journalIndexFactory;
     open();
     this.writer = openWriter();
@@ -699,8 +698,6 @@ public class SegmentedJournal<E> implements Journal<E> {
     private static final int DEFAULT_MAX_SEGMENT_SIZE = 1024 * 1024 * 32;
     private static final int DEFAULT_MAX_ENTRY_SIZE = 1024 * 1024;
     private static final int DEFAULT_MAX_ENTRIES_PER_SEGMENT = 1024 * 1024;
-    private static final int DEFAULT_INDEX_DENSITY = 200;
-    private static final int DEFAULT_CACHE_SIZE = 1024;
 
     protected String name = DEFAULT_NAME;
     protected StorageLevel storageLevel = StorageLevel.DISK;
@@ -709,8 +706,7 @@ public class SegmentedJournal<E> implements Journal<E> {
     protected int maxSegmentSize = DEFAULT_MAX_SEGMENT_SIZE;
     protected int maxEntrySize = DEFAULT_MAX_ENTRY_SIZE;
     protected int maxEntriesPerSegment = DEFAULT_MAX_ENTRIES_PER_SEGMENT;
-    protected int indexDensity = DEFAULT_INDEX_DENSITY;
-    protected int cacheSize = DEFAULT_CACHE_SIZE;
+
     private boolean flushOnCommit = DEFAULT_FLUSH_ON_COMMIT;
     private Supplier<JournalIndex> journalIndexFactory;
 
@@ -840,38 +836,6 @@ public class SegmentedJournal<E> implements Journal<E> {
     }
 
     /**
-     * Sets the journal index density.
-     * <p>
-     *
-     * The index density is a number x, which means on every x't index the position of entries
-     * written to the journal will be recorded in an in-memory index for faster seeking.
-     *
-     * @param indexDensity the index density
-     * @return the journal builder
-     * @throws IllegalArgumentException if the density is not larger then 0
-     */
-    public Builder<E> withIndexDensity(int indexDensity) {
-      checkArgument(indexDensity > 0, "index density must be larger then 0");
-      this.indexDensity = indexDensity;
-      return this;
-    }
-
-    /**
-     * Sets the journal cache size.
-     *
-     * @param cacheSize the journal cache size
-     * @return the journal builder
-     * @throws IllegalArgumentException if the cache size is not positive
-     * @deprecated since 3.0.4
-     */
-    @Deprecated
-    public Builder<E> withCacheSize(int cacheSize) {
-      checkArgument(cacheSize >= 0, "cacheSize must be positive");
-      this.cacheSize = cacheSize;
-      return this;
-    }
-
-    /**
      * Enables flushing buffers to disk when entries are committed to a segment, returning the
      * builder for method chaining.
      * <p>
@@ -900,6 +864,12 @@ public class SegmentedJournal<E> implements Journal<E> {
       return this;
     }
 
+    public Builder<E> withJournalIndexFactory(
+        final Supplier<JournalIndex> journalIndexFactory) {
+      this.journalIndexFactory = journalIndexFactory;
+      return this;
+    }
+
     @Override
     public SegmentedJournal<E> build() {
       return new SegmentedJournal<>(
@@ -910,15 +880,8 @@ public class SegmentedJournal<E> implements Journal<E> {
           maxSegmentSize,
           maxEntrySize,
           maxEntriesPerSegment,
-          indexDensity,
           flushOnCommit,
           journalIndexFactory);
-    }
-
-    public Builder<E> withJournalIndexFactory(
-        final Supplier<JournalIndex> journalIndexFactory) {
-      this.journalIndexFactory = journalIndexFactory;
-      return this;
     }
   }
 }

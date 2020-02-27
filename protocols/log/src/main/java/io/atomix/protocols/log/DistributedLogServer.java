@@ -119,7 +119,6 @@ public class DistributedLogServer implements Managed<DistributedLogServer> {
     private static final boolean DEFAULT_FLUSH_ON_COMMIT = false;
     private static final long DEFAULT_MAX_LOG_SIZE = 1024 * 1024 * 1024;
     private static final Duration DEFAULT_MAX_LOG_AGE = null;
-    private static final int DEFAULT_INDEX_DENSITY = 200;
 
     protected String serverName = DEFAULT_SERVER_NAME;
     protected ClusterMembershipService membershipService;
@@ -136,7 +135,6 @@ public class DistributedLogServer implements Managed<DistributedLogServer> {
     protected File directory = new File(DEFAULT_DIRECTORY);
     protected int maxSegmentSize = DEFAULT_MAX_SEGMENT_SIZE;
     protected int maxEntrySize = DEFAULT_MAX_ENTRY_SIZE;
-    protected int indexDensity = DEFAULT_INDEX_DENSITY;
     private boolean flushOnCommit = DEFAULT_FLUSH_ON_COMMIT;
     protected long maxLogSize = DEFAULT_MAX_LOG_SIZE;
     protected Duration maxLogAge = DEFAULT_MAX_LOG_AGE;
@@ -401,7 +399,6 @@ public class DistributedLogServer implements Managed<DistributedLogServer> {
               .build())
           .withMaxSegmentSize(maxSegmentSize)
           .withMaxEntrySize(maxEntrySize)
-          .withIndexDensity(indexDensity)
           .withFlushOnCommit(flushOnCommit)
           .build();
 

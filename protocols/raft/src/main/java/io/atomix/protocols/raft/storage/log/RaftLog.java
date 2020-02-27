@@ -117,7 +117,6 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
 
     private final SegmentedJournal.Builder<RaftLogEntry> journalBuilder =
         SegmentedJournal.builder();
-    private Supplier<JournalIndex> journalIndexFactory;
 
     protected Builder() {}
 

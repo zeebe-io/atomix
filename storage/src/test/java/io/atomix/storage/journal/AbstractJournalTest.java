@@ -23,6 +23,7 @@ import static org.junit.Assert.assertTrue;
 
 import io.atomix.storage.StorageLevel;
 import io.atomix.storage.journal.JournalReader.Mode;
+import io.atomix.storage.journal.index.SparseJournalIndex;
 import io.atomix.utils.serializer.Namespace;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -87,8 +88,7 @@ public abstract class AbstractJournalTest {
         .withNamespace(NAMESPACE)
         .withStorageLevel(storageLevel())
         .withMaxSegmentSize(maxSegmentSize)
-        .withIndexDensity(5)
-        .withCacheSize(cacheSize)
+        .withJournalIndexFactory(() -> new SparseJournalIndex(5))
         .build();
   }
 
