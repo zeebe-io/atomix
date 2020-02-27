@@ -15,6 +15,9 @@
  */
 package io.atomix.protocols.log;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.atomix.cluster.ClusterMembershipService;
 import io.atomix.primitive.Replication;
 import io.atomix.primitive.partition.MemberGroupProvider;
@@ -32,14 +35,10 @@ import io.atomix.utils.logging.ContextualLoggerFactory;
 import io.atomix.utils.logging.LoggerContext;
 import io.atomix.utils.serializer.Namespace;
 import io.atomix.utils.serializer.Namespaces;
-import org.slf4j.Logger;
-
 import java.io.File;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.slf4j.Logger;
 
 /**
  * Log server.
@@ -110,6 +109,7 @@ public class DistributedLogServer implements Managed<DistributedLogServer> {
    * Log server builder
    */
   public static class Builder implements io.atomix.utils.Builder<DistributedLogServer> {
+
     private static final String DEFAULT_SERVER_NAME = "atomix";
     private static final String DEFAULT_DIRECTORY = System.getProperty("user.dir");
     private static final int DEFAULT_REPLICATION_FACTOR = 2;
@@ -119,7 +119,6 @@ public class DistributedLogServer implements Managed<DistributedLogServer> {
     private static final boolean DEFAULT_FLUSH_ON_COMMIT = false;
     private static final long DEFAULT_MAX_LOG_SIZE = 1024 * 1024 * 1024;
     private static final Duration DEFAULT_MAX_LOG_AGE = null;
-    private static final double DEFAULT_INDEX_DENSITY = .005;
 
     protected String serverName = DEFAULT_SERVER_NAME;
     protected ClusterMembershipService membershipService;
@@ -127,7 +126,8 @@ public class DistributedLogServer implements Managed<DistributedLogServer> {
     protected PrimaryElection primaryElection;
     protected MemberGroupProvider memberGroupProvider;
     protected ThreadModel threadModel = ThreadModel.SHARED_THREAD_POOL;
-    protected int threadPoolSize = Math.max(Math.min(Runtime.getRuntime().availableProcessors() * 2, 16), 4);
+    protected int threadPoolSize = Math
+        .max(Math.min(Runtime.getRuntime().availableProcessors() * 2, 16), 4);
     protected ThreadContextFactory threadContextFactory;
     protected int replicationFactor = DEFAULT_REPLICATION_FACTOR;
     protected Replication replicationStrategy = DEFAULT_REPLICATION_STRATEGY;
@@ -135,7 +135,6 @@ public class DistributedLogServer implements Managed<DistributedLogServer> {
     protected File directory = new File(DEFAULT_DIRECTORY);
     protected int maxSegmentSize = DEFAULT_MAX_SEGMENT_SIZE;
     protected int maxEntrySize = DEFAULT_MAX_ENTRY_SIZE;
-    protected double indexDensity = DEFAULT_INDEX_DENSITY;
     private boolean flushOnCommit = DEFAULT_FLUSH_ON_COMMIT;
     protected long maxLogSize = DEFAULT_MAX_LOG_SIZE;
     protected Duration maxLogAge = DEFAULT_MAX_LOG_AGE;
@@ -229,7 +228,8 @@ public class DistributedLogServer implements Managed<DistributedLogServer> {
      * @throws NullPointerException if the factory is null
      */
     public Builder withThreadContextFactory(ThreadContextFactory threadContextFactory) {
-      this.threadContextFactory = checkNotNull(threadContextFactory, "threadContextFactory cannot be null");
+      this.threadContextFactory = checkNotNull(threadContextFactory,
+          "threadContextFactory cannot be null");
       return this;
     }
 
@@ -254,7 +254,8 @@ public class DistributedLogServer implements Managed<DistributedLogServer> {
      * @throws NullPointerException if the replication strategy is null
      */
     public Builder withReplicationStrategy(Replication replicationStrategy) {
-      this.replicationStrategy = checkNotNull(replicationStrategy, "replicationStrategy cannot be null");
+      this.replicationStrategy = checkNotNull(replicationStrategy,
+          "replicationStrategy cannot be null");
       return this;
     }
 
@@ -301,9 +302,10 @@ public class DistributedLogServer implements Managed<DistributedLogServer> {
     /**
      * Sets the maximum segment size in bytes, returning the builder for method chaining.
      * <p>
-     * The maximum segment size dictates when logs should roll over to new segments. As entries are written to a segment
-     * of the log, once the size of the segment surpasses the configured maximum segment size, the log will create a new
-     * segment and append new entries to that segment.
+     * The maximum segment size dictates when logs should roll over to new segments. As entries are
+     * written to a segment of the log, once the size of the segment surpasses the configured
+     * maximum segment size, the log will create a new segment and append new entries to that
+     * segment.
      * <p>
      * By default, the maximum segment size is {@code 1024 * 1024 * 32}.
      *
@@ -330,42 +332,14 @@ public class DistributedLogServer implements Managed<DistributedLogServer> {
     }
 
     /**
-     * Sets the journal index density.
+     * Sets whether to flush buffers to disk when entries are committed to a segment, returning the
+     * builder for method chaining.
      * <p>
-     * The index density is the frequency at which the position of entries written to the journal will be recorded in an
-     * in-memory index for faster seeking.
+     * When flush-on-commit is enabled, log entry buffers will be automatically flushed to disk each
+     * time an entry is committed in a given segment.
      *
-     * @param indexDensity the index density
-     * @return the journal builder
-     * @throws IllegalArgumentException if the density is not between 0 and 1
-     */
-    public Builder withIndexDensity(double indexDensity) {
-      checkArgument(indexDensity > 0 && indexDensity < 1, "index density must be between 0 and 1");
-      this.indexDensity = indexDensity;
-      return this;
-    }
-
-    /**
-     * Enables flushing buffers to disk when entries are committed to a segment, returning the builder for method
-     * chaining.
-     * <p>
-     * When flush-on-commit is enabled, log entry buffers will be automatically flushed to disk each time an entry is
-     * committed in a given segment.
-     *
-     * @return The storage builder.
-     */
-    public Builder withFlushOnCommit() {
-      return withFlushOnCommit(true);
-    }
-
-    /**
-     * Sets whether to flush buffers to disk when entries are committed to a segment, returning the builder for method
-     * chaining.
-     * <p>
-     * When flush-on-commit is enabled, log entry buffers will be automatically flushed to disk each time an entry is
-     * committed in a given segment.
-     *
-     * @param flushOnCommit Whether to flush buffers to disk when entries are committed to a segment.
+     * @param flushOnCommit Whether to flush buffers to disk when entries are committed to a
+     * segment.
      * @return The storage builder.
      */
     public Builder withFlushOnCommit(boolean flushOnCommit) {
@@ -397,15 +371,17 @@ public class DistributedLogServer implements Managed<DistributedLogServer> {
 
     @Override
     public DistributedLogServer build() {
-      Logger log = ContextualLoggerFactory.getLogger(DistributedLogServer.class, LoggerContext.builder(DistributedLogServer.class)
-          .addValue(serverName)
-          .build());
+      Logger log = ContextualLoggerFactory
+          .getLogger(DistributedLogServer.class, LoggerContext.builder(DistributedLogServer.class)
+              .addValue(serverName)
+              .build());
 
       // If a ThreadContextFactory was not provided, create one and ensure it's closed when the server is stopped.
       boolean closeOnStop;
       ThreadContextFactory threadContextFactory;
       if (this.threadContextFactory == null) {
-        threadContextFactory = threadModel.factory("backup-server-" + serverName + "-%d", threadPoolSize, log);
+        threadContextFactory = threadModel
+            .factory("backup-server-" + serverName + "-%d", threadPoolSize, log);
         closeOnStop = true;
       } else {
         threadContextFactory = this.threadContextFactory;
@@ -423,7 +399,6 @@ public class DistributedLogServer implements Managed<DistributedLogServer> {
               .build())
           .withMaxSegmentSize(maxSegmentSize)
           .withMaxEntrySize(maxEntrySize)
-          .withIndexDensity(indexDensity)
           .withFlushOnCommit(flushOnCommit)
           .build();
 

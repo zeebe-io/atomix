@@ -15,23 +15,26 @@
  */
 package io.atomix.storage.journal.index;
 
+import io.atomix.storage.journal.Indexed;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 
 /**
  * Sparse index.
  */
 public class SparseJournalIndex implements JournalIndex {
-  private static final int MIN_DENSITY = 1000;
+
   private final int density;
   private final TreeMap<Long, Integer> positions = new TreeMap<>();
 
-  public SparseJournalIndex(double density) {
-    this.density = (int) Math.ceil(MIN_DENSITY / (density * MIN_DENSITY));
+  public SparseJournalIndex(int density) {
+    this.density = density;
   }
 
   @Override
-  public void index(long index, int position) {
+  public void index(Indexed indexedEntry, int position) {
+    final long index = indexedEntry.index();
     if (index % density == 0) {
       positions.put(index, position);
     }
@@ -39,12 +42,21 @@ public class SparseJournalIndex implements JournalIndex {
 
   @Override
   public Position lookup(long index) {
-    Map.Entry<Long, Integer> entry = positions.floorEntry(index);
+    final Map.Entry<Long, Integer> entry = positions.floorEntry(index);
     return entry != null ? new Position(entry.getKey(), entry.getValue()) : null;
   }
 
   @Override
   public void truncate(long index) {
     positions.tailMap(index, false).clear();
+  }
+
+  @Override
+  public void compact(long index) {
+    final Entry<Long, Integer> floorEntry = positions.floorEntry(index);
+
+    if (floorEntry != null) {
+      positions.headMap(floorEntry.getKey(), false).clear();
+    }
   }
 }

@@ -29,7 +29,9 @@ import io.atomix.storage.StorageLevel;
 import io.atomix.storage.buffer.FileBuffer;
 import io.atomix.storage.journal.JournalSegmentDescriptor;
 import io.atomix.storage.journal.JournalSegmentFile;
+import io.atomix.storage.journal.index.JournalIndex;
 import io.atomix.storage.statistics.StorageStatistics;
+import io.atomix.utils.Builder;
 import io.atomix.utils.serializer.Namespace;
 import io.atomix.utils.serializer.Serializer;
 import java.io.File;
@@ -37,6 +39,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * Immutable log configuration and {@link RaftLog} factory.
@@ -71,6 +74,7 @@ public final class RaftStorage {
   private final boolean retainStaleSnapshots;
   private final StorageStatistics statistics;
   private final SnapshotStore snapshotStore;
+  private final Supplier<JournalIndex> journalIndexFactory;
 
   private RaftStorage(
       final String prefix,
@@ -86,7 +90,8 @@ public final class RaftStorage {
       final boolean flushOnCommit,
       final boolean retainStaleSnapshots,
       final StorageStatistics storageStatistics,
-      final SnapshotStore snapshotStore) {
+      final SnapshotStore snapshotStore,
+      final Supplier<JournalIndex> journalIndexFactory) {
     this.prefix = prefix;
     this.storageLevel = storageLevel;
     this.directory = directory;
@@ -101,6 +106,7 @@ public final class RaftStorage {
     this.retainStaleSnapshots = retainStaleSnapshots;
     this.statistics = storageStatistics;
     this.snapshotStore = snapshotStore;
+    this.journalIndexFactory = journalIndexFactory;
     directory.mkdirs();
   }
 
@@ -313,6 +319,7 @@ public final class RaftStorage {
         .withMaxEntrySize(maxEntrySize)
         .withMaxEntriesPerSegment(maxEntriesPerSegment)
         .withFlushOnCommit(flushOnCommit)
+        .withJournalIndexFactory(journalIndexFactory)
         .build();
   }
 
@@ -411,6 +418,7 @@ public final class RaftStorage {
     private boolean retainStaleSnapshots = DEFAULT_RETAIN_STALE_SNAPSHOTS;
     private StorageStatistics storageStatistics;
     private SnapshotStore snapshotStore;
+    private Supplier<JournalIndex> journalIndexFactory;
 
     private Builder() {}
 
@@ -707,7 +715,13 @@ public final class RaftStorage {
           flushOnCommit,
           retainStaleSnapshots,
           Optional.ofNullable(storageStatistics).orElse(new StorageStatistics(directory)),
-          snapshotStore);
+          snapshotStore,
+          journalIndexFactory);
+    }
+
+    public Builder withJournalIndexFactory(final Supplier<JournalIndex> journalIndexFactory) {
+      this.journalIndexFactory = journalIndexFactory;
+      return this;
     }
   }
 }

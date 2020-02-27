@@ -20,8 +20,10 @@ import io.atomix.storage.StorageLevel;
 import io.atomix.storage.journal.DelegatingJournal;
 import io.atomix.storage.journal.JournalReader;
 import io.atomix.storage.journal.SegmentedJournal;
+import io.atomix.storage.journal.index.JournalIndex;
 import io.atomix.utils.serializer.Namespace;
 import java.io.File;
+import java.util.function.Supplier;
 
 /** Raft log. */
 public class RaftLog extends DelegatingJournal<RaftLogEntry> {
@@ -236,46 +238,6 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
     }
 
     /**
-     * Sets the log index density.
-     *
-     * <p>The index density is the frequency at which the position of entries written to the journal
-     * will be recorded in an in-memory index for faster seeking.
-     *
-     * @param indexDensity the index density
-     * @return the log builder
-     * @throws IllegalArgumentException if the density is not between 0 and 1
-     */
-    public Builder withIndexDensity(double indexDensity) {
-      journalBuilder.withIndexDensity(indexDensity);
-      return this;
-    }
-
-    /**
-     * Sets the log cache size.
-     *
-     * @param cacheSize the log cache size
-     * @return the log builder
-     * @throws IllegalArgumentException if the cache size is not positive
-     */
-    public Builder withCacheSize(int cacheSize) {
-      journalBuilder.withCacheSize(cacheSize);
-      return this;
-    }
-
-    /**
-     * Enables flushing buffers to disk when entries are committed to a segment, returning the
-     * builder for method chaining.
-     *
-     * <p>When flush-on-commit is enabled, log entry buffers will be automatically flushed to disk
-     * each time an entry is committed in a given segment.
-     *
-     * @return The storage builder.
-     */
-    public Builder withFlushOnCommit() {
-      return withFlushOnCommit(true);
-    }
-
-    /**
      * Sets whether to flush buffers to disk when entries are committed to a segment, returning the
      * builder for method chaining.
      *
@@ -288,6 +250,11 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
      */
     public Builder withFlushOnCommit(boolean flushOnCommit) {
       journalBuilder.withFlushOnCommit(flushOnCommit);
+      return this;
+    }
+
+    public Builder withJournalIndexFactory(final Supplier<JournalIndex> journalIndexFactory) {
+      journalBuilder.withJournalIndexFactory(journalIndexFactory);
       return this;
     }
 

@@ -15,13 +15,14 @@
  */
 package io.atomix.storage.journal;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkState;
+
 import com.google.common.collect.Sets;
 import io.atomix.storage.StorageException;
 import io.atomix.storage.StorageLevel;
 import io.atomix.storage.journal.index.JournalIndex;
-import io.atomix.storage.journal.index.SparseJournalIndex;
 import io.atomix.utils.serializer.Namespace;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
@@ -31,15 +32,13 @@ import java.nio.file.StandardOpenOption;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.base.Preconditions.checkState;
-
 /**
  * Log segment.
  *
  * @author <a href="http://github.com/kuujo">Jordan Halterman</a>
  */
 public class JournalSegment<E> implements AutoCloseable {
+
   private final JournalSegmentFile file;
   private final JournalSegmentDescriptor descriptor;
   private final StorageLevel storageLevel;
@@ -56,20 +55,22 @@ public class JournalSegment<E> implements AutoCloseable {
       JournalSegmentDescriptor descriptor,
       StorageLevel storageLevel,
       int maxEntrySize,
-      double indexDensity,
-      Namespace namespace) {
+      Namespace namespace,
+      JournalIndex journalIndex) {
     this.file = file;
     this.descriptor = descriptor;
     this.storageLevel = storageLevel;
     this.maxEntrySize = maxEntrySize;
-    this.index = new SparseJournalIndex(indexDensity);
+    this.index = journalIndex;
     this.namespace = namespace;
-    this.writer = new MappableJournalSegmentWriter<>(openChannel(file.file()), this, maxEntrySize, index, namespace);
+    this.writer = new MappableJournalSegmentWriter<>(openChannel(file.file()), this, maxEntrySize,
+        index, namespace);
   }
 
   private FileChannel openChannel(File file) {
     try {
-      return FileChannel.open(file.toPath(), StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE);
+      return FileChannel.open(file.toPath(), StandardOpenOption.CREATE, StandardOpenOption.READ,
+          StandardOpenOption.WRITE);
     } catch (IOException e) {
       throw new StorageException(e);
     }
@@ -255,6 +256,10 @@ public class JournalSegment<E> implements AutoCloseable {
     writer.close();
     readers.forEach(reader -> reader.close());
     open = false;
+  }
+
+  void compactIndex(long index) {
+    this.index.compact(index);
   }
 
   /**
