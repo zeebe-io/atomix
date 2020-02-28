@@ -98,6 +98,7 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
   private long configuring;
   private boolean transferring;
   private Scheduled heartbeatTimer;
+  private CompletableFuture<Void> commitInitialEntriesFuture;
 
   public LeaderRole(RaftContext context) {
     super(context);
@@ -114,12 +115,22 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
     appendInitialEntries().join();
 
     // Commit the initial leader entries.
-    commitInitialEntries();
+    commitInitialEntriesFuture = commitInitialEntries();
 
     // Register the cluster event listener.
     raft.getMembershipService().addListener(clusterListener);
 
     return super.start().thenRun(this::startTimers).thenApply(v -> this);
+  }
+
+  @Override
+  public synchronized CompletableFuture<Void> stop() {
+    raft.getMembershipService().removeListener(clusterListener);
+    return super.stop()
+        .thenRun(appender::close)
+        .thenRun(this::cancelTimers)
+        .thenRun(this::stepDown)
+        .thenRun(this::failPendingCommands);
   }
 
   @Override
@@ -854,16 +865,6 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
     return future.thenApply(this::logResponse);
   }
 
-  @Override
-  public synchronized CompletableFuture<Void> stop() {
-    raft.getMembershipService().removeListener(clusterListener);
-    return super.stop()
-        .thenRun(appender::close)
-        .thenRun(this::cancelTimers)
-        .thenRun(this::stepDown)
-        .thenRun(this::failPendingCommands);
-  }
-
   /** Cancels the timers. */
   private void cancelTimers() {
     if (appendTimer != null) {
@@ -1491,5 +1492,14 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
               }
             },
             raft.getThreadContext());
+  }
+
+  public void onInitialEntriesCommitted(Runnable runnable) {
+    commitInitialEntriesFuture.whenComplete(
+        (v, error) -> {
+          if (error == null) {
+            runnable.run();
+          }
+        });
   }
 }

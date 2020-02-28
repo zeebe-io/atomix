@@ -381,17 +381,6 @@ public class RaftContext implements AutoCloseable {
   }
 
   /**
-   * Sets the first commit index.
-   *
-   * @param firstCommitIndex The first commit index.
-   */
-  public void setFirstCommitIndex(long firstCommitIndex) {
-    if (this.firstCommitIndex == 0) {
-      this.firstCommitIndex = firstCommitIndex;
-    }
-  }
-
-  /**
    * Sets the last applied index.
    *
    * @param lastApplied the last applied index and the last applied term
@@ -544,11 +533,27 @@ public class RaftContext implements AutoCloseable {
     }
 
     if (this.role.role() == role) {
-      try {
-        roleChangeListeners.forEach(l -> l.onNewRole(this.role.role(), getTerm()));
-      } catch (Exception exception) {
-        log.error("Unexpected error on calling role change listeners.", exception);
+      if (this.role.role() == Role.LEADER) {
+        // It is safe to assume that transition to leader is only complete after the initial entries
+        // are committed.
+        final LeaderRole leaderRole = (LeaderRole) this.role;
+        leaderRole.onInitialEntriesCommitted(
+            () -> {
+              if (this.role == leaderRole) { // ensure no other role change happened in between
+                notifyRoleChangeListeners();
+              }
+            });
+      } else {
+        notifyRoleChangeListeners();
       }
+    }
+  }
+
+  private void notifyRoleChangeListeners() {
+    try {
+      roleChangeListeners.forEach(l -> l.onNewRole(this.role.role(), getTerm()));
+    } catch (Exception exception) {
+      log.error("Unexpected error on calling role change listeners.", exception);
     }
   }
 
@@ -709,6 +714,15 @@ public class RaftContext implements AutoCloseable {
   }
 
   /**
+   * Sets the election timeout.
+   *
+   * @param electionTimeout The election timeout.
+   */
+  public void setElectionTimeout(Duration electionTimeout) {
+    this.electionTimeout = electionTimeout;
+  }
+
+  /**
    * Returns the first commit index.
    *
    * @return The first commit index.
@@ -718,12 +732,32 @@ public class RaftContext implements AutoCloseable {
   }
 
   /**
+   * Sets the first commit index.
+   *
+   * @param firstCommitIndex The first commit index.
+   */
+  public void setFirstCommitIndex(long firstCommitIndex) {
+    if (this.firstCommitIndex == 0) {
+      this.firstCommitIndex = firstCommitIndex;
+    }
+  }
+
+  /**
    * Returns the heartbeat interval.
    *
    * @return The heartbeat interval.
    */
   public Duration getHeartbeatInterval() {
     return heartbeatInterval;
+  }
+
+  /**
+   * Sets the heartbeat interval.
+   *
+   * @param heartbeatInterval The Raft heartbeat interval.
+   */
+  public void setHeartbeatInterval(Duration heartbeatInterval) {
+    this.heartbeatInterval = checkNotNull(heartbeatInterval, "heartbeatInterval cannot be null");
   }
 
   public ThreadContext getHeartbeatThread() {
@@ -755,6 +789,27 @@ public class RaftContext implements AutoCloseable {
    */
   public MemberId getLastVotedFor() {
     return lastVotedFor;
+  }
+
+  /**
+   * Sets the state last voted for candidate.
+   *
+   * @param candidate The candidate that was voted for.
+   */
+  public void setLastVotedFor(MemberId candidate) {
+    // If we've already voted for another candidate in this term then the last voted for candidate
+    // cannot be overridden.
+    checkState(!(lastVotedFor != null && candidate != null), "Already voted for another candidate");
+    final DefaultRaftMember member = cluster.getMember(candidate);
+    checkState(member != null, "Unknown candidate: %d", candidate);
+    this.lastVotedFor = candidate;
+    meta.storeVote(this.lastVotedFor);
+
+    if (candidate != null) {
+      log.debug("Voted for {}", member.memberId());
+    } else {
+      log.trace("Reset last voted for");
+    }
   }
 
   /**
@@ -888,6 +943,15 @@ public class RaftContext implements AutoCloseable {
   }
 
   /**
+   * Sets the session timeout.
+   *
+   * @param sessionTimeout The session timeout.
+   */
+  public void setSessionTimeout(Duration sessionTimeout) {
+    this.sessionTimeout = checkNotNull(sessionTimeout, "sessionTimeout cannot be null");
+  }
+
+  /**
    * Returns the server session registry.
    *
    * @return the server session registry
@@ -933,6 +997,22 @@ public class RaftContext implements AutoCloseable {
   }
 
   /**
+   * Sets the state term.
+   *
+   * @param term The state term.
+   */
+  public void setTerm(long term) {
+    if (term > this.term) {
+      this.term = term;
+      this.leader = null;
+      this.lastVotedFor = null;
+      meta.storeTerm(this.term);
+      meta.storeVote(this.lastVotedFor);
+      log.debug("Set term {}", term);
+    }
+  }
+
+  /**
    * Returns the execution context.
    *
    * @return The execution context.
@@ -949,45 +1029,6 @@ public class RaftContext implements AutoCloseable {
   public boolean isLeader() {
     final MemberId leader = this.leader;
     return leader != null && leader.equals(cluster.getMember().memberId());
-  }
-
-  /**
-   * Sets the election timeout.
-   *
-   * @param electionTimeout The election timeout.
-   */
-  public void setElectionTimeout(Duration electionTimeout) {
-    this.electionTimeout = electionTimeout;
-  }
-
-  /**
-   * Sets the heartbeat interval.
-   *
-   * @param heartbeatInterval The Raft heartbeat interval.
-   */
-  public void setHeartbeatInterval(Duration heartbeatInterval) {
-    this.heartbeatInterval = checkNotNull(heartbeatInterval, "heartbeatInterval cannot be null");
-  }
-
-  /**
-   * Sets the state last voted for candidate.
-   *
-   * @param candidate The candidate that was voted for.
-   */
-  public void setLastVotedFor(MemberId candidate) {
-    // If we've already voted for another candidate in this term then the last voted for candidate
-    // cannot be overridden.
-    checkState(!(lastVotedFor != null && candidate != null), "Already voted for another candidate");
-    final DefaultRaftMember member = cluster.getMember(candidate);
-    checkState(member != null, "Unknown candidate: %d", candidate);
-    this.lastVotedFor = candidate;
-    meta.storeVote(this.lastVotedFor);
-
-    if (candidate != null) {
-      log.debug("Voted for {}", member.memberId());
-    } else {
-      log.trace("Reset last voted for");
-    }
   }
 
   /**
@@ -1016,31 +1057,6 @@ public class RaftContext implements AutoCloseable {
 
       this.lastVotedFor = null;
       meta.storeVote(null);
-    }
-  }
-
-  /**
-   * Sets the session timeout.
-   *
-   * @param sessionTimeout The session timeout.
-   */
-  public void setSessionTimeout(Duration sessionTimeout) {
-    this.sessionTimeout = checkNotNull(sessionTimeout, "sessionTimeout cannot be null");
-  }
-
-  /**
-   * Sets the state term.
-   *
-   * @param term The state term.
-   */
-  public void setTerm(long term) {
-    if (term > this.term) {
-      this.term = term;
-      this.leader = null;
-      this.lastVotedFor = null;
-      meta.storeTerm(this.term);
-      meta.storeVote(this.lastVotedFor);
-      log.debug("Set term {}", term);
     }
   }
 
