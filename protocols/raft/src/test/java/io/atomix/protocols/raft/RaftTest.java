@@ -53,6 +53,7 @@ import io.atomix.protocols.raft.primitive.TestPrimitiveService;
 import io.atomix.protocols.raft.primitive.TestPrimitiveType;
 import io.atomix.protocols.raft.protocol.TestRaftProtocolFactory;
 import io.atomix.protocols.raft.storage.RaftStorage;
+import io.atomix.protocols.raft.storage.log.RaftLogReader;
 import io.atomix.protocols.raft.storage.log.entry.CloseSessionEntry;
 import io.atomix.protocols.raft.storage.log.entry.CommandEntry;
 import io.atomix.protocols.raft.storage.log.entry.ConfigurationEntry;
@@ -61,6 +62,7 @@ import io.atomix.protocols.raft.storage.log.entry.KeepAliveEntry;
 import io.atomix.protocols.raft.storage.log.entry.MetadataEntry;
 import io.atomix.protocols.raft.storage.log.entry.OpenSessionEntry;
 import io.atomix.protocols.raft.storage.log.entry.QueryEntry;
+import io.atomix.protocols.raft.storage.log.entry.RaftLogEntry;
 import io.atomix.protocols.raft.storage.snapshot.Snapshot;
 import io.atomix.protocols.raft.storage.snapshot.SnapshotChunk;
 import io.atomix.protocols.raft.storage.snapshot.SnapshotChunkReader;
@@ -68,6 +70,7 @@ import io.atomix.protocols.raft.storage.snapshot.SnapshotStore;
 import io.atomix.protocols.raft.storage.system.Configuration;
 import io.atomix.protocols.raft.utils.LoadMonitor;
 import io.atomix.storage.StorageLevel;
+import io.atomix.storage.journal.JournalReader.Mode;
 import io.atomix.storage.statistics.StorageStatistics;
 import io.atomix.utils.concurrent.Futures;
 import io.atomix.utils.concurrent.SingleThreadContext;
@@ -92,6 +95,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -1667,6 +1671,39 @@ public class RaftTest extends ConcurrentTestCase {
     }
 
     assertTrue(condition.getAsBoolean());
+  }
+
+  @Test
+  public void testRoleChangeNotificationAfterInitialEntryOnLeader() throws Throwable {
+    // given
+    final List<RaftServer> servers = createServers(3);
+    final RaftServer leader =
+        servers.stream().filter(s -> s.getRole() == RaftServer.Role.LEADER).findFirst().get();
+    final CountDownLatch transitionCompleted = new CountDownLatch(1);
+    servers.stream()
+        .forEach(
+            server ->
+                server.addRoleChangeListener(
+                    (role, term) ->
+                        assertLastReadInitialEntry(role, term, server, transitionCompleted)));
+    // when
+    leader.stepDown();
+
+    // then
+    transitionCompleted.await(10, TimeUnit.SECONDS);
+    assertEquals(0, transitionCompleted.getCount());
+  }
+
+  private void assertLastReadInitialEntry(
+      Role role, long term, RaftServer server, CountDownLatch transitionCompleted) {
+    if (role == Role.LEADER) {
+      final RaftLogReader raftLogReader = server.getContext().getLog().openReader(0, Mode.COMMITS);
+      raftLogReader.reset(raftLogReader.getLastIndex());
+      final RaftLogEntry entry = raftLogReader.next().entry();
+      assert (entry instanceof InitializeEntry);
+      assertEquals(term, entry.term());
+      transitionCompleted.countDown();
+    }
   }
 
   private static final class FakeStatistics extends StorageStatistics {
