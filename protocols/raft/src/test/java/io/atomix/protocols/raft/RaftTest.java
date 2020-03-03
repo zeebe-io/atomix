@@ -1706,6 +1706,34 @@ public class RaftTest extends ConcurrentTestCase {
     }
   }
 
+  @Test
+  public void testNotifyOnFailure() throws Throwable {
+    // given
+    final List<RaftServer> servers = createServers(1);
+    final RaftServer server = servers.get(0);
+    final CountDownLatch firstListener = new CountDownLatch(1);
+    final CountDownLatch secondListener = new CountDownLatch(1);
+
+    server.addFailureListener(() -> firstListener.countDown());
+    server.addFailureListener(() -> secondListener.countDown());
+
+    // when
+    // inject failures
+    server
+        .getContext()
+        .getThreadContext()
+        .execute(
+            () -> {
+              throw new RuntimeException("injected failure");
+            });
+
+    // then
+    firstListener.await(2, TimeUnit.SECONDS);
+    secondListener.await(1, TimeUnit.SECONDS);
+    assertEquals(0, firstListener.getCount());
+    assertEquals(0, secondListener.getCount());
+  }
+
   private static final class FakeStatistics extends StorageStatistics {
 
     FakeStatistics(final File file) {
