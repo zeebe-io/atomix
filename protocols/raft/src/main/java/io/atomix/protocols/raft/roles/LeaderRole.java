@@ -1462,6 +1462,10 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
             (indexed, error) -> {
               if (error != null) {
                 appendListener.onWriteError(Throwables.getRootCause(error));
+                if (!(error instanceof StorageException)) {
+                  // step down. Otherwise the following event can get appended resulting in gaps
+                  raft.transition(Role.FOLLOWER);
+                }
               } else {
                 appendListener.onWrite(indexed);
                 replicate(indexed, appendListener);
