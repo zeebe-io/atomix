@@ -244,6 +244,13 @@ public interface RaftServer {
   void removeRoleChangeListener(RaftRoleChangeListener listener);
 
   /**
+   * Adds a failure listener
+   *
+   * @param failureListener
+   */
+  void addFailureListener(Runnable failureListener);
+
+  /**
    * Bootstraps a single-node cluster.
    *
    * <p>Bootstrapping a single-node cluster results in the server forming a new cluster to which
