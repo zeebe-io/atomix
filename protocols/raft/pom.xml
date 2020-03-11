@@ -167,7 +167,7 @@
     <plugin.version.spotbugs>3.1.12.2</plugin.version.spotbugs>
     <spotbugs.exclude>spotbugs/spotbugs-exclude.xml</spotbugs.exclude>
     <spotbugs.include>spotbugs/spotbugs-include.xml</spotbugs.include>
-    <zeebe.version>0.22.1</zeebe.version>
+    <zeebe.version>0.22.2</zeebe.version>
   </properties>
 
 </project>
