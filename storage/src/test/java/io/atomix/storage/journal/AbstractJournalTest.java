@@ -82,13 +82,14 @@ public abstract class AbstractJournalTest {
   }
 
   protected SegmentedJournal<TestEntry> createJournal() {
+    final SparseJournalIndex index = new SparseJournalIndex(5);
     return SegmentedJournal.<TestEntry>builder()
         .withName("test")
         .withDirectory(PATH.toFile())
         .withNamespace(NAMESPACE)
         .withStorageLevel(storageLevel())
         .withMaxSegmentSize(maxSegmentSize)
-        .withJournalIndexFactory(() -> new SparseJournalIndex(5))
+        .withJournalIndexFactory(() -> index)
         .build();
   }
 
