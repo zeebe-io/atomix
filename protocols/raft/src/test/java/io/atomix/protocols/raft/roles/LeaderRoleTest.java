@@ -3,13 +3,16 @@ package io.atomix.protocols.raft.roles;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.atomix.cluster.ClusterMembershipService;
 import io.atomix.protocols.raft.RaftServer.Role;
 import io.atomix.protocols.raft.impl.RaftContext;
+import io.atomix.protocols.raft.session.RaftSessionRegistry;
 import io.atomix.protocols.raft.storage.log.RaftLogWriter;
 import io.atomix.protocols.raft.storage.log.entry.RaftLogEntry;
 import io.atomix.protocols.raft.zeebe.ZeebeEntry;
@@ -20,6 +23,7 @@ import io.atomix.utils.concurrent.SingleThreadContext;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -57,6 +61,12 @@ public class LeaderRoleTest {
     when(context.getLogWriter()).thenReturn(writer);
 
     leadeRole = new LeaderRole(context);
+    // since we mock RaftContext we should simulate leader close on transition
+    doAnswer(i -> leadeRole.stop().join()).when(context).transition(Role.FOLLOWER);
+    final RaftSessionRegistry mockSessionRegistry = mock(RaftSessionRegistry.class);
+    when(mockSessionRegistry.getSessions()).thenReturn(Collections.emptyList());
+    when(context.getSessions()).thenReturn(mockSessionRegistry);
+    when(context.getMembershipService()).thenReturn(mock(ClusterMembershipService.class));
   }
 
   @Test
@@ -87,6 +97,7 @@ public class LeaderRoleTest {
 
     // then
     latch.await(10, TimeUnit.SECONDS);
+    assertEquals(0, latch.getCount());
   }
 
   @Test
@@ -245,7 +256,7 @@ public class LeaderRoleTest {
   }
 
   @Test
-  public void shouldStopAppendEntryOnAnyOtherException() throws InterruptedException {
+  public void shouldTransitionToFollowerWhenAppendEntryException() throws InterruptedException {
     // given
     when(writer.append(any(ZeebeEntry.class))).thenThrow(new RuntimeException("expected"));
 
@@ -272,13 +283,55 @@ public class LeaderRoleTest {
         };
 
     // when
-    leadeRole.appendEntry(0, 1, data, listener);
+    leadeRole.appendEntry(2, 3, data, listener);
 
     // then
     latch.await(10, TimeUnit.SECONDS);
     verify(writer, timeout(1000)).append(any(RaftLogEntry.class));
+    verify(context, timeout(1000)).transition(Role.FOLLOWER);
 
     assertTrue(catchedError.get() instanceof RuntimeException);
+  }
+
+  @Test
+  public void shouldNotAppendFollowingEntryOnException() throws InterruptedException {
+    // given
+    when(writer.append(any(ZeebeEntry.class))).thenThrow(new RuntimeException("expected"));
+
+    final AtomicReference<Throwable> catchedError = new AtomicReference<>();
+    final ByteBuffer data = ByteBuffer.allocate(Integer.BYTES).putInt(0, 1);
+    final CountDownLatch latch = new CountDownLatch(1);
+    final AppendListener listener =
+        new AppendListener() {
+
+          @Override
+          public void onWrite(Indexed<ZeebeEntry> indexed) {}
+
+          @Override
+          public void onWriteError(Throwable error) {
+            catchedError.set(error);
+            latch.countDown();
+          }
+
+          @Override
+          public void onCommit(Indexed<ZeebeEntry> indexed) {}
+
+          @Override
+          public void onCommitError(Indexed<ZeebeEntry> indexed, Throwable error) {}
+        };
+
+    // when
+    leadeRole.appendEntry(0, 1, data, mock(AppendListener.class));
+    leadeRole.appendEntry(2, 3, data, listener);
+
+    // then
+    latch.await(10, TimeUnit.SECONDS);
+    verify(context, timeout(1000)).transition(Role.FOLLOWER);
+    verify(writer, timeout(1000)).append(any(RaftLogEntry.class));
+
+    assertTrue(catchedError.get() instanceof IllegalStateException);
+    assertEquals(
+        "LeaderRole is closed and cannot be used as appender", catchedError.get().getMessage());
   }
 
   @Test
