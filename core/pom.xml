@@ -34,11 +34,6 @@
     </dependency>
     <dependency>
       <groupId>io.zeebe</groupId>
-      <artifactId>atomix-primitive</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.zeebe</groupId>
       <artifactId>atomix-gossip</artifactId>
       <version>${project.version}</version>
       <optional>true</optional>
@@ -46,18 +41,6 @@
     <dependency>
       <groupId>io.zeebe</groupId>
       <artifactId>atomix-raft</artifactId>
-      <version>${project.version}</version>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>io.zeebe</groupId>
-      <artifactId>atomix-primary-backup</artifactId>
-      <version>${project.version}</version>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>io.zeebe</groupId>
-      <artifactId>atomix-log</artifactId>
       <version>${project.version}</version>
       <optional>true</optional>
     </dependency>

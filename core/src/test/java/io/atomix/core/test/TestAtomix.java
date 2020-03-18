@@ -21,12 +21,11 @@ import io.atomix.cluster.MemberId;
 import io.atomix.core.Atomix;
 import io.atomix.core.AtomixConfig;
 import io.atomix.core.AtomixRegistry;
-import io.atomix.core.profile.DataGridProfileConfig;
+import io.atomix.core.profile.ConsensusProfileConfig;
 import io.atomix.core.test.messaging.TestBroadcastServiceFactory;
 import io.atomix.core.test.messaging.TestMessagingServiceFactory;
 import io.atomix.core.test.messaging.TestUnicastServiceFactory;
 import io.atomix.utils.net.Address;
-
 import java.util.Collections;
 
 /**
@@ -40,7 +39,7 @@ public class TestAtomix extends Atomix {
             .setNodeConfig(new MemberConfig()
                 .setId(memberId)
                 .setAddress(address)))
-        .setProfiles(Collections.singletonList(new DataGridProfileConfig()));
+        .setProfiles(Collections.singletonList(new ConsensusProfileConfig()));
   }
 
   TestAtomix(

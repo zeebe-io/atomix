@@ -18,7 +18,6 @@ package io.atomix.core.profile;
 import io.atomix.core.AtomixConfig;
 import io.atomix.utils.ConfiguredType;
 import io.atomix.utils.config.Configured;
-
 import java.util.Collection;
 
 /**
@@ -44,25 +43,6 @@ public interface Profile extends Configured<ProfileConfig> {
    */
   static Profile consensus(Collection<String> members) {
     return new ConsensusProfile(members);
-  }
-
-  /**
-   * Creates a new data grid profile.
-   *
-   * @return a new data grid profile
-   */
-  static Profile dataGrid() {
-    return new DataGridProfile();
-  }
-
-  /**
-   * Creates a new data grid profile with the given number of partitions.
-   *
-   * @param numPartitions the number of partitions
-   * @return the data grid profile
-   */
-  static Profile dataGrid(int numPartitions) {
-    return new DataGridProfile(numPartitions);
   }
 
   /**
