@@ -620,18 +620,6 @@ public class Atomix extends AtomixCluster {
   }
 
   /**
-   * Builds the core partition group.
-   */
-  @SuppressWarnings("unchecked")
-  private static ManagedPartitionGroup buildSystemPartitionGroup(final AtomixConfig config) {
-    final PartitionGroupConfig<?> partitionGroupConfig = config.getManagementGroup();
-    if (partitionGroupConfig == null) {
-      return null;
-    }
-    return partitionGroupConfig.getType().newPartitionGroup(partitionGroupConfig);
-  }
-
-  /**
    * Builds a partition service.
    */
   @SuppressWarnings("unchecked")
@@ -641,7 +629,8 @@ public class Atomix extends AtomixCluster {
       final ClusterCommunicationService messagingService,
       final AtomixRegistry registry) {
     final List<ManagedPartitionGroup> partitionGroups = new ArrayList<>();
-    for (final PartitionGroupConfig<?> partitionGroupConfig : config.getPartitionGroups().values()) {
+    for (final PartitionGroupConfig<?> partitionGroupConfig : config.getPartitionGroups()
+        .values()) {
       partitionGroups.add(partitionGroupConfig.getType().newPartitionGroup(partitionGroupConfig));
     }
 
@@ -649,7 +638,6 @@ public class Atomix extends AtomixCluster {
         clusterMembershipService,
         messagingService,
         new DefaultPrimitiveTypeRegistry(registry.getTypes(PrimitiveType.class)),
-        buildSystemPartitionGroup(config),
         partitionGroups,
         new DefaultPartitionGroupTypeRegistry(registry.getTypes(PartitionGroup.Type.class)));
   }

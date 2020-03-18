@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -50,7 +51,7 @@ public final class RaftRolesTest extends AbstractAtomixTest {
     try {
       CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
           .get(30, TimeUnit.SECONDS);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       // Do nothing
     }
   }
@@ -323,6 +324,14 @@ public final class RaftRolesTest extends AbstractAtomixTest {
     // when
     final Atomix atomix = nodeTwoFuture.get();
     atomix.stop().join();
+    waitUntil(() -> {
+      final long nodeOneLeaderCount = nodeRoles.get(0).values().stream()
+          .filter(r -> r == Role.LEADER)
+          .count();
+      final long nodeThreeLeaderCount = nodeRoles.get(2).values().stream()
+          .filter(r -> r == Role.LEADER).count();
+      return nodeOneLeaderCount == 2 || nodeThreeLeaderCount == 2;
+    }, 1000);
     nodeRoles.get(1).clear();
     final CountDownLatch newLatch = new CountDownLatch(1);
     final CompletableFuture<Atomix> nodeTwoSecondFuture = startAtomixAndCollectNodeRoles(
@@ -350,9 +359,9 @@ public final class RaftRolesTest extends AbstractAtomixTest {
     assertEquals(expectedNodeTwoRoles, nodeRoles.get(1));
   }
 
-  private CompletableFuture<Atomix> startAtomixAndCollectNodeRoles(int nodeId,
-      List<Integer> members,
-      List<Map<Integer, Role>> nodeRoles, CountDownLatch latch) {
+  private CompletableFuture<Atomix> startAtomixAndCollectNodeRoles(final int nodeId,
+      final List<Integer> members,
+      final List<Map<Integer, Role>> nodeRoles, final CountDownLatch latch) {
     return startAtomixWithPartitionConsumer(nodeId, 3, members,
         partition -> {
           final Map<Integer, RaftServer.Role> roleMap = nodeRoles.get(nodeId - 1);
@@ -391,31 +400,46 @@ public final class RaftRolesTest extends AbstractAtomixTest {
 
     return startAtomix(nodeId, nodeIds,
         builder -> {
-          final RaftPartitionGroup partitionGroup = RaftPartitionGroup.builder("system")
+          final RaftPartitionGroup partitionGroup = RaftPartitionGroup.builder("normal")
               .withNumPartitions(partitionCount)
               .withPartitionSize(memberIds.size())
               .withMembers(memberIds)
               .withDataDirectory(new File(new File(DATA_DIR, "log"), "" + nodeId))
               .build();
 
-          final Atomix atomix = builder.withManagementGroup(partitionGroup).build();
+          final Atomix atomix = builder.withPartitionGroups(partitionGroup).build();
 
           final DefaultPartitionService partitionService = (DefaultPartitionService) atomix
               .getPartitionService();
-          final RaftPartitionGroup raftPartitionGroup = (RaftPartitionGroup) partitionService
-              .getSystemPartitionGroup();
+          partitionService
+              .getPartitionGroups()
+              .stream()
+              .findFirst()
+              .ifPresent(raftPartitionGroup
+                  -> raftPartitionGroup.getPartitions().forEach(partitionConsumer));
 
-          // when
-          raftPartitionGroup.getPartitions().forEach(partitionConsumer);
           return atomix;
         });
   }
 
-  private CompletableFuture<Atomix> startAtomix(int id, List<Integer> persistentIds,
-      Function<AtomixBuilder, Atomix> builderFunction) {
+  private CompletableFuture<Atomix> startAtomix(final int id, final List<Integer> persistentIds,
+      final Function<AtomixBuilder, Atomix> builderFunction) {
     final Atomix atomix = atomixRule.createAtomix(id, persistentIds, builderFunction);
     instances.add(atomix);
     return atomix.start().thenApply(v -> atomix);
+  }
+
+  public static void waitUntil(final BooleanSupplier condition, int retries) {
+    try {
+      while (!condition.getAsBoolean() && retries > 0) {
+        Thread.sleep(100);
+        retries--;
+      }
+    } catch (final Exception e) {
+      throw new RuntimeException(e);
+    }
+
+    assertTrue(condition.getAsBoolean());
   }
 
 }

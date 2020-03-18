@@ -15,22 +15,14 @@
  */
 package io.atomix.primitive.partition;
 
-import io.atomix.primitive.protocol.ProxyProtocol;
 import io.atomix.primitive.protocol.PrimitiveProtocol;
-
+import io.atomix.primitive.protocol.ProxyProtocol;
 import java.util.Collection;
 
 /**
  * Partition service.
  */
 public interface PartitionService {
-
-  /**
-   * Returns the system partition group.
-   *
-   * @return the system partition group
-   */
-  PartitionGroup getSystemPartitionGroup();
 
   /**
    * Returns a partition group by name.
@@ -47,7 +39,7 @@ public interface PartitionService {
    * @return the first partition group that matches the given primitive type
    */
   @SuppressWarnings("unchecked")
-  default PartitionGroup getPartitionGroup(PrimitiveProtocol.Type type) {
+  default PartitionGroup getPartitionGroup(final PrimitiveProtocol.Type type) {
     return getPartitionGroups().stream()
         .filter(group -> group.protocol().name().equals(type.name()))
         .findFirst()
@@ -61,20 +53,16 @@ public interface PartitionService {
    * @return the first partition group that matches the given primitive protocol
    */
   @SuppressWarnings("unchecked")
-  default PartitionGroup getPartitionGroup(ProxyProtocol protocol) {
+  default PartitionGroup getPartitionGroup(final ProxyProtocol protocol) {
     if (protocol.group() != null) {
-      PartitionGroup group = getPartitionGroup(protocol.group());
+      final PartitionGroup group = getPartitionGroup(protocol.group());
       if (group != null) {
         return group;
-      }
-      PartitionGroup systemGroup = getSystemPartitionGroup();
-      if (systemGroup != null && systemGroup.name().equals(protocol.group())) {
-        return systemGroup;
       }
       return null;
     }
 
-    for (PartitionGroup partitionGroup : getPartitionGroups()) {
+    for (final PartitionGroup partitionGroup : getPartitionGroups()) {
       if (partitionGroup.protocol().name().equals(protocol.type().name())) {
         return partitionGroup;
       }

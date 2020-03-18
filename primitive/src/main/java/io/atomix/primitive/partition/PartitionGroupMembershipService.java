@@ -16,20 +16,13 @@
 package io.atomix.primitive.partition;
 
 import io.atomix.utils.event.ListenerService;
-
 import java.util.Collection;
 
 /**
  * Partition group membership service.
  */
-public interface PartitionGroupMembershipService extends ListenerService<PartitionGroupMembershipEvent, PartitionGroupMembershipEventListener> {
-
-  /**
-   * Returns the system group membership.
-   *
-   * @return the system group membership
-   */
-  PartitionGroupMembership getSystemMembership();
+public interface PartitionGroupMembershipService extends
+    ListenerService<PartitionGroupMembershipEvent, PartitionGroupMembershipEventListener> {
 
   /**
    * Returns the members for the given group.
