@@ -29,7 +29,7 @@ public class ByteBufferSerializer extends Serializer<ByteBuffer> {
     output.writeBoolean(object.isDirect());
     output.writeBoolean(ByteOrder.LITTLE_ENDIAN.equals(object.order()));
     output.writeInt(object.remaining());
-    for (int i = object.position(); i < object.capacity(); i++) {
+    for (int i = object.position(); i < object.limit(); i++) {
       output.writeByte(object.get(i));
     }
   }

@@ -146,4 +146,46 @@ public class ByteBufferSerializerTest {
     assertEquals(ByteOrder.BIG_ENDIAN, deserialized.order());
     assertEquals(value, deserialized.getLong(0));
   }
+
+  @Test
+  public void shouldSerializeBufferWithNonZeroPositionAndLimit() {
+    // given
+    final int capacity = Integer.BYTES * 4;
+    final int firstPosition = Integer.BYTES;
+    final int firstValue = 1;
+    final int secondPosition = Integer.BYTES;
+    final int secondValue = 2;
+    final ByteBuffer original =
+        ByteBuffer.allocate(capacity)
+            .order(ByteOrder.BIG_ENDIAN)
+            .putInt(firstPosition, firstValue)
+            .putInt(secondPosition, secondValue);
+
+    // when
+    original.position(secondPosition).limit(secondPosition + Integer.BYTES);
+    KRYO.writeObject(output, original);
+    final ByteBuffer deserialized = KRYO.readObject(input, ByteBuffer.class);
+
+    // then
+    assertEquals(ByteOrder.BIG_ENDIAN, deserialized.order());
+    assertEquals(secondValue, deserialized.getInt(0));
+  }
+
+  @Test
+  public void shouldSerializeZeroLengthBuffers() {
+    // given
+    final int capacity = Integer.BYTES;
+    final int value = 1;
+    final ByteBuffer original =
+        ByteBuffer.allocate(capacity).order(ByteOrder.BIG_ENDIAN).putInt(0, value);
+
+    // when
+    original.position(capacity);
+    KRYO.writeObject(output, original);
+    final ByteBuffer deserialized = KRYO.readObject(input, ByteBuffer.class);
+
+    // then
+    assertEquals(ByteOrder.BIG_ENDIAN, deserialized.order());
+    assertEquals(0, deserialized.capacity());
+  }
 }
