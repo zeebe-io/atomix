@@ -34,12 +34,6 @@
     </dependency>
     <dependency>
       <groupId>io.zeebe</groupId>
-      <artifactId>atomix-gossip</artifactId>
-      <version>${project.version}</version>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>io.zeebe</groupId>
       <artifactId>atomix-raft</artifactId>
       <version>${project.version}</version>
       <optional>true</optional>

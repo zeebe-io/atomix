@@ -27,7 +27,6 @@
   <name>Atomix Protocols Parent</name>
 
   <modules>
-    <module>gossip</module>
     <module>raft</module>
   </modules>
 </project>

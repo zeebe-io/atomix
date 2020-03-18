@@ -369,21 +369,9 @@
               <packages>io.atomix.core*</packages>
             </group>
             <group>
-              <title>Primitives</title>
-              <packages>
-                io.atomix.core.barrier:io.atomix.core.collection:io.atomix.core.counter:io.atomix.core.idgenerator:io.atomix.core.election:io.atomix.core.iterator:io.atomix.core.list:io.atomix.core.lock:io.atomix.core.map:io.atomix.core.multimap:io.atomix.core.multiset:io.atomix.core.queue:io.atomix.core.semaphore:io.atomix.core.set:io.atomix.core.transaction:io.atomix.core.tree:io.atomix.core.value:io.atomix.core.workqueue
-              </packages>
-            </group>
-            <group>
               <title>Cluster Management</title>
               <packages>
                 io.atomix.cluster*:io.atomix.cluster.discovery*:io.atomix.cluster.messaging*
-              </packages>
-            </group>
-            <group>
-              <title>Primitive API</title>
-              <packages>
-                io.atomix.primitive:io.atomix.primitive.config:io.atomix.primitive.event:io.atomix.primitive.operation:io.atomix.primitive.partition:io.atomix.primitive.proxy:io.atomix.primitive.resource:io.atomix.primitive.service:io.atomix.primitive.session
               </packages>
             </group>
             <group>
@@ -398,11 +386,7 @@
               <title>Primary-Backup Protocol</title>
               <packages>io.atomix.protocols.backup*</packages>
             </group>
-            <group>
-              <title>Gossip Protocol</title>
-              <packages>io.atomix.protocols.gossip</packages>
-            </group>
-            <group>
+                   <group>
               <title>Storage</title>
               <packages>io.atomix.storage*</packages>
             </group>
