@@ -111,6 +111,9 @@ public final class FollowerRole extends ActiveRole {
               if (leader != null
                   && event.type() == ClusterMembershipEvent.Type.MEMBER_REMOVED
                   && event.subject().id().equals(leader.memberId())) {
+                log.info(
+                    "Known leader {} was removed from cluster, sending poll requests",
+                    leader.memberId());
                 raft.setLeader(null);
                 sendPollRequests();
               }
@@ -274,7 +277,7 @@ public final class FollowerRole extends ActiveRole {
     if (raft.getFirstCommitIndex() == 0 || raft.getState() == RaftContext.State.READY) {
       final long missTime = System.currentTimeMillis() - lastHeartbeat;
       log.info(
-          "No heartbeat from {} in the last {} (calculated from last {} ms)",
+          "No heartbeat from {} in the last {} (calculated from last {} ms), sending poll requests",
           raft.getLeader(),
           delay,
           missTime);
