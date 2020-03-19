@@ -180,10 +180,17 @@ final class LeaderAppender extends AbstractAppender {
     // If the leader is not able to contact a majority of the cluster within two election timeouts,
     // assume
     // that a partition occurred and transition back to the FOLLOWER state.
+    final long quorumResponseTime =
+        System.currentTimeMillis() - Math.max(computeResponseTime(), leaderTime);
+    final long maxQuorumResponseTimeout = electionTimeout * 2;
     if (member.getFailureCount() >= MIN_STEP_DOWN_FAILURE_COUNT
-        && System.currentTimeMillis() - Math.max(computeResponseTime(), leaderTime)
-            > electionTimeout * 2) {
-      log.warn("Suspected network partition. Stepping down");
+        && quorumResponseTime > maxQuorumResponseTimeout) {
+      log.warn(
+          "Suspected network partition after {} failures from {} over a period of time {} > {}, stepping down",
+          member.getFailureCount(),
+          member.getMember().memberId(),
+          quorumResponseTime,
+          maxQuorumResponseTimeout);
       raft.setLeader(null);
       raft.transition(RaftServer.Role.FOLLOWER);
     }
@@ -291,7 +298,7 @@ final class LeaderAppender extends AbstractAppender {
     // If we've received a greater term, update the term and transition back to follower.
     else if (response.term() > raft.getTerm()) {
       log.info(
-          "Received higher term ({} > {}) from {}",
+          "Received successful append response higher term ({} > {}) from {}, implying there is a new leader - transitioning to follower",
           response.term(),
           raft.getTerm(),
           member.getMember());
@@ -382,12 +389,13 @@ final class LeaderAppender extends AbstractAppender {
   }
 
   /** Handles a {@link io.atomix.protocols.raft.protocol.RaftResponse.Status#ERROR} response. */
+  @Override
   protected void handleAppendResponseError(
       RaftMemberContext member, AppendRequest request, AppendResponse response) {
     // If we've received a greater term, update the term and transition back to follower.
     if (response.term() > raft.getTerm()) {
       log.info(
-          "Received higher term ({} > {}) from {}",
+          "Received error append response with higher term ({} > {}) from {}, implying there is a new leader, transitioning to follower",
           response.term(),
           raft.getTerm(),
           member.getMember());

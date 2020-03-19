@@ -252,7 +252,7 @@ abstract class AbstractAppender implements AutoCloseable {
         > raft.getTerm()) { // If we've received a greater term, update the term and transition back
       // to follower.
       log.info(
-          "Received higher term ({} > {}) from {}",
+          "Received higher term ({} > {}) from {}, stepping down",
           response.term(),
           raft.getTerm(),
           member.getMember());
