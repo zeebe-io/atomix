@@ -312,6 +312,15 @@ public class RaftContext implements AutoCloseable {
   }
 
   /**
+   * Remove a failure listener
+   *
+   * @param failureListener
+   */
+  public void removeFailureListener(Runnable failureListener) {
+    failureListeners.remove(failureListener);
+  }
+
+  /**
    * Awaits a state change.
    *
    * @param state the state for which to wait

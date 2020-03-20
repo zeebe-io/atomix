@@ -214,6 +214,10 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
     }
   }
 
+  public void removeFailureListener(Runnable failureListener) {
+    server.removeFailureListener(failureListener);
+  }
+
   public void removeRoleChangeListener(final RaftRoleChangeListener listener) {
     deferredRoleChangeListeners.remove(listener);
     server.removeRoleChangeListener(listener);
