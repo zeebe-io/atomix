@@ -45,19 +45,14 @@ import io.atomix.protocols.raft.storage.log.entry.QueryEntry;
 import io.atomix.protocols.raft.storage.log.entry.RaftLogEntry;
 import io.atomix.protocols.raft.storage.snapshot.Snapshot;
 import io.atomix.protocols.raft.storage.snapshot.impl.SnapshotReader;
-import io.atomix.protocols.raft.storage.snapshot.impl.SnapshotWriter;
 import io.atomix.protocols.raft.zeebe.ZeebeEntry;
 import io.atomix.storage.journal.Indexed;
-import io.atomix.utils.AtomixIOException;
-import io.atomix.utils.concurrent.ComposableFuture;
 import io.atomix.utils.concurrent.Futures;
-import io.atomix.utils.concurrent.OrderedFuture;
 import io.atomix.utils.concurrent.ThreadContext;
 import io.atomix.utils.concurrent.ThreadContextFactory;
 import io.atomix.utils.logging.ContextualLoggerFactory;
 import io.atomix.utils.logging.LoggerContext;
 import io.atomix.utils.serializer.Serializer;
-import io.atomix.utils.time.WallClockTimestamp;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -656,7 +651,10 @@ public class RaftServiceManager implements RaftStateMachine {
   @SuppressWarnings("unchecked")
   private void applyIndex(long index) {
     // Apply entries prior to this entry.
-    if (reader.hasNext() && reader.getNextIndex() == index) {
+
+    final boolean hasNext = reader.hasNext();
+    final boolean nextIndexIsEqual = reader.getNextIndex() == index;
+    if (hasNext && nextIndexIsEqual) {
       // Read the entry from the log. If the entry is non-null then apply it, otherwise
       // simply update the last applied index and return a null result.
       final Indexed<RaftLogEntry> entry = reader.next();
@@ -680,13 +678,21 @@ public class RaftServiceManager implements RaftStateMachine {
                   }
                 });
       } catch (Exception e) {
-        logger.error("Failed to apply {}: {}", entry, e);
+        logger.error("Failed to apply {}: {}", entry, e.getMessage(), e);
       }
     } else {
       final CompletableFuture future = futures.remove(index);
       if (future != null) {
-        logger.error("Cannot apply index " + index);
-        future.completeExceptionally(new IndexOutOfBoundsException("Cannot apply index " + index));
+        final String errorMsg = String.form`at(
+            "Expected to have next entry (actual %b)"
+                + " and next entry %d is same as given index %d."
+                + " Cannot apply index %d",
+            hasNext,
+            reader.getNextIndex(),
+            index,
+            index);
+        logger.error(errorMsg);
+        future.completeExceptionally(new IndexOutOfBoundsException(errorMsg));
       }
     }
   }
