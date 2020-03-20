@@ -539,11 +539,14 @@ public class PassiveRole extends InactiveRole {
 
   private void abortPendingSnapshot() {
     log.debug("Rolling back snapshot {}", pendingSnapshot);
-    pendingSnapshot.abort();
+    try {
+      pendingSnapshot.abort();
+    } catch (final Exception e) {
+      log.error("Failed to abort pending snapshot, clearing status anyway", e);
+    }
+
     pendingSnapshot = null;
     pendingSnapshotStartTimestamp = 0L;
-
-    // should we also observe the current size when it was aborted? not sure, might skew results
     snapshotReplicationMetrics.decrementCount();
   }
 
