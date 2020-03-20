@@ -221,7 +221,7 @@ abstract class AbstractAppender implements AutoCloseable {
     final int failures = member.incrementFailureCount();
     if (failures <= 3 || failures % 100 == 0) {
       log.warn(
-          "{} to {} failed: {}", request, member.getMember().memberId(), error.getMessage(), error);
+          "{} to {} failed: {}", request, member.getMember().memberId(), error);
     }
   }
 
