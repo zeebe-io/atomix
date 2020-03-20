@@ -223,7 +223,7 @@ public class DefaultRaftServer implements RaftServer {
    * @return Indicates whether the server is running.
    */
   public boolean isRunning() {
-    return started;
+    return started && context.isRunning();
   }
 
   @Override

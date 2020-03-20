@@ -1732,6 +1732,8 @@ public class RaftTest extends ConcurrentTestCase {
     secondListener.await(1, TimeUnit.SECONDS);
     assertEquals(0, firstListener.getCount());
     assertEquals(0, secondListener.getCount());
+
+    assertEquals(server.getRole(), Role.INACTIVE);
   }
 
   private static final class FakeStatistics extends StorageStatistics {
