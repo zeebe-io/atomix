@@ -83,13 +83,20 @@ class MappedJournalSegmentReader<E> implements JournalReader<E> {
 
   @Override
   public void reset(long index) {
+    final long firstIndex = segment.index();
+    final long lastIndex = segment.lastIndex();
+
     reset();
-    Position position = this.index.lookup(index - 1);
-    if (position != null) {
+
+    final Position position = this.index.lookup(index - 1);
+    if (position != null && position.index() >= firstIndex && position.index() <= lastIndex) {
       currentEntry = new Indexed<>(position.index() - 1, null, 0);
       buffer.position(position.position());
+
+      nextEntry = null;
       readNext();
     }
+
     while (getNextIndex() < index && hasNext()) {
       next();
     }

@@ -19,7 +19,6 @@ import io.atomix.storage.StorageException;
 import io.atomix.storage.journal.index.JournalIndex;
 import io.atomix.storage.journal.index.Position;
 import io.atomix.utils.serializer.Namespace;
-
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
@@ -93,19 +92,27 @@ class FileChannelJournalSegmentReader<E> implements JournalReader<E> {
   }
 
   @Override
-  public void reset(long index) {
+  public void reset(final long index) {
+    final long firstIndex = segment.index();
+    final long lastIndex = segment.lastIndex();
+
     reset();
-    Position position = this.index.lookup(index - 1);
-    if (position != null) {
+
+    final Position position = this.index.lookup(index - 1);
+    if (position != null && position.index() >= firstIndex && position.index() <= lastIndex) {
       currentEntry = new Indexed<>(position.index() - 1, null, 0);
       try {
         channel.position(position.position());
         memory.clear().flip();
       } catch (IOException e) {
+        currentEntry = null;
         throw new StorageException(e);
       }
+
+      nextEntry = null;
       readNext();
     }
+
     while (getNextIndex() < index && hasNext()) {
       next();
     }
