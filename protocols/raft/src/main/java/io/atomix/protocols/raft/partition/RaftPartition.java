@@ -93,6 +93,10 @@ public class RaftPartition implements Partition {
     }
   }
 
+  public void removeFailureListener(Runnable failureListener) {
+    server.removeFailureListener(failureListener);
+  }
+
   public void setJournalIndexFactory(Supplier<JournalIndex> journalIndexFactory) {
     if (server != null) {
       throw new IllegalStateException(
