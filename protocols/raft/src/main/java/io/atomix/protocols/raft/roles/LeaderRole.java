@@ -913,7 +913,8 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
    * possible since the leader will step down in the event it fails to contact a majority of the
    * cluster.
    */
-  private CompletableFuture<QueryResponse> queryBoundedLinearizable(final Indexed<QueryEntry> entry) {
+  private CompletableFuture<QueryResponse> queryBoundedLinearizable(
+      final Indexed<QueryEntry> entry) {
     return applyQuery(entry);
   }
 
@@ -1304,7 +1305,8 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
    * @param request the command request
    * @param future the command response future
    */
-  private void commitCommand(final CommandRequest request, final CompletableFuture<CommandResponse> future) {
+  private void commitCommand(
+      final CommandRequest request, final CompletableFuture<CommandResponse> future) {
     final long term = raft.getTerm();
     final long timestamp = System.currentTimeMillis();
 

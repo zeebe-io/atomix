@@ -220,7 +220,8 @@ abstract class AbstractAppender implements AutoCloseable {
     // when attempting to send entries to down followers.
     final int failures = member.incrementFailureCount();
     if (failures <= 3 || failures % 100 == 0) {
-      log.info("{} to {} failed: {}", request, member.getMember().memberId(), error.getMessage());
+      log.warn(
+          "{} to {} failed: {}", request, member.getMember().memberId(), error);
     }
   }
 
@@ -338,7 +339,7 @@ abstract class AbstractAppender implements AutoCloseable {
     // when attempting to send entries to down followers.
     final int failures = member.incrementFailureCount();
     if (failures <= 3 || failures % 100 == 0) {
-      log.info(
+      log.warn(
           "{} to {} failed: {}",
           request,
           member.getMember().memberId(),
@@ -497,8 +498,6 @@ abstract class AbstractAppender implements AutoCloseable {
                   log.trace("Received {} from {}", response, member.getMember().memberId());
                   handleInstallResponse(member, request, response, timestamp);
                 } else {
-                  log.warn("Failed to install {}", member.getMember().memberId());
-
                   // Trigger reactions to the install response failure.
                   handleInstallResponseFailure(member, request, error);
                 }
@@ -557,7 +556,12 @@ abstract class AbstractAppender implements AutoCloseable {
   @SuppressWarnings("unused")
   protected void handleInstallResponseError(
       RaftMemberContext member, InstallRequest request, InstallResponse response) {
-    log.warn("Failed to install {}", member.getMember().memberId());
+    log.warn(
+        "Failed to send {} to member {}, with {}. Restart sending snapshot.",
+        request,
+        member.getMember().memberId(),
+        response.error().toString());
+
     member.setNextSnapshotIndex(0);
     member.setNextSnapshotChunk(null);
   }
