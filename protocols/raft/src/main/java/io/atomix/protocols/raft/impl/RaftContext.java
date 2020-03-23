@@ -131,6 +131,7 @@ public class RaftContext implements AutoCloseable {
   private volatile long firstCommitIndex;
   private volatile long lastApplied;
   private volatile long lastAppliedTerm;
+  private volatile boolean started;
 
   @SuppressWarnings("unchecked")
   public RaftContext(
@@ -201,10 +202,25 @@ public class RaftContext implements AutoCloseable {
     registerHandlers(protocol);
 
     raftRoleMetrics = new RaftRoleMetrics(name);
+    started = true;
   }
 
   private void onUncaughtException(Throwable error) {
-    log.error("An uncaught exception occurred", error);
+    log.error("An uncaught exception occurred, transition to inactive role", error);
+    try {
+      // to prevent further operations submitted to the threadcontext to execute
+      transition(Role.INACTIVE);
+    } catch (Throwable e) {
+      log.error(
+          "An error occurred when transitioning to {}, closing the raft context",
+          Role.INACTIVE,
+          error);
+      close();
+    }
+    notifyFailureListeners();
+  }
+
+  private void notifyFailureListeners() {
     try {
       failureListeners.forEach(Runnable::run);
     } catch (Exception exception) {
@@ -647,6 +663,7 @@ public class RaftContext implements AutoCloseable {
 
   @Override
   public void close() {
+    started = false;
     // Unregister protocol listeners.
     unregisterHandlers(protocol);
 
@@ -1087,6 +1104,10 @@ public class RaftContext implements AutoCloseable {
       this.lastVotedFor = null;
       meta.storeVote(null);
     }
+  }
+
+  public boolean isRunning() {
+    return started;
   }
 
   /** Raft server state. */

@@ -22,6 +22,7 @@ import io.atomix.primitive.partition.Partition;
 import io.atomix.primitive.partition.PartitionId;
 import io.atomix.primitive.partition.PartitionManagementService;
 import io.atomix.primitive.partition.PartitionMetadata;
+import io.atomix.protocols.raft.RaftFailureListener;
 import io.atomix.protocols.raft.RaftRoleChangeListener;
 import io.atomix.protocols.raft.RaftServer.Role;
 import io.atomix.protocols.raft.partition.impl.RaftClientCommunicator;
@@ -50,7 +51,7 @@ public class RaftPartition implements Partition {
   private final ThreadContextFactory threadContextFactory;
   private final Set<RaftRoleChangeListener> deferredRoleChangeListeners =
       new CopyOnWriteArraySet<>();
-  private final Set<Runnable> deferredFailureListeners = new CopyOnWriteArraySet<>();
+  private final Set<RaftFailureListener> raftFailureListeners = new CopyOnWriteArraySet<>();
   private PartitionMetadata partitionMetadata;
   private RaftPartitionClient client;
   private RaftPartitionServer server;
@@ -85,16 +86,12 @@ public class RaftPartition implements Partition {
     server.removeRoleChangeListener(listener);
   }
 
-  public void addFailureListener(Runnable failureListener) {
-    if (server == null) {
-      deferredFailureListeners.add(failureListener);
-    } else {
-      server.addFailureListener(failureListener);
-    }
+  public void addFailureListener(RaftFailureListener failureListener) {
+    raftFailureListeners.add(failureListener);
   }
 
-  public void removeFailureListener(Runnable failureListener) {
-    server.removeFailureListener(failureListener);
+  public void removeFailureListener(RaftFailureListener failureListener) {
+    raftFailureListeners.remove(failureListener);
   }
 
   public void setJournalIndexFactory(Supplier<JournalIndex> journalIndexFactory) {
@@ -150,10 +147,6 @@ public class RaftPartition implements Partition {
       deferredRoleChangeListeners.clear();
     }
     server.addFailureListener(this::onFailure);
-    if (!deferredFailureListeners.isEmpty()) {
-      deferredFailureListeners.forEach(server::addFailureListener);
-      deferredFailureListeners.clear();
-    }
   }
 
   /** Creates a Raft server. */
@@ -300,6 +293,10 @@ public class RaftPartition implements Partition {
   }
 
   private void onFailure() {
-    server.stop();
+    CompletableFuture.allOf(
+            raftFailureListeners.stream()
+                .map(RaftFailureListener::onRaftFailed)
+                .toArray(CompletableFuture[]::new))
+        .join();
   }
 }
