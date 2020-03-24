@@ -383,4 +383,43 @@
     </plugins>
   </build>
 
+  <repositories>
+    <repository>
+      <id>zeebe-nexus</id>
+      <name>Zeebe Repository</name>
+      <url>https://app.camunda.com/nexus/content/repositories/zeebe-io/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+
+    <repository>
+      <id>zeebe-snapshots-nexus</id>
+      <name>Zeebe Snapshot Repository</name>
+      <url>https://app.camunda.com/nexus/content/repositories/zeebe-io-snapshots/</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>camunda-nexus</id>
+      <name>Zeebe Snapshots Repository</name>
+      <url>https://app.camunda.com/nexus/content/repositories/zeebe-io-snapshots/</url>
+    </snapshotRepository>
+    <repository>
+      <id>camunda-nexus</id>
+      <name>Zeebe Release Repository</name>
+      <url>https://app.camunda.com/nexus/content/repositories/zeebe-io/</url>
+    </repository>
+  </distributionManagement>
+
 </project>
