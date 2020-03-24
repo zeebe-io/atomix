@@ -253,6 +253,17 @@ public class PassiveRole extends InactiveRole {
           logResponse(InstallResponse.builder().withStatus(RaftResponse.Status.OK).build()));
     }
 
+    if (!request.complete() && request.nextChunkId() == null) {
+      return CompletableFuture.completedFuture(
+          logResponse(
+              InstallResponse.builder()
+                  .withStatus(RaftResponse.Status.ERROR)
+                  .withError(
+                      RaftError.Type.PROTOCOL_ERROR,
+                      "Snapshot installation is not complete but did not provide any next expected chunk")
+                  .build()));
+    }
+
     // If there is no pending snapshot, create a new snapshot.
     if (pendingSnapshot == null) {
       // if we have no pending snapshot then the request must be the first chunk, otherwise we could
@@ -293,23 +304,30 @@ public class PassiveRole extends InactiveRole {
       }
     }
 
-    // Write the data to the snapshot.
-    pendingSnapshot.write(request.chunkId(), request.data());
+    try {
+      pendingSnapshot.write(request.chunkId(), request.data());
+    } catch (final Exception e) {
+      log.error("Failed to write pending snapshot chunk {}, rolling back", pendingSnapshot, e);
+      abortPendingSnapshot();
+      return CompletableFuture.completedFuture(
+          logResponse(
+              InstallResponse.builder()
+                  .withStatus(RaftResponse.Status.ERROR)
+                  .withError(
+                      RaftError.Type.APPLICATION_ERROR, "Failed to write pending snapshot chunk")
+                  .build()));
+    }
 
     // If the snapshot is complete, store the snapshot and reset state, otherwise update the next
     // snapshot offset.
     if (request.complete()) {
       final long index = pendingSnapshot.index();
+      final long elapsed = System.currentTimeMillis() - pendingSnapshotStartTimestamp;
+
       log.debug("Committing snapshot {}", pendingSnapshot);
       try {
-        final long elapsed = System.currentTimeMillis() - pendingSnapshotStartTimestamp;
         pendingSnapshot.commit();
-        pendingSnapshot = null;
-        pendingSnapshotStartTimestamp = 0L;
-
-        snapshotReplicationMetrics.decrementCount();
-        snapshotReplicationMetrics.observeDuration(elapsed);
-      } catch (Exception e) {
+      } catch (final Exception e) {
         log.error("Failed to commit pending snapshot {}, rolling back", pendingSnapshot, e);
         abortPendingSnapshot();
         return CompletableFuture.completedFuture(
@@ -321,13 +339,16 @@ public class PassiveRole extends InactiveRole {
                     .build()));
       }
 
+      pendingSnapshot = null;
+      pendingSnapshotStartTimestamp = 0L;
+      snapshotReplicationMetrics.observeDuration(elapsed);
+      snapshotReplicationMetrics.incrementCount();
+
       // Throw away existing log if it is not up-to-date with the snapshot index.
       if (raft.getLogWriter().getLastIndex() < index) {
         raft.getLogWriter().reset(index + 1);
       }
     } else {
-      // should probably handle the case where the leader did not mark the snapshot as complete but
-      // did not send a next chunk ID either
       pendingSnapshot.setNextExpected(request.nextChunkId());
     }
 
@@ -518,11 +539,14 @@ public class PassiveRole extends InactiveRole {
 
   private void abortPendingSnapshot() {
     log.debug("Rolling back snapshot {}", pendingSnapshot);
-    pendingSnapshot.abort();
+    try {
+      pendingSnapshot.abort();
+    } catch (final Exception e) {
+      log.error("Failed to abort pending snapshot, clearing status anyway", e);
+    }
+
     pendingSnapshot = null;
     pendingSnapshotStartTimestamp = 0L;
-
-    // should we also observe the current size when it was aborted? not sure, might skew results
     snapshotReplicationMetrics.decrementCount();
   }
 
