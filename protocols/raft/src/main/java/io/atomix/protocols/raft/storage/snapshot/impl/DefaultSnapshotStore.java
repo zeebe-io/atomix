@@ -214,6 +214,11 @@ public class DefaultSnapshotStore implements SnapshotStore {
   }
 
   @Override
+  public void purgePendingSnapshots() {
+    // nothing to do, as snapshots are temporary files
+  }
+
+  @Override
   public Path getPath() {
     return directory.toPath();
   }
