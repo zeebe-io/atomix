@@ -126,7 +126,9 @@ public interface SnapshotStore extends AutoCloseable {
    *
    * @throws IOException thrown if any error occurs attempting to purge the underlying snapshots
    */
-  void purgePendingSnapshots() throws IOException;
+  default void purgePendingSnapshots() throws IOException {
+    // todo(npepinpe): remove once merged into zeebe
+  }
 
   /**
    * Returns the path to the directory containing valid snapshots.
