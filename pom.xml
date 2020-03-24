@@ -192,7 +192,6 @@
   <modules>
     <module>cluster</module>
     <module>core</module>
-    <module>dist</module>
     <module>primitive</module>
     <module>protocols</module>
     <module>storage</module>
