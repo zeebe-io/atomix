@@ -16,15 +16,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+
   <parent>
-    <groupId>org.sonatype.oss</groupId>
-    <artifactId>oss-parent</artifactId>
-    <version>7</version>
+    <groupId>io.zeebe</groupId>
+    <artifactId>zeebe-parent</artifactId>
+    <version>0.23.0-SNAPSHOT</version>
   </parent>
 
-  <groupId>io.zeebe</groupId>
   <artifactId>atomix-parent</artifactId>
-  <version>3.2.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Atomix Parent Pom</name>
   <description>Distributed systems framework.</description>
@@ -33,6 +32,9 @@
 
   <properties>
     <jv>${project.version}</jv>
+
+    <license.header>com/mycila/maven/plugin/license/templates/APACHE-2.txt</license.header>
+<!--    <license.header>https://raw.githubusercontent.com/zeebe-io/zeebe/develop/parent/COPYING-HEADER.txt</license.header>-->
 
     <!-- Java -->
     <java.version>1.8</java.version>
@@ -43,8 +45,6 @@
 
     <!-- Testing -->
     <junit.version>4.13</junit.version>
-    <hamcrest.version>1.3</hamcrest.version>
-    <mockito.version>3.3.3</mockito.version>
     <concurrentunit.version>0.4.6</concurrentunit.version>
     <logback.version>1.2.3</logback.version>
 
@@ -54,14 +54,10 @@
     <commons.lang3.version>3.9</commons.lang3.version>
     <commons.math3.version>3.6.1</commons.math3.version>
     <netty.version>4.1.48.Final</netty.version>
-    <vertx.version>3.5.0</vertx.version>
     <jaxrs.version>2.1.1</jaxrs.version>
     <jackson.version>2.10.3</jackson.version>
     <config.version>1.4.0</config.version>
     <classgraph.version>4.8.65</classgraph.version>
-    <resteasy.version>4.5.2.Final</resteasy.version>
-    <rest-assured.version>4.3.0</rest-assured.version>
-    <argparse4j.version>0.8.1</argparse4j.version>
     <prometheus.client.version>0.8.1</prometheus.client.version>
 
     <!-- Maven plugins -->
@@ -76,7 +72,6 @@
     <maven.assembly.plugin.version>3.2.0</maven.assembly.plugin.version>
     <maven.javadoc.plugin.version>3.2.0</maven.javadoc.plugin.version>
     <maven.bundle.plugin.version>4.2.1</maven.bundle.plugin.version>
-    <maven.checkstyle.plugin.version>2.17</maven.checkstyle.plugin.version>
     <maven.dockerfile.plugin.version>1.4.3</maven.dockerfile.plugin.version>
 
     <dockerfile.version>latest</dockerfile.version>
@@ -86,81 +81,10 @@
     </argLine.common>
     <argLine.extras /> <!-- Overridden in some profiles -->
     <argLine.javadocs />
+    <version.errorprone>2.3.4</version.errorprone>
+    <version.objenesis>3.1</version.objenesis>
   </properties>
 
-  <profiles>
-    <profile>
-      <id>sonatype-oss-release</id>
-      <properties>
-        <dockerfile.version>${project.version}</dockerfile.version>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-source-plugin</artifactId>
-            <version>3.2.1</version>
-            <executions>
-              <execution>
-                <id>attach-sources</id>
-                <goals>
-                  <goal>jar-no-fork</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <version>3.2.0</version>
-            <executions>
-              <execution>
-                <id>attach-javadocs</id>
-                <goals>
-                  <goal>jar</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-gpg-plugin</artifactId>
-            <version>1.6</version>
-            <configuration>
-              <gpgArguments>
-                <arg>--pinentry-mode</arg>
-                <arg>loopback</arg>
-              </gpgArguments>
-            </configuration>
-          </plugin>
-          <plugin>
-            <groupId>org.sonatype.plugins</groupId>
-            <artifactId>nexus-staging-maven-plugin</artifactId>
-            <version>1.6.8</version>
-            <extensions>true</extensions>
-            <executions>
-              <execution>
-                <id>central-deploy</id>
-                <phase>deploy</phase>
-                <goals>
-                  <goal>deploy</goal>
-                </goals>
-                <configuration>
-                  <detectBuildFailures>true</detectBuildFailures>
-                  <keepStagingRepositoryOnFailure>true</keepStagingRepositoryOnFailure>
-                  <keepStagingRepositoryOnCloseRuleFailure>true
-                  </keepStagingRepositoryOnCloseRuleFailure>
-                  <serverId>central</serverId>
-                  <nexusUrl>https://oss.sonatype.org</nexusUrl>
-                  <skipStaging>false</skipStaging>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 
   <licenses>
     <license>
@@ -170,13 +94,6 @@
     </license>
   </licenses>
 
-  <developers>
-    <developer>
-      <name>Jordan Halterman</name>
-      <url>https://www.github.com/kuujo</url>
-    </developer>
-  </developers>
-
   <scm>
     <connection>scm:git:git@github.com:zeebe-io/atomix.git</connection>
     <developerConnection>scm:git:git@github.com:zeebe-io/atomix.git</developerConnection>
@@ -184,18 +101,13 @@
     <tag>HEAD</tag>
   </scm>
 
-  <issueManagement>
-    <system>GitHub</system>
-    <url>http://github.com/zeebe-io/atomix/issues</url>
-  </issueManagement>
-
   <modules>
-    <module>cluster</module>
-    <module>core</module>
+    <module>utils</module>
+    <module>storage</module>
     <module>primitive</module>
     <module>protocols</module>
-    <module>storage</module>
-    <module>utils</module>
+    <module>cluster</module>
+    <module>core</module>
   </modules>
 
   <dependencyManagement>
@@ -214,52 +126,114 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+
+
+      <!-- ATOMIX DEPENDENCIES -->
+      <dependency>
+        <groupId>io.zeebe</groupId>
+        <artifactId>atomix-cluster</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.zeebe</groupId>
+        <artifactId>atomix-storage</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.zeebe</groupId>
+        <artifactId>atomix-utils</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.zeebe</groupId>
+        <artifactId>atomix-raft</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.zeebe</groupId>
+        <artifactId>atomix-primitve</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.zeebe</groupId>
+        <artifactId>atomix</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>${junit.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava-testlib</artifactId>
+        <version>${version.guava}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>net.jodah</groupId>
+        <artifactId>concurrentunit</artifactId>
+        <version>${concurrentunit.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>${version.mockito}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>${version.guava}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>${commons.lang3.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-math3</artifactId>
+        <version>${commons.math3.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.esotericsoftware</groupId>
+        <artifactId>kryo</artifactId>
+        <version>${kryo.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.typesafe</groupId>
+        <artifactId>config</artifactId>
+        <version>${config.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.classgraph</groupId>
+        <artifactId>classgraph</artifactId>
+        <version>${classgraph.version}</version>
+      </dependency>
+
+
+      <dependency>
+        <groupId>com.google.errorprone</groupId>
+        <artifactId>error_prone_annotations</artifactId>
+        <version>${version.errorprone}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.objenesis</groupId>
+        <artifactId>objenesis</artifactId>
+        <version>${version.objenesis}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
-
-  <dependencies>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-all</artifactId>
-      <version>${hamcrest.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava-testlib</artifactId>
-      <version>${guava.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>net.jodah</groupId>
-      <artifactId>concurrentunit</artifactId>
-      <version>${concurrentunit.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
-      <version>${mockito.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-      <version>${logback.version}</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
 
   <build>
     <pluginManagement>
@@ -293,30 +267,6 @@
       </plugins>
     </pluginManagement>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>${maven.surefire.plugin.version}</version>
-        <configuration>
-          <shutdown>kill</shutdown>
-          <argLine>${argLine} ${argLine.extras} ${argLine.common}</argLine>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>${maven.source.plugin.version}</version>
-        <executions>
-          <execution>
-            <id>attach-sources</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>jar-no-fork</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -329,10 +279,39 @@
       </plugin>
 
       <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <version>${maven.bundle.plugin.version}</version>
-        <extensions>true</extensions>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+          <configLocation>check/.checkstyle.xml</configLocation>
+          <encoding>UTF-8</encoding>
+          <failOnViolation>true</failOnViolation>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+          <sourceDirectories>
+            <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+            <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
+          </sourceDirectories>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <artifactId>zeebe-build-tools</artifactId>
+            <groupId>io.zeebe</groupId>
+            <version>${project.version}</version>
+          </dependency>
+        </dependencies>
+        <!-- dependency on build tool to reference the checkstyle cfg -->
+        <executions>
+          <execution>
+            <configuration>
+            </configuration>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <id>validate-java</id>
+            <phase>validate</phase>
+          </execution>
+        </executions>
+        <groupId>org.apache.maven.plugins</groupId>
+        <version>${plugin.version.checkstyle}</version>
       </plugin>
 
       <plugin>
@@ -401,104 +380,7 @@
         </configuration>
       </plugin>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-release-plugin</artifactId>
-        <version>2.5.3</version><!--$NO-MVN-MAN-VER$ -->
-        <configuration>
-          <arguments>
-            -s settings.xml -Psonatype-oss-release -DskipTests -Ddockerfile.skip -Dgpg.passphrase='${env.GPG_PASS}'
-          </arguments>
-          <resume>false</resume>
-          <releaseVersion>${env.RELEASE_VERSION}</releaseVersion>
-          <developmentVersion>${env.DEVELOPMENT_VERSION}</developmentVersion>
-          <tag>zeebe-atomix-${env.RELEASE_VERSION}</tag>
-        </configuration>
-      </plugin>
-
-      <!-- Coding standards -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>3.0.0</version>
-        <configuration>
-          <configLocation>src/main/resources/checkstyle.xml</configLocation>
-          <includeTestSourceDirectory>true</includeTestSourceDirectory>
-          <consoleOutput>true</consoleOutput>
-        </configuration>
-        <executions>
-          <execution>
-            <phase>validate</phase>
-            <goals>
-              <goal>check</goal>
-            </goals>
-            <configuration>
-              <failsOnError>true</failsOnError>
-              <failOnViolation>true</failOnViolation>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <!-- Coverage -->
-      <plugin>
-        <groupId>org.eluder.coveralls</groupId>
-        <artifactId>coveralls-maven-plugin</artifactId>
-        <version>4.3.0</version>
-      </plugin>
-      <plugin>
-        <groupId>org.jacoco</groupId>
-        <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.8.5</version>
-        <executions>
-          <execution>
-            <id>prepare-agent</id>
-            <goals>
-              <goal>prepare-agent</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
-
-  <repositories>
-    <repository>
-      <id>zeebe-nexus</id>
-      <name>Zeebe Repository</name>
-      <url>https://app.camunda.com/nexus/content/repositories/zeebe-io/</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-
-    <repository>
-      <id>zeebe-snapshots-nexus</id>
-      <name>Zeebe Snapshot Repository</name>
-      <url>https://app.camunda.com/nexus/content/repositories/zeebe-io-snapshots/</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
-
-  <distributionManagement>
-    <snapshotRepository>
-      <id>camunda-nexus</id>
-      <name>Zeebe Snapshots Repository</name>
-      <url>https://app.camunda.com/nexus/content/repositories/zeebe-io-snapshots/</url>
-    </snapshotRepository>
-    <repository>
-      <id>camunda-nexus</id>
-      <name>Zeebe Release Repository</name>
-      <url>https://app.camunda.com/nexus/content/repositories/zeebe-io/</url>
-    </repository>
-  </distributionManagement>
 
 </project>
