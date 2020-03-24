@@ -2,6 +2,7 @@ package io.atomix.protocols.raft.storage.snapshot;
 
 import io.atomix.protocols.raft.storage.RaftStorage;
 import io.atomix.utils.time.WallClockTimestamp;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 
@@ -114,11 +115,18 @@ public interface SnapshotStore extends AutoCloseable {
   Snapshot newSnapshot(long index, long term, WallClockTimestamp timestamp);
 
   /**
-   * Removes committed and non-committed snapshots older than the given snapshot.
+   * Removes committed snapshots older than the given snapshot.
    *
-   * @param snapshot the snapshot to remove
+   * @param snapshot the snapshot will be the oldest remaining snapshots after
    */
   void purgeSnapshots(Snapshot snapshot);
+
+  /**
+   * Removes all pending snapshots.
+   *
+   * @throws IOException thrown if any error occurs attempting to purge the underlying snapshots
+   */
+  void purgePendingSnapshots() throws IOException;
 
   /**
    * Returns the path to the directory containing valid snapshots.

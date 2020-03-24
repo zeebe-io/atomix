@@ -15,6 +15,7 @@ import io.atomix.protocols.raft.impl.RaftContext;
 import io.atomix.protocols.raft.session.RaftSessionRegistry;
 import io.atomix.protocols.raft.storage.log.RaftLogWriter;
 import io.atomix.protocols.raft.storage.log.entry.RaftLogEntry;
+import io.atomix.protocols.raft.storage.snapshot.SnapshotStore;
 import io.atomix.protocols.raft.zeebe.ZeebeEntry;
 import io.atomix.protocols.raft.zeebe.ZeebeLogAppender.AppendListener;
 import io.atomix.storage.StorageException;
@@ -59,6 +60,9 @@ public class LeaderRoleTest {
               return new Indexed<>(1, zeebeEntry, 45);
             });
     when(context.getLogWriter()).thenReturn(writer);
+
+    final SnapshotStore snapshotStore = mock(SnapshotStore.class);
+    when(context.getSnapshotStore()).thenReturn(snapshotStore);
 
     leadeRole = new LeaderRole(context);
     // since we mock RaftContext we should simulate leader close on transition

@@ -61,6 +61,7 @@ import io.atomix.protocols.raft.storage.snapshot.Snapshot;
 import io.atomix.storage.StorageException;
 import io.atomix.storage.journal.Indexed;
 import io.atomix.utils.time.WallClockTimestamp;
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
@@ -85,10 +86,7 @@ public class PassiveRole extends InactiveRole {
 
   @Override
   public CompletableFuture<Void> stop() {
-    if (pendingSnapshot != null) {
-      abortPendingSnapshot();
-    }
-
+    abortPendingSnapshots();
     return super.stop();
   }
 
@@ -237,7 +235,7 @@ public class PassiveRole extends InactiveRole {
     // and so snapshots aren't simply sent at the beginning of the follower's log, but rather the
     // leader dictates when a snapshot needs to be sent.
     if (pendingSnapshot != null && request.index() != pendingSnapshot.index()) {
-      abortPendingSnapshot();
+      abortPendingSnapshots();
     }
 
     // If the snapshot already exists locally, do not overwrite it with a replicated snapshot.
@@ -245,9 +243,7 @@ public class PassiveRole extends InactiveRole {
     // request successfully.
     final Snapshot existingSnapshot = raft.getSnapshotStore().getSnapshot(request.index());
     if (existingSnapshot != null) {
-      if (pendingSnapshot != null) {
-        abortPendingSnapshot();
-      }
+      abortPendingSnapshots();
 
       return CompletableFuture.completedFuture(
           logResponse(InstallResponse.builder().withStatus(RaftResponse.Status.OK).build()));
@@ -308,7 +304,7 @@ public class PassiveRole extends InactiveRole {
       pendingSnapshot.write(request.chunkId(), request.data());
     } catch (final Exception e) {
       log.error("Failed to write pending snapshot chunk {}, rolling back", pendingSnapshot, e);
-      abortPendingSnapshot();
+      abortPendingSnapshots();
       return CompletableFuture.completedFuture(
           logResponse(
               InstallResponse.builder()
@@ -329,7 +325,7 @@ public class PassiveRole extends InactiveRole {
         pendingSnapshot.commit();
       } catch (final Exception e) {
         log.error("Failed to commit pending snapshot {}, rolling back", pendingSnapshot, e);
-        abortPendingSnapshot();
+        abortPendingSnapshots();
         return CompletableFuture.completedFuture(
             logResponse(
                 InstallResponse.builder()
@@ -341,8 +337,8 @@ public class PassiveRole extends InactiveRole {
 
       pendingSnapshot = null;
       pendingSnapshotStartTimestamp = 0L;
+      snapshotReplicationMetrics.decrementCount();
       snapshotReplicationMetrics.observeDuration(elapsed);
-      snapshotReplicationMetrics.incrementCount();
 
       // Throw away existing log if it is not up-to-date with the snapshot index.
       if (raft.getLogWriter().getLastIndex() < index) {
@@ -537,17 +533,28 @@ public class PassiveRole extends InactiveRole {
     }
   }
 
-  private void abortPendingSnapshot() {
-    log.debug("Rolling back snapshot {}", pendingSnapshot);
-    try {
-      pendingSnapshot.abort();
-    } catch (final Exception e) {
-      log.error("Failed to abort pending snapshot, clearing status anyway", e);
+  private void abortPendingSnapshots() {
+    if (pendingSnapshot != null) {
+      log.debug("Rolling back snapshot {}", pendingSnapshot);
+      try {
+        pendingSnapshot.abort();
+      } catch (final Exception e) {
+        log.error("Failed to abort pending snapshot, clearing status anyway", e);
+      }
+      pendingSnapshot = null;
+      pendingSnapshotStartTimestamp = 0L;
+
+      snapshotReplicationMetrics.decrementCount();
     }
 
-    pendingSnapshot = null;
-    pendingSnapshotStartTimestamp = 0L;
-    snapshotReplicationMetrics.decrementCount();
+    // as a safe guard, we clean up any orphaned pending snapshots
+    try {
+      raft.getSnapshotStore().purgePendingSnapshots();
+    } catch (final IOException e) {
+      log.error(
+          "Failed to purge pending snapshots, which may result in unnecessary disk usage and should be monitored",
+          e);
+    }
   }
 
   /** Forwards the query to the leader. */
