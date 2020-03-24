@@ -59,7 +59,7 @@ spec:
     stage('Prepare') {
       steps {
         container('maven') {
-            sh 'mvn clean install -B -s settings.xml -DskipTests -Dmaven.test.skip -Dmaven.javadoc.skip -Ddockerfile.skip'
+            sh 'mvn clean install -B -s settings.xml -DskipTests -Dmaven.javadoc.skip -Ddockerfile.skip'
         }
       }
     }
