@@ -41,10 +41,6 @@
       <groupId>io.zeebe</groupId>
       <artifactId>atomix-utils</artifactId>
     </dependency>
-    <dependency>
-      <groupId>io.zeebe</groupId>
-      <artifactId>atomix-primitive</artifactId>
-    </dependency>
 
     <dependency>
       <groupId>io.github.classgraph</groupId>
