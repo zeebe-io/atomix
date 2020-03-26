@@ -121,10 +121,6 @@
       <groupId>io.zeebe</groupId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <artifactId>atomix-primitive</artifactId>
-      <groupId>io.zeebe</groupId>
-    </dependency>
 
     <dependency>
       <groupId>io.zeebe</groupId>

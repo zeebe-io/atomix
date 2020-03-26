@@ -24,7 +24,7 @@
     <version>0.23.0-SNAPSHOT</version>
   </parent>
 
-  <packaging>bundle</packaging>
+  <packaging>jar</packaging>
   <artifactId>atomix-cluster</artifactId>
   <name>Atomix Cluster</name>
 
@@ -32,8 +32,12 @@
     <dependency>
       <groupId>io.zeebe</groupId>
       <artifactId>atomix-utils</artifactId>
-      <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>io.zeebe</groupId>
+      <artifactId>atomix-storage</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-transport</artifactId>
@@ -81,38 +85,25 @@
     </dependency>
 
     <dependency>
-      <groupId>net.jodah</groupId>
-      <artifactId>concurrentunit</artifactId>
-      <version>${concurrentunit.version}</version>
-      <scope>test</scope>
+      <groupId>io.github.classgraph</groupId>
+      <artifactId>classgraph</artifactId>
     </dependency>
 
+
+    <dependency>
+      <groupId>net.jodah</groupId>
+      <artifactId>concurrentunit</artifactId>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.13</version>
       <scope>test</scope>
     </dependency>
-
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <extensions>true</extensions>
-        <configuration>
-          <instructions>
-            <Export-Package>
-              io.atomix.cluster.*
-            </Export-Package>
-            <Import-Package>
-              !sun.nio.ch,!sun.misc,*
-            </Import-Package>
-          </instructions>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 </project>
