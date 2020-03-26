@@ -35,10 +35,6 @@
     </dependency>
     <dependency>
       <groupId>io.zeebe</groupId>
-      <artifactId>atomix-raft</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.zeebe</groupId>
       <artifactId>atomix-utils</artifactId>
     </dependency>
 

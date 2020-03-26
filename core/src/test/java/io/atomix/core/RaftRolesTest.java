@@ -7,10 +7,10 @@ import static org.junit.Assert.assertTrue;
 
 import io.atomix.primitive.partition.Partition;
 import io.atomix.primitive.partition.impl.DefaultPartitionService;
-import io.atomix.protocols.raft.RaftServer;
-import io.atomix.protocols.raft.RaftServer.Role;
-import io.atomix.protocols.raft.partition.RaftPartition;
-import io.atomix.protocols.raft.partition.RaftPartitionGroup;
+import io.atomix.raft.RaftServer;
+import io.atomix.raft.RaftServer.Role;
+import io.atomix.raft.partition.RaftPartition;
+import io.atomix.raft.partition.RaftPartitionGroup;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;

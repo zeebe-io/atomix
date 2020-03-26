@@ -83,11 +83,15 @@
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
-
     <dependency>
       <groupId>io.github.classgraph</groupId>
       <artifactId>classgraph</artifactId>
     </dependency>
+    <dependency>
+      <artifactId>simpleclient</artifactId>
+      <groupId>io.prometheus</groupId>
+    </dependency>
+
 
 
     <dependency>
@@ -103,6 +107,11 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
