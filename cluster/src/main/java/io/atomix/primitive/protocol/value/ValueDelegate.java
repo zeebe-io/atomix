@@ -17,9 +17,7 @@ package io.atomix.primitive.protocol.value;
 
 import com.google.common.annotations.Beta;
 
-/**
- * Gossip-based value service.
- */
+/** Gossip-based value service. */
 @Beta
 public interface ValueDelegate<V> {
 
@@ -53,14 +51,13 @@ public interface ValueDelegate<V> {
   void addListener(ValueDelegateEventListener<V> listener);
 
   /**
-   * Unregisters the specified listener such that it will no longer receive atomic value update notifications.
+   * Unregisters the specified listener such that it will no longer receive atomic value update
+   * notifications.
    *
    * @param listener listener to unregister
    */
   void removeListener(ValueDelegateEventListener<V> listener);
 
-  /**
-   * Closes the counter.
-   */
+  /** Closes the counter. */
   void close();
 }

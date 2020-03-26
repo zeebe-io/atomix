@@ -15,6 +15,8 @@
  */
 package io.atomix.primitive.session.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.atomix.cluster.MemberId;
 import io.atomix.primitive.PrimitiveType;
 import io.atomix.primitive.event.EventType;
@@ -22,14 +24,9 @@ import io.atomix.primitive.event.PrimitiveEvent;
 import io.atomix.primitive.session.Session;
 import io.atomix.primitive.session.SessionId;
 import io.atomix.utils.serializer.Serializer;
-
 import java.util.function.Consumer;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * Abstract session.
- */
+/** Abstract session. */
 public abstract class AbstractSession<C> implements Session<C> {
   private final SessionId sessionId;
   private final String primitiveName;
@@ -75,7 +72,7 @@ public abstract class AbstractSession<C> implements Session<C> {
    * Encodes the given object using the configured {@link #serializer}.
    *
    * @param object the object to encode
-   * @param <T>    the object type
+   * @param <T> the object type
    * @return the encoded bytes
    */
   protected <T> byte[] encode(T object) {
@@ -86,7 +83,7 @@ public abstract class AbstractSession<C> implements Session<C> {
    * Decodes the given object using the configured {@link #serializer}.
    *
    * @param bytes the bytes to decode
-   * @param <T>   the object type
+   * @param <T> the object type
    * @return the decoded object
    */
   protected <T> T decode(byte[] bytes) {

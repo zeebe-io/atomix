@@ -23,9 +23,7 @@ import io.atomix.primitive.session.impl.AbstractSession;
 import io.atomix.utils.concurrent.ThreadContext;
 import io.atomix.utils.serializer.Serializer;
 
-/**
- * Test protocol session.
- */
+/** Test protocol session. */
 public class TestProtocolSession<C> extends AbstractSession<C> {
   private final TestSessionClient client;
   private final ThreadContext context;

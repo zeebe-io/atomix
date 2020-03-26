@@ -19,9 +19,7 @@ import io.atomix.primitive.partition.Partitioner;
 import io.atomix.primitive.protocol.PrimitiveProtocol;
 import io.atomix.primitive.protocol.PrimitiveProtocolConfig;
 
-/**
- * Test protocol config.
- */
+/** Test protocol config. */
 public class TestProtocolConfig extends PrimitiveProtocolConfig<TestProtocolConfig> {
   private String group = "test";
   private int partitions = 3;

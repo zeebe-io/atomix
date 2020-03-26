@@ -19,31 +19,35 @@ import io.atomix.cluster.MemberId;
 import io.atomix.primitive.PrimitiveType;
 import io.atomix.primitive.event.EventType;
 import io.atomix.primitive.event.PrimitiveEvent;
-
 import java.util.function.Consumer;
 
 /**
  * Provides an interface to communicating with a client via session events.
- * <p>
- * Sessions represent a connection between a single client and all servers in a Raft cluster. Session information
- * is replicated via the Raft consensus algorithm, and clients can safely switch connections between servers without
- * losing their session. All consistency guarantees are provided within the context of a session. Once a session is
- * expired or closed, linearizability, sequential consistency, and other guarantees for events and operations are
- * effectively lost. Session implementations guarantee linearizability for session messages by coordinating between
- * the client and a single server at any given time. This means messages {@link #publish(PrimitiveEvent) published}
- * via the {@link Session} are guaranteed to arrive on the other side of the connection exactly once and in the order
- * in which they are sent by replicated state machines. In the event of a server-to-client message being lost, the
- * message will be resent so long as at least one Raft server is able to communicate with the client and the client's
- * session does not expire while switching between servers.
- * <p>
- * Messages are sent to the other side of the session using the {@link #publish(PrimitiveEvent)} method:
- * <pre>
- *   {@code
- *     session.publish("myEvent", "Hello world!");
- *   }
- * </pre>
- * When the message is published, it will be queued to be sent to the other side of the connection. Raft guarantees
- * that the message will eventually be received by the client unless the session itself times out or is closed.
+ *
+ * <p>Sessions represent a connection between a single client and all servers in a Raft cluster.
+ * Session information is replicated via the Raft consensus algorithm, and clients can safely switch
+ * connections between servers without losing their session. All consistency guarantees are provided
+ * within the context of a session. Once a session is expired or closed, linearizability, sequential
+ * consistency, and other guarantees for events and operations are effectively lost. Session
+ * implementations guarantee linearizability for session messages by coordinating between the client
+ * and a single server at any given time. This means messages {@link #publish(PrimitiveEvent)
+ * published} via the {@link Session} are guaranteed to arrive on the other side of the connection
+ * exactly once and in the order in which they are sent by replicated state machines. In the event
+ * of a server-to-client message being lost, the message will be resent so long as at least one Raft
+ * server is able to communicate with the client and the client's session does not expire while
+ * switching between servers.
+ *
+ * <p>Messages are sent to the other side of the session using the {@link #publish(PrimitiveEvent)}
+ * method:
+ *
+ * <pre>{@code
+ * session.publish("myEvent", "Hello world!");
+ *
+ * }</pre>
+ *
+ * When the message is published, it will be queued to be sent to the other side of the connection.
+ * Raft guarantees that the message will eventually be received by the client unless the session
+ * itself times out or is closed.
  */
 public interface Session<C> {
 
@@ -95,8 +99,8 @@ public interface Session<C> {
    * Publishes an event to the session.
    *
    * @param eventType the event identifier
-   * @param event     the event value
-   * @param <T>       the event type
+   * @param event the event value
+   * @param <T> the event type
    */
   <T> void publish(EventType eventType, T event);
 
@@ -114,9 +118,7 @@ public interface Session<C> {
    */
   void accept(Consumer<C> event);
 
-  /**
-   * Session state enums.
-   */
+  /** Session state enums. */
   enum State {
     OPEN(true),
     SUSPICIOUS(true),
@@ -133,5 +135,4 @@ public interface Session<C> {
       return active;
     }
   }
-
 }

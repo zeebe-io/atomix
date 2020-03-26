@@ -17,9 +17,7 @@ package io.atomix.utils.memory;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-/**
- * Memory size.
- */
+/** Memory size. */
 public class MemorySize {
 
   /**
@@ -59,8 +57,6 @@ public class MemorySize {
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .addValue(bytes)
-        .toString();
+    return toStringHelper(this).addValue(bytes).toString();
   }
 }

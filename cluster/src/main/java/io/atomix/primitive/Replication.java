@@ -15,17 +15,11 @@
  */
 package io.atomix.primitive;
 
-/**
- * Replication strategy.
- */
+/** Replication strategy. */
 public enum Replication {
-  /**
-   * Synchronous replication strategy.
-   */
+  /** Synchronous replication strategy. */
   SYNCHRONOUS,
 
-  /**
-   * Asynchronous replication strategy.
-   */
+  /** Asynchronous replication strategy. */
   ASYNCHRONOUS,
 }

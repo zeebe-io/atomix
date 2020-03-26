@@ -17,23 +17,15 @@ package io.atomix.primitive.protocol.set;
 
 import io.atomix.utils.event.AbstractEvent;
 
-/**
- * Set protocol event.
- */
+/** Set protocol event. */
 public class SetDelegateEvent<E> extends AbstractEvent<SetDelegateEvent.Type, E> {
 
-  /**
-   * Set protocol event type.
-   */
+  /** Set protocol event type. */
   public enum Type {
-    /**
-     * Element added to set.
-     */
+    /** Element added to set. */
     ADD,
 
-    /**
-     * Element removed from the set.
-     */
+    /** Element removed from the set. */
     REMOVE,
   }
 

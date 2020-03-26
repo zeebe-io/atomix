@@ -15,6 +15,7 @@
  */
 
 /**
- * Provides classes and interfaces for managing primitive partitions, partition groups, and member groups.
+ * Provides classes and interfaces for managing primitive partitions, partition groups, and member
+ * groups.
  */
 package io.atomix.primitive.partition;

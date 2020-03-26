@@ -19,16 +19,15 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 
-/**
- * Messaging handler registry.
- */
+/** Messaging handler registry. */
 final class HandlerRegistry {
-  private final Map<String, BiConsumer<ProtocolRequest, ServerConnection>> handlers = new ConcurrentHashMap<>();
+  private final Map<String, BiConsumer<ProtocolRequest, ServerConnection>> handlers =
+      new ConcurrentHashMap<>();
 
   /**
    * Registers a message type handler.
    *
-   * @param type    the message type
+   * @param type the message type
    * @param handler the message handler
    */
   void register(String type, BiConsumer<ProtocolRequest, ServerConnection> handler) {

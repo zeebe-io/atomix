@@ -16,18 +16,14 @@
 package io.atomix.core.profile;
 
 import com.google.common.collect.Sets;
-
 import java.io.File;
 import java.util.Set;
 
-/**
- * Consensus profile builder.
- */
+/** Consensus profile builder. */
 public class ConsensusProfileBuilder extends ProfileBuilder {
   private final ConsensusProfileConfig config = new ConsensusProfileConfig();
 
-  ConsensusProfileBuilder() {
-  }
+  ConsensusProfileBuilder() {}
 
   /**
    * Sets the consensus data file path.

@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Cluster management interface implementations.
- */
+/** Cluster management interface implementations. */
 package io.atomix.cluster.impl;

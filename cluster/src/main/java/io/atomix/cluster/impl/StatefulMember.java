@@ -19,13 +19,10 @@ import io.atomix.cluster.Member;
 import io.atomix.cluster.MemberId;
 import io.atomix.utils.Version;
 import io.atomix.utils.net.Address;
-
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * Default cluster node.
- */
+/** Default cluster node. */
 public class StatefulMember extends Member {
   private final Version version;
   private final AtomicLong timestamp = new AtomicLong();
@@ -74,9 +71,7 @@ public class StatefulMember extends Member {
     this.timestamp.accumulateAndGet(timestamp, Math::max);
   }
 
-  /**
-   * Increments the member's timestamp.
-   */
+  /** Increments the member's timestamp. */
   void incrementTimestamp() {
     timestamp.incrementAndGet();
   }

@@ -15,9 +15,7 @@
  */
 package io.atomix.primitive.protocol.map;
 
-/**
- * Map builder.
- */
+/** Map builder. */
 public interface SortedMapCompatibleBuilder<B extends SortedMapCompatibleBuilder<B>> {
 
   /**
@@ -27,5 +25,4 @@ public interface SortedMapCompatibleBuilder<B extends SortedMapCompatibleBuilder
    * @return the primitive builder
    */
   B withProtocol(SortedMapProtocol protocol);
-
 }

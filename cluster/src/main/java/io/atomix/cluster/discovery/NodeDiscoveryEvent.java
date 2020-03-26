@@ -18,23 +18,15 @@ package io.atomix.cluster.discovery;
 import io.atomix.cluster.Node;
 import io.atomix.utils.event.AbstractEvent;
 
-/**
- * Node discovery event.
- */
+/** Node discovery event. */
 public class NodeDiscoveryEvent extends AbstractEvent<NodeDiscoveryEvent.Type, Node> {
 
-  /**
-   * Node discovery event type.
-   */
+  /** Node discovery event type. */
   public enum Type {
-    /**
-     * Indicates that the node joined the cluster.
-     */
+    /** Indicates that the node joined the cluster. */
     JOIN,
 
-    /**
-     * Indicates that the node left the cluster.
-     */
+    /** Indicates that the node left the cluster. */
     LEAVE,
   }
 

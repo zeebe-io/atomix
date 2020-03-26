@@ -17,9 +17,6 @@ package io.atomix.storage.buffer;
 
 import io.atomix.utils.AtomixIOException;
 import io.atomix.utils.memory.BufferCleaner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -27,24 +24,26 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * {@link ByteBuffer} based mapped bytes.
- */
+/** {@link ByteBuffer} based mapped bytes. */
 public class MappedBytes extends ByteBufferBytes {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MappedBytes.class);
 
   /**
    * Allocates a mapped buffer in {@link FileChannel.MapMode#READ_WRITE} mode.
-   * <p>
-   * Memory will be mapped by opening and expanding the given {@link File} to the desired {@code count} and mapping the
-   * file contents into memory via {@link FileChannel#map(FileChannel.MapMode, long, long)}.
    *
-   * @param file The file to map into memory. If the file doesn't exist it will be automatically created.
+   * <p>Memory will be mapped by opening and expanding the given {@link File} to the desired {@code
+   * count} and mapping the file contents into memory via {@link
+   * FileChannel#map(FileChannel.MapMode, long, long)}.
+   *
+   * @param file The file to map into memory. If the file doesn't exist it will be automatically
+   *     created.
    * @param size The count of the buffer to allocate (in bytes).
    * @return The mapped buffer.
-   * @throws NullPointerException     If {@code file} is {@code null}
+   * @throws NullPointerException If {@code file} is {@code null}
    * @throws IllegalArgumentException If {@code count} is greater than {@link MappedBytes#MAX_SIZE}
    * @see #allocate(File, FileChannel.MapMode, int)
    */
@@ -54,15 +53,17 @@ public class MappedBytes extends ByteBufferBytes {
 
   /**
    * Allocates a mapped buffer.
-   * <p>
-   * Memory will be mapped by opening and expanding the given {@link File} to the desired {@code count} and mapping the
-   * file contents into memory via {@link FileChannel#map(FileChannel.MapMode, long, long)}.
    *
-   * @param file The file to map into memory. If the file doesn't exist it will be automatically created.
+   * <p>Memory will be mapped by opening and expanding the given {@link File} to the desired {@code
+   * count} and mapping the file contents into memory via {@link
+   * FileChannel#map(FileChannel.MapMode, long, long)}.
+   *
+   * @param file The file to map into memory. If the file doesn't exist it will be automatically
+   *     created.
    * @param mode The mode with which to map the file.
    * @param size The count of the buffer to allocate (in bytes).
    * @return The mapped buffer.
-   * @throws NullPointerException     If {@code file} is {@code null}
+   * @throws NullPointerException If {@code file} is {@code null}
    * @throws IllegalArgumentException If {@code count} is greater than {@link Integer#MAX_VALUE}
    * @see #allocate(File, int)
    */
@@ -74,7 +75,11 @@ public class MappedBytes extends ByteBufferBytes {
   private final RandomAccessFile randomAccessFile;
   private final FileChannel.MapMode mode;
 
-  protected MappedBytes(File file, RandomAccessFile randomAccessFile, MappedByteBuffer buffer, FileChannel.MapMode mode) {
+  protected MappedBytes(
+      File file,
+      RandomAccessFile randomAccessFile,
+      MappedByteBuffer buffer,
+      FileChannel.MapMode mode) {
     super(buffer);
     this.file = file;
     this.randomAccessFile = randomAccessFile;
@@ -118,9 +123,7 @@ public class MappedBytes extends ByteBufferBytes {
     super.close();
   }
 
-  /**
-   * Deletes the underlying file.
-   */
+  /** Deletes the underlying file. */
   public void delete() {
     try {
       close();
@@ -138,5 +141,4 @@ public class MappedBytes extends ByteBufferBytes {
     }
     throw new IllegalArgumentException("unsupported map mode");
   }
-
 }

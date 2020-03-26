@@ -17,18 +17,12 @@ package io.atomix.primitive.protocol.value;
 
 import io.atomix.utils.event.AbstractEvent;
 
-/**
- * Value protocol event.
- */
+/** Value protocol event. */
 public class ValueDelegateEvent<V> extends AbstractEvent<ValueDelegateEvent.Type, V> {
 
-  /**
-   * Value protocol event type.
-   */
+  /** Value protocol event type. */
   public enum Type {
-    /**
-     * Value updated event.
-     */
+    /** Value updated event. */
     UPDATE,
   }
 

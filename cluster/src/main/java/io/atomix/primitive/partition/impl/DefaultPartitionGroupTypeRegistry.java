@@ -18,13 +18,10 @@ package io.atomix.primitive.partition.impl;
 import com.google.common.collect.Maps;
 import io.atomix.primitive.partition.PartitionGroup;
 import io.atomix.primitive.partition.PartitionGroupTypeRegistry;
-
 import java.util.Collection;
 import java.util.Map;
 
-/**
- * Partition group type registry.
- */
+/** Partition group type registry. */
 public class DefaultPartitionGroupTypeRegistry implements PartitionGroupTypeRegistry {
   private final Map<String, PartitionGroup.Type> partitionGroupTypes = Maps.newConcurrentMap();
 

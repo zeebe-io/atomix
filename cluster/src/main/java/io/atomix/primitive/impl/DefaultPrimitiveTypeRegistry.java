@@ -18,14 +18,11 @@ package io.atomix.primitive.impl;
 import io.atomix.primitive.PrimitiveType;
 import io.atomix.primitive.PrimitiveTypeRegistry;
 import io.atomix.utils.ServiceException;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Primitive type registry.
- */
+/** Primitive type registry. */
 public class DefaultPrimitiveTypeRegistry implements PrimitiveTypeRegistry {
   private final Map<String, PrimitiveType> primitiveTypes = new ConcurrentHashMap<>();
 

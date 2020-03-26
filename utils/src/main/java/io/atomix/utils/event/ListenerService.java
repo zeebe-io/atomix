@@ -15,9 +15,7 @@
  */
 package io.atomix.utils.event;
 
-/**
- * Abstraction of a service capable of asynchronously notifying listeners.
- */
+/** Abstraction of a service capable of asynchronously notifying listeners. */
 public interface ListenerService<E extends Event, L extends EventListener<E>> {
 
   /**
@@ -33,5 +31,4 @@ public interface ListenerService<E extends Event, L extends EventListener<E>> {
    * @param listener listener to be removed
    */
   void removeListener(L listener);
-
 }

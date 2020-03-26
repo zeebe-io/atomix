@@ -15,33 +15,35 @@
  */
 package io.atomix.cluster.discovery;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.collect.ImmutableSet;
 import io.atomix.cluster.BootstrapService;
 import io.atomix.cluster.Node;
 import io.atomix.cluster.NodeConfig;
 import io.atomix.utils.event.AbstractListenerManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Cluster membership provider that bootstraps membership from a pre-defined set of peers.
- * <p>
- * The bootstrap member provider takes a set of peer {@link BootstrapDiscoveryConfig#setNodes(Collection) addresses} and uses them
- * to join the cluster. Using the {@link io.atomix.cluster.messaging.MessagingService}, each node sends a heartbeat to
- * its configured bootstrap peers. Peers respond to each heartbeat message with a list of all known peers, thus
- * propagating membership information using a gossip style protocol.
- * <p>
- * A phi accrual failure detector is used to detect failures and remove peers from the configuration. In order to avoid
- * flapping of membership following a {@link io.atomix.cluster.ClusterMembershipEvent.Type#MEMBER_ADDED} event, the implementation attempts
- * to heartbeat all newly discovered peers before triggering a {@link io.atomix.cluster.ClusterMembershipEvent.Type#MEMBER_REMOVED} event.
+ *
+ * <p>The bootstrap member provider takes a set of peer {@link
+ * BootstrapDiscoveryConfig#setNodes(Collection) addresses} and uses them to join the cluster. Using
+ * the {@link io.atomix.cluster.messaging.MessagingService}, each node sends a heartbeat to its
+ * configured bootstrap peers. Peers respond to each heartbeat message with a list of all known
+ * peers, thus propagating membership information using a gossip style protocol.
+ *
+ * <p>A phi accrual failure detector is used to detect failures and remove peers from the
+ * configuration. In order to avoid flapping of membership following a {@link
+ * io.atomix.cluster.ClusterMembershipEvent.Type#MEMBER_ADDED} event, the implementation attempts to
+ * heartbeat all newly discovered peers before triggering a {@link
+ * io.atomix.cluster.ClusterMembershipEvent.Type#MEMBER_REMOVED} event.
  */
 public class BootstrapDiscoveryProvider
     extends AbstractListenerManager<NodeDiscoveryEvent, NodeDiscoveryEventListener>
@@ -58,9 +60,7 @@ public class BootstrapDiscoveryProvider
     return new BootstrapDiscoveryBuilder();
   }
 
-  /**
-   * Bootstrap member location provider type.
-   */
+  /** Bootstrap member location provider type. */
   public static class Type implements NodeDiscoveryProvider.Type<BootstrapDiscoveryConfig> {
     private static final String NAME = "bootstrap";
 
@@ -90,15 +90,18 @@ public class BootstrapDiscoveryProvider
   }
 
   public BootstrapDiscoveryProvider(Collection<Node> bootstrapNodes) {
-    this(new BootstrapDiscoveryConfig().setNodes(bootstrapNodes.stream()
-        .map(node -> new NodeConfig().setId(node.id())
-            .setAddress(node.address()))
-        .collect(Collectors.toList())));
+    this(
+        new BootstrapDiscoveryConfig()
+            .setNodes(
+                bootstrapNodes.stream()
+                    .map(node -> new NodeConfig().setId(node.id()).setAddress(node.address()))
+                    .collect(Collectors.toList())));
   }
 
   BootstrapDiscoveryProvider(BootstrapDiscoveryConfig config) {
     this.config = checkNotNull(config);
-    this.bootstrapNodes = ImmutableSet.copyOf(config.getNodes().stream().map(Node::new).collect(Collectors.toList()));
+    this.bootstrapNodes =
+        ImmutableSet.copyOf(config.getNodes().stream().map(Node::new).collect(Collectors.toList()));
   }
 
   @Override

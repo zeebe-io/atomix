@@ -49,10 +49,8 @@ import org.junit.runners.Parameterized;
 @RunWith(Parameterized.class)
 public abstract class AbstractJournalTest {
 
-  private static final Namespace NAMESPACE = Namespace.builder()
-      .register(TestEntry.class)
-      .register(byte[].class)
-      .build();
+  private static final Namespace NAMESPACE =
+      Namespace.builder().register(TestEntry.class).register(byte[].class).build();
 
   protected static final TestEntry ENTRY = new TestEntry(32);
   private static final Path PATH = Paths.get("target/test-logs/");
@@ -75,7 +73,7 @@ public abstract class AbstractJournalTest {
     List<Object[]> runs = new ArrayList<>();
     for (int i = 1; i <= 10; i++) {
       for (int j = 1; j <= 10; j++) {
-        runs.add(new Object[]{64 + (i * (NAMESPACE.serialize(ENTRY).length + 8) + j), j});
+        runs.add(new Object[] {64 + (i * (NAMESPACE.serialize(ENTRY).length + 8) + j), j});
       }
     }
     return runs;
@@ -436,19 +434,23 @@ public abstract class AbstractJournalTest {
   @After
   public void cleanupStorage() throws IOException {
     if (Files.exists(PATH)) {
-      Files.walkFileTree(PATH, new SimpleFileVisitor<Path>() {
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-          Files.delete(file);
-          return FileVisitResult.CONTINUE;
-        }
+      Files.walkFileTree(
+          PATH,
+          new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+                throws IOException {
+              Files.delete(file);
+              return FileVisitResult.CONTINUE;
+            }
 
-        @Override
-        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-          Files.delete(dir);
-          return FileVisitResult.CONTINUE;
-        }
-      });
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException exc)
+                throws IOException {
+              Files.delete(dir);
+              return FileVisitResult.CONTINUE;
+            }
+          });
     }
   }
 }

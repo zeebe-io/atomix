@@ -17,8 +17,5 @@ package io.atomix.primitive.protocol.set;
 
 import io.atomix.utils.event.EventListener;
 
-/**
- * Set protocol event listener.
- */
-public interface SetDelegateEventListener<E> extends EventListener<SetDelegateEvent<E>> {
-}
+/** Set protocol event listener. */
+public interface SetDelegateEventListener<E> extends EventListener<SetDelegateEvent<E>> {}

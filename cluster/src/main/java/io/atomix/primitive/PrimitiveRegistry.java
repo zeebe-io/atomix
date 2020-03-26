@@ -18,9 +18,7 @@ package io.atomix.primitive;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Primitive registry.
- */
+/** Primitive registry. */
 public interface PrimitiveRegistry {
 
   /**
@@ -62,5 +60,4 @@ public interface PrimitiveRegistry {
    * @return the primitive info
    */
   PrimitiveInfo getPrimitive(String name);
-
 }

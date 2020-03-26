@@ -17,8 +17,6 @@ package io.atomix.primitive.partition;
 
 import io.atomix.utils.Managed;
 
-/**
- * Manage member group service.
- */
-public interface ManagedMemberGroupService extends MemberGroupService, Managed<MemberGroupService> {
-}
+/** Manage member group service. */
+public interface ManagedMemberGroupService
+    extends MemberGroupService, Managed<MemberGroupService> {}

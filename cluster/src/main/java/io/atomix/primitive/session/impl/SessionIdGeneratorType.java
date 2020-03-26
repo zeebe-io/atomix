@@ -15,18 +15,16 @@
  */
 package io.atomix.primitive.session.impl;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 import io.atomix.primitive.PrimitiveBuilder;
-import io.atomix.primitive.config.PrimitiveConfig;
 import io.atomix.primitive.PrimitiveManagementService;
 import io.atomix.primitive.PrimitiveType;
+import io.atomix.primitive.config.PrimitiveConfig;
 import io.atomix.primitive.service.PrimitiveService;
 import io.atomix.primitive.service.ServiceConfig;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
-/**
- * Session ID generator primitive type.
- */
+/** Session ID generator primitive type. */
 public class SessionIdGeneratorType implements PrimitiveType {
   private static final String NAME = "SESSION_ID_GENERATOR";
   private static final SessionIdGeneratorType TYPE = new SessionIdGeneratorType();
@@ -56,14 +54,13 @@ public class SessionIdGeneratorType implements PrimitiveType {
   }
 
   @Override
-  public PrimitiveBuilder newBuilder(String name, PrimitiveConfig config, PrimitiveManagementService managementService) {
+  public PrimitiveBuilder newBuilder(
+      String name, PrimitiveConfig config, PrimitiveManagementService managementService) {
     throw new UnsupportedOperationException();
   }
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("name", name())
-        .toString();
+    return toStringHelper(this).add("name", name()).toString();
   }
 }

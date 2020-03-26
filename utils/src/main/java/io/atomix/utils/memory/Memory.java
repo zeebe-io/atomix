@@ -29,26 +29,18 @@ public interface Memory {
    */
   int size();
 
-  /**
-   * Frees the memory.
-   */
+  /** Frees the memory. */
   void free();
 
-  /**
-   * Memory utilities.
-   */
+  /** Memory utilities. */
   class Util {
 
-    /**
-     * Returns a boolean indicating whether the given count is a power of 2.
-     */
+    /** Returns a boolean indicating whether the given count is a power of 2. */
     public static boolean isPow2(int size) {
       return size > 0 & (size & (size - 1)) == 0;
     }
 
-    /**
-     * Rounds the count to the nearest power of two.
-     */
+    /** Rounds the count to the nearest power of two. */
     public static long toPow2(int size) {
       if ((size & (size - 1)) == 0) {
         return size;
@@ -63,5 +55,4 @@ public interface Memory {
       return i;
     }
   }
-
 }

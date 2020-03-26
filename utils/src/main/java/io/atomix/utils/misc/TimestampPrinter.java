@@ -20,9 +20,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
-/**
- * Timestamp printer.
- */
+/** Timestamp printer. */
 public class TimestampPrinter {
 
   /**
@@ -35,7 +33,8 @@ public class TimestampPrinter {
     return new TimestampPrinter(timestamp);
   }
 
-  private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss,SSS");
+  private static final DateTimeFormatter FORMATTER =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss,SSS");
 
   private final long timestamp;
 
@@ -45,6 +44,7 @@ public class TimestampPrinter {
 
   @Override
   public String toString() {
-    return FORMATTER.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault()));
+    return FORMATTER.format(
+        LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault()));
   }
 }

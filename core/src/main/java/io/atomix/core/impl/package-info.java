@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Core Atomix service implementations.
- */
+/** Core Atomix service implementations. */
 package io.atomix.core.impl;

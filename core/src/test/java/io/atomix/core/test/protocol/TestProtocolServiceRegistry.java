@@ -20,16 +20,14 @@ import io.atomix.primitive.PrimitiveType;
 import io.atomix.primitive.partition.PartitionId;
 import io.atomix.primitive.service.ServiceConfig;
 import io.atomix.utils.concurrent.ThreadPoolContext;
-
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 
-/**
- * Test protocol service registry.
- */
+/** Test protocol service registry. */
 public class TestProtocolServiceRegistry {
   private final ScheduledExecutorService threadPool;
-  private final Map<PartitionId, Map<String, TestProtocolService>> partitions = Maps.newConcurrentMap();
+  private final Map<PartitionId, Map<String, TestProtocolService>> partitions =
+      Maps.newConcurrentMap();
 
   TestProtocolServiceRegistry(ScheduledExecutorService threadPool) {
     this.threadPool = threadPool;
@@ -44,10 +42,21 @@ public class TestProtocolServiceRegistry {
    * @param config the service configuration
    * @return the test service
    */
-  public TestProtocolService getOrCreateService(PartitionId partitionId, String name, PrimitiveType type, ServiceConfig config) {
-    return partitions.computeIfAbsent(partitionId, id -> Maps.newConcurrentMap())
-        .computeIfAbsent(name, n ->
-            new TestProtocolService(partitionId, n, type, config, type.newService(config), this, new ThreadPoolContext(threadPool)));
+  public TestProtocolService getOrCreateService(
+      PartitionId partitionId, String name, PrimitiveType type, ServiceConfig config) {
+    return partitions
+        .computeIfAbsent(partitionId, id -> Maps.newConcurrentMap())
+        .computeIfAbsent(
+            name,
+            n ->
+                new TestProtocolService(
+                    partitionId,
+                    n,
+                    type,
+                    config,
+                    type.newService(config),
+                    this,
+                    new ThreadPoolContext(threadPool)));
   }
 
   /**

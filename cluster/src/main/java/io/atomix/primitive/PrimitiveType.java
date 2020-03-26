@@ -22,10 +22,10 @@ import io.atomix.utils.ConfiguredType;
 import io.atomix.utils.serializer.Namespace;
 import io.atomix.utils.serializer.Namespaces;
 
-/**
- * Primitive type.
- */
-public interface PrimitiveType<B extends PrimitiveBuilder, C extends PrimitiveConfig, P extends SyncPrimitive> extends ConfiguredType<C> {
+/** Primitive type. */
+public interface PrimitiveType<
+        B extends PrimitiveBuilder, C extends PrimitiveConfig, P extends SyncPrimitive>
+    extends ConfiguredType<C> {
 
   /**
    * Returns the primitive type namespace.
@@ -33,10 +33,7 @@ public interface PrimitiveType<B extends PrimitiveBuilder, C extends PrimitiveCo
    * @return the primitive type namespace
    */
   default Namespace namespace() {
-    return Namespace.builder()
-        .register(Namespaces.BASIC)
-        .register(ServiceConfig.class)
-        .build();
+    return Namespace.builder().register(Namespaces.BASIC).register(ServiceConfig.class).build();
   }
 
   /**
@@ -50,8 +47,8 @@ public interface PrimitiveType<B extends PrimitiveBuilder, C extends PrimitiveCo
   /**
    * Returns a new primitive builder.
    *
-   * @param primitiveName     the primitive name
-   * @param config            the primitive configuration
+   * @param primitiveName the primitive name
+   * @param config the primitive configuration
    * @param managementService the primitive management service
    * @return a new primitive builder
    */

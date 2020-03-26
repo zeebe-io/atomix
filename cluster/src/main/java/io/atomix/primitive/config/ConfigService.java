@@ -17,9 +17,7 @@ package io.atomix.primitive.config;
 
 import io.atomix.primitive.PrimitiveType;
 
-/**
- * Configuration service.
- */
+/** Configuration service. */
 public interface ConfigService {
 
   /**
@@ -27,9 +25,8 @@ public interface ConfigService {
    *
    * @param primitiveName the primitive name
    * @param primitiveType the primitive type
-   * @param <C>           the configuration type
+   * @param <C> the configuration type
    * @return the primitive configuration
    */
   <C extends PrimitiveConfig<C>> C getConfig(String primitiveName, PrimitiveType primitiveType);
-
 }

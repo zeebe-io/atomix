@@ -15,12 +15,9 @@
  */
 package io.atomix.utils;
 
-/**
- * Atomix runtime exception.
- */
+/** Atomix runtime exception. */
 public class AtomixRuntimeException extends RuntimeException {
-  public AtomixRuntimeException() {
-  }
+  public AtomixRuntimeException() {}
 
   public AtomixRuntimeException(String message) {
     super(message);

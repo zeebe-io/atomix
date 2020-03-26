@@ -17,36 +17,23 @@ package io.atomix.cluster.protocol;
 
 import io.atomix.cluster.Member;
 import io.atomix.utils.event.AbstractEvent;
-
 import java.util.Objects;
 
-/**
- * Group membership protocol event.
- */
+/** Group membership protocol event. */
 public class GroupMembershipEvent extends AbstractEvent<GroupMembershipEvent.Type, Member> {
 
-  /**
-   * Group membership protocol event type.
-   */
+  /** Group membership protocol event type. */
   public enum Type {
-    /**
-     * Indicates that a new member has been added.
-     */
+    /** Indicates that a new member has been added. */
     MEMBER_ADDED,
 
-    /**
-     * Indicates that a member's metadata has changed.
-     */
+    /** Indicates that a member's metadata has changed. */
     METADATA_CHANGED,
 
-    /**
-     * Indicates that a member's reachability has changed.
-     */
+    /** Indicates that a member's reachability has changed. */
     REACHABILITY_CHANGED,
 
-    /**
-     * Indicates that a member has been removed.
-     */
+    /** Indicates that a member has been removed. */
     MEMBER_REMOVED,
   }
 

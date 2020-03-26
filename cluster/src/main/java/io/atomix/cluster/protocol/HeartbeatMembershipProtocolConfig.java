@@ -15,13 +15,11 @@
  */
 package io.atomix.cluster.protocol;
 
-import java.time.Duration;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Gossip group membership protocol configuration.
- */
+import java.time.Duration;
+
+/** Gossip group membership protocol configuration. */
 public class HeartbeatMembershipProtocolConfig extends GroupMembershipProtocolConfig {
   private static final int DEFAULT_HEARTBEAT_INTERVAL = 1000;
   private static final int DEFAULT_FAILURE_TIMEOUT = 10000;

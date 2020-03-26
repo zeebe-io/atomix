@@ -17,9 +17,9 @@ package io.atomix.storage.buffer;
 
 /**
  * Sliced buffer.
- * <p>
- * The sliced buffer provides a view of a subset of an underlying buffer. This buffer operates directly on the {@link Bytes}
- * underlying the child {@link Buffer} instance.
+ *
+ * <p>The sliced buffer provides a view of a subset of an underlying buffer. This buffer operates
+ * directly on the {@link Bytes} underlying the child {@link Buffer} instance.
  *
  * @author <a href="http://github.com/kuujo">Jordan Halterman</a>
  */
@@ -88,5 +88,4 @@ public class SlicedBuffer extends AbstractBuffer {
   public void close() {
     root.release();
   }
-
 }

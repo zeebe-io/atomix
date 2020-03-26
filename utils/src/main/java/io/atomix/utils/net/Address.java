@@ -20,15 +20,11 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Objects;
 
-/**
- * Representation of a network address.
- */
+/** Representation of a network address. */
 public final class Address {
   private static final int DEFAULT_PORT = 5679;
 
-  /**
-   * Address type.
-   */
+  /** Address type. */
   public enum Type {
     IPV4,
     IPV6,
@@ -102,12 +98,10 @@ public final class Address {
     }
   }
 
-  /**
-   * Returns the local host.
-   */
+  /** Returns the local host. */
   private static InetAddress getLocalAddress() throws UnknownHostException {
     try {
-      return InetAddress.getLocalHost();  // first NIC
+      return InetAddress.getLocalHost(); // first NIC
     } catch (Exception ignore) {
       return InetAddress.getByName(null);
     }
@@ -237,7 +231,6 @@ public final class Address {
       return false;
     }
     Address that = (Address) obj;
-    return this.host.equals(that.host)
-        && this.port == that.port;
+    return this.host.equals(that.host) && this.port == that.port;
   }
 }

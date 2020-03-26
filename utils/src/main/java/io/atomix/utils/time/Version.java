@@ -15,19 +15,18 @@
  */
 package io.atomix.utils.time;
 
-import com.google.common.collect.ComparisonChain;
-
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.common.collect.ComparisonChain;
+import java.util.Objects;
+
 /**
  * Logical timestamp for versions.
- * <p>
- * The version is a logical timestamp that represents a point in logical time at which an event occurs.
- * This is used in both pessimistic and optimistic locking protocols to ensure that the state of a shared resource
- * has not changed at the end of a transaction.
+ *
+ * <p>The version is a logical timestamp that represents a point in logical time at which an event
+ * occurs. This is used in both pessimistic and optimistic locking protocols to ensure that the
+ * state of a shared resource has not changed at the end of a transaction.
  */
 public class Version implements Timestamp {
   private final long version;
@@ -47,13 +46,10 @@ public class Version implements Timestamp {
 
   @Override
   public int compareTo(Timestamp o) {
-    checkArgument(o instanceof Version,
-        "Must be LockVersion", o);
+    checkArgument(o instanceof Version, "Must be LockVersion", o);
     Version that = (Version) o;
 
-    return ComparisonChain.start()
-        .compare(this.version, that.version)
-        .result();
+    return ComparisonChain.start().compare(this.version, that.version).result();
   }
 
   @Override
@@ -75,8 +71,6 @@ public class Version implements Timestamp {
 
   @Override
   public String toString() {
-    return toStringHelper(getClass())
-        .add("version", version)
-        .toString();
+    return toStringHelper(getClass()).add("version", version).toString();
   }
 }

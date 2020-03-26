@@ -17,9 +17,7 @@ package io.atomix.primitive.log;
 
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Log producer.
- */
+/** Log producer. */
 public interface LogProducer {
 
   /**
@@ -29,5 +27,4 @@ public interface LogProducer {
    * @return a future to be completed once the entry has been appended
    */
   CompletableFuture<Long> append(byte[] value);
-
 }

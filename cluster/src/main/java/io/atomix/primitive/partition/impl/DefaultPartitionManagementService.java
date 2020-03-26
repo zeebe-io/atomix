@@ -22,9 +22,7 @@ import io.atomix.primitive.partition.PartitionManagementService;
 import io.atomix.primitive.partition.PrimaryElectionService;
 import io.atomix.primitive.session.SessionIdService;
 
-/**
- * Default partition management service.
- */
+/** Default partition management service. */
 public class DefaultPartitionManagementService implements PartitionManagementService {
   private final ClusterMembershipService membershipService;
   private final ClusterCommunicationService communicationService;

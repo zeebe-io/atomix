@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Implementations of primitive proxy interfaces.
- */
+/** Implementations of primitive proxy interfaces. */
 package io.atomix.primitive.proxy.impl;

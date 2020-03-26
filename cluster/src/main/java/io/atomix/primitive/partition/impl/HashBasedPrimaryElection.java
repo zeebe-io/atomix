@@ -38,9 +38,6 @@ import io.atomix.utils.event.AbstractListenerManager;
 import io.atomix.utils.serializer.Namespace;
 import io.atomix.utils.serializer.Namespaces;
 import io.atomix.utils.serializer.Serializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,42 +48,43 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * Hash-based primary election.
- */
+/** Hash-based primary election. */
 public class HashBasedPrimaryElection
     extends AbstractListenerManager<PrimaryElectionEvent, PrimaryElectionEventListener>
     implements PrimaryElection {
   private static final Logger LOGGER = LoggerFactory.getLogger(HashBasedPrimaryElection.class);
   private static final long BROADCAST_INTERVAL = 5000;
 
-  private static final Serializer SERIALIZER = Serializer.using(Namespace.builder()
-      .register(Namespaces.BASIC)
-      .register(MemberId.class)
-      .build());
+  private static final Serializer SERIALIZER =
+      Serializer.using(
+          Namespace.builder().register(Namespaces.BASIC).register(MemberId.class).build());
 
   private final PartitionId partitionId;
   private final ClusterMembershipService clusterMembershipService;
   private final PartitionGroupMembershipService groupMembershipService;
   private final ClusterCommunicationService communicationService;
-  private final ClusterMembershipEventListener clusterMembershipEventListener = this::handleClusterMembershipEvent;
+  private final ClusterMembershipEventListener clusterMembershipEventListener =
+      this::handleClusterMembershipEvent;
   private final Map<MemberId, Integer> counters = Maps.newConcurrentMap();
   private final String subject;
   private final ScheduledFuture<?> broadcastFuture;
   private volatile PrimaryTerm currentTerm;
 
-  private final PartitionGroupMembershipEventListener groupMembershipEventListener = new PartitionGroupMembershipEventListener() {
-    @Override
-    public void event(PartitionGroupMembershipEvent event) {
-      recomputeTerm(event.membership());
-    }
+  private final PartitionGroupMembershipEventListener groupMembershipEventListener =
+      new PartitionGroupMembershipEventListener() {
+        @Override
+        public void event(PartitionGroupMembershipEvent event) {
+          recomputeTerm(event.membership());
+        }
 
-    @Override
-    public boolean isRelevant(PartitionGroupMembershipEvent event) {
-      return event.membership().group().equals(partitionId.group());
-    }
-  };
+        @Override
+        public boolean isRelevant(PartitionGroupMembershipEvent event) {
+          return event.membership().group().equals(partitionId.group());
+        }
+      };
 
   public HashBasedPrimaryElection(
       PartitionId partitionId,
@@ -98,12 +96,15 @@ public class HashBasedPrimaryElection
     this.clusterMembershipService = clusterMembershipService;
     this.groupMembershipService = groupMembershipService;
     this.communicationService = communicationService;
-    this.subject = String.format("primary-election-counter-%s-%d", partitionId.group(), partitionId.id());
+    this.subject =
+        String.format("primary-election-counter-%s-%d", partitionId.group(), partitionId.id());
     recomputeTerm(groupMembershipService.getMembership(partitionId.group()));
     groupMembershipService.addListener(groupMembershipEventListener);
     clusterMembershipService.addListener(clusterMembershipEventListener);
     communicationService.subscribe(subject, SERIALIZER::decode, this::updateCounters, executor);
-    broadcastFuture = executor.scheduleAtFixedRate(this::broadcastCounters, BROADCAST_INTERVAL, BROADCAST_INTERVAL, TimeUnit.MILLISECONDS);
+    broadcastFuture =
+        executor.scheduleAtFixedRate(
+            this::broadcastCounters, BROADCAST_INTERVAL, BROADCAST_INTERVAL, TimeUnit.MILLISECONDS);
   }
 
   @Override
@@ -116,11 +117,10 @@ public class HashBasedPrimaryElection
     return CompletableFuture.completedFuture(currentTerm);
   }
 
-  /**
-   * Handles a cluster membership event.
-   */
+  /** Handles a cluster membership event. */
   private void handleClusterMembershipEvent(ClusterMembershipEvent event) {
-    if (event.type() == ClusterMembershipEvent.Type.MEMBER_ADDED || event.type() == ClusterMembershipEvent.Type.MEMBER_REMOVED) {
+    if (event.type() == ClusterMembershipEvent.Type.MEMBER_ADDED
+        || event.type() == ClusterMembershipEvent.Type.MEMBER_REMOVED) {
       recomputeTerm(groupMembershipService.getMembership(partitionId.group()));
     }
   }
@@ -140,19 +140,23 @@ public class HashBasedPrimaryElection
    * @return the current term
    */
   private long incrementTerm() {
-    counters.compute(clusterMembershipService.getLocalMember().id(), (id, value) -> value != null ? value + 1 : 1);
+    counters.compute(
+        clusterMembershipService.getLocalMember().id(),
+        (id, value) -> value != null ? value + 1 : 1);
     broadcastCounters();
     return currentTerm();
   }
 
   private void updateCounters(Map<MemberId, Integer> counters) {
     for (Map.Entry<MemberId, Integer> entry : counters.entrySet()) {
-      this.counters.compute(entry.getKey(), (key, value) -> {
-        if (value == null || value < entry.getValue()) {
-          return entry.getValue();
-        }
-        return value;
-      });
+      this.counters.compute(
+          entry.getKey(),
+          (key, value) -> {
+            if (value == null || value < entry.getValue()) {
+              return entry.getValue();
+            }
+            return value;
+          });
     }
     updateTerm(currentTerm());
   }
@@ -167,9 +171,7 @@ public class HashBasedPrimaryElection
     }
   }
 
-  /**
-   * Recomputes the current term.
-   */
+  /** Recomputes the current term. */
   private synchronized void recomputeTerm(PartitionGroupMembership membership) {
     if (membership == null) {
       return;
@@ -185,11 +187,16 @@ public class HashBasedPrimaryElection
     }
 
     // Sort the candidates by a hash of their member ID.
-    candidates.sort((a, b) -> {
-      int aoffset = Hashing.murmur3_32().hashString(a.memberId().id(), StandardCharsets.UTF_8).asInt() % partitionId.id();
-      int boffset = Hashing.murmur3_32().hashString(b.memberId().id(), StandardCharsets.UTF_8).asInt() % partitionId.id();
-      return aoffset - boffset;
-    });
+    candidates.sort(
+        (a, b) -> {
+          int aoffset =
+              Hashing.murmur3_32().hashString(a.memberId().id(), StandardCharsets.UTF_8).asInt()
+                  % partitionId.id();
+          int boffset =
+              Hashing.murmur3_32().hashString(b.memberId().id(), StandardCharsets.UTF_8).asInt()
+                  % partitionId.id();
+          return aoffset - boffset;
+        });
 
     // Store the current term in a local variable avoid repeated volatile reads.
     PrimaryTerm currentTerm = this.currentTerm;
@@ -198,27 +205,33 @@ public class HashBasedPrimaryElection
     GroupMember primary = candidates.isEmpty() ? null : candidates.get(0);
 
     // Remove the primary from the candidates list.
-    candidates = candidates.isEmpty() ? Collections.emptyList() : candidates.subList(1, candidates.size());
+    candidates =
+        candidates.isEmpty() ? Collections.emptyList() : candidates.subList(1, candidates.size());
 
-    // If the primary has changed, increment the term. Otherwise, use the current term from the replicated counter.
-    long term = currentTerm != null
-        && Objects.equals(currentTerm.primary(), primary)
-        && Objects.equals(currentTerm.candidates(), candidates)
-        ? currentTerm() : incrementTerm();
+    // If the primary has changed, increment the term. Otherwise, use the current term from the
+    // replicated counter.
+    long term =
+        currentTerm != null
+                && Objects.equals(currentTerm.primary(), primary)
+                && Objects.equals(currentTerm.candidates(), candidates)
+            ? currentTerm()
+            : incrementTerm();
 
     // Create the new primary term. If the term has changed update the term and trigger an event.
     PrimaryTerm newTerm = new PrimaryTerm(term, primary, candidates);
     if (!Objects.equals(currentTerm, newTerm)) {
       this.currentTerm = newTerm;
-      LOGGER.debug("{} - Recomputed term for partition {}: {}", clusterMembershipService.getLocalMember().id(), partitionId, newTerm);
+      LOGGER.debug(
+          "{} - Recomputed term for partition {}: {}",
+          clusterMembershipService.getLocalMember().id(),
+          partitionId,
+          newTerm);
       post(new PrimaryElectionEvent(PrimaryElectionEvent.Type.CHANGED, partitionId, newTerm));
       broadcastCounters();
     }
   }
 
-  /**
-   * Closes the election.
-   */
+  /** Closes the election. */
   void close() {
     broadcastFuture.cancel(false);
     groupMembershipService.removeListener(groupMembershipEventListener);

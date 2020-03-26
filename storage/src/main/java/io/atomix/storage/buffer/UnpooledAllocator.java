@@ -38,5 +38,4 @@ public abstract class UnpooledAllocator implements BufferAllocator {
   public Buffer allocate(int capacity) {
     return allocate(capacity, capacity);
   }
-
 }

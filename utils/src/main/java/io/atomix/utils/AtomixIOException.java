@@ -15,12 +15,9 @@
  */
 package io.atomix.utils;
 
-/**
- * Atomix I/O exception.
- */
+/** Atomix I/O exception. */
 public class AtomixIOException extends AtomixRuntimeException {
-  public AtomixIOException() {
-  }
+  public AtomixIOException() {}
 
   public AtomixIOException(String message) {
     super(message);

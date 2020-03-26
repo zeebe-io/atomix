@@ -94,9 +94,6 @@ public interface PrimitiveService {
    */
   void close(SessionId sessionId);
 
-  /**
-   * Closes the state machine.
-   */
-  default void close() {
-  }
+  /** Closes the state machine. */
+  default void close() {}
 }

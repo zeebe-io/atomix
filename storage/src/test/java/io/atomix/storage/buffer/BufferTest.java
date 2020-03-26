@@ -15,16 +15,15 @@
  */
 package io.atomix.storage.buffer;
 
-import java.nio.ByteBuffer;
-import org.junit.Test;
-
-import java.nio.BufferOverflowException;
-import java.nio.BufferUnderflowException;
-import java.nio.ByteOrder;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import java.nio.BufferOverflowException;
+import java.nio.BufferUnderflowException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import org.junit.Test;
 
 /**
  * Base buffer test.
@@ -33,14 +32,10 @@ import static org.junit.Assert.assertTrue;
  */
 public abstract class BufferTest {
 
-  /**
-   * Creates a new test buffer.
-   */
+  /** Creates a new test buffer. */
   protected abstract Buffer createBuffer(int capacity);
 
-  /**
-   * Creates a new test buffer.
-   */
+  /** Creates a new test buffer. */
   protected abstract Buffer createBuffer(int capacity, int maxCapacity);
 
   @Test
@@ -101,9 +96,7 @@ public abstract class BufferTest {
 
   @Test(expected = BufferUnderflowException.class)
   public void testReadIntThrowsBufferUnderflowWithNoRemainingBytesRelative() {
-    createBuffer(4, 4)
-      .writeInt(10)
-      .readInt();
+    createBuffer(4, 4).writeInt(10).readInt();
   }
 
   @Test(expected = BufferUnderflowException.class)
@@ -233,38 +226,32 @@ public abstract class BufferTest {
 
   @Test
   public void testWriteReadStringRelative() {
-    Buffer buffer = createBuffer(38)
-        .writeString("Hello world!")
-        .writeString("Hello world again!")
-        .flip();
+    Buffer buffer =
+        createBuffer(38).writeString("Hello world!").writeString("Hello world again!").flip();
     assertEquals("Hello world!", buffer.readString());
     assertEquals("Hello world again!", buffer.readString());
   }
 
   @Test
   public void testWriteReadStringAbsolute() {
-    Buffer buffer = createBuffer(46)
-        .writeString(4, "Hello world!")
-        .writeString(20, "Hello world again!");
+    Buffer buffer =
+        createBuffer(46).writeString(4, "Hello world!").writeString(20, "Hello world again!");
     assertEquals("Hello world!", buffer.readString(4));
     assertEquals("Hello world again!", buffer.readString(20));
   }
 
   @Test
   public void testWriteReadUTF8Relative() {
-    Buffer buffer = createBuffer(38)
-        .writeUTF8("Hello world!")
-        .writeUTF8("Hello world again!")
-        .flip();
+    Buffer buffer =
+        createBuffer(38).writeUTF8("Hello world!").writeUTF8("Hello world again!").flip();
     assertEquals("Hello world!", buffer.readUTF8());
     assertEquals("Hello world again!", buffer.readUTF8());
   }
 
   @Test
   public void testWriteReadUTF8Absolute() {
-    Buffer buffer = createBuffer(46)
-        .writeUTF8(4, "Hello world!")
-        .writeUTF8(20, "Hello world again!");
+    Buffer buffer =
+        createBuffer(46).writeUTF8(4, "Hello world!").writeUTF8(20, "Hello world again!");
     assertEquals("Hello world!", buffer.readUTF8(4));
     assertEquals("Hello world again!", buffer.readUTF8(20));
   }
@@ -428,14 +415,19 @@ public abstract class BufferTest {
 
   @Test
   public void testSwappedMarkReset() {
-    assertTrue(createBuffer(12).order(ByteOrder.LITTLE_ENDIAN).writeInt(10).mark().writeBoolean(true).reset().readBoolean());
+    assertTrue(
+        createBuffer(12)
+            .order(ByteOrder.LITTLE_ENDIAN)
+            .writeInt(10)
+            .mark()
+            .writeBoolean(true)
+            .reset()
+            .readBoolean());
   }
 
   @Test(expected = BufferUnderflowException.class)
   public void testSwappedReadIntThrowsBufferUnderflowWithNoRemainingBytesRelative() {
-    createBuffer(4, 4).order(ByteOrder.LITTLE_ENDIAN)
-      .writeInt(10)
-      .readInt();
+    createBuffer(4, 4).order(ByteOrder.LITTLE_ENDIAN).writeInt(10).readInt();
   }
 
   @Test(expected = BufferUnderflowException.class)
@@ -465,7 +457,8 @@ public abstract class BufferTest {
 
   @Test
   public void testSwappedWriteReadByteRelative() {
-    assertEquals(10, createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeByte(10).flip().readByte());
+    assertEquals(
+        10, createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeByte(10).flip().readByte());
   }
 
   @Test
@@ -475,32 +468,57 @@ public abstract class BufferTest {
 
   @Test
   public void testSwappedWriteReadUnsignedByteRelative() {
-    assertEquals(10, createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeUnsignedByte(10).flip().readUnsignedByte());
+    assertEquals(
+        10,
+        createBuffer(16)
+            .order(ByteOrder.LITTLE_ENDIAN)
+            .writeUnsignedByte(10)
+            .flip()
+            .readUnsignedByte());
   }
 
   @Test
   public void testSwappedWriteReadUnsignedByteAbsolute() {
-    assertEquals(10, createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeUnsignedByte(4, 10).readUnsignedByte(4));
+    assertEquals(
+        10,
+        createBuffer(16)
+            .order(ByteOrder.LITTLE_ENDIAN)
+            .writeUnsignedByte(4, 10)
+            .readUnsignedByte(4));
   }
 
   @Test
   public void testSwappedWriteReadShortRelative() {
-    assertEquals(10, createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeShort((short) 10).flip().readShort());
+    assertEquals(
+        10,
+        createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeShort((short) 10).flip().readShort());
   }
 
   @Test
   public void testSwappedWriteReadShortAbsolute() {
-    assertEquals(10, createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeShort(4, (short) 10).readShort(4));
+    assertEquals(
+        10, createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeShort(4, (short) 10).readShort(4));
   }
 
   @Test
   public void testSwappedWriteReadUnsignedShortRelative() {
-    assertEquals(10, createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeUnsignedShort((short) 10).flip().readUnsignedShort());
+    assertEquals(
+        10,
+        createBuffer(16)
+            .order(ByteOrder.LITTLE_ENDIAN)
+            .writeUnsignedShort((short) 10)
+            .flip()
+            .readUnsignedShort());
   }
 
   @Test
   public void testSwappedWriteReadUnsignedShortAbsolute() {
-    assertEquals(10, createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeUnsignedShort(4, (short) 10).readUnsignedShort(4));
+    assertEquals(
+        10,
+        createBuffer(16)
+            .order(ByteOrder.LITTLE_ENDIAN)
+            .writeUnsignedShort(4, (short) 10)
+            .readUnsignedShort(4));
   }
 
   @Test
@@ -510,12 +528,20 @@ public abstract class BufferTest {
 
   @Test
   public void testSwappedWriteReadUnsignedIntAbsolute() {
-    assertEquals(10, createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeUnsignedInt(4, 10).readUnsignedInt(4));
+    assertEquals(
+        10,
+        createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeUnsignedInt(4, 10).readUnsignedInt(4));
   }
 
   @Test
   public void testSwappedWriteReadUnsignedIntRelative() {
-    assertEquals(10, createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeUnsignedInt(10).flip().readUnsignedInt());
+    assertEquals(
+        10,
+        createBuffer(16)
+            .order(ByteOrder.LITTLE_ENDIAN)
+            .writeUnsignedInt(10)
+            .flip()
+            .readUnsignedInt());
   }
 
   @Test
@@ -525,42 +551,58 @@ public abstract class BufferTest {
 
   @Test
   public void testSwappedWriteReadLongRelative() {
-    assertEquals(12345, createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeLong(12345).flip().readLong());
+    assertEquals(
+        12345, createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeLong(12345).flip().readLong());
   }
 
   @Test
   public void testSwappedWriteReadLongAbsolute() {
-    assertEquals(12345, createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeLong(4, 12345).readLong(4));
+    assertEquals(
+        12345, createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeLong(4, 12345).readLong(4));
   }
 
   @Test
   public void testSwappedWriteReadFloatRelative() {
-    assertEquals(10.6f, createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeFloat(10.6f).flip().readFloat(), .001);
+    assertEquals(
+        10.6f,
+        createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeFloat(10.6f).flip().readFloat(),
+        .001);
   }
 
   @Test
   public void testSwappedWriteReadFloatAbsolute() {
-    assertEquals(10.6f, createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeFloat(4, 10.6f).readFloat(4), .001);
+    assertEquals(
+        10.6f,
+        createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeFloat(4, 10.6f).readFloat(4),
+        .001);
   }
 
   @Test
   public void testSwappedWriteReadDoubleRelative() {
-    assertEquals(10.6, createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeDouble(10.6).flip().readDouble(), .001);
+    assertEquals(
+        10.6,
+        createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeDouble(10.6).flip().readDouble(),
+        .001);
   }
 
   @Test
   public void testSwappedWriteReadDoubleAbsolute() {
-    assertEquals(10.6, createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeDouble(4, 10.6).readDouble(4), .001);
+    assertEquals(
+        10.6,
+        createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeDouble(4, 10.6).readDouble(4),
+        .001);
   }
 
   @Test
   public void testSwappedWriteReadBooleanRelative() {
-    assertTrue(createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeBoolean(true).flip().readBoolean());
+    assertTrue(
+        createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeBoolean(true).flip().readBoolean());
   }
 
   @Test
   public void testSwappedWriteReadBooleanAbsolute() {
-    assertTrue(createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeBoolean(4, true).readBoolean(4));
+    assertTrue(
+        createBuffer(16).order(ByteOrder.LITTLE_ENDIAN).writeBoolean(4, true).readBoolean(4));
   }
 
   @Test

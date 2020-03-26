@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Profile management implementations.
- */
+/** Profile management implementations. */
 package io.atomix.core.profile.impl;

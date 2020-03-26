@@ -17,9 +17,7 @@ package io.atomix.primitive.protocol.counter;
 
 import com.google.common.annotations.Beta;
 
-/**
- * Gossip-based counter service.
- */
+/** Gossip-based counter service. */
 @Beta
 public interface CounterDelegate {
 
@@ -74,8 +72,6 @@ public interface CounterDelegate {
    */
   long get();
 
-  /**
-   * Closes the counter.
-   */
+  /** Closes the counter. */
   void close();
 }

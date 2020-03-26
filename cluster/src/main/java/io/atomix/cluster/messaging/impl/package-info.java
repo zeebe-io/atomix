@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Messaging layer interface implementations.
- */
+/** Messaging layer interface implementations. */
 package io.atomix.cluster.messaging.impl;

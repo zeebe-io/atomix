@@ -15,6 +15,10 @@
  */
 package io.atomix.primitive.service.impl;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+
 import io.atomix.primitive.PrimitiveException;
 import io.atomix.primitive.operation.OperationId;
 import io.atomix.primitive.operation.OperationType;
@@ -27,8 +31,6 @@ import io.atomix.utils.logging.ContextualLoggerFactory;
 import io.atomix.utils.logging.LoggerContext;
 import io.atomix.utils.serializer.Serializer;
 import io.atomix.utils.time.WallClockTimestamp;
-import org.slf4j.Logger;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,14 +42,9 @@ import java.util.Queue;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import org.slf4j.Logger;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
-
-/**
- * Default operation executor.
- */
+/** Default operation executor. */
 public class DefaultServiceExecutor implements ServiceExecutor {
   private final Serializer serializer;
   private final ServiceContext context;
@@ -62,18 +59,21 @@ public class DefaultServiceExecutor implements ServiceExecutor {
   public DefaultServiceExecutor(ServiceContext context, Serializer serializer) {
     this.serializer = checkNotNull(serializer);
     this.context = checkNotNull(context);
-    this.log = ContextualLoggerFactory.getLogger(getClass(), LoggerContext.builder(PrimitiveService.class)
-        .addValue(context.serviceId())
-        .add("type", context.serviceType())
-        .add("name", context.serviceName())
-        .build());
+    this.log =
+        ContextualLoggerFactory.getLogger(
+            getClass(),
+            LoggerContext.builder(PrimitiveService.class)
+                .addValue(context.serviceId())
+                .add("type", context.serviceType())
+                .add("name", context.serviceName())
+                .build());
   }
 
   /**
    * Encodes the given object using the configured {@link #serializer}.
    *
    * @param object the object to encode
-   * @param <T>    the object type
+   * @param <T> the object type
    * @return the encoded bytes
    */
   protected <T> byte[] encode(T object) {
@@ -84,7 +84,7 @@ public class DefaultServiceExecutor implements ServiceExecutor {
    * Decodes the given object using the configured {@link #serializer}.
    *
    * @param bytes the bytes to decode
-   * @param <T>   the object type
+   * @param <T> the object type
    * @return the decoded object
    */
   protected <T> T decode(byte[] bytes) {
@@ -124,7 +124,7 @@ public class DefaultServiceExecutor implements ServiceExecutor {
   /**
    * Checks that the current operation is of the given type.
    *
-   * @param type    the operation type
+   * @param type the operation type
    * @param message the message to print if the current operation does not match the given type
    */
   private void checkOperation(OperationType type, String message) {
@@ -150,10 +150,12 @@ public class DefaultServiceExecutor implements ServiceExecutor {
   public <T> void register(OperationId operationId, Consumer<Commit<T>> callback) {
     checkNotNull(operationId, "operationId cannot be null");
     checkNotNull(callback, "callback cannot be null");
-    handle(operationId, commit -> {
-      callback.accept(commit.map(this::decode));
-      return null;
-    });
+    handle(
+        operationId,
+        commit -> {
+          callback.accept(commit.map(this::decode));
+          return null;
+        });
   }
 
   @Override
@@ -189,9 +191,7 @@ public class DefaultServiceExecutor implements ServiceExecutor {
     }
   }
 
-  /**
-   * Executes tasks after an operation.
-   */
+  /** Executes tasks after an operation. */
   private void runTasks() {
     // Execute any tasks that were queue during execution of the command.
     if (!tasks.isEmpty()) {
@@ -205,14 +205,16 @@ public class DefaultServiceExecutor implements ServiceExecutor {
 
   @Override
   public void execute(Runnable callback) {
-    checkOperation(OperationType.COMMAND, "callbacks can only be scheduled during command execution");
+    checkOperation(
+        OperationType.COMMAND, "callbacks can only be scheduled during command execution");
     checkNotNull(callback, "callback cannot be null");
     tasks.add(callback);
   }
 
   @Override
   public Scheduled schedule(Duration delay, Runnable callback) {
-    checkOperation(OperationType.COMMAND, "callbacks can only be scheduled during command execution");
+    checkOperation(
+        OperationType.COMMAND, "callbacks can only be scheduled during command execution");
     checkArgument(!delay.isNegative(), "delay cannot be negative");
     checkNotNull(callback, "callback cannot be null");
     log.trace("Scheduled callback {} with delay {}", callback, delay);
@@ -221,17 +223,20 @@ public class DefaultServiceExecutor implements ServiceExecutor {
 
   @Override
   public Scheduled schedule(Duration initialDelay, Duration interval, Runnable callback) {
-    checkOperation(OperationType.COMMAND, "callbacks can only be scheduled during command execution");
+    checkOperation(
+        OperationType.COMMAND, "callbacks can only be scheduled during command execution");
     checkArgument(!initialDelay.isNegative(), "initialDelay cannot be negative");
     checkArgument(!interval.isNegative(), "interval cannot be negative");
     checkNotNull(callback, "callback cannot be null");
-    log.trace("Scheduled repeating callback {} with initial delay {} and interval {}", callback, initialDelay, interval);
+    log.trace(
+        "Scheduled repeating callback {} with initial delay {} and interval {}",
+        callback,
+        initialDelay,
+        interval);
     return new ScheduledTask(callback, initialDelay.toMillis(), interval.toMillis()).schedule();
   }
 
-  /**
-   * Scheduled task.
-   */
+  /** Scheduled task. */
   private class ScheduledTask implements Scheduled {
     private final long interval;
     private final Runnable callback;
@@ -247,9 +252,7 @@ public class DefaultServiceExecutor implements ServiceExecutor {
       this.time = timestamp + delay;
     }
 
-    /**
-     * Schedules the task.
-     */
+    /** Schedules the task. */
     private Scheduled schedule() {
       // Perform binary search to insert the task at the appropriate position in the tasks list.
       if (scheduledTasks.isEmpty()) {
@@ -282,9 +285,7 @@ public class DefaultServiceExecutor implements ServiceExecutor {
       return this;
     }
 
-    /**
-     * Reschedules the task.
-     */
+    /** Reschedules the task. */
     private void reschedule(long timestamp) {
       if (interval > 0) {
         time = timestamp + interval;
@@ -292,16 +293,12 @@ public class DefaultServiceExecutor implements ServiceExecutor {
       }
     }
 
-    /**
-     * Returns a boolean value indicating whether the task delay has been met.
-     */
+    /** Returns a boolean value indicating whether the task delay has been met. */
     private boolean isRunnable(long timestamp) {
       return timestamp > time;
     }
 
-    /**
-     * Executes the task.
-     */
+    /** Executes the task. */
     private synchronized void execute() {
       try {
         callback.run();

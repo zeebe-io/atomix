@@ -15,16 +15,16 @@
  */
 package io.atomix.primitive.log;
 
-import io.atomix.utils.misc.ArraySizeHashPrinter;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
+
+import io.atomix.utils.misc.ArraySizeHashPrinter;
 
 /**
  * Distributed log protocol record.
- * <p>
- * A log record represents an entry in a distributed log. The record includes an {@link #index()} and a
- * {@link #timestamp()} at which the entry was committed to the log in addition to the {@link #value()}
- * of the entry.
+ *
+ * <p>A log record represents an entry in a distributed log. The record includes an {@link #index()}
+ * and a {@link #timestamp()} at which the entry was committed to the log in addition to the {@link
+ * #value()} of the entry.
  */
 public class LogRecord {
   private final long index;

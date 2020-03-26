@@ -20,9 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.time.Duration;
 
-/**
- * SWIM membership protocol configuration.
- */
+/** SWIM membership protocol configuration. */
 public class SwimMembershipProtocolConfig extends GroupMembershipProtocolConfig {
   private static final boolean DEFAULT_BROADCAST_UPDATES = false;
   private static final boolean DEFAULT_BROADCAST_DISPUTES = true;
@@ -164,7 +162,8 @@ public class SwimMembershipProtocolConfig extends GroupMembershipProtocolConfig 
    */
   public SwimMembershipProtocolConfig setProbeInterval(Duration probeInterval) {
     checkNotNull(probeInterval, "probeInterval cannot be null");
-    checkArgument(!probeInterval.isNegative() && !probeInterval.isZero(), "probeInterval must be positive");
+    checkArgument(
+        !probeInterval.isNegative() && !probeInterval.isZero(), "probeInterval must be positive");
     this.probeInterval = probeInterval;
     return this;
   }
@@ -186,7 +185,8 @@ public class SwimMembershipProtocolConfig extends GroupMembershipProtocolConfig 
    */
   public SwimMembershipProtocolConfig setProbeTimeout(Duration probeTimeout) {
     checkNotNull(probeTimeout, "probeTimeout cannot be null");
-    checkArgument(!probeTimeout.isNegative() && !probeTimeout.isZero(), "probeTimeout must be positive");
+    checkArgument(
+        !probeTimeout.isNegative() && !probeTimeout.isZero(), "probeTimeout must be positive");
     this.probeTimeout = probeTimeout;
     return this;
   }
@@ -229,7 +229,9 @@ public class SwimMembershipProtocolConfig extends GroupMembershipProtocolConfig 
    */
   public SwimMembershipProtocolConfig setFailureTimeout(Duration failureTimeout) {
     checkNotNull(failureTimeout, "failureTimeout cannot be null");
-    checkArgument(!failureTimeout.isNegative() && !failureTimeout.isZero(), "failureTimeout must be positive");
+    checkArgument(
+        !failureTimeout.isNegative() && !failureTimeout.isZero(),
+        "failureTimeout must be positive");
     this.failureTimeout = checkNotNull(failureTimeout);
     return this;
   }

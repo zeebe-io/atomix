@@ -20,9 +20,7 @@ import io.atomix.primitive.PrimitiveManagementService;
 import io.atomix.primitive.protocol.GossipProtocol;
 import io.atomix.utils.serializer.Serializer;
 
-/**
- * Value protocol.
- */
+/** Value protocol. */
 @Beta
 public interface ValueProtocol extends GossipProtocol {
 
@@ -34,6 +32,6 @@ public interface ValueProtocol extends GossipProtocol {
    * @param managementService the primitive management service
    * @return a new value delegate
    */
-  ValueDelegate newValueDelegate(String name, Serializer serializer, PrimitiveManagementService managementService);
-
+  ValueDelegate newValueDelegate(
+      String name, Serializer serializer, PrimitiveManagementService managementService);
 }

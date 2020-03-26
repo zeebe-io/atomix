@@ -20,9 +20,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-/**
- * Sparse index.
- */
+/** Sparse index. */
 public class SparseJournalIndex implements JournalIndex {
 
   private final int density;

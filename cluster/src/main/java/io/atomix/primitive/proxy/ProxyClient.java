@@ -21,16 +21,13 @@ import io.atomix.primitive.operation.PrimitiveOperation;
 import io.atomix.primitive.partition.PartitionId;
 import io.atomix.primitive.protocol.PrimitiveProtocol;
 import io.atomix.utils.concurrent.Futures;
-
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-/**
- * Primitive proxy.
- */
+/** Primitive proxy. */
 public interface ProxyClient<S> {
 
   /**
@@ -132,21 +129,24 @@ public interface ProxyClient<S> {
    * Submits an empty operation to all partitions.
    *
    * @param operation the operation identifier
-   * @return A completable future to be completed with the operation result. The future is guaranteed to be completed after all
-   * {@link PrimitiveOperation} submission futures that preceded it.
+   * @return A completable future to be completed with the operation result. The future is
+   *     guaranteed to be completed after all {@link PrimitiveOperation} submission futures that
+   *     preceded it.
    * @throws NullPointerException if {@code operation} is null
    */
   default CompletableFuture<Void> acceptAll(Consumer<S> operation) {
-    return Futures.allOf(getPartitions().stream().map(proxy -> proxy.accept(operation))).thenApply(v -> null);
+    return Futures.allOf(getPartitions().stream().map(proxy -> proxy.accept(operation)))
+        .thenApply(v -> null);
   }
 
   /**
    * Submits an empty operation to all partitions.
    *
    * @param operation the operation identifier
-   * @param <R>       the operation result type
-   * @return A completable future to be completed with the operation result. The future is guaranteed to be completed after all
-   * {@link PrimitiveOperation} submission futures that preceded it.
+   * @param <R> the operation result type
+   * @return A completable future to be completed with the operation result. The future is
+   *     guaranteed to be completed after all {@link PrimitiveOperation} submission futures that
+   *     preceded it.
    * @throws NullPointerException if {@code operation} is null
    */
   default <R> CompletableFuture<Stream<R>> applyAll(Function<S, R> operation) {
@@ -157,9 +157,10 @@ public interface ProxyClient<S> {
    * Submits an empty operation to the given partition.
    *
    * @param partitionId the partition in which to execute the operation
-   * @param operation   the operation identifier
-   * @return A completable future to be completed with the operation result. The future is guaranteed to be completed after all
-   * {@link PrimitiveOperation} submission futures that preceded it.
+   * @param operation the operation identifier
+   * @return A completable future to be completed with the operation result. The future is
+   *     guaranteed to be completed after all {@link PrimitiveOperation} submission futures that
+   *     preceded it.
    * @throws NullPointerException if {@code operation} is null
    */
   default CompletableFuture<Void> acceptOn(PartitionId partitionId, Consumer<S> operation) {
@@ -170,10 +171,11 @@ public interface ProxyClient<S> {
    * Submits an empty operation to the given partition.
    *
    * @param partitionId the partition in which to execute the operation
-   * @param operation   the operation identifier
-   * @param <R>         the operation result type
-   * @return A completable future to be completed with the operation result. The future is guaranteed to be completed after all
-   * {@link PrimitiveOperation} submission futures that preceded it.
+   * @param operation the operation identifier
+   * @param <R> the operation result type
+   * @return A completable future to be completed with the operation result. The future is
+   *     guaranteed to be completed after all {@link PrimitiveOperation} submission futures that
+   *     preceded it.
    * @throws NullPointerException if {@code operation} is null
    */
   default <R> CompletableFuture<R> applyOn(PartitionId partitionId, Function<S, R> operation) {
@@ -183,10 +185,11 @@ public interface ProxyClient<S> {
   /**
    * Submits an empty operation to the owning partition for the given key.
    *
-   * @param key       the key for which to submit the operation
+   * @param key the key for which to submit the operation
    * @param operation the operation
-   * @return A completable future to be completed with the operation result. The future is guaranteed to be completed after all
-   * {@link PrimitiveOperation} submission futures that preceded it.
+   * @return A completable future to be completed with the operation result. The future is
+   *     guaranteed to be completed after all {@link PrimitiveOperation} submission futures that
+   *     preceded it.
    * @throws NullPointerException if {@code operation} is null
    */
   default CompletableFuture<Void> acceptBy(String key, Consumer<S> operation) {
@@ -196,11 +199,12 @@ public interface ProxyClient<S> {
   /**
    * Submits an empty operation to the owning partition for the given key.
    *
-   * @param key       the key for which to submit the operation
+   * @param key the key for which to submit the operation
    * @param operation the operation
-   * @param <R>       the operation result type
-   * @return A completable future to be completed with the operation result. The future is guaranteed to be completed after all
-   * {@link PrimitiveOperation} submission futures that preceded it.
+   * @param <R> the operation result type
+   * @return A completable future to be completed with the operation result. The future is
+   *     guaranteed to be completed after all {@link PrimitiveOperation} submission futures that
+   *     preceded it.
    * @throws NullPointerException if {@code operation} is null
    */
   default <R> CompletableFuture<R> applyBy(String key, Function<S, R> operation) {
@@ -210,11 +214,12 @@ public interface ProxyClient<S> {
   /**
    * Submits an empty operation to the owning partition for the given key.
    *
-   * @param key       the key for which to submit the operation
+   * @param key the key for which to submit the operation
    * @param operation the operation
-   * @param <R>       the operation result type
-   * @return A completable future to be completed with the operation result. The future is guaranteed to be completed after all
-   * {@link PrimitiveOperation} submission futures that preceded it.
+   * @param <R> the operation result type
+   * @return A completable future to be completed with the operation result. The future is
+   *     guaranteed to be completed after all {@link PrimitiveOperation} submission futures that
+   *     preceded it.
    * @throws NullPointerException if {@code operation} is null
    */
   default <R> CompletableFuture<R> applyBy(Object key, Function<S, R> operation) {
@@ -255,5 +260,4 @@ public interface ProxyClient<S> {
    * @return a future to be completed once the service has been deleted
    */
   CompletableFuture<Void> delete();
-
 }

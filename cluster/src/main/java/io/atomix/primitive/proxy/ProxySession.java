@@ -20,14 +20,11 @@ import io.atomix.primitive.PrimitiveType;
 import io.atomix.primitive.operation.PrimitiveOperation;
 import io.atomix.primitive.partition.PartitionId;
 import io.atomix.utils.concurrent.ThreadContext;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-/**
- * Proxy session.
- */
+/** Proxy session. */
 public interface ProxySession<S> {
 
   /**
@@ -76,8 +73,9 @@ public interface ProxySession<S> {
    * Submits an empty operation to the given partition.
    *
    * @param operation the operation identifier
-   * @return A completable future to be completed with the operation result. The future is guaranteed to be completed after all
-   * {@link PrimitiveOperation} submission futures that preceded it.
+   * @return A completable future to be completed with the operation result. The future is
+   *     guaranteed to be completed after all {@link PrimitiveOperation} submission futures that
+   *     preceded it.
    * @throws NullPointerException if {@code operation} is null
    */
   CompletableFuture<Void> accept(Consumer<S> operation);
@@ -86,9 +84,10 @@ public interface ProxySession<S> {
    * Submits an empty operation to the given partition.
    *
    * @param operation the operation identifier
-   * @param <R>       the operation result type
-   * @return A completable future to be completed with the operation result. The future is guaranteed to be completed after all
-   * {@link PrimitiveOperation} submission futures that preceded it.
+   * @param <R> the operation result type
+   * @return A completable future to be completed with the operation result. The future is
+   *     guaranteed to be completed after all {@link PrimitiveOperation} submission futures that
+   *     preceded it.
    * @throws NullPointerException if {@code operation} is null
    */
   <R> CompletableFuture<R> apply(Function<S, R> operation);
@@ -127,5 +126,4 @@ public interface ProxySession<S> {
    * @return a future to be completed once the service has been deleted
    */
   CompletableFuture<Void> delete();
-
 }

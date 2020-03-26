@@ -20,16 +20,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * Command annotation.
- */
+/** Command annotation. */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Command {
 
-  /**
-   * The operation name.
-   */
+  /** The operation name. */
   String value() default "";
-
 }

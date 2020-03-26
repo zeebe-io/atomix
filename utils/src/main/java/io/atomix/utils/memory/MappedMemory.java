@@ -15,20 +15,19 @@
  */
 package io.atomix.utils.memory;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Mapped memory.
- * <p>
- * This is a special memory descriptor that handles management of {@link MappedByteBuffer} based memory. The
- * mapped memory descriptor simply points to the memory address of the underlying byte buffer. When memory is reallocated,
- * the parent {@link MappedMemoryAllocator} is used to create a new {@link MappedByteBuffer}
- * and free the existing buffer.
+ *
+ * <p>This is a special memory descriptor that handles management of {@link MappedByteBuffer} based
+ * memory. The mapped memory descriptor simply points to the memory address of the underlying byte
+ * buffer. When memory is reallocated, the parent {@link MappedMemoryAllocator} is used to create a
+ * new {@link MappedByteBuffer} and free the existing buffer.
  *
  * @author <a href="http://github.com/kuujo">Jordan Halterman</a>
  */
@@ -75,9 +74,7 @@ public class MappedMemory implements Memory {
     this.size = buffer.capacity();
   }
 
-  /**
-   * Flushes the mapped buffer to disk.
-   */
+  /** Flushes the mapped buffer to disk. */
   public void flush() {
     buffer.force();
   }

@@ -19,9 +19,10 @@ import io.atomix.cluster.Member;
 
 /**
  * Partition member group.
- * <p>
- * The member group represents a group of nodes that can own a single replica for a single partition. Replication
- * is performed in a manner that avoids assigning multiple replicas to the same member group.
+ *
+ * <p>The member group represents a group of nodes that can own a single replica for a single
+ * partition. Replication is performed in a manner that avoids assigning multiple replicas to the
+ * same member group.
  */
 public interface MemberGroup {
 
@@ -39,5 +40,4 @@ public interface MemberGroup {
    * @return indicates whether the given node is a member of the group
    */
   boolean isMember(Member member);
-
 }

@@ -17,9 +17,7 @@ package io.atomix.core.profile;
 
 import static io.atomix.core.profile.ClientProfile.TYPE;
 
-/**
- * Client profile configuration.
- */
+/** Client profile configuration. */
 public class ClientProfileConfig extends ProfileConfig {
   @Override
   public Profile.Type getType() {

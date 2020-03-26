@@ -15,13 +15,11 @@
  */
 package io.atomix.primitive.session;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 
-/**
- * Raft session metadata test.
- */
+import org.junit.Test;
+
+/** Raft session metadata test. */
 public class SessionMetadataTest {
   @Test
   public void testRaftSessionMetadata() throws Exception {

@@ -17,9 +17,7 @@ package io.atomix.utils;
 
 import io.atomix.utils.config.TypedConfig;
 
-/**
- * Configured type.
- */
+/** Configured type. */
 public interface ConfiguredType<C extends TypedConfig> extends NamedType {
 
   /**
@@ -28,5 +26,4 @@ public interface ConfiguredType<C extends TypedConfig> extends NamedType {
    * @return a new configuration
    */
   C newConfig();
-
 }

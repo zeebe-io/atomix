@@ -18,9 +18,7 @@ package io.atomix.utils.serializer;
 import com.esotericsoftware.kryo.Serializer;
 import io.atomix.utils.config.Config;
 
-/**
- * Namespace type configuration.
- */
+/** Namespace type configuration. */
 public class NamespaceTypeConfig implements Config {
   private Class<?> type;
   private Integer id;

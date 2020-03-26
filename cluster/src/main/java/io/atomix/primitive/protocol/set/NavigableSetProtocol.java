@@ -19,9 +19,7 @@ import com.google.common.annotations.Beta;
 import io.atomix.primitive.PrimitiveManagementService;
 import io.atomix.utils.serializer.Serializer;
 
-/**
- * Navigable set protocol.
- */
+/** Navigable set protocol. */
 @Beta
 public interface NavigableSetProtocol extends SortedSetProtocol {
 
@@ -34,6 +32,6 @@ public interface NavigableSetProtocol extends SortedSetProtocol {
    * @param <E> the set element type
    * @return a new set delegate
    */
-  <E> NavigableSetDelegate<E> newNavigableSetDelegate(String name, Serializer serializer, PrimitiveManagementService managementService);
-
+  <E> NavigableSetDelegate<E> newNavigableSetDelegate(
+      String name, Serializer serializer, PrimitiveManagementService managementService);
 }

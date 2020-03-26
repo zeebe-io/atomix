@@ -23,14 +23,11 @@ import io.atomix.primitive.PrimitiveType;
 import io.atomix.primitive.partition.PartitionGroup;
 import io.atomix.primitive.protocol.PrimitiveProtocol;
 import io.atomix.utils.NamedType;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-/**
- * Static Atomix registry.
- */
+/** Static Atomix registry. */
 public class SimpleRegistry implements AtomixRegistry {
 
   /**
@@ -62,9 +59,7 @@ public class SimpleRegistry implements AtomixRegistry {
     return types != null ? (T) types.get(name) : null;
   }
 
-  /**
-   * Atomix registry builder.
-   */
+  /** Atomix registry builder. */
   public static class Builder implements io.atomix.utils.Builder<AtomixRegistry> {
     private final Map<Class<?>, Map<String, NamedType>> registrations = Maps.newHashMap();
 
@@ -75,7 +70,9 @@ public class SimpleRegistry implements AtomixRegistry {
      * @return the registry builder
      */
     public Builder addProfileType(Profile.Type profileType) {
-      registrations.computeIfAbsent(Profile.Type.class, t -> Maps.newHashMap()).put(profileType.name(), profileType);
+      registrations
+          .computeIfAbsent(Profile.Type.class, t -> Maps.newHashMap())
+          .put(profileType.name(), profileType);
       return this;
     }
 
@@ -86,7 +83,9 @@ public class SimpleRegistry implements AtomixRegistry {
      * @return the registry builder
      */
     public Builder addDiscoveryProviderType(NodeDiscoveryProvider.Type discoveryProviderType) {
-      registrations.computeIfAbsent(NodeDiscoveryProvider.Type.class, t -> Maps.newHashMap()).put(discoveryProviderType.name(), discoveryProviderType);
+      registrations
+          .computeIfAbsent(NodeDiscoveryProvider.Type.class, t -> Maps.newHashMap())
+          .put(discoveryProviderType.name(), discoveryProviderType);
       return this;
     }
 
@@ -97,7 +96,9 @@ public class SimpleRegistry implements AtomixRegistry {
      * @return the registry builder
      */
     public Builder addPrimitiveType(PrimitiveType primitiveType) {
-      registrations.computeIfAbsent(PrimitiveType.class, t -> Maps.newHashMap()).put(primitiveType.name(), primitiveType);
+      registrations
+          .computeIfAbsent(PrimitiveType.class, t -> Maps.newHashMap())
+          .put(primitiveType.name(), primitiveType);
       return this;
     }
 
@@ -108,7 +109,9 @@ public class SimpleRegistry implements AtomixRegistry {
      * @return the registry builder
      */
     public Builder addProtocolType(PrimitiveProtocol.Type protocolType) {
-      registrations.computeIfAbsent(PrimitiveProtocol.Type.class, t -> Maps.newHashMap()).put(protocolType.name(), protocolType);
+      registrations
+          .computeIfAbsent(PrimitiveProtocol.Type.class, t -> Maps.newHashMap())
+          .put(protocolType.name(), protocolType);
       return this;
     }
 
@@ -119,7 +122,9 @@ public class SimpleRegistry implements AtomixRegistry {
      * @return the registry builder
      */
     public Builder addPartitionGroupType(PartitionGroup.Type partitionGroupType) {
-      registrations.computeIfAbsent(PartitionGroup.Type.class, t -> Maps.newHashMap()).put(partitionGroupType.name(), partitionGroupType);
+      registrations
+          .computeIfAbsent(PartitionGroup.Type.class, t -> Maps.newHashMap())
+          .put(partitionGroupType.name(), partitionGroupType);
       return this;
     }
 

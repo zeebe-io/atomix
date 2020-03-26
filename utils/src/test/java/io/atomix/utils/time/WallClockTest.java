@@ -15,14 +15,12 @@
  */
 package io.atomix.utils.time;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-/**
- * Wall clock test.
- */
+import org.junit.Test;
+
+/** Wall clock test. */
 public class WallClockTest {
   @Test
   public void testWallClock() throws Exception {

@@ -18,9 +18,7 @@ package io.atomix.utils.concurrent;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Scheduler.
- */
+/** Scheduler. */
 public interface Scheduler {
 
   /**
@@ -53,8 +51,12 @@ public interface Scheduler {
    * @param callback the callback to run
    * @return the scheduled callback
    */
-  default Scheduled schedule(long initialDelay, long interval, TimeUnit timeUnit, Runnable callback) {
-    return schedule(Duration.ofMillis(timeUnit.toMillis(initialDelay)), Duration.ofMillis(timeUnit.toMillis(interval)), callback);
+  default Scheduled schedule(
+      long initialDelay, long interval, TimeUnit timeUnit, Runnable callback) {
+    return schedule(
+        Duration.ofMillis(timeUnit.toMillis(initialDelay)),
+        Duration.ofMillis(timeUnit.toMillis(interval)),
+        callback);
   }
 
   /**
@@ -66,5 +68,4 @@ public interface Scheduler {
    * @return the scheduled callback
    */
   Scheduled schedule(Duration initialDelay, Duration interval, Runnable callback);
-
 }

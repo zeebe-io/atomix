@@ -18,9 +18,7 @@ package io.atomix.cluster;
 import io.atomix.utils.config.Config;
 import io.atomix.utils.net.Address;
 
-/**
- * Node configuration.
- */
+/** Node configuration. */
 public class NodeConfig implements Config {
   private NodeId id = NodeId.anonymous();
   private String host = "localhost";

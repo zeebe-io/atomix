@@ -15,22 +15,19 @@
  */
 package io.atomix.core;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.atomix.cluster.ClusterConfig;
 import io.atomix.core.profile.ProfileConfig;
 import io.atomix.primitive.config.PrimitiveConfig;
 import io.atomix.primitive.partition.PartitionGroupConfig;
 import io.atomix.utils.config.Config;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * Atomix configuration.
- */
+/** Atomix configuration. */
 public class AtomixConfig implements Config {
   private static final String MANAGEMENT_GROUP_NAME = "system";
 
@@ -161,7 +158,7 @@ public class AtomixConfig implements Config {
    * Returns a default primitive configuration.
    *
    * @param name the primitive name
-   * @param <C>  the configuration type
+   * @param <C> the configuration type
    * @return the primitive configuration
    */
   @SuppressWarnings("unchecked")
@@ -192,7 +189,7 @@ public class AtomixConfig implements Config {
   /**
    * Adds a primitive configuration.
    *
-   * @param name   the primitive name
+   * @param name the primitive name
    * @param config the primitive configuration
    * @return the primitive configuration holder
    */
@@ -205,7 +202,7 @@ public class AtomixConfig implements Config {
    * Returns a primitive configuration.
    *
    * @param name the primitive name
-   * @param <C>  the configuration type
+   * @param <C> the configuration type
    * @return the primitive configuration
    */
   @SuppressWarnings("unchecked")
@@ -256,7 +253,8 @@ public class AtomixConfig implements Config {
   /**
    * Sets whether serializable type registration is required for user types.
    *
-   * @param typeRegistrationRequired whether serializable type registration is required for user types
+   * @param typeRegistrationRequired whether serializable type registration is required for user
+   *     types
    * @return the Atomix configuration
    */
   public AtomixConfig setTypeRegistrationRequired(boolean typeRegistrationRequired) {

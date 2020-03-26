@@ -15,27 +15,25 @@
  */
 package io.atomix.utils.misc;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import io.atomix.utils.concurrent.Scheduled;
 import io.atomix.utils.concurrent.SingleThreadContext;
 import io.atomix.utils.concurrent.ThreadContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkArgument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Maintains a sliding window of value counts. The sliding window counter is
- * initialized with a number of window slots. Calls to #incrementCount() will
- * increment the value in the current window slot. Periodically the window
- * slides and the oldest value count is dropped. Calls to #get() will get the
- * total count for the last N window slots.
+ * Maintains a sliding window of value counts. The sliding window counter is initialized with a
+ * number of window slots. Calls to #incrementCount() will increment the value in the current window
+ * slot. Periodically the window slides and the oldest value count is dropped. Calls to #get() will
+ * get the total count for the last N window slots.
  */
 public final class SlidingWindowCounter {
   private final Logger log = LoggerFactory.getLogger(getClass());
@@ -53,8 +51,7 @@ public final class SlidingWindowCounter {
   }
 
   /**
-   * Creates a new sliding window counter with the given total number of
-   * window slots.
+   * Creates a new sliding window counter with the given total number of window slots.
    *
    * @param windowSlots total number of window slots
    */
@@ -65,23 +62,20 @@ public final class SlidingWindowCounter {
     this.headSlot = 0;
 
     // Initialize each item in the list to an AtomicLong of 0
-    this.counters = Collections.nCopies(windowSlots, 0)
-        .stream()
-        .map(AtomicLong::new)
-        .collect(Collectors.toCollection(ArrayList::new));
-    this.schedule = context.schedule(0, SLIDE_WINDOW_PERIOD_SECONDS, TimeUnit.SECONDS, this::advanceHead);
+    this.counters =
+        Collections.nCopies(windowSlots, 0).stream()
+            .map(AtomicLong::new)
+            .collect(Collectors.toCollection(ArrayList::new));
+    this.schedule =
+        context.schedule(0, SLIDE_WINDOW_PERIOD_SECONDS, TimeUnit.SECONDS, this::advanceHead);
   }
 
-  /**
-   * Releases resources used by the SlidingWindowCounter.
-   */
+  /** Releases resources used by the SlidingWindowCounter. */
   public void destroy() {
     schedule.cancel();
   }
 
-  /**
-   * Increments the count of the current window slot by 1.
-   */
+  /** Increments the count of the current window slot by 1. */
   public void incrementCount() {
     incrementCount(headSlot, 1);
   }
@@ -106,8 +100,8 @@ public final class SlidingWindowCounter {
    * @return total count for last N slots
    */
   public long get(int slots) {
-    checkArgument(slots <= windowSlots,
-        "Requested window must be less than the total window slots");
+    checkArgument(
+        slots <= windowSlots, "Requested window must be less than the total window slots");
 
     long sum = 0;
 
@@ -130,5 +124,4 @@ public final class SlidingWindowCounter {
   private int slotAfter(int slot) {
     return (slot + 1) % windowSlots;
   }
-
 }

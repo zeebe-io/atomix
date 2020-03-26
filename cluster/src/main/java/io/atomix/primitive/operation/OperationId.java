@@ -18,9 +18,7 @@ package io.atomix.primitive.operation;
 import io.atomix.primitive.operation.impl.DefaultOperationId;
 import io.atomix.utils.Identifier;
 
-/**
- * Raft operation identifier.
- */
+/** Raft operation identifier. */
 public interface OperationId extends Identifier<String> {
 
   /**

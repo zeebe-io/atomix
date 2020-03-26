@@ -22,14 +22,12 @@ import io.atomix.primitive.service.ServiceExecutor;
 import io.atomix.utils.serializer.Namespace;
 import io.atomix.utils.serializer.Serializer;
 
-/**
- * ID generator service.
- */
+/** ID generator service. */
 public class SessionIdGeneratorService extends AbstractPrimitiveService {
 
-  private static final Serializer SERIALIZER = Serializer.using(Namespace.builder()
-      .register(SessionIdGeneratorOperations.NAMESPACE)
-      .build());
+  private static final Serializer SERIALIZER =
+      Serializer.using(
+          Namespace.builder().register(SessionIdGeneratorOperations.NAMESPACE).build());
 
   private long id;
 

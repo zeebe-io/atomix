@@ -29,15 +29,16 @@ import java.util.zip.CRC32;
 
 /**
  * Segment writer.
- * <p>
- * The format of an entry in the log is as follows:
+ *
+ * <p>The format of an entry in the log is as follows:
+ *
  * <ul>
- * <li>64-bit index</li>
- * <li>8-bit boolean indicating whether a term change is contained in the entry</li>
- * <li>64-bit optional term</li>
- * <li>32-bit signed entry length, including the entry type ID</li>
- * <li>8-bit signed entry type ID</li>
- * <li>n-bit entry bytes</li>
+ *   <li>64-bit index
+ *   <li>8-bit boolean indicating whether a term change is contained in the entry
+ *   <li>64-bit optional term
+ *   <li>32-bit signed entry length, including the entry type ID
+ *   <li>8-bit signed entry type ID
+ *   <li>n-bit entry bytes
  * </ul>
  *
  * @author <a href="http://github.com/kuujo">Jordan Halterman</a>
@@ -210,7 +211,8 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
 
     // If the entry length exceeds the maximum entry size then throw an exception.
     if (length > maxEntrySize) {
-      // Just reset the buffer. There's no need to zero the bytes since we haven't written the length or checksum.
+      // Just reset the buffer. There's no need to zero the bytes since we haven't written the
+      // length or checksum.
       buffer.position(position);
       throw new StorageException.TooLarge(
           "Entry size " + length + " exceeds maximum allowed bytes (" + maxEntrySize + ")");
@@ -224,7 +226,8 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
     crc32.update(slice);
     final long checksum = crc32.getValue();
 
-    // Create a single byte[] in memory for the entire entry and write it as a batch to the underlying buffer.
+    // Create a single byte[] in memory for the entire entry and write it as a batch to the
+    // underlying buffer.
     buffer.position(position);
     buffer.putInt(length);
     buffer.putInt((int) checksum);
@@ -238,9 +241,7 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
   }
 
   @Override
-  public void commit(long index) {
-
-  }
+  public void commit(long index) {}
 
   @Override
   @SuppressWarnings("unchecked")

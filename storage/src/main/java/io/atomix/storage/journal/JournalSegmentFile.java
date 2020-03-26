@@ -15,9 +15,9 @@
  */
 package io.atomix.storage.journal;
 
-import java.io.File;
-
 import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.File;
 
 /**
  * Segment file utility.
@@ -31,7 +31,8 @@ public final class JournalSegmentFile {
   private final File file;
 
   /**
-   * Returns a boolean value indicating whether the given file appears to be a parsable segment file.
+   * Returns a boolean value indicating whether the given file appears to be a parsable segment
+   * file.
    *
    * @throws NullPointerException if {@code file} is null
    */
@@ -40,7 +41,8 @@ public final class JournalSegmentFile {
   }
 
   /**
-   * Returns a boolean value indicating whether the given file appears to be a parsable segment file.
+   * Returns a boolean value indicating whether the given file appears to be a parsable segment
+   * file.
    *
    * @param journalName the name of the journal
    * @param fileName the name of the file to check
@@ -69,16 +71,13 @@ public final class JournalSegmentFile {
     return fileName.startsWith(journalName);
   }
 
-  /**
-   * Creates a segment file for the given directory, log name, segment ID, and segment version.
-   */
+  /** Creates a segment file for the given directory, log name, segment ID, and segment version. */
   static File createSegmentFile(String name, File directory, long id) {
-    return new File(directory, String.format("%s-%d.log", checkNotNull(name, "name cannot be null"), id));
+    return new File(
+        directory, String.format("%s-%d.log", checkNotNull(name, "name cannot be null"), id));
   }
 
-  /**
-   * @throws IllegalArgumentException if {@code file} is not a valid segment file
-   */
+  /** @throws IllegalArgumentException if {@code file} is not a valid segment file */
   JournalSegmentFile(File file) {
     this.file = file;
   }

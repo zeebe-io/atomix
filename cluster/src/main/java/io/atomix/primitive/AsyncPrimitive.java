@@ -18,9 +18,7 @@ package io.atomix.primitive;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Asynchronous primitive.
- */
+/** Asynchronous primitive. */
 public interface AsyncPrimitive extends DistributedPrimitive {
 
   /**
@@ -32,10 +30,10 @@ public interface AsyncPrimitive extends DistributedPrimitive {
 
   /**
    * Purges state associated with this primitive.
-   * <p>
-   * Implementations can override and provide appropriate clean up logic for purging
-   * any state state associated with the primitive. Whether modifications made within the
-   * destroy method have local or global visibility is left unspecified.
+   *
+   * <p>Implementations can override and provide appropriate clean up logic for purging any state
+   * state associated with the primitive. Whether modifications made within the destroy method have
+   * local or global visibility is left unspecified.
    *
    * @return {@code CompletableFuture} that is completed when the operation completes
    */
@@ -55,5 +53,4 @@ public interface AsyncPrimitive extends DistributedPrimitive {
    * @return the synchronous primitive
    */
   SyncPrimitive sync(Duration operationTimeout);
-
 }

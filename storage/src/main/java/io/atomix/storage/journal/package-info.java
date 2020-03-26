@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Provides a low-level journal abstraction for appending to logs and managing segmented logs.
- */
+/** Provides a low-level journal abstraction for appending to logs and managing segmented logs. */
 package io.atomix.storage.journal;

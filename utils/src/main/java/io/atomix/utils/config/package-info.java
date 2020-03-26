@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Provides classes and interfaces for reading and mapping configuration files.
- */
+/** Provides classes and interfaces for reading and mapping configuration files. */
 package io.atomix.utils.config;

@@ -17,8 +17,5 @@ package io.atomix.cluster.discovery;
 
 import io.atomix.utils.event.EventListener;
 
-/**
- * Node discovery event listener.
- */
-public interface NodeDiscoveryEventListener extends EventListener<NodeDiscoveryEvent> {
-}
+/** Node discovery event listener. */
+public interface NodeDiscoveryEventListener extends EventListener<NodeDiscoveryEvent> {}

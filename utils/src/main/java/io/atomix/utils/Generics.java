@@ -18,16 +18,14 @@ package io.atomix.utils;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
-/**
- * Generics utility.
- */
+/** Generics utility. */
 public class Generics {
 
   /**
    * Returns the generic type at the given position for the given class.
    *
    * @param instance the implementing instance
-   * @param clazz    the generic class
+   * @param clazz the generic class
    * @param position the generic position
    * @return the generic type at the given position
    */
@@ -52,7 +50,7 @@ public class Generics {
    * Returns the generic type at the given position for the given interface.
    *
    * @param instance the implementing instance
-   * @param iface    the generic interface
+   * @param iface the generic interface
    * @param position the generic position
    * @return the generic type at the given position
    */
@@ -72,6 +70,5 @@ public class Generics {
     return null;
   }
 
-  private Generics() {
-  }
+  private Generics() {}
 }

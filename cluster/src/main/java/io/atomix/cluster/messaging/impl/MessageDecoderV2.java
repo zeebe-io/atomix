@@ -15,22 +15,17 @@
  */
 package io.atomix.cluster.messaging.impl;
 
-import java.util.List;
+import static com.google.common.base.Preconditions.checkState;
 
 import io.atomix.utils.net.Address;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
+import java.util.List;
 
-import static com.google.common.base.Preconditions.checkState;
-
-/**
- * Protocol version 2 message decoder.
- */
+/** Protocol version 2 message decoder. */
 class MessageDecoderV2 extends AbstractMessageDecoder {
 
-  /**
-   * V2 decoder state.
-   */
+  /** V2 decoder state. */
   enum DecoderState {
     READ_TYPE,
     READ_MESSAGE_ID,
@@ -59,10 +54,8 @@ class MessageDecoderV2 extends AbstractMessageDecoder {
 
   @Override
   @SuppressWarnings("squid:S128") // suppress switch fall through warning
-  protected void decode(
-      ChannelHandlerContext context,
-      ByteBuf buffer,
-      List<Object> out) throws Exception {
+  protected void decode(ChannelHandlerContext context, ByteBuf buffer, List<Object> out)
+      throws Exception {
 
     switch (currentState) {
       case READ_SENDER_HOST_LENGTH:
@@ -145,7 +138,8 @@ class MessageDecoderV2 extends AbstractMessageDecoder {
               return;
             }
             final String subject = readString(buffer, subjectLength);
-            ProtocolRequest message = new ProtocolRequest(messageId, senderAddress, subject, content);
+            ProtocolRequest message =
+                new ProtocolRequest(messageId, senderAddress, subject, content);
             out.add(message);
             currentState = DecoderState.READ_TYPE;
             break;

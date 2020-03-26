@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Provides classes and interfaces for managing concurrency.
- */
+/** Provides classes and interfaces for managing concurrency. */
 package io.atomix.utils.concurrent;

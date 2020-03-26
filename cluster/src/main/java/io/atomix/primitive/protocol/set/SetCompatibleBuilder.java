@@ -15,9 +15,7 @@
  */
 package io.atomix.primitive.protocol.set;
 
-/**
- * Set builder.
- */
+/** Set builder. */
 public interface SetCompatibleBuilder<B extends SetCompatibleBuilder<B>> {
 
   /**
@@ -27,5 +25,4 @@ public interface SetCompatibleBuilder<B extends SetCompatibleBuilder<B>> {
    * @return the primitive builder
    */
   B withProtocol(SetProtocol protocol);
-
 }

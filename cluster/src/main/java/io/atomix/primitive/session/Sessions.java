@@ -20,12 +20,13 @@ import io.atomix.primitive.event.PrimitiveEvent;
 
 /**
  * Provides a set of active server sessions.
- * <p>
- * Server state machines can use the {@code Sessions} object to access the list of sessions currently open to the
- * state machine. Session sets are guaranteed to be deterministic. All state machines will see the same set of
- * open sessions at the same point in the log except in cases where a session has already been closed and removed.
- * If a session has already been closed on another server, the session is guaranteed to have been expired on all
- * servers and thus operations like {@link Session#publish(PrimitiveEvent)} are effectively no-ops.
+ *
+ * <p>Server state machines can use the {@code Sessions} object to access the list of sessions
+ * currently open to the state machine. Session sets are guaranteed to be deterministic. All state
+ * machines will see the same set of open sessions at the same point in the log except in cases
+ * where a session has already been closed and removed. If a session has already been closed on
+ * another server, the session is guaranteed to have been expired on all servers and thus operations
+ * like {@link Session#publish(PrimitiveEvent)} are effectively no-ops.
  */
 public interface Sessions extends Iterable<Session> {
 
@@ -53,5 +54,4 @@ public interface Sessions extends Iterable<Session> {
    * @return The sessions.
    */
   Sessions removeListener(SessionListener listener);
-
 }

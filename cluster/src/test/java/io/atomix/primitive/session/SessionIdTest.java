@@ -15,13 +15,11 @@
  */
 package io.atomix.primitive.session;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 
-/**
- * Session identifier test.
- */
+import org.junit.Test;
+
+/** Session identifier test. */
 public class SessionIdTest {
   @Test
   public void testSessionId() throws Exception {

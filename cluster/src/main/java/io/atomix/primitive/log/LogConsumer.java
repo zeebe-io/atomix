@@ -18,9 +18,7 @@ package io.atomix.primitive.log;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-/**
- * Log consumer.
- */
+/** Log consumer. */
 public interface LogConsumer {
 
   /**
@@ -41,5 +39,4 @@ public interface LogConsumer {
    * @return a future to be completed once the consumer has been added
    */
   CompletableFuture<Void> consume(long index, Consumer<LogRecord> consumer);
-
 }

@@ -20,13 +20,10 @@ import io.atomix.storage.buffer.Buffer;
 import io.atomix.storage.buffer.BufferOutput;
 import io.atomix.storage.buffer.Bytes;
 import io.atomix.utils.serializer.Serializer;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
-/**
- * Default backup output.
- */
+/** Default backup output. */
 public class DefaultBackupOutput implements BackupOutput {
   private final BufferOutput<?> output;
   private final Serializer serializer;
@@ -61,8 +58,8 @@ public class DefaultBackupOutput implements BackupOutput {
   }
 
   @Override
-  public BackupOutput write(final int offset, final ByteBuffer source, final int srcOffset,
-      final int length) {
+  public BackupOutput write(
+      final int offset, final ByteBuffer source, final int srcOffset, final int length) {
     output.write(offset, source, srcOffset, length);
     return this;
   }

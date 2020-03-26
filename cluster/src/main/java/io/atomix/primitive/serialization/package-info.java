@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Primitive serialization interfaces.
- */
+/** Primitive serialization interfaces. */
 package io.atomix.primitive.serialization;

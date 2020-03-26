@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Provides classes and interfaces for performing low-level on- and off-heap memory management.
- */
+/** Provides classes and interfaces for performing low-level on- and off-heap memory management. */
 package io.atomix.utils.memory;

@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Provides classes and interfaces for managing storage objects.
- */
+/** Provides classes and interfaces for managing storage objects. */
 package io.atomix.storage;

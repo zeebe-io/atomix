@@ -17,14 +17,11 @@ package io.atomix.cluster.discovery;
 
 import java.time.Duration;
 
-/**
- * Multicast discovery provider builder.
- */
+/** Multicast discovery provider builder. */
 public class MulticastDiscoveryBuilder extends NodeDiscoveryBuilder {
   private final MulticastDiscoveryConfig config = new MulticastDiscoveryConfig();
 
-  protected MulticastDiscoveryBuilder() {
-  }
+  protected MulticastDiscoveryBuilder() {}
 
   /**
    * Sets the broadcast interval.

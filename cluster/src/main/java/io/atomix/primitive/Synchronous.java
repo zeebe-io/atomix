@@ -17,14 +17,12 @@ package io.atomix.primitive;
 
 import io.atomix.primitive.protocol.PrimitiveProtocol;
 import io.atomix.utils.AtomixRuntimeException;
-
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * DistributedPrimitive that is a synchronous (blocking) version of
- * another.
+ * DistributedPrimitive that is a synchronous (blocking) version of another.
  *
  * @param <T> type of DistributedPrimitive
  */

@@ -17,10 +17,9 @@ package io.atomix.core.test.protocol;
 
 import io.atomix.primitive.protocol.PrimitiveProtocolBuilder;
 
-/**
- * Test protocol builder.
- */
-public class TestProtocolBuilder extends PrimitiveProtocolBuilder<TestProtocolBuilder, TestProtocolConfig, TestProtocol> {
+/** Test protocol builder. */
+public class TestProtocolBuilder
+    extends PrimitiveProtocolBuilder<TestProtocolBuilder, TestProtocolConfig, TestProtocol> {
   TestProtocolBuilder(TestProtocolConfig config) {
     super(config);
   }

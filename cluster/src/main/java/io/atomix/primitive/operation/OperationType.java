@@ -15,17 +15,11 @@
  */
 package io.atomix.primitive.operation;
 
-/**
- * Raft operation type.
- */
+/** Raft operation type. */
 public enum OperationType {
-  /**
-   * Command operation.
-   */
+  /** Command operation. */
   COMMAND,
 
-  /**
-   * Query operation.
-   */
+  /** Query operation. */
   QUERY,
 }

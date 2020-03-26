@@ -19,9 +19,7 @@ import com.google.common.annotations.Beta;
 import io.atomix.primitive.PrimitiveManagementService;
 import io.atomix.utils.serializer.Serializer;
 
-/**
- * Navigable map protocol.
- */
+/** Navigable map protocol. */
 @Beta
 public interface NavigableMapProtocol extends SortedMapProtocol {
 
@@ -33,6 +31,6 @@ public interface NavigableMapProtocol extends SortedMapProtocol {
    * @param managementService the primitive management service
    * @return a new map delegate
    */
-  <K, V> NavigableMapDelegate<K, V> newNavigableMapDelegate(String name, Serializer serializer, PrimitiveManagementService managementService);
-
+  <K, V> NavigableMapDelegate<K, V> newNavigableMapDelegate(
+      String name, Serializer serializer, PrimitiveManagementService managementService);
 }

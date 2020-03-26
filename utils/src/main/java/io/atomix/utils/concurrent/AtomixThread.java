@@ -19,12 +19,14 @@ import java.lang.ref.WeakReference;
 
 /**
  * Atomix thread.
- * <p>
- * The Atomix thread primarily serves to store a {@link ThreadContext} for the current thread.
- * The context is stored in a {@link WeakReference} in order to allow the thread to be garbage collected.
- * <p>
- * There is no {@link ThreadContext} associated with the thread when it is first created.
- * It is the responsibility of thread creators to {@link #setContext(ThreadContext) set} the thread context when appropriate.
+ *
+ * <p>The Atomix thread primarily serves to store a {@link ThreadContext} for the current thread.
+ * The context is stored in a {@link WeakReference} in order to allow the thread to be garbage
+ * collected.
+ *
+ * <p>There is no {@link ThreadContext} associated with the thread when it is first created. It is
+ * the responsibility of thread creators to {@link #setContext(ThreadContext) set} the thread
+ * context when appropriate.
  *
  * @author <a href="http://github.com/kuujo">Jordan Halterman</a>
  */
@@ -52,5 +54,4 @@ public class AtomixThread extends Thread {
   public ThreadContext getContext() {
     return context != null ? context.get() : null;
   }
-
 }

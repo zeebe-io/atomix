@@ -17,9 +17,7 @@ package io.atomix.utils.concurrent;
 
 import java.util.concurrent.ScheduledExecutorService;
 
-/**
- * Blocking aware thread pool context.
- */
+/** Blocking aware thread pool context. */
 public class BlockingAwareThreadPoolContext extends ThreadPoolContext {
   public BlockingAwareThreadPoolContext(ScheduledExecutorService parent) {
     super(parent);

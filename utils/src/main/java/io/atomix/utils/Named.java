@@ -15,9 +15,7 @@
  */
 package io.atomix.utils;
 
-/**
- * Named object.
- */
+/** Named object. */
 public interface Named {
 
   /**
@@ -26,5 +24,4 @@ public interface Named {
    * @return the object name
    */
   String name();
-
 }

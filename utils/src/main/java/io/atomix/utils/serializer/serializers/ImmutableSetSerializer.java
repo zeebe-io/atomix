@@ -21,14 +21,10 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.google.common.collect.ImmutableSet;
 
-/**
- * Kryo Serializer for {@link ImmutableSet}.
- */
+/** Kryo Serializer for {@link ImmutableSet}. */
 public class ImmutableSetSerializer extends Serializer<ImmutableSet<?>> {
 
-  /**
-   * Creates {@link ImmutableSet} serializer instance.
-   */
+  /** Creates {@link ImmutableSet} serializer instance. */
   public ImmutableSetSerializer() {
     // non-null, immutable
     super(false, true);
@@ -43,8 +39,7 @@ public class ImmutableSetSerializer extends Serializer<ImmutableSet<?>> {
   }
 
   @Override
-  public ImmutableSet<?> read(Kryo kryo, Input input,
-      Class<ImmutableSet<?>> type) {
+  public ImmutableSet<?> read(Kryo kryo, Input input, Class<ImmutableSet<?>> type) {
     final int size = input.readInt();
     switch (size) {
       case 0:

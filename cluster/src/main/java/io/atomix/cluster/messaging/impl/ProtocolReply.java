@@ -18,36 +18,24 @@ package io.atomix.cluster.messaging.impl;
 import com.google.common.base.MoreObjects;
 import io.atomix.utils.misc.ArraySizeHashPrinter;
 
-/**
- * Internal reply message.
- */
+/** Internal reply message. */
 public final class ProtocolReply extends ProtocolMessage {
 
-  /**
-   * Message status.
-   */
+  /** Message status. */
   public enum Status {
 
     // NOTE: For backwards compatibility enum constant IDs should not be changed.
 
-    /**
-     * All ok.
-     */
+    /** All ok. */
     OK(0),
 
-    /**
-     * Response status signifying no registered handler.
-     */
+    /** Response status signifying no registered handler. */
     ERROR_NO_HANDLER(1),
 
-    /**
-     * Response status signifying an exception handling the message.
-     */
+    /** Response status signifying an exception handling the message. */
     ERROR_HANDLER_EXCEPTION(2),
 
-    /**
-     * Response status signifying invalid message structure.
-     */
+    /** Response status signifying invalid message structure. */
     PROTOCOL_EXCEPTION(3);
 
     private final int id;

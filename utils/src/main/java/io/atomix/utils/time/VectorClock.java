@@ -15,19 +15,16 @@
  */
 package io.atomix.utils.time;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 import com.google.common.annotations.Beta;
 import io.atomix.utils.Identifier;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
-/**
- * Vector clock.
- */
+/** Vector clock. */
 @Beta
 public class VectorClock<T extends Identifier> implements Clock<VectorTimestamp<T>> {
   private final T localIdentifier;
@@ -107,9 +104,6 @@ public class VectorClock<T extends Identifier> implements Clock<VectorTimestamp<
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("time", getTime())
-        .add("vector", getTimestamps())
-        .toString();
+    return toStringHelper(this).add("time", getTime()).add("vector", getTimestamps()).toString();
   }
 }

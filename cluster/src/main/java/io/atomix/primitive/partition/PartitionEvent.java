@@ -15,39 +15,28 @@
  */
 package io.atomix.primitive.partition;
 
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Optional;
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.atomix.cluster.MemberId;
 import io.atomix.utils.event.AbstractEvent;
 import io.atomix.utils.misc.TimestampPrinter;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Optional;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * Partition event.
- */
+/** Partition event. */
 public class PartitionEvent extends AbstractEvent<PartitionEvent.Type, PartitionId> {
 
-  /**
-   * Partition event type.
-   */
+  /** Partition event type. */
   public enum Type {
-    /**
-     * Event type indicating the partition primary has changed.
-     */
+    /** Event type indicating the partition primary has changed. */
     PRIMARY_CHANGED,
 
-    /**
-     * Event type indicating the partition backups have changed.
-     */
+    /** Event type indicating the partition backups have changed. */
     BACKUPS_CHANGED,
 
-    /**
-     * Event type indicating the partition membership has changed.
-     */
+    /** Event type indicating the partition membership has changed. */
     MEMBERS_CHANGED,
   }
 

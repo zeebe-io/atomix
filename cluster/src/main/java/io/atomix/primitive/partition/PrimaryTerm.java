@@ -15,20 +15,21 @@
  */
 package io.atomix.primitive.partition;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 /**
  * Partition primary term.
- * <p>
- * The primary term represents a single instance of a unique primary for a partition. Every term must have a unique
- * {@link #term()} number, and term numbers must be monotonically increasing, though not necessarily sequential.
- * The {@link #candidates()} should either list the set of non-{@link #primary() primary} members in order of priority
- * such that the default {@link #backups(int)} implementation can properly select backups or else {@link #backups(int)}
- * should be overridden.
+ *
+ * <p>The primary term represents a single instance of a unique primary for a partition. Every term
+ * must have a unique {@link #term()} number, and term numbers must be monotonically increasing,
+ * though not necessarily sequential. The {@link #candidates()} should either list the set of
+ * non-{@link #primary() primary} members in order of priority such that the default {@link
+ * #backups(int)} implementation can properly select backups or else {@link #backups(int)} should be
+ * overridden.
  */
 public class PrimaryTerm {
   private final long term;
@@ -43,9 +44,9 @@ public class PrimaryTerm {
 
   /**
    * Returns the primary term number.
-   * <p>
-   * The term number is monotonically increasing and guaranteed to be unique for a given {@link #primary()}. No two
-   * primaries may ever have the same term.
+   *
+   * <p>The term number is monotonically increasing and guaranteed to be unique for a given {@link
+   * #primary()}. No two primaries may ever have the same term.
    *
    * @return the primary term number
    */
@@ -55,8 +56,8 @@ public class PrimaryTerm {
 
   /**
    * Returns the primary member.
-   * <p>
-   * The primary is the node through which writes are replicated in the primary-backup protocol.
+   *
+   * <p>The primary is the node through which writes are replicated in the primary-backup protocol.
    *
    * @return the primary member
    */
@@ -66,9 +67,10 @@ public class PrimaryTerm {
 
   /**
    * Returns the list of members.
-   * <p>
-   * The candidate list represents the list of members that are participating in the election but not necessarily in
-   * replication. This list is used to select a set of {@link #backups(int) backups} based on a primitive configuration.
+   *
+   * <p>The candidate list represents the list of members that are participating in the election but
+   * not necessarily in replication. This list is used to select a set of {@link #backups(int)
+   * backups} based on a primitive configuration.
    *
    * @return the list of members
    */
@@ -78,10 +80,10 @@ public class PrimaryTerm {
 
   /**
    * Returns an ordered list of backup members.
-   * <p>
-   * The backups are populated from the set of {@link #candidates()} based on order and group information. The list of
-   * backups is guaranteed not to contain any duplicate {@link MemberGroup}s unless not enough groups exist to
-   * satisfy the number of backups.
+   *
+   * <p>The backups are populated from the set of {@link #candidates()} based on order and group
+   * information. The list of backups is guaranteed not to contain any duplicate {@link
+   * MemberGroup}s unless not enough groups exist to satisfy the number of backups.
    *
    * @param numBackups the number of backups to return
    * @return an ordered list of backup members

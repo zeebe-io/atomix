@@ -15,24 +15,24 @@
  */
 package io.atomix.utils.time;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ComparisonChain;
-
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ComparisonChain;
+import java.util.Objects;
+
 /**
- * A logical timestamp that derives its value from two input values. The first
- * value always takes precedence over the second value when comparing timestamps.
+ * A logical timestamp that derives its value from two input values. The first value always takes
+ * precedence over the second value when comparing timestamps.
  */
-public class MultiValuedTimestamp<T extends Comparable<T>, U extends Comparable<U>> implements Timestamp {
+public class MultiValuedTimestamp<T extends Comparable<T>, U extends Comparable<U>>
+    implements Timestamp {
   private final T value1;
   private final U value2;
 
   /**
-   * Creates a new timestamp based on two values. The first value has higher
-   * precedence than the second when comparing timestamps.
+   * Creates a new timestamp based on two values. The first value has higher precedence than the
+   * second when comparing timestamps.
    *
    * @param value1 first value
    * @param value2 second value
@@ -44,8 +44,8 @@ public class MultiValuedTimestamp<T extends Comparable<T>, U extends Comparable<
 
   @Override
   public int compareTo(Timestamp o) {
-    Preconditions.checkArgument(o instanceof MultiValuedTimestamp,
-        "Must be MultiValuedTimestamp", o);
+    Preconditions.checkArgument(
+        o instanceof MultiValuedTimestamp, "Must be MultiValuedTimestamp", o);
     MultiValuedTimestamp that = (MultiValuedTimestamp) o;
 
     return ComparisonChain.start()
@@ -68,16 +68,12 @@ public class MultiValuedTimestamp<T extends Comparable<T>, U extends Comparable<
       return false;
     }
     MultiValuedTimestamp that = (MultiValuedTimestamp) obj;
-    return Objects.equals(this.value1, that.value1)
-        && Objects.equals(this.value2, that.value2);
+    return Objects.equals(this.value1, that.value1) && Objects.equals(this.value2, that.value2);
   }
 
   @Override
   public String toString() {
-    return toStringHelper(getClass())
-        .add("value1", value1)
-        .add("value2", value2)
-        .toString();
+    return toStringHelper(getClass()).add("value1", value1).add("value2", value2).toString();
   }
 
   /**

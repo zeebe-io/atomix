@@ -17,8 +17,5 @@ package io.atomix.cluster.messaging;
 
 import io.atomix.utils.Managed;
 
-/**
- * Managed messaging service.
- */
-public interface ManagedMessagingService extends MessagingService, Managed<MessagingService> {
-}
+/** Managed messaging service. */
+public interface ManagedMessagingService extends MessagingService, Managed<MessagingService> {}

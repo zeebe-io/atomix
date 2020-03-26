@@ -15,12 +15,11 @@
  */
 package io.atomix.storage.buffer;
 
-import org.junit.Test;
-
-import java.nio.ByteBuffer;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
+import java.nio.ByteBuffer;
+import org.junit.Test;
 
 /**
  * Direct buffer test.
@@ -52,5 +51,4 @@ public class DirectBufferTest extends BufferTest {
     assertTrue(directBuffer.isDirect());
     directBuffer.release();
   }
-
 }

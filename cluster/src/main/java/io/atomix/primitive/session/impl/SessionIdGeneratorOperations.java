@@ -22,9 +22,9 @@ import io.atomix.utils.serializer.Namespaces;
 
 /**
  * ID generator operations.
- * <p>
- * WARNING: Do not refactor enum values. Only add to them.
- * Changing values risk breaking the ability to backup/restore/upgrade clusters.
+ *
+ * <p>WARNING: Do not refactor enum values. Only add to them. Changing values risk breaking the
+ * ability to backup/restore/upgrade clusters.
  */
 public enum SessionIdGeneratorOperations implements OperationId {
   NEXT(OperationType.COMMAND);
@@ -45,8 +45,9 @@ public enum SessionIdGeneratorOperations implements OperationId {
     return type;
   }
 
-  public static final Namespace NAMESPACE = Namespace.builder()
-      .register(Namespaces.BASIC)
-      .nextId(Namespaces.BEGIN_USER_CUSTOM_ID)
-      .build(SessionIdGeneratorOperations.class.getSimpleName());
+  public static final Namespace NAMESPACE =
+      Namespace.builder()
+          .register(Namespaces.BASIC)
+          .nextId(Namespaces.BEGIN_USER_CUSTOM_ID)
+          .build(SessionIdGeneratorOperations.class.getSimpleName());
 }

@@ -17,9 +17,7 @@ package io.atomix.storage.journal.index;
 
 import io.atomix.storage.journal.Indexed;
 
-/**
- * Journal index.
- */
+/** Journal index. */
 public interface JournalIndex {
 
   /**
@@ -50,12 +48,11 @@ public interface JournalIndex {
    * Compacts the index until the next stored index (exclusively), which means everything lower then
    * the stored index will be removed.
    *
-   * <p>Example Index: {5 -> 10; 10 -> 20; 15 -> 30}, when compact is called with index 11.
-   * The next lower stored index is 10, everything lower then this index will be removed. This means
-   * the mapping {5 -> 10}, should be removed.
+   * <p>Example Index: {5 -> 10; 10 -> 20; 15 -> 30}, when compact is called with index 11. The next
+   * lower stored index is 10, everything lower then this index will be removed. This means the
+   * mapping {5 -> 10}, should be removed.
    *
    * @param index the index to which to compact the index
    */
   void compact(long index);
-
 }

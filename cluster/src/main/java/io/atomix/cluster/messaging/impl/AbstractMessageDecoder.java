@@ -15,17 +15,14 @@
  */
 package io.atomix.cluster.messaging.impl;
 
-import java.nio.charset.StandardCharsets;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
+import java.nio.charset.StandardCharsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Decoder for inbound messages.
- */
+/** Decoder for inbound messages. */
 abstract class AbstractMessageDecoder extends ByteToMessageDecoder {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
@@ -33,8 +30,7 @@ abstract class AbstractMessageDecoder extends ByteToMessageDecoder {
   private static final Escape ESCAPE = new Escape();
   static final byte[] EMPTY_PAYLOAD = new byte[0];
 
-  static class Escape extends RuntimeException {
-  }
+  static class Escape extends RuntimeException {}
 
   static int readInt(ByteBuf buffer) {
     if (buffer.readableBytes() < 5) {
@@ -234,7 +230,12 @@ abstract class AbstractMessageDecoder extends ByteToMessageDecoder {
       buffer.skipBytes(length);
       return result;
     } else if (buffer.hasArray()) {
-      final String result = new String(buffer.array(), buffer.arrayOffset() + buffer.readerIndex(), length, StandardCharsets.UTF_8);
+      final String result =
+          new String(
+              buffer.array(),
+              buffer.arrayOffset() + buffer.readerIndex(),
+              length,
+              StandardCharsets.UTF_8);
       buffer.skipBytes(length);
       return result;
     } else {

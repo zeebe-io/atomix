@@ -17,8 +17,5 @@ package io.atomix.primitive.partition;
 
 import io.atomix.utils.Managed;
 
-/**
- * Managed partition service.
- */
-public interface ManagedPartitionService extends PartitionService, Managed<PartitionService> {
-}
+/** Managed partition service. */
+public interface ManagedPartitionService extends PartitionService, Managed<PartitionService> {}

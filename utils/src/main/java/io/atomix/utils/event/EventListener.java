@@ -15,9 +15,7 @@
  */
 package io.atomix.utils.event;
 
-/**
- * Entity capable of receiving events.
- */
+/** Entity capable of receiving events. */
 @FunctionalInterface
 public interface EventListener<E extends Event> extends EventFilter<E> {
 
@@ -27,5 +25,4 @@ public interface EventListener<E extends Event> extends EventFilter<E> {
    * @param event event to be processed
    */
   void event(E event);
-
 }

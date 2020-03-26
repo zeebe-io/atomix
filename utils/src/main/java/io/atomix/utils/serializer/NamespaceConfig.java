@@ -16,13 +16,10 @@
 package io.atomix.utils.serializer;
 
 import io.atomix.utils.config.Config;
-
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Namespace configuration.
- */
+/** Namespace configuration. */
 public class NamespaceConfig implements Config {
   private String name = Namespace.NO_NAME;
   private boolean registrationRequired = true;

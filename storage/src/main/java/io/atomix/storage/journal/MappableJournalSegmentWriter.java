@@ -22,9 +22,7 @@ import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
-/**
- * Mappable log segment writer.
- */
+/** Mappable log segment writer. */
 class MappableJournalSegmentWriter<E> implements JournalWriter<E> {
 
   private final FileChannel channel;
@@ -45,8 +43,8 @@ class MappableJournalSegmentWriter<E> implements JournalWriter<E> {
     this.maxEntrySize = maxEntrySize;
     this.index = index;
     this.namespace = namespace;
-    this.writer = new FileChannelJournalSegmentWriter<>(channel, segment, maxEntrySize, index,
-        namespace);
+    this.writer =
+        new FileChannelJournalSegmentWriter<>(channel, segment, maxEntrySize, index, namespace);
   }
 
   /**
@@ -61,10 +59,10 @@ class MappableJournalSegmentWriter<E> implements JournalWriter<E> {
 
     try {
       JournalWriter<E> writer = this.writer;
-      MappedByteBuffer buffer = channel
-          .map(FileChannel.MapMode.READ_WRITE, 0, segment.descriptor().maxSegmentSize());
-      this.writer = new MappedJournalSegmentWriter<>(buffer, segment, maxEntrySize, index,
-          namespace);
+      MappedByteBuffer buffer =
+          channel.map(FileChannel.MapMode.READ_WRITE, 0, segment.descriptor().maxSegmentSize());
+      this.writer =
+          new MappedJournalSegmentWriter<>(buffer, segment, maxEntrySize, index, namespace);
       writer.close();
       return buffer;
     } catch (IOException e) {
@@ -72,14 +70,12 @@ class MappableJournalSegmentWriter<E> implements JournalWriter<E> {
     }
   }
 
-  /**
-   * Unmaps the mapped buffer.
-   */
+  /** Unmaps the mapped buffer. */
   void unmap() {
     if (writer instanceof MappedJournalSegmentWriter) {
       JournalWriter<E> writer = this.writer;
-      this.writer = new FileChannelJournalSegmentWriter<>(channel, segment, maxEntrySize, index,
-          namespace);
+      this.writer =
+          new FileChannelJournalSegmentWriter<>(channel, segment, maxEntrySize, index, namespace);
       writer.close();
     }
   }

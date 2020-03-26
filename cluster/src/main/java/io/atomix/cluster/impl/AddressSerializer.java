@@ -20,9 +20,7 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import io.atomix.utils.net.Address;
 
-/**
- * Address serializer.
- */
+/** Address serializer. */
 public class AddressSerializer extends com.esotericsoftware.kryo.Serializer<Address> {
   @Override
   public void write(Kryo kryo, Output output, Address address) {

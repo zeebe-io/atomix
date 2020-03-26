@@ -17,8 +17,5 @@ package io.atomix.primitive;
 
 import io.atomix.utils.Managed;
 
-/**
- * Managed primitive registry.
- */
-public interface ManagedPrimitiveRegistry extends PrimitiveRegistry, Managed<PrimitiveRegistry> {
-}
+/** Managed primitive registry. */
+public interface ManagedPrimitiveRegistry extends PrimitiveRegistry, Managed<PrimitiveRegistry> {}

@@ -15,15 +15,12 @@
  */
 package io.atomix.cluster.messaging.impl;
 
+import java.util.Optional;
+import java.util.function.BiConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Optional;
-import java.util.function.BiConsumer;
-
-/**
- * Base class for server-side connections. Manages dispatching requests to message handlers.
- */
+/** Base class for server-side connections. Manages dispatching requests to message handlers. */
 abstract class AbstractServerConnection implements ServerConnection {
   private final Logger log = LoggerFactory.getLogger(getClass());
   private final HandlerRegistry handlers;

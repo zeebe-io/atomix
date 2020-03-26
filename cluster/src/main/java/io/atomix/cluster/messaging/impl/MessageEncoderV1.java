@@ -15,14 +15,11 @@
  */
 package io.atomix.cluster.messaging.impl;
 
-import java.net.InetAddress;
-
 import io.atomix.utils.net.Address;
 import io.netty.buffer.ByteBuf;
+import java.net.InetAddress;
 
-/**
- * V1 message encoder.
- */
+/** V1 message encoder. */
 class MessageEncoderV1 extends AbstractMessageEncoder {
   MessageEncoderV1(Address address) {
     super(address);

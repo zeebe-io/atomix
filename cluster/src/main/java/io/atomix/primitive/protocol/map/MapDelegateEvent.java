@@ -17,28 +17,18 @@ package io.atomix.primitive.protocol.map;
 
 import io.atomix.utils.event.AbstractEvent;
 
-/**
- * Map protocol event.
- */
+/** Map protocol event. */
 public class MapDelegateEvent<K, V> extends AbstractEvent<MapDelegateEvent.Type, K> {
 
-  /**
-   * Map protocol event type.
-   */
+  /** Map protocol event type. */
   public enum Type {
-    /**
-     * Entry added to map.
-     */
+    /** Entry added to map. */
     INSERT,
 
-    /**
-     * Existing entry updated.
-     */
+    /** Existing entry updated. */
     UPDATE,
 
-    /**
-     * Entry removed from map.
-     */
+    /** Entry removed from map. */
     REMOVE
   }
 

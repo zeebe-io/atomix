@@ -16,7 +16,6 @@
 package io.atomix.core.workqueue;
 
 import com.google.common.base.MoreObjects;
-
 import java.util.function.Function;
 
 /**
@@ -36,7 +35,7 @@ public class Task<E> {
   /**
    * Constructs a new task instance.
    *
-   * @param taskId  task identifier
+   * @param taskId task identifier
    * @param payload task payload
    */
   public Task(String taskId, E payload) {
@@ -65,7 +64,7 @@ public class Task<E> {
   /**
    * Maps task from one payload type to another.
    *
-   * @param <F>    future type
+   * @param <F> future type
    * @param mapper type mapper.
    * @return mapped task.
    */

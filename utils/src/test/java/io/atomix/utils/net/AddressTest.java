@@ -15,14 +15,12 @@
  */
 package io.atomix.utils.net;
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-
-/**
- * Address test.
- */
+/** Address test. */
 public class AddressTest {
   @Test
   public void testIPv4Address() throws Exception {

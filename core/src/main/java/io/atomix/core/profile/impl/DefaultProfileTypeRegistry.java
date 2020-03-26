@@ -17,13 +17,10 @@ package io.atomix.core.profile.impl;
 
 import io.atomix.core.profile.Profile;
 import io.atomix.core.profile.ProfileTypeRegistry;
-
 import java.util.Collection;
 import java.util.Map;
 
-/**
- * Profile type registry.
- */
+/** Profile type registry. */
 public class DefaultProfileTypeRegistry implements ProfileTypeRegistry {
   private final Map<String, Profile.Type> profileTypes;
 

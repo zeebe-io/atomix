@@ -19,9 +19,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-/**
- * Retrying function test.
- */
+/** Retrying function test. */
 public class RetryingFunctionTest {
   private int round;
 
@@ -37,22 +35,26 @@ public class RetryingFunctionTest {
 
   @Test(expected = RetryableException.class)
   public void testNoRetries() {
-    new RetryingFunction<>(this::succeedAfterOneFailure, RetryableException.class, 0, 10).apply(null);
+    new RetryingFunction<>(this::succeedAfterOneFailure, RetryableException.class, 0, 10)
+        .apply(null);
   }
 
   @Test
   public void testSuccessAfterOneRetry() {
-    new RetryingFunction<>(this::succeedAfterOneFailure, RetryableException.class, 1, 10).apply(null);
+    new RetryingFunction<>(this::succeedAfterOneFailure, RetryableException.class, 1, 10)
+        .apply(null);
   }
 
   @Test(expected = RetryableException.class)
   public void testFailureAfterOneRetry() {
-    new RetryingFunction<>(this::succeedAfterTwoFailures, RetryableException.class, 1, 10).apply(null);
+    new RetryingFunction<>(this::succeedAfterTwoFailures, RetryableException.class, 1, 10)
+        .apply(null);
   }
 
   @Test
   public void testFailureAfterTwoRetries() {
-    new RetryingFunction<>(this::succeedAfterTwoFailures, RetryableException.class, 2, 10).apply(null);
+    new RetryingFunction<>(this::succeedAfterTwoFailures, RetryableException.class, 2, 10)
+        .apply(null);
   }
 
   @Test(expected = NonRetryableException.class)
@@ -84,9 +86,7 @@ public class RetryingFunctionTest {
     }
   }
 
-  private static class RetryableException extends RuntimeException {
-  }
+  private static class RetryableException extends RuntimeException {}
 
-  private static class NonRetryableException extends RuntimeException {
-  }
+  private static class NonRetryableException extends RuntimeException {}
 }

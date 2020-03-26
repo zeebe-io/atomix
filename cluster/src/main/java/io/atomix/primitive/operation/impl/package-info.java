@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Distributed primitive operation implementations.
- */
+/** Distributed primitive operation implementations. */
 package io.atomix.primitive.operation.impl;

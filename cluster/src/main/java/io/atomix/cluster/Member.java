@@ -15,18 +15,15 @@
  */
 package io.atomix.cluster;
 
-import io.atomix.utils.Version;
-import io.atomix.utils.net.Address;
-
-import java.util.Objects;
-import java.util.Properties;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Represents a node as a member in a cluster.
- */
+import io.atomix.utils.Version;
+import io.atomix.utils.net.Address;
+import java.util.Objects;
+import java.util.Properties;
+
+/** Represents a node as a member in a cluster. */
 public class Member extends Node {
 
   /**
@@ -73,7 +70,7 @@ public class Member extends Node {
   /**
    * Returns a new named cluster member.
    *
-   * @param name    the member identifier
+   * @param name the member identifier
    * @param address the member address
    * @return the member
    */
@@ -88,22 +85,18 @@ public class Member extends Node {
    * @return the member
    */
   public static Member member(Address address) {
-    return builder()
-        .withAddress(address)
-        .build();
+    return builder().withAddress(address).build();
   }
 
   /**
    * Returns a new named cluster member.
    *
    * @param memberId the member identifier
-   * @param address  the member address
+   * @param address the member address
    * @return the member
    */
   public static Member member(MemberId memberId, Address address) {
-    return builder(memberId)
-        .withAddress(address)
-        .build();
+    return builder(memberId).withAddress(address).build();
   }
 
   private final MemberId id;
@@ -126,7 +119,8 @@ public class Member extends Node {
     this(id, address, null, null, null, new Properties());
   }
 
-  protected Member(MemberId id, Address address, String zone, String rack, String host, Properties properties) {
+  protected Member(
+      MemberId id, Address address, String zone, String rack, String host, Properties properties) {
     super(id, address);
     this.id = checkNotNull(id, "id cannot be null");
     this.zone = zone;

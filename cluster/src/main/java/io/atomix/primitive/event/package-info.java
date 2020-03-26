@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Provides interfaces for defining distributed primitive events.
- */
+/** Provides interfaces for defining distributed primitive events. */
 package io.atomix.primitive.event;

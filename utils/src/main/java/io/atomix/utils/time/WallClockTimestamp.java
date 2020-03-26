@@ -15,16 +15,15 @@
  */
 package io.atomix.utils.time;
 
-import com.google.common.collect.ComparisonChain;
-import io.atomix.utils.misc.TimestampPrinter;
-
-import java.util.Objects;
-
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.common.collect.ComparisonChain;
+import io.atomix.utils.misc.TimestampPrinter;
+import java.util.Objects;
+
 /**
- * A Timestamp that derives its value from the prevailing
- * wallclock time on the controller where it is generated.
+ * A Timestamp that derives its value from the prevailing wallclock time on the controller where it
+ * is generated.
  */
 public class WallClockTimestamp implements Timestamp {
 
@@ -50,13 +49,10 @@ public class WallClockTimestamp implements Timestamp {
 
   @Override
   public int compareTo(Timestamp o) {
-    checkArgument(o instanceof WallClockTimestamp,
-        "Must be WallClockTimestamp", o);
+    checkArgument(o instanceof WallClockTimestamp, "Must be WallClockTimestamp", o);
     WallClockTimestamp that = (WallClockTimestamp) o;
 
-    return ComparisonChain.start()
-        .compare(this.unixTimestamp, that.unixTimestamp)
-        .result();
+    return ComparisonChain.start().compare(this.unixTimestamp, that.unixTimestamp).result();
   }
 
   @Override

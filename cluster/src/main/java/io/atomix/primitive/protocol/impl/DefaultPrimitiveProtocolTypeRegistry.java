@@ -17,14 +17,11 @@ package io.atomix.primitive.protocol.impl;
 
 import io.atomix.primitive.protocol.PrimitiveProtocol;
 import io.atomix.primitive.protocol.PrimitiveProtocolTypeRegistry;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Primitive protocol type registry.
- */
+/** Primitive protocol type registry. */
 public class DefaultPrimitiveProtocolTypeRegistry implements PrimitiveProtocolTypeRegistry {
   private final Map<String, PrimitiveProtocol.Type> protocolTypes = new ConcurrentHashMap<>();
 

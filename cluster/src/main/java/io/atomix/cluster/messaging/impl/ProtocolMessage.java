@@ -15,14 +15,10 @@
  */
 package io.atomix.cluster.messaging.impl;
 
-/**
- * Base class for internal messages.
- */
+/** Base class for internal messages. */
 public abstract class ProtocolMessage {
 
-  /**
-   * Internal message type.
-   */
+  /** Internal message type. */
   public enum Type {
     REQUEST(1),
     REPLY(2);

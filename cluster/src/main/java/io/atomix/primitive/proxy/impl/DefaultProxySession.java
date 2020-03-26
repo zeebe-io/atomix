@@ -29,9 +29,6 @@ import io.atomix.primitive.session.SessionClient;
 import io.atomix.utils.concurrent.Futures;
 import io.atomix.utils.concurrent.ThreadContext;
 import io.atomix.utils.serializer.Serializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -40,10 +37,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * Lazy partition proxy.
- */
+/** Lazy partition proxy. */
 public class DefaultProxySession<S> implements ProxySession<S> {
   private final Logger log = LoggerFactory.getLogger(getClass());
   private final SessionClient session;
@@ -57,7 +54,10 @@ public class DefaultProxySession<S> implements ProxySession<S> {
     this.session = session;
     this.serializer = serializer;
     ServiceProxyHandler serviceProxyHandler = new ServiceProxyHandler(serviceType);
-    S serviceProxy = (S) java.lang.reflect.Proxy.newProxyInstance(serviceType.getClassLoader(), new Class[]{serviceType}, serviceProxyHandler);
+    S serviceProxy =
+        (S)
+            java.lang.reflect.Proxy.newProxyInstance(
+                serviceType.getClassLoader(), new Class[] {serviceType}, serviceProxyHandler);
     proxy = new ServiceProxy<>(serviceProxy, serviceProxyHandler);
   }
 
@@ -88,15 +88,19 @@ public class DefaultProxySession<S> implements ProxySession<S> {
 
   @Override
   public void register(Object client) {
-    Events.getEventMap(client.getClass()).forEach((eventType, method) -> {
-      session.addEventListener(eventType, event -> {
-        try {
-          method.invoke(client, (Object[]) decode(event.value()));
-        } catch (IllegalAccessException | InvocationTargetException e) {
-          log.warn("Failed to handle event", e);
-        }
-      });
-    });
+    Events.getEventMap(client.getClass())
+        .forEach(
+            (eventType, method) -> {
+              session.addEventListener(
+                  eventType,
+                  event -> {
+                    try {
+                      method.invoke(client, (Object[]) decode(event.value()));
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                      log.warn("Failed to handle event", e);
+                    }
+                  });
+            });
   }
 
   @Override
@@ -160,7 +164,7 @@ public class DefaultProxySession<S> implements ProxySession<S> {
    * Encodes the given object using the configured {@link #serializer()}.
    *
    * @param object the object to encode
-   * @param <T>    the object type
+   * @param <T> the object type
    * @return the encoded bytes
    */
   protected <T> byte[] encode(T object) {
@@ -171,16 +175,14 @@ public class DefaultProxySession<S> implements ProxySession<S> {
    * Decodes the given object using the configured {@link #serializer()}.
    *
    * @param bytes the bytes to decode
-   * @param <T>   the object type
+   * @param <T> the object type
    * @return the decoded object
    */
   protected <T> T decode(byte[] bytes) {
     return bytes != null ? serializer().decode(bytes) : null;
   }
 
-  /**
-   * Service proxy container.
-   */
+  /** Service proxy container. */
   private class ServiceProxy<S> {
     private final S proxy;
     private final ServiceProxyHandler handler;
@@ -205,7 +207,7 @@ public class DefaultProxySession<S> implements ProxySession<S> {
      * Invokes a function on the underlying proxy.
      *
      * @param operation the operation to perform on the proxy
-     * @param <T>       the operation return type
+     * @param <T> the operation return type
      * @return the future result
      */
     <T> CompletableFuture<T> apply(Function<S, T> operation) {
@@ -216,8 +218,8 @@ public class DefaultProxySession<S> implements ProxySession<S> {
 
   /**
    * Service proxy invocation handler.
-   * <p>
-   * The invocation handler
+   *
+   * <p>The invocation handler
    */
   private class ServiceProxyHandler implements InvocationHandler {
     private final ThreadLocal<CompletableFuture> future = new ThreadLocal<>();
@@ -231,8 +233,10 @@ public class DefaultProxySession<S> implements ProxySession<S> {
     public Object invoke(Object object, Method method, Object[] args) throws Throwable {
       OperationId operationId = operations.get(method);
       if (operationId != null) {
-        future.set(session.execute(PrimitiveOperation.operation(operationId, encode(args)))
-            .thenApply(DefaultProxySession.this::decode));
+        future.set(
+            session
+                .execute(PrimitiveOperation.operation(operationId, encode(args)))
+                .thenApply(DefaultProxySession.this::decode));
       } else {
         throw new PrimitiveException("Unknown primitive operation: " + method.getName());
       }

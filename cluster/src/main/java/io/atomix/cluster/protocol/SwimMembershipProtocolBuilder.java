@@ -17,9 +17,7 @@ package io.atomix.cluster.protocol;
 
 import java.time.Duration;
 
-/**
- * SWIM membership protocol builder.
- */
+/** SWIM membership protocol builder. */
 public class SwimMembershipProtocolBuilder extends GroupMembershipProtocolBuilder {
   private final SwimMembershipProtocolConfig config = new SwimMembershipProtocolConfig();
 

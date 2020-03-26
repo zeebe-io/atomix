@@ -21,10 +21,9 @@ import io.atomix.utils.config.NamedConfig;
 import io.atomix.utils.config.TypedConfig;
 import io.atomix.utils.serializer.NamespaceConfig;
 
-/**
- * Primitive configuration.
- */
-public abstract class PrimitiveConfig<C extends PrimitiveConfig<C>> implements TypedConfig<PrimitiveType>, NamedConfig<C> {
+/** Primitive configuration. */
+public abstract class PrimitiveConfig<C extends PrimitiveConfig<C>>
+    implements TypedConfig<PrimitiveType>, NamedConfig<C> {
   private String name;
   private NamespaceConfig namespaceConfig;
   private PrimitiveProtocolConfig protocolConfig;

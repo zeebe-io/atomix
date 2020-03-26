@@ -15,22 +15,20 @@
  */
 package io.atomix.primitive.partition;
 
-import io.atomix.cluster.MemberId;
-
-import java.util.Set;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-/**
- * Partition group membership information.
- */
+import io.atomix.cluster.MemberId;
+import java.util.Set;
+
+/** Partition group membership information. */
 public final class PartitionGroupMembership {
   private final String group;
   private final PartitionGroupConfig config;
   private final Set<MemberId> members;
   private final boolean system;
 
-  public PartitionGroupMembership(String group, PartitionGroupConfig config, Set<MemberId> members, boolean system) {
+  public PartitionGroupMembership(
+      String group, PartitionGroupConfig config, Set<MemberId> members, boolean system) {
     this.group = group;
     this.config = config;
     this.members = members;
@@ -75,9 +73,6 @@ public final class PartitionGroupMembership {
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("group", group())
-        .add("members", members())
-        .toString();
+    return toStringHelper(this).add("group", group()).add("members", members()).toString();
   }
 }

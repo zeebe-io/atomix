@@ -15,8 +15,6 @@
  */
 package io.atomix.cluster.discovery;
 
-/**
- * Node discovery builder.
- */
-public abstract class NodeDiscoveryBuilder implements io.atomix.utils.Builder<NodeDiscoveryProvider> {
-}
+/** Node discovery builder. */
+public abstract class NodeDiscoveryBuilder
+    implements io.atomix.utils.Builder<NodeDiscoveryProvider> {}

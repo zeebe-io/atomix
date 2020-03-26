@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Log-based primitive interfaces.
- */
+/** Log-based primitive interfaces. */
 package io.atomix.primitive.log;

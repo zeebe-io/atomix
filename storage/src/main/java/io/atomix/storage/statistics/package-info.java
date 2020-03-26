@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Provides utilities for querying system storage information.
- */
+/** Provides utilities for querying system storage information. */
 package io.atomix.storage.statistics;

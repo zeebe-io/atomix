@@ -19,9 +19,7 @@ import com.google.common.annotations.Beta;
 import io.atomix.primitive.PrimitiveManagementService;
 import io.atomix.utils.serializer.Serializer;
 
-/**
- * Sorted set protocol.
- */
+/** Sorted set protocol. */
 @Beta
 public interface SortedSetProtocol extends SetProtocol {
 
@@ -34,6 +32,6 @@ public interface SortedSetProtocol extends SetProtocol {
    * @param <E> the set element type
    * @return a new set delegate
    */
-  <E> SortedSetDelegate<E> newSortedSetDelegate(String name, Serializer serializer, PrimitiveManagementService managementService);
-
+  <E> SortedSetDelegate<E> newSortedSetDelegate(
+      String name, Serializer serializer, PrimitiveManagementService managementService);
 }

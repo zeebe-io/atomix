@@ -15,9 +15,7 @@
  */
 package io.atomix.utils.time;
 
-/**
- * Clock.
- */
+/** Clock. */
 public interface Clock<T extends Timestamp> {
 
   /**
@@ -26,5 +24,4 @@ public interface Clock<T extends Timestamp> {
    * @return the current time
    */
   T getTime();
-
 }

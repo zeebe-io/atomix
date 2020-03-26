@@ -21,19 +21,14 @@ import io.atomix.primitive.protocol.ProxyProtocol;
 import io.atomix.utils.ConfiguredType;
 import io.atomix.utils.config.Configured;
 import io.atomix.utils.serializer.Namespace;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * Primitive partition group.
- */
+/** Primitive partition group. */
 public interface PartitionGroup extends Configured<PartitionGroupConfig> {
 
-  /**
-   * Partition group type.
-   */
+  /** Partition group type. */
   interface Type<C extends PartitionGroupConfig<C>> extends ConfiguredType<C> {
 
     /**
@@ -114,10 +109,9 @@ public interface PartitionGroup extends Configured<PartitionGroupConfig> {
    */
   List<PartitionId> getPartitionIds();
 
-  /**
-   * Partition group builder.
-   */
-  abstract class Builder<C extends PartitionGroupConfig<C>> implements io.atomix.utils.Builder<ManagedPartitionGroup> {
+  /** Partition group builder. */
+  abstract class Builder<C extends PartitionGroupConfig<C>>
+      implements io.atomix.utils.Builder<ManagedPartitionGroup> {
     protected final C config;
 
     protected Builder(C config) {

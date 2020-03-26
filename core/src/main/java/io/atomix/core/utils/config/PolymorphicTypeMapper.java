@@ -19,15 +19,16 @@ import io.atomix.core.AtomixRegistry;
 import io.atomix.utils.ConfiguredType;
 import io.atomix.utils.config.TypedConfig;
 
-/**
- * Polymorphic type mapper.
- */
+/** Polymorphic type mapper. */
 public class PolymorphicTypeMapper {
   private final String typePath;
   private final Class<? extends TypedConfig> configClass;
   private final Class<? extends ConfiguredType> typeClass;
 
-  public PolymorphicTypeMapper(String typePath, Class<? extends TypedConfig> configClass, Class<? extends ConfiguredType> typeClass) {
+  public PolymorphicTypeMapper(
+      String typePath,
+      Class<? extends TypedConfig> configClass,
+      Class<? extends ConfiguredType> typeClass) {
     this.typePath = typePath;
     this.configClass = configClass;
     this.typeClass = typeClass;
@@ -68,7 +69,8 @@ public class PolymorphicTypeMapper {
    * @return the concrete configuration class
    */
   @SuppressWarnings("unchecked")
-  public Class<? extends TypedConfig<?>> getConcreteClass(AtomixRegistry registry, String typeName) {
+  public Class<? extends TypedConfig<?>> getConcreteClass(
+      AtomixRegistry registry, String typeName) {
     ConfiguredType type = registry.getType(typeClass, typeName);
     if (type == null) {
       return null;

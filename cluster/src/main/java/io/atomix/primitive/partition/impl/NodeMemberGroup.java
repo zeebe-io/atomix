@@ -15,19 +15,16 @@
  */
 package io.atomix.primitive.partition.impl;
 
-import io.atomix.cluster.Member;
-import io.atomix.primitive.partition.MemberGroup;
-import io.atomix.primitive.partition.MemberGroupId;
-
-import java.util.Objects;
-import java.util.Set;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Node member group.
- */
+import io.atomix.cluster.Member;
+import io.atomix.primitive.partition.MemberGroup;
+import io.atomix.primitive.partition.MemberGroupId;
+import java.util.Objects;
+import java.util.Set;
+
+/** Node member group. */
 public class NodeMemberGroup implements MemberGroup {
   private final MemberGroupId groupId;
   private final Set<Member> members;
@@ -63,9 +60,6 @@ public class NodeMemberGroup implements MemberGroup {
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("id", groupId)
-        .add("nodes", members)
-        .toString();
+    return toStringHelper(this).add("id", groupId).add("nodes", members).toString();
   }
 }

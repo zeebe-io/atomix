@@ -17,15 +17,11 @@ package io.atomix.core.profile;
 
 import io.atomix.core.AtomixConfig;
 
-/**
- * Client profile.
- */
+/** Client profile. */
 public class ClientProfile implements Profile {
   public static final Type TYPE = new Type();
 
-  /**
-   * Client profile type.
-   */
+  /** Client profile type. */
   public static class Type implements Profile.Type<ClientProfileConfig> {
     private static final String NAME = "client";
 

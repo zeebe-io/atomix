@@ -52,9 +52,7 @@ import net.jodah.concurrentunit.ConcurrentTestCase;
 import org.junit.Before;
 import org.junit.Test;
 
-/**
- * SWIM membership protocol test.
- */
+/** SWIM membership protocol test. */
 public class SwimProtocolTest extends ConcurrentTestCase {
   private TestMessagingServiceFactory messagingServiceFactory = new TestMessagingServiceFactory();
   private TestUnicastServiceFactory unicastServiceFactory = new TestUnicastServiceFactory();
@@ -163,7 +161,8 @@ public class SwimProtocolTest extends ConcurrentTestCase {
     // Partition node 1 from node 2.
     partition(member1, member2);
 
-    // Verify that neither node is ever removed from the cluster since node 3 can still ping nodes 1 and 2.
+    // Verify that neither node is ever removed from the cluster since node 3 can still ping nodes 1
+    // and 2.
     Thread.sleep(5000);
     checkMembers(member1, member1, member2, member3);
     checkMembers(member2, member1, member2, member3);
@@ -182,7 +181,8 @@ public class SwimProtocolTest extends ConcurrentTestCase {
 
     // Stop member 3 and change its version.
     stopProtocol(member3);
-    Member member = member(member3.id().id(), member3.address().host(), member3.address().port(), version2);
+    Member member =
+        member(member3.id().id(), member3.address().host(), member3.address().port(), version2);
     startProtocol(member);
 
     // Verify that version 1 is removed and version 2 is added.
@@ -223,8 +223,14 @@ public class SwimProtocolTest extends ConcurrentTestCase {
     // when
     // isolate member3
     partition(member3);
-    checkEvents(member1, new GroupMembershipEvent(REACHABILITY_CHANGED, member3), new GroupMembershipEvent(MEMBER_REMOVED, member3));
-    checkEvents(member2, new GroupMembershipEvent(REACHABILITY_CHANGED, member3), new GroupMembershipEvent(MEMBER_REMOVED, member3));
+    checkEvents(
+        member1,
+        new GroupMembershipEvent(REACHABILITY_CHANGED, member3),
+        new GroupMembershipEvent(MEMBER_REMOVED, member3));
+    checkEvents(
+        member2,
+        new GroupMembershipEvent(REACHABILITY_CHANGED, member3),
+        new GroupMembershipEvent(MEMBER_REMOVED, member3));
     checkEvents(
         member3,
         new GroupMembershipEvent(REACHABILITY_CHANGED, member1),
@@ -256,7 +262,8 @@ public class SwimProtocolTest extends ConcurrentTestCase {
     return startProtocol(member, UnaryOperator.identity());
   }
 
-  private SwimMembershipProtocol startProtocol(Member member, UnaryOperator<SwimMembershipProtocolConfig> configurator) {
+  private SwimMembershipProtocol startProtocol(
+      Member member, UnaryOperator<SwimMembershipProtocolConfig> configurator) {
     SwimMembershipProtocol protocol =
         new SwimMembershipProtocol(
             configurator.apply(
@@ -264,13 +271,15 @@ public class SwimProtocolTest extends ConcurrentTestCase {
     TestGroupMembershipEventListener listener = new TestGroupMembershipEventListener();
     listeners.put(member.id(), listener);
     protocol.addListener(listener);
-    BootstrapService bootstrap = new TestBootstrapService(
-        messagingServiceFactory.newMessagingService(member.address()).start().join(),
-        unicastServiceFactory.newUnicastService(member.address()).start().join(),
-        broadcastServiceFactory.newBroadcastService().start().join());
+    BootstrapService bootstrap =
+        new TestBootstrapService(
+            messagingServiceFactory.newMessagingService(member.address()).start().join(),
+            unicastServiceFactory.newUnicastService(member.address()).start().join(),
+            broadcastServiceFactory.newBroadcastService().start().join());
     NodeDiscoveryProvider provider = new BootstrapDiscoveryProvider(nodes);
     provider.join(bootstrap, member).join();
-    NodeDiscoveryService discovery = new DefaultNodeDiscoveryService(bootstrap, member, provider).start().join();
+    NodeDiscoveryService discovery =
+        new DefaultNodeDiscoveryService(bootstrap, member, provider).start().join();
     protocol.join(bootstrap, discovery, member).join();
     protocols.put(member.id(), protocol);
     return protocol;
@@ -308,7 +317,8 @@ public class SwimProtocolTest extends ConcurrentTestCase {
     assertEquals(Sets.newHashSet(members), protocol.getMembers());
   }
 
-  private void checkEvents(Member member, GroupMembershipEvent... types) throws InterruptedException {
+  private void checkEvents(Member member, GroupMembershipEvent... types)
+      throws InterruptedException {
     Multiset<GroupMembershipEvent> events = HashMultiset.create(Arrays.asList(types));
     for (int i = 0; i < types.length; i++) {
       GroupMembershipEvent event = nextEvent(member);
@@ -318,11 +328,13 @@ public class SwimProtocolTest extends ConcurrentTestCase {
     }
   }
 
-  private void checkEvent(Member member, GroupMembershipEvent.Type type) throws InterruptedException {
+  private void checkEvent(Member member, GroupMembershipEvent.Type type)
+      throws InterruptedException {
     checkEvent(member, type, null);
   }
 
-  private void checkEvent(Member member, GroupMembershipEvent.Type type, Member value) throws InterruptedException {
+  private void checkEvent(Member member, GroupMembershipEvent.Type type, Member value)
+      throws InterruptedException {
     GroupMembershipEvent event = nextEvent(member);
     assertEquals(type, event.type());
     if (value != null) {

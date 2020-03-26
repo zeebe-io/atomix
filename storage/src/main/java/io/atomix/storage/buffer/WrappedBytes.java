@@ -35,9 +35,7 @@ public class WrappedBytes extends AbstractBytes {
     this.root = bytes instanceof WrappedBytes ? ((WrappedBytes) bytes).root : bytes;
   }
 
-  /**
-   * Returns the root bytes.
-   */
+  /** Returns the root bytes. */
   public Bytes root() {
     return root;
   }
@@ -287,5 +285,4 @@ public class WrappedBytes extends AbstractBytes {
   public void close() {
     bytes.close();
   }
-
 }

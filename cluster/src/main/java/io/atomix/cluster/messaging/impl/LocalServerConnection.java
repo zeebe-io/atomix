@@ -17,9 +17,7 @@ package io.atomix.cluster.messaging.impl;
 
 import java.util.Optional;
 
-/**
- * Local server-side connection.
- */
+/** Local server-side connection. */
 final class LocalServerConnection extends AbstractServerConnection {
   private static final byte[] EMPTY_PAYLOAD = new byte[0];
 
@@ -31,10 +29,12 @@ final class LocalServerConnection extends AbstractServerConnection {
   }
 
   @Override
-  public void reply(ProtocolRequest message, ProtocolReply.Status status, Optional<byte[]> payload) {
+  public void reply(
+      ProtocolRequest message, ProtocolReply.Status status, Optional<byte[]> payload) {
     LocalClientConnection clientConnection = this.clientConnection;
     if (clientConnection != null) {
-      clientConnection.dispatch(new ProtocolReply(message.id(), payload.orElse(EMPTY_PAYLOAD), status));
+      clientConnection.dispatch(
+          new ProtocolReply(message.id(), payload.orElse(EMPTY_PAYLOAD), status));
     }
   }
 }

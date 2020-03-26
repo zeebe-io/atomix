@@ -15,17 +15,14 @@
  */
 package io.atomix.cluster.discovery;
 
-import io.atomix.cluster.NodeConfig;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import io.atomix.cluster.NodeConfig;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * Bootstrap discovery configuration.
- */
+/** Bootstrap discovery configuration. */
 public class BootstrapDiscoveryConfig extends NodeDiscoveryConfig {
   private static final int DEFAULT_HEARTBEAT_INTERVAL = 1000;
   private static final int DEFAULT_FAILURE_TIMEOUT = 10000;

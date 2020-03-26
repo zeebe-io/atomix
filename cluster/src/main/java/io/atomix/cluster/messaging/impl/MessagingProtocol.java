@@ -18,9 +18,7 @@ package io.atomix.cluster.messaging.impl;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
 
-/**
- * Messaging protocol.
- */
+/** Messaging protocol. */
 public interface MessagingProtocol {
 
   /**
@@ -43,5 +41,4 @@ public interface MessagingProtocol {
    * @return a new message decoder
    */
   ByteToMessageDecoder newDecoder();
-
 }

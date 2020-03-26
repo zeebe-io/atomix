@@ -29,15 +29,16 @@ import java.util.zip.Checksum;
 
 /**
  * Segment writer.
- * <p>
- * The format of an entry in the log is as follows:
+ *
+ * <p>The format of an entry in the log is as follows:
+ *
  * <ul>
- * <li>64-bit index</li>
- * <li>8-bit boolean indicating whether a term change is contained in the entry</li>
- * <li>64-bit optional term</li>
- * <li>32-bit signed entry length, including the entry type ID</li>
- * <li>8-bit signed entry type ID</li>
- * <li>n-bit entry bytes</li>
+ *   <li>64-bit index
+ *   <li>8-bit boolean indicating whether a term change is contained in the entry
+ *   <li>64-bit optional term
+ *   <li>32-bit signed entry length, including the entry type ID
+ *   <li>8-bit signed entry type ID
+ *   <li>n-bit entry bytes
  * </ul>
  *
  * @author <a href="http://github.com/kuujo">Jordan Halterman</a>
@@ -197,9 +198,7 @@ class FileChannelJournalSegmentWriter<E> implements JournalWriter<E> {
         || getNextIndex() - firstIndex >= segment.descriptor().maxEntries();
   }
 
-  /**
-   * Returns the first index written to the segment.
-   */
+  /** Returns the first index written to the segment. */
   public long firstIndex() {
     return firstIndex;
   }
@@ -256,11 +255,14 @@ class FileChannelJournalSegmentWriter<E> implements JournalWriter<E> {
 
       // Compute the checksum for the entry.
       final Checksum crc32 = new CRC32();
-      crc32.update(memory.array(), Integer.BYTES + Integer.BYTES,
+      crc32.update(
+          memory.array(),
+          Integer.BYTES + Integer.BYTES,
           memory.limit() - (Integer.BYTES + Integer.BYTES));
       final long checksum = crc32.getValue();
 
-      // Create a single byte[] in memory for the entire entry and write it as a batch to the underlying buffer.
+      // Create a single byte[] in memory for the entire entry and write it as a batch to the
+      // underlying buffer.
       memory.putInt(0, length);
       memory.putInt(Integer.BYTES, (int) checksum);
       channel.write(memory);
@@ -276,9 +278,7 @@ class FileChannelJournalSegmentWriter<E> implements JournalWriter<E> {
   }
 
   @Override
-  public void commit(long index) {
-
-  }
+  public void commit(long index) {}
 
   @Override
   @SuppressWarnings("unchecked")
@@ -313,9 +313,7 @@ class FileChannelJournalSegmentWriter<E> implements JournalWriter<E> {
     }
   }
 
-  /**
-   * Returns a zeroed out byte buffer.
-   */
+  /** Returns a zeroed out byte buffer. */
   private ByteBuffer zero() {
     memory.clear();
     for (int i = 0; i < memory.limit(); i++) {

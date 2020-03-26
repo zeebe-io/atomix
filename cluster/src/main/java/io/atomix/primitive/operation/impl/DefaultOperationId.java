@@ -15,15 +15,13 @@
  */
 package io.atomix.primitive.operation.impl;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 import io.atomix.primitive.operation.OperationId;
 import io.atomix.primitive.operation.OperationType;
 import io.atomix.utils.AbstractIdentifier;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
-/**
- * Raft operation identifier.
- */
+/** Raft operation identifier. */
 public class DefaultOperationId extends AbstractIdentifier<String> implements OperationId {
   private final OperationType type;
 
@@ -47,9 +45,6 @@ public class DefaultOperationId extends AbstractIdentifier<String> implements Op
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("id", id())
-        .add("type", type())
-        .toString();
+    return toStringHelper(this).add("id", id()).add("type", type()).toString();
   }
 }

@@ -15,7 +15,7 @@
  */
 
 /**
- * Provides a low-level {@link io.atomix.storage.buffer.Buffer} abstraction backed by on- or off-heap memory, memory mapped
- * files, or {@link java.io.RandomAccessFile}.
+ * Provides a low-level {@link io.atomix.storage.buffer.Buffer} abstraction backed by on- or
+ * off-heap memory, memory mapped files, or {@link java.io.RandomAccessFile}.
  */
 package io.atomix.storage.buffer;

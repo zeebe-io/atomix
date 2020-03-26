@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Provides classes and interfaces for binary serialization.
- */
+/** Provides classes and interfaces for binary serialization. */
 package io.atomix.utils.serializer;

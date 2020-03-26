@@ -17,9 +17,7 @@ package io.atomix.cluster.protocol;
 
 import java.time.Duration;
 
-/**
- * Gossip based group membership protocol builder.
- */
+/** Gossip based group membership protocol builder. */
 public class HeartbeatMembershipProtocolBuilder extends GroupMembershipProtocolBuilder {
   private final HeartbeatMembershipProtocolConfig config = new HeartbeatMembershipProtocolConfig();
 

@@ -15,13 +15,11 @@
  */
 package io.atomix.utils.time;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 
-/**
- * Logical clock test.
- */
+import org.junit.Test;
+
+/** Logical clock test. */
 public class LogicalClockTest {
   @Test
   public void testLogicalClock() throws Exception {

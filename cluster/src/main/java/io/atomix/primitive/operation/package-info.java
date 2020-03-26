@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Provides classes and interfaces for defining distributed primitive operations.
- */
+/** Provides classes and interfaces for defining distributed primitive operations. */
 package io.atomix.primitive.operation;

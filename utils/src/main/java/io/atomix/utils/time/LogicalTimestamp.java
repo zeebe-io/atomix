@@ -15,17 +15,16 @@
  */
 package io.atomix.utils.time;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ComparisonChain;
-
 import java.util.Objects;
-
-import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Timestamp based on logical sequence value.
- * <p>
- * LogicalTimestamps are ordered by their sequence values.
+ *
+ * <p>LogicalTimestamps are ordered by their sequence values.
  */
 public class LogicalTimestamp implements Timestamp {
 
@@ -65,13 +64,10 @@ public class LogicalTimestamp implements Timestamp {
 
   @Override
   public int compareTo(Timestamp o) {
-    Preconditions.checkArgument(o instanceof LogicalTimestamp,
-        "Must be LogicalTimestamp", o);
+    Preconditions.checkArgument(o instanceof LogicalTimestamp, "Must be LogicalTimestamp", o);
     LogicalTimestamp that = (LogicalTimestamp) o;
 
-    return ComparisonChain.start()
-        .compare(this.value, that.value)
-        .result();
+    return ComparisonChain.start().compare(this.value, that.value).result();
   }
 
   @Override
@@ -93,8 +89,6 @@ public class LogicalTimestamp implements Timestamp {
 
   @Override
   public String toString() {
-    return toStringHelper(getClass())
-        .add("value", value)
-        .toString();
+    return toStringHelper(getClass()).add("value", value).toString();
   }
 }

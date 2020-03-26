@@ -23,7 +23,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  *
  * @author <a href="http://github.com/kuujo">Jordan Halterman</a>
  */
-public class ReferencePool<T extends ReferenceCounted<?>> implements ReferenceManager<T>, AutoCloseable {
+public class ReferencePool<T extends ReferenceCounted<?>>
+    implements ReferenceManager<T>, AutoCloseable {
   private final ReferenceFactory<T> factory;
   private final Queue<T> pool = new ConcurrentLinkedQueue<>();
   private volatile boolean closed;
@@ -71,5 +72,4 @@ public class ReferencePool<T extends ReferenceCounted<?>> implements ReferenceMa
       reference.close();
     }
   }
-
 }

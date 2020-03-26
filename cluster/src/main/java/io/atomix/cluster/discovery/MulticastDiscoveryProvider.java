@@ -15,6 +15,9 @@
  */
 package io.atomix.cluster.discovery;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static io.atomix.utils.concurrent.Threads.namedThreads;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.AtomicLongMap;
@@ -26,9 +29,6 @@ import io.atomix.cluster.impl.AddressSerializer;
 import io.atomix.utils.event.AbstractListenerManager;
 import io.atomix.utils.net.Address;
 import io.atomix.utils.serializer.Serializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -38,17 +38,16 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static io.atomix.utils.concurrent.Threads.namedThreads;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Cluster membership provider that uses multicast for member discovery.
- * <p>
- * This implementation uses the {@link io.atomix.cluster.messaging.BroadcastService} internally and thus requires that
- * multicast is {@link AtomixClusterBuilder#withMulticastEnabled() enabled} on the Atomix instance. Membership is
- * determined by each node broadcasting to a multicast group, and phi accrual failure detectors are used to detect nodes
- * joining and leaving the cluster.
+ *
+ * <p>This implementation uses the {@link io.atomix.cluster.messaging.BroadcastService} internally
+ * and thus requires that multicast is {@link AtomixClusterBuilder#withMulticastEnabled() enabled}
+ * on the Atomix instance. Membership is determined by each node broadcasting to a multicast group,
+ * and phi accrual failure detectors are used to detect nodes joining and leaving the cluster.
  */
 public class MulticastDiscoveryProvider
     extends AbstractListenerManager<NodeDiscoveryEvent, NodeDiscoveryEventListener>
@@ -65,9 +64,7 @@ public class MulticastDiscoveryProvider
     return new MulticastDiscoveryBuilder();
   }
 
-  /**
-   * Broadcast member location provider type.
-   */
+  /** Broadcast member location provider type. */
   public static class Type implements NodeDiscoveryProvider.Type<MulticastDiscoveryConfig> {
     private static final String NAME = "multicast";
 
@@ -88,21 +85,23 @@ public class MulticastDiscoveryProvider
   }
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MulticastDiscoveryProvider.class);
-  private static final Serializer SERIALIZER = Serializer.builder()
-      .addType(Node.class)
-      .addType(NodeId.class)
-      .addSerializer(new AddressSerializer(), Address.class)
-      .build();
+  private static final Serializer SERIALIZER =
+      Serializer.builder()
+          .addType(Node.class)
+          .addType(NodeId.class)
+          .addSerializer(new AddressSerializer(), Address.class)
+          .build();
 
   private static final String DISCOVERY_SUBJECT = "atomix-discovery";
 
   private final MulticastDiscoveryConfig config;
   private volatile BootstrapService bootstrap;
 
-  private final ScheduledExecutorService broadcastScheduler = Executors.newSingleThreadScheduledExecutor(
-      namedThreads("atomix-cluster-broadcast", LOGGER));
+  private final ScheduledExecutorService broadcastScheduler =
+      Executors.newSingleThreadScheduledExecutor(namedThreads("atomix-cluster-broadcast", LOGGER));
   private volatile ScheduledFuture<?> broadcastFuture;
-  private final Consumer<byte[]> broadcastListener = message -> broadcastScheduler.execute(() -> handleBroadcastMessage(message));
+  private final Consumer<byte[]> broadcastListener =
+      message -> broadcastScheduler.execute(() -> handleBroadcastMessage(message));
 
   private final Map<NodeId, Node> nodes = Maps.newConcurrentMap();
   private final AtomicLongMap<NodeId> updateTimes = AtomicLongMap.create();
@@ -146,7 +145,8 @@ public class MulticastDiscoveryProvider
     Iterator<Map.Entry<NodeId, Node>> iterator = nodes.entrySet().iterator();
     while (iterator.hasNext()) {
       Map.Entry<NodeId, Node> entry = iterator.next();
-      if (System.currentTimeMillis() - updateTimes.get(entry.getKey()) > config.getFailureTimeout().toMillis()) {
+      if (System.currentTimeMillis() - updateTimes.get(entry.getKey())
+          > config.getFailureTimeout().toMillis()) {
         iterator.remove();
         post(new NodeDiscoveryEvent(NodeDiscoveryEvent.Type.LEAVE, entry.getValue()));
       }
@@ -159,11 +159,12 @@ public class MulticastDiscoveryProvider
       this.bootstrap = bootstrap;
       post(new NodeDiscoveryEvent(NodeDiscoveryEvent.Type.JOIN, localNode));
       bootstrap.getBroadcastService().addListener(DISCOVERY_SUBJECT, broadcastListener);
-      broadcastFuture = broadcastScheduler.scheduleAtFixedRate(
-          () -> broadcastNode(localNode),
-          config.getBroadcastInterval().toMillis(),
-          config.getBroadcastInterval().toMillis(),
-          TimeUnit.MILLISECONDS);
+      broadcastFuture =
+          broadcastScheduler.scheduleAtFixedRate(
+              () -> broadcastNode(localNode),
+              config.getBroadcastInterval().toMillis(),
+              config.getBroadcastInterval().toMillis(),
+              TimeUnit.MILLISECONDS);
       broadcastNode(localNode);
       LOGGER.info("Joined");
     }

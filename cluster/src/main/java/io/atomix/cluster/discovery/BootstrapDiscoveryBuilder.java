@@ -17,16 +17,13 @@ package io.atomix.cluster.discovery;
 
 import io.atomix.cluster.Node;
 import io.atomix.utils.net.Address;
-
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/**
- * Bootstrap discovery builder.
- */
+/** Bootstrap discovery builder. */
 public class BootstrapDiscoveryBuilder extends NodeDiscoveryBuilder {
   private final BootstrapDiscoveryConfig config = new BootstrapDiscoveryConfig();
 
@@ -37,11 +34,10 @@ public class BootstrapDiscoveryBuilder extends NodeDiscoveryBuilder {
    * @return the location provider builder
    */
   public BootstrapDiscoveryBuilder withNodes(Address... nodes) {
-    return withNodes(Stream.of(nodes)
-        .map(address -> Node.builder()
-            .withAddress(address)
-            .build())
-        .collect(Collectors.toSet()));
+    return withNodes(
+        Stream.of(nodes)
+            .map(address -> Node.builder().withAddress(address).build())
+            .collect(Collectors.toSet()));
   }
 
   /**

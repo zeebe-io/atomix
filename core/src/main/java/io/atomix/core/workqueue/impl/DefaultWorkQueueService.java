@@ -15,6 +15,8 @@
  */
 package io.atomix.core.workqueue.impl;
 
+import static com.google.common.base.Throwables.throwIfUnchecked;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -30,7 +32,6 @@ import io.atomix.primitive.session.Session;
 import io.atomix.primitive.session.SessionId;
 import io.atomix.utils.serializer.Namespace;
 import io.atomix.utils.serializer.Serializer;
-
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,20 +45,19 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.google.common.base.Throwables.throwIfUnchecked;
+/** State machine for {@link WorkQueueProxy} resource. */
+public class DefaultWorkQueueService extends AbstractPrimitiveService<WorkQueueClient>
+    implements WorkQueueService {
 
-/**
- * State machine for {@link WorkQueueProxy} resource.
- */
-public class DefaultWorkQueueService extends AbstractPrimitiveService<WorkQueueClient> implements WorkQueueService {
-
-  private static final Serializer SERIALIZER = Serializer.using(Namespace.builder()
-      .register(WorkQueueType.instance().namespace())
-      .register(TaskAssignment.class)
-      .register(new HashMap().keySet().getClass())
-      .register(ArrayDeque.class)
-      .register(SessionId.class)
-      .build());
+  private static final Serializer SERIALIZER =
+      Serializer.using(
+          Namespace.builder()
+              .register(WorkQueueType.instance().namespace())
+              .register(TaskAssignment.class)
+              .register(new HashMap().keySet().getClass())
+              .register(ArrayDeque.class)
+              .register(SessionId.class)
+              .build());
 
   private final AtomicLong totalCompleted = new AtomicLong(0);
 
@@ -120,17 +120,21 @@ public class DefaultWorkQueueService extends AbstractPrimitiveService<WorkQueueC
   @Override
   public void add(Collection<byte[]> items) {
     AtomicInteger itemIndex = new AtomicInteger(0);
-    items.forEach(item -> {
-      String taskId = String.format("%d:%d:%d",
-          getCurrentSession().sessionId().id(),
-          getCurrentIndex(),
-          itemIndex.getAndIncrement());
-      unassignedTasks.add(new Task<>(taskId, item));
-    });
+    items.forEach(
+        item -> {
+          String taskId =
+              String.format(
+                  "%d:%d:%d",
+                  getCurrentSession().sessionId().id(),
+                  getCurrentIndex(),
+                  itemIndex.getAndIncrement());
+          unassignedTasks.add(new Task<>(taskId, item));
+        });
 
     // Send an event to all sessions that have expressed interest in task processing
     // and are not actively processing a task.
-    registeredWorkers.forEach(sessionId -> getSession(sessionId).accept(client -> client.taskAvailable()));
+    registeredWorkers.forEach(
+        sessionId -> getSession(sessionId).accept(client -> client.taskAvailable()));
     // FIXME: This generates a lot of event traffic.
   }
 
@@ -142,16 +146,17 @@ public class DefaultWorkQueueService extends AbstractPrimitiveService<WorkQueueC
       }
       long sessionId = getCurrentSession().sessionId().id();
       return IntStream.range(0, Math.min(maxTasks, unassignedTasks.size()))
-          .mapToObj(i -> {
-            Task<byte[]> task = unassignedTasks.poll();
-            String taskId = task.taskId();
-            TaskAssignment assignment = new TaskAssignment(sessionId, task);
+          .mapToObj(
+              i -> {
+                Task<byte[]> task = unassignedTasks.poll();
+                String taskId = task.taskId();
+                TaskAssignment assignment = new TaskAssignment(sessionId, task);
 
-            // bookkeeping
-            assignments.put(taskId, assignment);
+                // bookkeeping
+                assignments.put(taskId, assignment);
 
-            return task;
-          })
+                return task;
+              })
           .collect(Collectors.toCollection(ArrayList::new));
     } catch (Exception e) {
       getLogger().warn("State machine update failed", e);
@@ -163,14 +168,16 @@ public class DefaultWorkQueueService extends AbstractPrimitiveService<WorkQueueC
   @Override
   public void complete(Collection<String> taskIds) {
     try {
-      taskIds.forEach(taskId -> {
-        TaskAssignment assignment = assignments.get(taskId);
-        if (assignment != null && assignment.sessionId() == getCurrentSession().sessionId().id()) {
-          assignments.remove(taskId);
-          // bookkeeping
-          totalCompleted.incrementAndGet();
-        }
-      });
+      taskIds.forEach(
+          taskId -> {
+            TaskAssignment assignment = assignments.get(taskId);
+            if (assignment != null
+                && assignment.sessionId() == getCurrentSession().sessionId().id()) {
+              assignments.remove(taskId);
+              // bookkeeping
+              totalCompleted.incrementAndGet();
+            }
+          });
     } catch (Exception e) {
       getLogger().warn("State machine update failed", e);
       throwIfUnchecked(e);

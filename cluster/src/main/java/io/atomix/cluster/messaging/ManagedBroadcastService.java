@@ -17,8 +17,5 @@ package io.atomix.cluster.messaging;
 
 import io.atomix.utils.Managed;
 
-/**
- * Managed broadcast service.
- */
-public interface ManagedBroadcastService extends BroadcastService, Managed<BroadcastService> {
-}
+/** Managed broadcast service. */
+public interface ManagedBroadcastService extends BroadcastService, Managed<BroadcastService> {}

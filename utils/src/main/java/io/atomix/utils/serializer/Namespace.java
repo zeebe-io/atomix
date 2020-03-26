@@ -15,6 +15,9 @@
  */
 package io.atomix.utils.serializer;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Registration;
 import com.esotericsoftware.kryo.Serializer;
@@ -27,10 +30,6 @@ import com.esotericsoftware.kryo.serializers.CompatibleFieldSerializer;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import io.atomix.utils.config.ConfigurationException;
-import org.apache.commons.lang3.tuple.Pair;
-import org.objenesis.strategy.StdInstantiatorStrategy;
-import org.slf4j.Logger;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -40,14 +39,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import org.apache.commons.lang3.tuple.Pair;
+import org.objenesis.strategy.StdInstantiatorStrategy;
+import org.slf4j.Logger;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
-
-/**
- * Pool of Kryo instances, with classes pre-registered.
- */
-//@ThreadSafe
+/** Pool of Kryo instances, with classes pre-registered. */
+// @ThreadSafe
 public final class Namespace implements KryoFactory, KryoPool {
 
   /**
@@ -57,33 +54,23 @@ public final class Namespace implements KryoFactory, KryoPool {
    */
   public static final int DEFAULT_BUFFER_SIZE = 4096;
 
-  /**
-   * Maximum allowed buffer size.
-   */
+  /** Maximum allowed buffer size. */
   public static final int MAX_BUFFER_SIZE = 100 * 1000 * 1000;
 
-  /**
-   * ID to use if this KryoNamespace does not define registration id.
-   */
+  /** ID to use if this KryoNamespace does not define registration id. */
   public static final int FLOATING_ID = -1;
 
-  /**
-   * Smallest ID free to use for user defined registrations.
-   */
+  /** Smallest ID free to use for user defined registrations. */
   public static final int INITIAL_ID = 16;
 
   static final String NO_NAME = "(no name)";
 
   private static final Logger LOGGER = getLogger(Namespace.class);
 
-  /**
-   * Default Kryo namespace.
-   */
+  /** Default Kryo namespace. */
   public static final Namespace DEFAULT = builder().build();
 
-  private final KryoPool kryoPool = new KryoPool.Builder(this)
-      .softReferences()
-      .build();
+  private final KryoPool kryoPool = new KryoPool.Builder(this).softReferences().build();
 
   private final KryoOutputPool kryoOutputPool = new KryoOutputPool();
   private final KryoInputPool kryoInputPool = new KryoInputPool();
@@ -95,10 +82,8 @@ public final class Namespace implements KryoFactory, KryoPool {
   private final boolean registrationRequired;
   private final String friendlyName;
 
-  /**
-   * KryoNamespace builder.
-   */
-  //@NotThreadSafe
+  /** KryoNamespace builder. */
+  // @NotThreadSafe
   public static final class Builder {
     private int blockHeadId = INITIAL_ID;
     private List<Pair<Class<?>[], Serializer<?>>> types = new ArrayList<>();
@@ -126,7 +111,8 @@ public final class Namespace implements KryoFactory, KryoPool {
       if (!types.isEmpty()) {
         blocks.add(new RegistrationBlock(this.blockHeadId, types));
       }
-      return new Namespace(blocks, classLoader, registrationRequired, compatible, friendlyName).populate(1);
+      return new Namespace(blocks, classLoader, registrationRequired, compatible, friendlyName)
+          .populate(1);
     }
 
     /**
@@ -141,9 +127,13 @@ public final class Namespace implements KryoFactory, KryoPool {
         if (id != FLOATING_ID && id < blockHeadId + types.size()) {
 
           if (LOGGER.isWarnEnabled()) {
-            LOGGER.warn("requested nextId {} could potentially overlap "
+            LOGGER.warn(
+                "requested nextId {} could potentially overlap "
                     + "with existing registrations {}+{} ",
-                id, blockHeadId, types.size(), new RuntimeException());
+                id,
+                blockHeadId,
+                types.size(),
+                new RuntimeException());
           }
         }
         blocks.add(new RegistrationBlock(this.blockHeadId, types));
@@ -161,18 +151,18 @@ public final class Namespace implements KryoFactory, KryoPool {
      */
     public Builder register(final Class<?>... expectedTypes) {
       for (Class<?> clazz : expectedTypes) {
-        types.add(Pair.of(new Class<?>[]{clazz}, null));
+        types.add(Pair.of(new Class<?>[] {clazz}, null));
       }
       return this;
     }
 
     /**
      * Registers serializer for the given set of classes.
-     * <p>
-     * When multiple classes are registered with an explicitly provided serializer, the namespace guarantees
-     * all instances will be serialized with the same type ID.
      *
-     * @param classes    list of classes to register
+     * <p>When multiple classes are registered with an explicitly provided serializer, the namespace
+     * guarantees all instances will be serialized with the same type ID.
+     *
+     * @param classes list of classes to register
      * @param serializer serializer to use for the class
      * @return this
      */
@@ -229,9 +219,10 @@ public final class Namespace implements KryoFactory, KryoPool {
 
     /**
      * Sets whether backwards/forwards compatible versioned serialization is enabled.
-     * <p>
-     * When compatible serialization is enabled, the {@link CompatibleFieldSerializer} will be set as the
-     * default serializer for types that do not otherwise explicitly specify a serializer.
+     *
+     * <p>When compatible serialization is enabled, the {@link CompatibleFieldSerializer} will be
+     * set as the default serializer for types that do not otherwise explicitly specify a
+     * serializer.
      *
      * @param compatible whether versioned serialization is enabled
      * @return this
@@ -271,9 +262,16 @@ public final class Namespace implements KryoFactory, KryoPool {
     for (NamespaceTypeConfig type : config.getTypes()) {
       try {
         if (type.getId() == null) {
-          types.add(Pair.of(new Class[]{type.getType()}, type.getSerializer() != null ? type.getSerializer().newInstance() : null));
+          types.add(
+              Pair.of(
+                  new Class[] {type.getType()},
+                  type.getSerializer() != null ? type.getSerializer().newInstance() : null));
         } else {
-          blocks.add(new RegistrationBlock(type.getId(), Collections.singletonList(Pair.of(new Class[]{type.getType()}, type.getSerializer().newInstance()))));
+          blocks.add(
+              new RegistrationBlock(
+                  type.getId(),
+                  Collections.singletonList(
+                      Pair.of(new Class[] {type.getType()}, type.getSerializer().newInstance()))));
         }
       } catch (InstantiationException | IllegalAccessException e) {
         throw new ConfigurationException("Failed to instantiate serializer from configuration", e);
@@ -284,16 +282,21 @@ public final class Namespace implements KryoFactory, KryoPool {
   }
 
   public Namespace(NamespaceConfig config) {
-    this(buildRegistrationBlocks(config), Thread.currentThread().getContextClassLoader(), config.isRegistrationRequired(), config.isCompatible(), config.getName());
+    this(
+        buildRegistrationBlocks(config),
+        Thread.currentThread().getContextClassLoader(),
+        config.isRegistrationRequired(),
+        config.isCompatible(),
+        config.getName());
   }
 
   /**
    * Creates a Kryo instance pool.
    *
-   * @param registeredTypes      types to register
+   * @param registeredTypes types to register
    * @param registrationRequired whether registration is required
-   * @param compatible           whether compatible serialization is enabled
-   * @param friendlyName         friendly name for the namespace
+   * @param compatible whether compatible serialization is enabled
+   * @param friendlyName friendly name for the namespace
    */
   private Namespace(
       final List<RegistrationBlock> registeredTypes,
@@ -324,8 +327,8 @@ public final class Namespace implements KryoFactory, KryoPool {
 
   /**
    * Serializes given object to byte array using Kryo instance in pool.
-   * <p>
-   * Note: Serialized bytes must be smaller than {@link #MAX_BUFFER_SIZE}.
+   *
+   * <p>Note: Serialized bytes must be smaller than {@link #MAX_BUFFER_SIZE}.
    *
    * @param obj Object to serialize
    * @return serialized bytes
@@ -337,24 +340,27 @@ public final class Namespace implements KryoFactory, KryoPool {
   /**
    * Serializes given object to byte array using Kryo instance in pool.
    *
-   * @param obj        Object to serialize
+   * @param obj Object to serialize
    * @param bufferSize maximum size of serialized bytes
    * @return serialized bytes
    */
   public byte[] serialize(final Object obj, final int bufferSize) {
-    return kryoOutputPool.run(output -> {
-      return kryoPool.run(kryo -> {
-        kryo.writeClassAndObject(output, obj);
-        output.flush();
-        return output.getByteArrayOutputStream().toByteArray();
-      });
-    }, bufferSize);
+    return kryoOutputPool.run(
+        output -> {
+          return kryoPool.run(
+              kryo -> {
+                kryo.writeClassAndObject(output, obj);
+                output.flush();
+                return output.getByteArrayOutputStream().toByteArray();
+              });
+        },
+        bufferSize);
   }
 
   /**
    * Serializes given object to byte buffer using Kryo instance in pool.
    *
-   * @param obj    Object to serialize
+   * @param obj Object to serialize
    * @param buffer to write to
    */
   public void serialize(final Object obj, final ByteBuffer buffer) {
@@ -369,7 +375,7 @@ public final class Namespace implements KryoFactory, KryoPool {
   /**
    * Serializes given object to OutputStream using Kryo instance in pool.
    *
-   * @param obj    Object to serialize
+   * @param obj Object to serialize
    * @param stream to write to
    */
   public void serialize(final Object obj, final OutputStream stream) {
@@ -379,8 +385,8 @@ public final class Namespace implements KryoFactory, KryoPool {
   /**
    * Serializes given object to OutputStream using Kryo instance in pool.
    *
-   * @param obj        Object to serialize
-   * @param stream     to write to
+   * @param obj Object to serialize
+   * @param stream to write to
    * @param bufferSize size of the buffer in front of the stream
    */
   public void serialize(final Object obj, final OutputStream stream, final int bufferSize) {
@@ -396,25 +402,28 @@ public final class Namespace implements KryoFactory, KryoPool {
    * Deserializes given byte array to Object using Kryo instance in pool.
    *
    * @param bytes serialized bytes
-   * @param <T>   deserialized Object type
+   * @param <T> deserialized Object type
    * @return deserialized Object
    */
   public <T> T deserialize(final byte[] bytes) {
-    return kryoInputPool.run(input -> {
-      input.setInputStream(new ByteArrayInputStream(bytes));
-      return kryoPool.run(kryo -> {
-        @SuppressWarnings("unchecked")
-        T obj = (T) kryo.readClassAndObject(input);
-        return obj;
-      });
-    }, DEFAULT_BUFFER_SIZE);
+    return kryoInputPool.run(
+        input -> {
+          input.setInputStream(new ByteArrayInputStream(bytes));
+          return kryoPool.run(
+              kryo -> {
+                @SuppressWarnings("unchecked")
+                T obj = (T) kryo.readClassAndObject(input);
+                return obj;
+              });
+        },
+        DEFAULT_BUFFER_SIZE);
   }
 
   /**
    * Deserializes given byte buffer to Object using Kryo instance in pool.
    *
    * @param buffer input with serialized bytes
-   * @param <T>    deserialized Object type
+   * @param <T> deserialized Object type
    * @return deserialized Object
    */
   public <T> T deserialize(final ByteBuffer buffer) {
@@ -432,7 +441,7 @@ public final class Namespace implements KryoFactory, KryoPool {
    * Deserializes given InputStream to an Object using Kryo instance in pool.
    *
    * @param stream input stream
-   * @param <T>    deserialized Object type
+   * @param <T> deserialized Object type
    * @return deserialized Object
    */
   public <T> T deserialize(final InputStream stream) {
@@ -442,8 +451,8 @@ public final class Namespace implements KryoFactory, KryoPool {
   /**
    * Deserializes given InputStream to an Object using Kryo instance in pool.
    *
-   * @param stream     input stream
-   * @param <T>        deserialized Object type
+   * @param stream input stream
+   * @param <T> deserialized Object type
    * @param bufferSize size of the buffer in front of the stream
    * @return deserialized Object
    */
@@ -468,9 +477,7 @@ public final class Namespace implements KryoFactory, KryoPool {
    * @return size of namespace
    */
   public int size() {
-    return (int) registeredBlocks.stream()
-        .flatMap(block -> block.types().stream())
-        .count();
+    return (int) registeredBlocks.stream().flatMap(block -> block.types().stream()).count();
   }
 
   /**
@@ -509,10 +516,10 @@ public final class Namespace implements KryoFactory, KryoPool {
   /**
    * Register {@code type} and {@code serializer} to {@code kryo} instance.
    *
-   * @param kryo       Kryo instance
-   * @param types      types to register
+   * @param kryo Kryo instance
+   * @param types types to register
    * @param serializer Specific serializer to register or null to use default.
-   * @param id         type registration id to use
+   * @param id type registration id to use
    */
   private void register(Kryo kryo, Class<?>[] types, Serializer<?> serializer, int id) {
     Registration existing = kryo.getRegistration(id);
@@ -526,12 +533,17 @@ public final class Namespace implements KryoFactory, KryoPool {
       }
 
       if (!matches) {
-        LOGGER.error("{}: Failed to register {} as {}, {} was already registered.",
-            friendlyName(), types, id, existing.getType());
+        LOGGER.error(
+            "{}: Failed to register {} as {}, {} was already registered.",
+            friendlyName(),
+            types,
+            id,
+            existing.getType());
 
-        throw new IllegalStateException(String.format(
-            "Failed to register %s as %s, %s was already registered.",
-            Arrays.toString(types), id, existing.getType()));
+        throw new IllegalStateException(
+            String.format(
+                "Failed to register %s as %s, %s was already registered.",
+                Arrays.toString(types), id, existing.getType()));
       }
       // falling through to register call for now.
       // Consider skipping, if there's reasonable
@@ -549,8 +561,12 @@ public final class Namespace implements KryoFactory, KryoPool {
       }
       if (r != null) {
         if (r.getId() != id) {
-          LOGGER.debug("{}: {} already registered as {}. Skipping {}.",
-              friendlyName(), r.getType(), r.getId(), id);
+          LOGGER.debug(
+              "{}: {} already registered as {}. Skipping {}.",
+              friendlyName(),
+              r.getType(),
+              r.getId(),
+              id);
         }
         LOGGER.trace("{} registered as {}", r.getType(), r.getId());
       }

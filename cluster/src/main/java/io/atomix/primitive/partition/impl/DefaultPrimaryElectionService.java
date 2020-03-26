@@ -15,6 +15,9 @@
  */
 package io.atomix.primitive.partition.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static io.atomix.primitive.partition.impl.PrimaryElectorEvents.CHANGE;
+
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import io.atomix.primitive.event.PrimitiveEvent;
@@ -30,36 +33,36 @@ import io.atomix.primitive.service.ServiceConfig;
 import io.atomix.primitive.session.SessionClient;
 import io.atomix.utils.serializer.Namespace;
 import io.atomix.utils.serializer.Serializer;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static io.atomix.primitive.partition.impl.PrimaryElectorEvents.CHANGE;
-
 /**
  * Default primary election service.
- * <p>
- * This implementation uses a custom primitive service for primary election. The custom primitive service orders
- * candidates based on the existing distribution of primaries such that primaries are evenly spread across the cluster.
+ *
+ * <p>This implementation uses a custom primitive service for primary election. The custom primitive
+ * service orders candidates based on the existing distribution of primaries such that primaries are
+ * evenly spread across the cluster.
  */
 public class DefaultPrimaryElectionService implements ManagedPrimaryElectionService {
   private static final String PRIMITIVE_NAME = "atomix-primary-elector";
 
-  private static final Serializer SERIALIZER = Serializer.using(Namespace.builder()
-      .register(PrimaryElectorOperations.NAMESPACE)
-      .register(PrimaryElectorEvents.NAMESPACE)
-      .build());
+  private static final Serializer SERIALIZER =
+      Serializer.using(
+          Namespace.builder()
+              .register(PrimaryElectorOperations.NAMESPACE)
+              .register(PrimaryElectorEvents.NAMESPACE)
+              .build());
 
   private final PartitionGroup partitions;
   private final Set<PrimaryElectionEventListener> listeners = Sets.newCopyOnWriteArraySet();
-  private final Consumer<PrimitiveEvent> eventListener = event -> {
-    PrimaryElectionEvent electionEvent = SERIALIZER.decode(event.value());
-    listeners.forEach(l -> l.event(electionEvent));
-  };
+  private final Consumer<PrimitiveEvent> eventListener =
+      event -> {
+        PrimaryElectionEvent electionEvent = SERIALIZER.decode(event.value());
+        listeners.forEach(l -> l.event(electionEvent));
+      };
   private final Map<PartitionId, ManagedPrimaryElection> elections = Maps.newConcurrentMap();
   private final AtomicBoolean started = new AtomicBoolean();
   private SessionClient proxy;
@@ -71,7 +74,8 @@ public class DefaultPrimaryElectionService implements ManagedPrimaryElectionServ
   @Override
   @SuppressWarnings("unchecked")
   public PrimaryElection getElectionFor(PartitionId partitionId) {
-    return elections.computeIfAbsent(partitionId, id -> new DefaultPrimaryElection(partitionId, proxy, this));
+    return elections.computeIfAbsent(
+        partitionId, id -> new DefaultPrimaryElection(partitionId, proxy, this));
   }
 
   @Override
@@ -87,15 +91,20 @@ public class DefaultPrimaryElectionService implements ManagedPrimaryElectionServ
   @Override
   @SuppressWarnings("unchecked")
   public CompletableFuture<PrimaryElectionService> start() {
-    return partitions.getPartitions().iterator().next().getClient()
+    return partitions
+        .getPartitions()
+        .iterator()
+        .next()
+        .getClient()
         .sessionBuilder(PRIMITIVE_NAME, PrimaryElectorType.instance(), new ServiceConfig())
         .build()
         .connect()
-        .thenAccept(proxy -> {
-          this.proxy = proxy;
-          proxy.addEventListener(CHANGE, eventListener);
-          started.set(true);
-        })
+        .thenAccept(
+            proxy -> {
+              this.proxy = proxy;
+              proxy.addEventListener(CHANGE, eventListener);
+              started.set(true);
+            })
         .thenApply(v -> this);
   }
 
@@ -108,10 +117,12 @@ public class DefaultPrimaryElectionService implements ManagedPrimaryElectionServ
   public CompletableFuture<Void> stop() {
     SessionClient proxy = this.proxy;
     if (proxy != null) {
-      return proxy.close()
-          .whenComplete((result, error) -> {
-            started.set(false);
-          });
+      return proxy
+          .close()
+          .whenComplete(
+              (result, error) -> {
+                started.set(false);
+              });
     }
     started.set(false);
     return CompletableFuture.completedFuture(null);

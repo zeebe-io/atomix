@@ -15,24 +15,15 @@
  */
 package io.atomix.primitive;
 
-/**
- * Primitive consistency model.
- */
+/** Primitive consistency model. */
 public enum Consistency {
 
-  /**
-   * Linearizable consistency model.
-   */
+  /** Linearizable consistency model. */
   LINEARIZABLE,
 
-  /**
-   * Sequential consistency model.
-   */
+  /** Sequential consistency model. */
   SEQUENTIAL,
 
-  /**
-   * Eventual consistency model.
-   */
+  /** Eventual consistency model. */
   EVENTUAL,
-
 }

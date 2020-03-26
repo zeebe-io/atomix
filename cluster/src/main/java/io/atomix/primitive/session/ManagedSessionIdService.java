@@ -17,8 +17,5 @@ package io.atomix.primitive.session;
 
 import io.atomix.utils.Managed;
 
-/**
- * Managed session ID service.
- */
-public interface ManagedSessionIdService extends SessionIdService, Managed<SessionIdService> {
-}
+/** Managed session ID service. */
+public interface ManagedSessionIdService extends SessionIdService, Managed<SessionIdService> {}

@@ -15,17 +15,14 @@
  */
 package io.atomix.cluster;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.atomix.utils.config.Config;
 import io.atomix.utils.config.ConfigurationException;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * Multicast configuration.
- */
+/** Multicast configuration. */
 public class MulticastConfig implements Config {
   private static final String DEFAULT_MULTICAST_IP = "230.0.0.1";
   private static final int DEFAULT_MULTICAST_PORT = 54321;

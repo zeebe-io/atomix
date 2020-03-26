@@ -31,5 +31,4 @@ public class UnpooledDirectAllocator extends UnpooledAllocator {
   protected int maxCapacity() {
     return Integer.MAX_VALUE;
   }
-
 }

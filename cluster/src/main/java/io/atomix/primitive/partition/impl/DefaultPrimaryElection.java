@@ -15,6 +15,13 @@
  */
 package io.atomix.primitive.partition.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static io.atomix.primitive.operation.PrimitiveOperation.operation;
+import static io.atomix.primitive.partition.impl.PrimaryElectorOperations.ENTER;
+import static io.atomix.primitive.partition.impl.PrimaryElectorOperations.Enter;
+import static io.atomix.primitive.partition.impl.PrimaryElectorOperations.GET_TERM;
+import static io.atomix.primitive.partition.impl.PrimaryElectorOperations.GetTerm;
+
 import com.google.common.collect.Sets;
 import io.atomix.primitive.partition.GroupMember;
 import io.atomix.primitive.partition.ManagedPrimaryElection;
@@ -26,26 +33,18 @@ import io.atomix.primitive.partition.PrimaryTerm;
 import io.atomix.primitive.session.SessionClient;
 import io.atomix.utils.serializer.Namespace;
 import io.atomix.utils.serializer.Serializer;
-
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static io.atomix.primitive.operation.PrimitiveOperation.operation;
-import static io.atomix.primitive.partition.impl.PrimaryElectorOperations.ENTER;
-import static io.atomix.primitive.partition.impl.PrimaryElectorOperations.Enter;
-import static io.atomix.primitive.partition.impl.PrimaryElectorOperations.GET_TERM;
-import static io.atomix.primitive.partition.impl.PrimaryElectorOperations.GetTerm;
-
-/**
- * Leader elector based primary election.
- */
+/** Leader elector based primary election. */
 public class DefaultPrimaryElection implements ManagedPrimaryElection {
-  private static final Serializer SERIALIZER = Serializer.using(Namespace.builder()
-      .register(PrimaryElectorOperations.NAMESPACE)
-      .register(PrimaryElectorEvents.NAMESPACE)
-      .build());
+  private static final Serializer SERIALIZER =
+      Serializer.using(
+          Namespace.builder()
+              .register(PrimaryElectorOperations.NAMESPACE)
+              .register(PrimaryElectorEvents.NAMESPACE)
+              .build());
 
   private final PartitionId partitionId;
   private final SessionClient proxy;
@@ -54,26 +53,32 @@ public class DefaultPrimaryElection implements ManagedPrimaryElection {
   private final PrimaryElectionEventListener eventListener;
   private final AtomicBoolean started = new AtomicBoolean();
 
-  public DefaultPrimaryElection(PartitionId partitionId, SessionClient proxy, PrimaryElectionService service) {
+  public DefaultPrimaryElection(
+      PartitionId partitionId, SessionClient proxy, PrimaryElectionService service) {
     this.partitionId = checkNotNull(partitionId);
     this.proxy = proxy;
     this.service = service;
-    this.eventListener = event -> {
-      if (event.partitionId().equals(partitionId)) {
-        listeners.forEach(l -> l.event(event));
-      }
-    };
+    this.eventListener =
+        event -> {
+          if (event.partitionId().equals(partitionId)) {
+            listeners.forEach(l -> l.event(event));
+          }
+        };
     service.addListener(eventListener);
   }
 
   @Override
   public CompletableFuture<PrimaryTerm> enter(GroupMember member) {
-    return proxy.execute(operation(ENTER, SERIALIZER.encode(new Enter(partitionId, member)))).thenApply(SERIALIZER::decode);
+    return proxy
+        .execute(operation(ENTER, SERIALIZER.encode(new Enter(partitionId, member))))
+        .thenApply(SERIALIZER::decode);
   }
 
   @Override
   public CompletableFuture<PrimaryTerm> getTerm() {
-    return proxy.execute(operation(GET_TERM, SERIALIZER.encode(new GetTerm(partitionId)))).thenApply(SERIALIZER::decode);
+    return proxy
+        .execute(operation(GET_TERM, SERIALIZER.encode(new GetTerm(partitionId))))
+        .thenApply(SERIALIZER::decode);
   }
 
   @Override

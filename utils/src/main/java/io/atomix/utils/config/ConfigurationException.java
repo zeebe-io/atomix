@@ -17,9 +17,7 @@ package io.atomix.utils.config;
 
 import io.atomix.utils.AtomixRuntimeException;
 
-/**
- * Atomix configuration exception.
- */
+/** Atomix configuration exception. */
 public class ConfigurationException extends AtomixRuntimeException {
   public ConfigurationException(String message) {
     super(message);

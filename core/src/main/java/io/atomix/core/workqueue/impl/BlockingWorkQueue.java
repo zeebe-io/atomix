@@ -22,7 +22,6 @@ import io.atomix.core.workqueue.WorkQueue;
 import io.atomix.core.workqueue.WorkQueueStats;
 import io.atomix.primitive.PrimitiveException;
 import io.atomix.primitive.Synchronous;
-
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -31,9 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
-/**
- * Default synchronous work queue implementation.
- */
+/** Default synchronous work queue implementation. */
 public class BlockingWorkQueue<E> extends Synchronous<AsyncWorkQueue<E>> implements WorkQueue<E> {
 
   private final AsyncWorkQueue<E> asyncQueue;

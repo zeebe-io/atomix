@@ -17,9 +17,6 @@ package io.atomix.primitive.partition;
 
 import io.atomix.utils.Managed;
 
-/**
- * Managed partition group membership service.
- */
+/** Managed partition group membership service. */
 public interface ManagedPartitionGroupMembershipService
-    extends PartitionGroupMembershipService, Managed<PartitionGroupMembershipService> {
-}
+    extends PartitionGroupMembershipService, Managed<PartitionGroupMembershipService> {}

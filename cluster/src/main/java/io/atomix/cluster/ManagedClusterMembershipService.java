@@ -17,8 +17,6 @@ package io.atomix.cluster;
 
 import io.atomix.utils.Managed;
 
-/**
- * Managed cluster.
- */
-public interface ManagedClusterMembershipService extends ClusterMembershipService, Managed<ClusterMembershipService> {
-}
+/** Managed cluster. */
+public interface ManagedClusterMembershipService
+    extends ClusterMembershipService, Managed<ClusterMembershipService> {}

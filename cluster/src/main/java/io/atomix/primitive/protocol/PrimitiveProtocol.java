@@ -17,15 +17,12 @@ package io.atomix.primitive.protocol;
 
 import io.atomix.utils.ConfiguredType;
 
-/**
- * Primitive protocol.
- */
+/** Primitive protocol. */
 public interface PrimitiveProtocol {
 
-  /**
-   * Distributed primitive protocol type.
-   */
-  interface Type<C extends PrimitiveProtocolConfig<C>> extends ConfiguredType<C>, Comparable<Type<C>> {
+  /** Distributed primitive protocol type. */
+  interface Type<C extends PrimitiveProtocolConfig<C>>
+      extends ConfiguredType<C>, Comparable<Type<C>> {
 
     /**
      * Creates a new protocol instance.
@@ -47,5 +44,4 @@ public interface PrimitiveProtocol {
    * @return the protocol type
    */
   Type type();
-
 }

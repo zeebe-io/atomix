@@ -43,11 +43,12 @@ public class ComposableFuture<T> extends CompletableFuture<T> implements BiConsu
    * @return A new future.
    */
   public CompletableFuture<T> except(Consumer<Throwable> consumer) {
-    return whenComplete((result, error) -> {
-      if (error != null) {
-        consumer.accept(error);
-      }
-    });
+    return whenComplete(
+        (result, error) -> {
+          if (error != null) {
+            consumer.accept(error);
+          }
+        });
   }
 
   /**
@@ -57,11 +58,12 @@ public class ComposableFuture<T> extends CompletableFuture<T> implements BiConsu
    * @return A new future.
    */
   public CompletableFuture<T> exceptAsync(Consumer<Throwable> consumer) {
-    return whenCompleteAsync((result, error) -> {
-      if (error != null) {
-        consumer.accept(error);
-      }
-    });
+    return whenCompleteAsync(
+        (result, error) -> {
+          if (error != null) {
+            consumer.accept(error);
+          }
+        });
   }
 
   /**
@@ -72,11 +74,12 @@ public class ComposableFuture<T> extends CompletableFuture<T> implements BiConsu
    * @return A new future.
    */
   public CompletableFuture<T> exceptAsync(Consumer<Throwable> consumer, Executor executor) {
-    return whenCompleteAsync((result, error) -> {
-      if (error != null) {
-        consumer.accept(error);
-      }
-    }, executor);
+    return whenCompleteAsync(
+        (result, error) -> {
+          if (error != null) {
+            consumer.accept(error);
+          }
+        },
+        executor);
   }
-
 }

@@ -16,12 +16,10 @@
 package io.atomix.primitive.partition;
 
 import io.atomix.primitive.PrimitiveType;
-import io.atomix.primitive.session.SessionClient;
 import io.atomix.primitive.service.ServiceConfig;
+import io.atomix.primitive.session.SessionClient;
 
-/**
- * Primitive client.
- */
+/** Primitive client. */
 public interface PartitionClient {
 
   /**
@@ -32,6 +30,6 @@ public interface PartitionClient {
    * @param serviceConfig the primitive service configuration
    * @return a new proxy builder for the given primitive type
    */
-  SessionClient.Builder sessionBuilder(String primitiveName, PrimitiveType primitiveType, ServiceConfig serviceConfig);
-
+  SessionClient.Builder sessionBuilder(
+      String primitiveName, PrimitiveType primitiveType, ServiceConfig serviceConfig);
 }

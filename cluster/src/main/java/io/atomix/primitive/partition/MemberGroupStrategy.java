@@ -17,7 +17,6 @@ package io.atomix.primitive.partition;
 
 import io.atomix.cluster.Member;
 import io.atomix.primitive.partition.impl.NodeMemberGroup;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,15 +27,16 @@ import java.util.stream.Collectors;
 
 /**
  * Member group strategy.
- * <p>
- * Member group strategies are default implementations of {@link MemberGroupProvider} for built-in node attributes.
+ *
+ * <p>Member group strategies are default implementations of {@link MemberGroupProvider} for
+ * built-in node attributes.
  */
 public enum MemberGroupStrategy implements MemberGroupProvider {
 
   /**
    * Zone aware member group strategy.
-   * <p>
-   * This strategy will create a member group for each unique zone in the cluster.
+   *
+   * <p>This strategy will create a member group for each unique zone in the cluster.
    */
   ZONE_AWARE {
     @Override
@@ -47,8 +47,8 @@ public enum MemberGroupStrategy implements MemberGroupProvider {
 
   /**
    * Rack aware member group strategy.
-   * <p>
-   * This strategy will create a member group for each unique rack in the cluster.
+   *
+   * <p>This strategy will create a member group for each unique rack in the cluster.
    */
   RACK_AWARE {
     @Override
@@ -59,8 +59,8 @@ public enum MemberGroupStrategy implements MemberGroupProvider {
 
   /**
    * Host aware member group strategy.
-   * <p>
-   * This strategy will create a member group for each unique host in the cluster.
+   *
+   * <p>This strategy will create a member group for each unique host in the cluster.
    */
   HOST_AWARE {
     @Override
@@ -71,9 +71,9 @@ public enum MemberGroupStrategy implements MemberGroupProvider {
 
   /**
    * Node aware member group strategy (the default).
-   * <p>
-   * This strategy will create a member group for each node in the cluster, effectively behaving the same as if
-   * no member groups were defined.
+   *
+   * <p>This strategy will create a member group for each node in the cluster, effectively behaving
+   * the same as if no member groups were defined.
    */
   NODE_AWARE {
     @Override
@@ -85,11 +85,12 @@ public enum MemberGroupStrategy implements MemberGroupProvider {
   /**
    * Groups nodes by the given key function.
    *
-   * @param members       the nodes to group
+   * @param members the nodes to group
    * @param keyFunction the key function to apply to nodes to extract a key
    * @return a collection of node member groups
    */
-  protected Collection<MemberGroup> groupNodes(Collection<Member> members, Function<Member, String> keyFunction) {
+  protected Collection<MemberGroup> groupNodes(
+      Collection<Member> members, Function<Member, String> keyFunction) {
     Map<String, Set<Member>> groups = new HashMap<>();
     for (Member member : members) {
       groups.computeIfAbsent(keyFunction.apply(member), k -> new HashSet<>()).add(member);
