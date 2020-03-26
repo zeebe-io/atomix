@@ -140,5 +140,4 @@ public class SwappedBytes extends WrappedBytes {
   public Bytes writeDouble(int offset, double d) {
     return writeLong(offset, Double.doubleToRawLongBits(d));
   }
-
 }

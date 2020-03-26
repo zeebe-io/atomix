@@ -21,14 +21,10 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.google.common.collect.ImmutableList;
 
-/**
- * Creates {@link ImmutableList} serializer instance.
- */
+/** Creates {@link ImmutableList} serializer instance. */
 public class ImmutableListSerializer extends Serializer<ImmutableList<?>> {
 
-  /**
-   * Creates {@link ImmutableList} serializer instance.
-   */
+  /** Creates {@link ImmutableList} serializer instance. */
   public ImmutableListSerializer() {
     // non-null, immutable
     super(false, true);
@@ -43,8 +39,7 @@ public class ImmutableListSerializer extends Serializer<ImmutableList<?>> {
   }
 
   @Override
-  public ImmutableList<?> read(Kryo kryo, Input input,
-      Class<ImmutableList<?>> type) {
+  public ImmutableList<?> read(Kryo kryo, Input input, Class<ImmutableList<?>> type) {
     final int size = input.readInt();
     switch (size) {
       case 0:

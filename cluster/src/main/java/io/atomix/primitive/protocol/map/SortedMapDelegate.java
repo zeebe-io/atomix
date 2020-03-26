@@ -16,12 +16,8 @@
 package io.atomix.primitive.protocol.map;
 
 import com.google.common.annotations.Beta;
-
 import java.util.SortedMap;
 
-/**
- * Sorted map protocol.
- */
+/** Sorted map protocol. */
 @Beta
-public interface SortedMapDelegate<K, V> extends MapDelegate<K, V>, SortedMap<K, V> {
-}
+public interface SortedMapDelegate<K, V> extends MapDelegate<K, V>, SortedMap<K, V> {}

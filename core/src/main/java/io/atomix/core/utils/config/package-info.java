@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Configuration parsing utilities.
- */
+/** Configuration parsing utilities. */
 package io.atomix.core.utils.config;

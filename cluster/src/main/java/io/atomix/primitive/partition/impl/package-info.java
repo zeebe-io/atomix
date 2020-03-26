@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Partition service/interface implementations.
- */
+/** Partition service/interface implementations. */
 package io.atomix.primitive.partition.impl;

@@ -15,6 +15,9 @@
  */
 package io.atomix.cluster.discovery;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static io.atomix.utils.concurrent.Threads.namedThreads;
+
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -23,13 +26,6 @@ import io.atomix.cluster.BootstrapService;
 import io.atomix.cluster.Node;
 import io.atomix.cluster.NodeId;
 import io.atomix.utils.event.AbstractListenerManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.naming.NamingEnumeration;
-import javax.naming.NamingException;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.InitialDirContext;
 import java.time.Duration;
 import java.util.Hashtable;
 import java.util.Map;
@@ -38,13 +34,14 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import javax.naming.NamingEnumeration;
+import javax.naming.NamingException;
+import javax.naming.directory.DirContext;
+import javax.naming.directory.InitialDirContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static io.atomix.utils.concurrent.Threads.namedThreads;
-
-/**
- * Cluster membership provider that uses DNS SRV lookups.
- */
+/** Cluster membership provider that uses DNS SRV lookups. */
 public class DnsDiscoveryProvider
     extends AbstractListenerManager<NodeDiscoveryEvent, NodeDiscoveryEventListener>
     implements NodeDiscoveryProvider {
@@ -60,9 +57,7 @@ public class DnsDiscoveryProvider
     return new DnsDiscoveryBuilder();
   }
 
-  /**
-   * DNS node discovery provider type.
-   */
+  /** DNS node discovery provider type. */
   public static class Type implements NodeDiscoveryProvider.Type<DnsDiscoveryConfig> {
     private static final String NAME = "dns";
 
@@ -84,11 +79,12 @@ public class DnsDiscoveryProvider
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DnsDiscoveryProvider.class);
 
-  private static final String[] ATTRIBUTES = new String[]{"SRV"};
+  private static final String[] ATTRIBUTES = new String[] {"SRV"};
   private static final String ATTRIBUTE_ID = "srv";
 
-  private final ScheduledExecutorService resolverScheduler = Executors.newSingleThreadScheduledExecutor(
-      namedThreads("atomix-cluster-dns-resolver", LOGGER));
+  private final ScheduledExecutorService resolverScheduler =
+      Executors.newSingleThreadScheduledExecutor(
+          namedThreads("atomix-cluster-dns-resolver", LOGGER));
 
   private final String service;
   private final Duration resolutionInterval;
@@ -102,7 +98,8 @@ public class DnsDiscoveryProvider
   DnsDiscoveryProvider(DnsDiscoveryConfig config) {
     this.config = checkNotNull(config, "config cannot be null");
     this.service = checkNotNull(config.getService(), "service cannot be null");
-    this.resolutionInterval = checkNotNull(config.getResolutionInterval(), "resolutionInterval cannot be null");
+    this.resolutionInterval =
+        checkNotNull(config.getResolutionInterval(), "resolutionInterval cannot be null");
   }
 
   @Override
@@ -122,7 +119,8 @@ public class DnsDiscoveryProvider
 
     try {
       final DirContext context = new InitialDirContext(env);
-      final NamingEnumeration<?> resolved = context.getAttributes(service, ATTRIBUTES).get(ATTRIBUTE_ID).getAll();
+      final NamingEnumeration<?> resolved =
+          context.getAttributes(service, ATTRIBUTES).get(ATTRIBUTE_ID).getAll();
 
       Set<NodeId> currentNodeIds = ImmutableSet.copyOf(nodes.keySet());
       Set<NodeId> newNodeIds = Sets.newHashSet();
@@ -133,11 +131,8 @@ public class DnsDiscoveryProvider
         String port = items[2].trim();
         String id = Splitter.on('.').splitToList(host).get(0);
 
-        Node node = Node.builder()
-            .withId(id)
-            .withHost(host)
-            .withPort(Integer.parseInt(port))
-            .build();
+        Node node =
+            Node.builder().withId(id).withHost(host).withPort(Integer.parseInt(port)).build();
 
         if (nodes.putIfAbsent(node.id(), node) == null) {
           newNodeIds.add(node.id());

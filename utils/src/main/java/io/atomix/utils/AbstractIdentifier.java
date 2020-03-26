@@ -15,20 +15,16 @@
  */
 package io.atomix.utils;
 
-import java.util.Objects;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Abstract identifier backed by another value, e.g. string, int.
- */
+import java.util.Objects;
+
+/** Abstract identifier backed by another value, e.g. string, int. */
 public class AbstractIdentifier<T extends Comparable<T>> implements Identifier<T> {
 
   protected final T identifier; // backing identifier value
 
-  /**
-   * Constructor for serialization.
-   */
+  /** Constructor for serialization. */
   protected AbstractIdentifier() {
     this.identifier = null;
   }
@@ -74,8 +70,7 @@ public class AbstractIdentifier<T extends Comparable<T>> implements Identifier<T
     }
     if (obj instanceof AbstractIdentifier) {
       AbstractIdentifier that = (AbstractIdentifier) obj;
-      return this.getClass() == that.getClass()
-          && Objects.equals(this.identifier, that.identifier);
+      return this.getClass() == that.getClass() && Objects.equals(this.identifier, that.identifier);
     }
     return false;
   }
@@ -88,5 +83,4 @@ public class AbstractIdentifier<T extends Comparable<T>> implements Identifier<T
   public String toString() {
     return identifier.toString();
   }
-
 }

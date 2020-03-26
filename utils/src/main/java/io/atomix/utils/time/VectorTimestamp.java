@@ -15,17 +15,14 @@
  */
 package io.atomix.utils.time;
 
-import com.google.common.collect.ComparisonChain;
-import io.atomix.utils.Identifier;
-
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 
-/**
- * Vector clock timestamp.
- */
+import com.google.common.collect.ComparisonChain;
+import io.atomix.utils.Identifier;
+import java.util.Objects;
+
+/** Vector clock timestamp. */
 public class VectorTimestamp<T extends Identifier> extends LogicalTimestamp {
   private final T identifier;
 
@@ -74,9 +71,6 @@ public class VectorTimestamp<T extends Identifier> extends LogicalTimestamp {
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("identifier", identifier())
-        .add("value", value())
-        .toString();
+    return toStringHelper(this).add("identifier", identifier()).add("value", value()).toString();
   }
 }

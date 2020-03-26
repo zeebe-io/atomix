@@ -15,17 +15,14 @@
  */
 package io.atomix.utils.concurrent;
 
-import org.slf4j.Logger;
+import static io.atomix.utils.concurrent.Threads.namedThreads;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
+import org.slf4j.Logger;
 
-import static io.atomix.utils.concurrent.Threads.namedThreads;
-
-/**
- * Thread pool context factory.
- */
+/** Thread pool context factory. */
 public class BlockingAwareThreadPoolContextFactory implements ThreadContextFactory {
   private final ScheduledExecutorService executor;
 

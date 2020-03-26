@@ -19,9 +19,7 @@ import com.google.common.annotations.Beta;
 import io.atomix.primitive.PrimitiveManagementService;
 import io.atomix.primitive.protocol.GossipProtocol;
 
-/**
- * Counter protocol.
- */
+/** Counter protocol. */
 @Beta
 public interface CounterProtocol extends GossipProtocol {
 
@@ -33,5 +31,4 @@ public interface CounterProtocol extends GossipProtocol {
    * @return a new counter delegate
    */
   CounterDelegate newCounterDelegate(String name, PrimitiveManagementService managementService);
-
 }

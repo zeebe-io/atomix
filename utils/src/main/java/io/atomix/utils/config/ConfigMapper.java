@@ -15,6 +15,8 @@
  */
 package io.atomix.utils.config;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -28,9 +30,6 @@ import com.typesafe.config.ConfigParseOptions;
 import com.typesafe.config.ConfigValue;
 import io.atomix.utils.Named;
 import io.atomix.utils.memory.MemorySize;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -50,12 +49,10 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * Utility for applying Typesafe configurations to Atomix configuration objects.
- */
+/** Utility for applying Typesafe configurations to Atomix configuration objects. */
 public class ConfigMapper {
   private static final Logger LOGGER = LoggerFactory.getLogger(ConfigMapper.class);
   private final ClassLoader classLoader;
@@ -67,10 +64,10 @@ public class ConfigMapper {
   /**
    * Loads the given configuration file using the mapper, falling back to the given resources.
    *
-   * @param type      the type to load
-   * @param files     the files to load
+   * @param type the type to load
+   * @param files the files to load
    * @param resources the resources to which to fall back
-   * @param <T>       the resulting type
+   * @param <T> the resulting type
    * @return the loaded configuration
    */
   public <T> T loadFiles(Class<T> type, List<File> files, List<String> resources) {
@@ -80,7 +77,9 @@ public class ConfigMapper {
 
     Config config = ConfigFactory.systemProperties();
     for (File file : files) {
-      config = config.withFallback(ConfigFactory.parseFile(file, ConfigParseOptions.defaults().setAllowMissing(false)));
+      config =
+          config.withFallback(
+              ConfigFactory.parseFile(file, ConfigParseOptions.defaults().setAllowMissing(false)));
     }
 
     for (String resource : resources) {
@@ -92,9 +91,9 @@ public class ConfigMapper {
   /**
    * Loads the given resources using the configuration mapper.
    *
-   * @param type      the type to load
+   * @param type the type to load
    * @param resources the resources to load
-   * @param <T>       the resulting type
+   * @param <T> the resulting type
    * @return the loaded configuration
    */
   public <T> T loadResources(Class<T> type, String... resources) {
@@ -104,9 +103,9 @@ public class ConfigMapper {
   /**
    * Loads the given resources using the configuration mapper.
    *
-   * @param type      the type to load
+   * @param type the type to load
    * @param resources the resources to load
-   * @param <T>       the resulting type
+   * @param <T> the resulting type
    * @return the loaded configuration
    */
   public <T> T loadResources(Class<T> type, List<String> resources) {
@@ -128,7 +127,7 @@ public class ConfigMapper {
    * Applies the given configuration to the given type.
    *
    * @param config the configuration to apply
-   * @param clazz  the class to which to apply the configuration
+   * @param clazz the class to which to apply the configuration
    */
   protected <T> T map(Config config, Class<T> clazz) {
     return map(config, null, null, clazz);
@@ -138,7 +137,8 @@ public class ConfigMapper {
     try {
       return clazz.newInstance();
     } catch (InstantiationException | IllegalAccessException e) {
-      throw new ConfigurationException(clazz.getName() + " needs a public no-args constructor to be used as a bean", e);
+      throw new ConfigurationException(
+          clazz.getName() + " needs a public no-args constructor to be used as a bean", e);
     }
   }
 
@@ -146,7 +146,7 @@ public class ConfigMapper {
    * Applies the given configuration to the given type.
    *
    * @param config the configuration to apply
-   * @param clazz  the class to which to apply the configuration
+   * @param clazz the class to which to apply the configuration
    */
   @SuppressWarnings("unchecked")
   protected <T> T map(Config config, String path, String name, Class<T> clazz) {
@@ -168,40 +168,57 @@ public class ConfigMapper {
     mapSetters(instance, clazz, path, name, propertyNames, config);
     mapFields(instance, clazz, path, name, propertyNames, config);
 
-    // If any properties present in the configuration were not found on config beans, throw an exception.
+    // If any properties present in the configuration were not found on config beans, throw an
+    // exception.
     if (!propertyNames.isEmpty()) {
-      checkRemainingProperties(propertyNames.keySet(), describeProperties(instance), toPath(path, name), clazz);
+      checkRemainingProperties(
+          propertyNames.keySet(), describeProperties(instance), toPath(path, name), clazz);
     }
     return instance;
   }
 
-  protected void checkRemainingProperties(Set<String> missingProperties, List<String> availableProperties, String path, Class<?> clazz) {
+  protected void checkRemainingProperties(
+      Set<String> missingProperties,
+      List<String> availableProperties,
+      String path,
+      Class<?> clazz) {
     Properties properties = System.getProperties();
-    List<String> cleanNames = missingProperties.stream()
-        .map(propertyName -> toPath(path, propertyName))
-        .filter(propertyName -> !properties.containsKey(propertyName))
-        .filter(propertyName -> properties.entrySet().stream().noneMatch(entry -> entry.getKey().toString().startsWith(propertyName + ".")))
-        .sorted()
-        .collect(Collectors.toList());
+    List<String> cleanNames =
+        missingProperties.stream()
+            .map(propertyName -> toPath(path, propertyName))
+            .filter(propertyName -> !properties.containsKey(propertyName))
+            .filter(
+                propertyName ->
+                    properties.entrySet().stream()
+                        .noneMatch(
+                            entry -> entry.getKey().toString().startsWith(propertyName + ".")))
+            .sorted()
+            .collect(Collectors.toList());
     if (!cleanNames.isEmpty()) {
-      throw new ConfigurationException("Unknown properties present in configuration: " + Joiner.on(", ").join(cleanNames) + "\n"
-          + "Available properties:\n- " + Joiner.on("\n- ").join(availableProperties));
+      throw new ConfigurationException(
+          "Unknown properties present in configuration: "
+              + Joiner.on(", ").join(cleanNames)
+              + "\n"
+              + "Available properties:\n- "
+              + Joiner.on("\n- ").join(availableProperties));
     }
   }
 
   private List<String> describeProperties(Object instance) {
-    Stream<String> setters = getSetterDescriptors(instance.getClass())
-        .stream()
-        .map(descriptor -> descriptor.name);
-    Stream<String> fields = getFieldDescriptors(instance.getClass())
-        .stream()
-        .map(descriptor -> descriptor.name);
-    return Stream.concat(setters, fields)
-        .sorted()
-        .collect(Collectors.toList());
+    Stream<String> setters =
+        getSetterDescriptors(instance.getClass()).stream().map(descriptor -> descriptor.name);
+    Stream<String> fields =
+        getFieldDescriptors(instance.getClass()).stream().map(descriptor -> descriptor.name);
+    return Stream.concat(setters, fields).sorted().collect(Collectors.toList());
   }
 
-  private <T> void mapSetters(T instance, Class<T> clazz, String path, String name, Map<String, String> propertyNames, Config config) {
+  private <T> void mapSetters(
+      T instance,
+      Class<T> clazz,
+      String path,
+      String name,
+      Map<String, String> propertyNames,
+      Config config) {
     try {
       for (SetterDescriptor descriptor : getSetterDescriptors(instance.getClass())) {
         Method setter = descriptor.setter;
@@ -211,7 +228,9 @@ public class ConfigMapper {
         String configPropName = propertyNames.remove(descriptor.name);
         if (configPropName == null) {
           if ((Named.class.isAssignableFrom(clazz) || NamedConfig.class.isAssignableFrom(clazz))
-              && descriptor.setter.getParameterTypes()[0] == String.class && name != null && descriptor.name.equals("name")) {
+              && descriptor.setter.getParameterTypes()[0] == String.class
+              && name != null
+              && descriptor.name.equals("name")) {
             if (descriptor.deprecated) {
               if (path == null) {
                 LOGGER.warn("{} is deprecated!", name);
@@ -224,7 +243,14 @@ public class ConfigMapper {
           continue;
         }
 
-        Object value = getValue(instance.getClass(), parameterType, parameterClass, config, toPath(path, name), configPropName);
+        Object value =
+            getValue(
+                instance.getClass(),
+                parameterType,
+                parameterClass,
+                config,
+                toPath(path, name),
+                configPropName);
         if (value != null) {
           if (descriptor.deprecated) {
             if (path == null) {
@@ -237,13 +263,23 @@ public class ConfigMapper {
         }
       }
     } catch (IllegalAccessException e) {
-      throw new ConfigurationException(instance.getClass().getName() + " getters and setters are not accessible, they must be for use as a bean", e);
+      throw new ConfigurationException(
+          instance.getClass().getName()
+              + " getters and setters are not accessible, they must be for use as a bean",
+          e);
     } catch (InvocationTargetException e) {
-      throw new ConfigurationException("Calling bean method on " + instance.getClass().getName() + " caused an exception", e);
+      throw new ConfigurationException(
+          "Calling bean method on " + instance.getClass().getName() + " caused an exception", e);
     }
   }
 
-  private <T> void mapFields(T instance, Class<T> clazz, String path, String name, Map<String, String> propertyNames, Config config) {
+  private <T> void mapFields(
+      T instance,
+      Class<T> clazz,
+      String path,
+      String name,
+      Map<String, String> propertyNames,
+      Config config) {
     try {
       for (FieldDescriptor descriptor : getFieldDescriptors(instance.getClass())) {
         Field field = descriptor.field;
@@ -254,7 +290,10 @@ public class ConfigMapper {
 
         String configPropName = propertyNames.remove(descriptor.name);
         if (configPropName == null) {
-          if (Named.class.isAssignableFrom(clazz) && field.getType() == String.class && name != null && descriptor.name.equals("name")) {
+          if (Named.class.isAssignableFrom(clazz)
+              && field.getType() == String.class
+              && name != null
+              && descriptor.name.equals("name")) {
             if (descriptor.deprecated) {
               LOGGER.warn("{}.{} is deprecated!", path, name);
             }
@@ -263,7 +302,14 @@ public class ConfigMapper {
           continue;
         }
 
-        Object value = getValue(instance.getClass(), genericType, fieldClass, config, toPath(path, name), configPropName);
+        Object value =
+            getValue(
+                instance.getClass(),
+                genericType,
+                fieldClass,
+                config,
+                toPath(path, name),
+                configPropName);
         if (value != null) {
           if (descriptor.deprecated) {
             LOGGER.warn("{}.{} is deprecated!", path, name);
@@ -272,11 +318,20 @@ public class ConfigMapper {
         }
       }
     } catch (IllegalAccessException e) {
-      throw new ConfigurationException(instance.getClass().getName() + " fields are not accessible, they must be for use as a bean", e);
+      throw new ConfigurationException(
+          instance.getClass().getName()
+              + " fields are not accessible, they must be for use as a bean",
+          e);
     }
   }
 
-  protected Object getValue(Class<?> beanClass, Type parameterType, Class<?> parameterClass, Config config, String configPath, String configPropName) {
+  protected Object getValue(
+      Class<?> beanClass,
+      Type parameterType,
+      Class<?> parameterClass,
+      Config config,
+      String configPath,
+      String configPropName) {
     if (parameterClass == Boolean.class || parameterClass == boolean.class) {
       try {
         return config.getBoolean(configPropName);
@@ -323,11 +378,14 @@ public class ConfigMapper {
     } else if (parameterClass == Object.class) {
       return config.getAnyRef(configPropName);
     } else if (parameterClass == List.class || parameterClass == Collection.class) {
-      return getListValue(beanClass, parameterType, parameterClass, config, configPath, configPropName);
+      return getListValue(
+          beanClass, parameterType, parameterClass, config, configPath, configPropName);
     } else if (parameterClass == Set.class) {
-      return getSetValue(beanClass, parameterType, parameterClass, config, configPath, configPropName);
+      return getSetValue(
+          beanClass, parameterType, parameterClass, config, configPath, configPropName);
     } else if (parameterClass == Map.class) {
-      return getMapValue(beanClass, parameterType, parameterClass, config, configPath, configPropName);
+      return getMapValue(
+          beanClass, parameterType, parameterClass, config, configPath, configPropName);
     } else if (parameterClass == Config.class) {
       return config.getConfig(configPropName);
     } else if (parameterClass == ConfigObject.class) {
@@ -349,7 +407,8 @@ public class ConfigMapper {
       @SuppressWarnings("unchecked")
       Enum enumValue = Enum.valueOf((Class<Enum>) parameterClass, enumName);
       try {
-        Deprecated deprecated = enumValue.getDeclaringClass().getField(enumName).getAnnotation(Deprecated.class);
+        Deprecated deprecated =
+            enumValue.getDeclaringClass().getField(enumName).getAnnotation(Deprecated.class);
         if (deprecated != null) {
           LOGGER.warn("{}.{} = {} is deprecated!", configPath, configPropName, value);
         }
@@ -361,16 +420,33 @@ public class ConfigMapper {
     }
   }
 
-  protected Map getMapValue(Class<?> beanClass, Type parameterType, Class<?> parameterClass, Config config, String configPath, String configPropName) {
+  protected Map getMapValue(
+      Class<?> beanClass,
+      Type parameterType,
+      Class<?> parameterClass,
+      Config config,
+      String configPath,
+      String configPropName) {
     Type[] typeArgs = ((ParameterizedType) parameterType).getActualTypeArguments();
     Type keyType = typeArgs[0];
     Type valueType = typeArgs[1];
 
     Map<Object, Object> map = new HashMap<>();
     Config childConfig = config.getConfig(configPropName);
-    Class valueClass = (Class) (valueType instanceof ParameterizedType ? ((ParameterizedType) valueType).getRawType() : valueType);
+    Class valueClass =
+        (Class)
+            (valueType instanceof ParameterizedType
+                ? ((ParameterizedType) valueType).getRawType()
+                : valueType);
     for (String key : config.getObject(configPropName).unwrapped().keySet()) {
-      Object value = getValue(Map.class, valueType, valueClass, childConfig, toPath(configPath, configPropName), key);
+      Object value =
+          getValue(
+              Map.class,
+              valueType,
+              valueClass,
+              childConfig,
+              toPath(configPath, configPropName),
+              key);
       map.put(getKeyValue(keyType, key), value);
     }
     return map;
@@ -392,11 +468,26 @@ public class ConfigMapper {
     }
   }
 
-  protected Object getSetValue(Class<?> beanClass, Type parameterType, Class<?> parameterClass, Config config, String configPath, String configPropName) {
-    return new HashSet((List) getListValue(beanClass, parameterType, parameterClass, config, configPath, configPropName));
+  protected Object getSetValue(
+      Class<?> beanClass,
+      Type parameterType,
+      Class<?> parameterClass,
+      Config config,
+      String configPath,
+      String configPropName) {
+    return new HashSet(
+        (List)
+            getListValue(
+                beanClass, parameterType, parameterClass, config, configPath, configPropName));
   }
 
-  protected Object getListValue(Class<?> beanClass, Type parameterType, Class<?> parameterClass, Config config, String configPath, String configPropName) {
+  protected Object getListValue(
+      Class<?> beanClass,
+      Type parameterType,
+      Class<?> parameterClass,
+      Config config,
+      String configPath,
+      String configPropName) {
     Type elementType = ((ParameterizedType) parameterType).getActualTypeArguments()[0];
     if (elementType instanceof ParameterizedType) {
       elementType = ((ParameterizedType) elementType).getRawType();
@@ -406,8 +497,7 @@ public class ConfigMapper {
       try {
         return config.getBooleanList(configPropName);
       } catch (ConfigException.WrongType e) {
-        return config.getStringList(configPropName)
-            .stream()
+        return config.getStringList(configPropName).stream()
             .map(Boolean::parseBoolean)
             .collect(Collectors.toList());
       }
@@ -415,43 +505,46 @@ public class ConfigMapper {
       try {
         return config.getIntList(configPropName);
       } catch (ConfigException.WrongType e) {
-        return config.getStringList(configPropName)
-            .stream()
-            .map(value -> {
-              try {
-                return Integer.parseInt(value);
-              } catch (NumberFormatException e2) {
-                throw e;
-              }
-            }).collect(Collectors.toList());
+        return config.getStringList(configPropName).stream()
+            .map(
+                value -> {
+                  try {
+                    return Integer.parseInt(value);
+                  } catch (NumberFormatException e2) {
+                    throw e;
+                  }
+                })
+            .collect(Collectors.toList());
       }
     } else if (elementType == Double.class) {
       try {
         return config.getDoubleList(configPropName);
       } catch (ConfigException.WrongType e) {
-        return config.getStringList(configPropName)
-            .stream()
-            .map(value -> {
-              try {
-                return Double.parseDouble(value);
-              } catch (NumberFormatException e2) {
-                throw e;
-              }
-            }).collect(Collectors.toList());
+        return config.getStringList(configPropName).stream()
+            .map(
+                value -> {
+                  try {
+                    return Double.parseDouble(value);
+                  } catch (NumberFormatException e2) {
+                    throw e;
+                  }
+                })
+            .collect(Collectors.toList());
       }
     } else if (elementType == Long.class) {
       try {
         return config.getLongList(configPropName);
       } catch (ConfigException.WrongType e) {
-        return config.getStringList(configPropName)
-            .stream()
-            .map(value -> {
-              try {
-                return Long.parseLong(value);
-              } catch (NumberFormatException e2) {
-                throw e;
-              }
-            }).collect(Collectors.toList());
+        return config.getStringList(configPropName).stream()
+            .map(
+                value -> {
+                  try {
+                    return Long.parseLong(value);
+                  } catch (NumberFormatException e2) {
+                    throw e;
+                  }
+                })
+            .collect(Collectors.toList());
       }
     } else if (elementType == String.class) {
       return config.getStringList(configPropName);
@@ -463,15 +556,15 @@ public class ConfigMapper {
           .map(size -> new MemorySize(size.toBytes()))
           .collect(Collectors.toList());
     } else if (elementType == Class.class) {
-      return config.getStringList(configPropName)
-          .stream()
-          .map(className -> {
-            try {
-              return classLoader.loadClass(className);
-            } catch (ClassNotFoundException e) {
-              throw new ConfigurationException("Failed to load class: " + className);
-            }
-          })
+      return config.getStringList(configPropName).stream()
+          .map(
+              className -> {
+                try {
+                  return classLoader.loadClass(className);
+                } catch (ClassNotFoundException e) {
+                  throw new ConfigurationException("Failed to load class: " + className);
+                }
+              })
           .collect(Collectors.toList());
     } else if (elementType == Object.class) {
       return config.getAnyRefList(configPropName);
@@ -484,7 +577,12 @@ public class ConfigMapper {
       List<? extends Config> configList = config.getConfigList(configPropName);
       int i = 0;
       for (Config listMember : configList) {
-        beanList.add(map(listMember, toPath(configPath, configPropName), String.valueOf(i), (Class<?>) elementType));
+        beanList.add(
+            map(
+                listMember,
+                toPath(configPath, configPropName),
+                String.valueOf(i),
+                (Class<?>) elementType));
       }
       return beanList;
     }
@@ -495,10 +593,14 @@ public class ConfigMapper {
   }
 
   protected static boolean isSimpleType(Class<?> parameterClass) {
-    return parameterClass == Boolean.class || parameterClass == boolean.class
-        || parameterClass == Integer.class || parameterClass == int.class
-        || parameterClass == Double.class || parameterClass == double.class
-        || parameterClass == Long.class || parameterClass == long.class
+    return parameterClass == Boolean.class
+        || parameterClass == boolean.class
+        || parameterClass == Integer.class
+        || parameterClass == int.class
+        || parameterClass == Double.class
+        || parameterClass == double.class
+        || parameterClass == Long.class
+        || parameterClass == long.class
         || parameterClass == String.class
         || parameterClass == Duration.class
         || parameterClass == MemorySize.class
@@ -541,16 +643,18 @@ public class ConfigMapper {
 
         // Strip the "set" prefix from the property name.
         name = method.getName().substring(3);
-        name = name.length() > 1
-            ? name.substring(0, 1).toLowerCase() + name.substring(1)
-            : name.toLowerCase();
+        name =
+            name.length() > 1
+                ? name.substring(0, 1).toLowerCase() + name.substring(1)
+                : name.toLowerCase();
 
         // Strip the "Config" suffix from the property name.
         if (name.endsWith("Config")) {
           name = name.substring(0, name.length() - "Config".length());
         }
 
-        // If a setter with this property name has already been registered, determine whether to override it.
+        // If a setter with this property name has already been registered, determine whether to
+        // override it.
         // We favor simpler types over more complex types (i.e. beans).
         SetterDescriptor descriptor = descriptors.get(name);
         if (descriptor != null) {
@@ -577,10 +681,11 @@ public class ConfigMapper {
         }
 
         // If the field has a setter, ignore it and use the setter.
-        Method method = Stream.of(clazz.getMethods())
-            .filter(m -> m.getName().equals(toSetterName(field.getName())))
-            .findFirst()
-            .orElse(null);
+        Method method =
+            Stream.of(clazz.getMethods())
+                .filter(m -> m.getName().equals(toSetterName(field.getName())))
+                .findFirst()
+                .orElse(null);
         if (method != null) {
           continue;
         }

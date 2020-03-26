@@ -23,9 +23,6 @@ interface Connection<M extends ProtocolMessage> {
    */
   void dispatch(M message);
 
-  /**
-   * Closes the connection.
-   */
-  default void close() {
-  }
+  /** Closes the connection. */
+  default void close() {}
 }

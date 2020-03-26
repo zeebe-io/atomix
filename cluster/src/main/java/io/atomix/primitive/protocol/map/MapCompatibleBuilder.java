@@ -17,9 +17,7 @@ package io.atomix.primitive.protocol.map;
 
 import com.google.common.annotations.Beta;
 
-/**
- * Map builder.
- */
+/** Map builder. */
 @Beta
 public interface MapCompatibleBuilder<B extends MapCompatibleBuilder<B>> {
 
@@ -30,5 +28,4 @@ public interface MapCompatibleBuilder<B extends MapCompatibleBuilder<B>> {
    * @return the primitive builder
    */
   B withProtocol(MapProtocol protocol);
-
 }

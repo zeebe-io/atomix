@@ -18,9 +18,7 @@ package io.atomix.core.impl;
 import io.atomix.primitive.serialization.SerializationService;
 import io.atomix.utils.serializer.SerializerBuilder;
 
-/**
- * Core serialization service.
- */
+/** Core serialization service. */
 public class CoreSerializationService implements SerializationService {
   private final boolean registrationRequired;
   private final boolean compatibleSerialization;

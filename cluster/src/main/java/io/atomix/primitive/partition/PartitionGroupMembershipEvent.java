@@ -17,14 +17,11 @@ package io.atomix.primitive.partition;
 
 import io.atomix.utils.event.AbstractEvent;
 
-/**
- * Partition group membership event.
- */
-public class PartitionGroupMembershipEvent extends AbstractEvent<PartitionGroupMembershipEvent.Type, PartitionGroupMembership> {
+/** Partition group membership event. */
+public class PartitionGroupMembershipEvent
+    extends AbstractEvent<PartitionGroupMembershipEvent.Type, PartitionGroupMembership> {
 
-  /**
-   * Partition group membership event type.
-   */
+  /** Partition group membership event type. */
   public enum Type {
     MEMBERS_CHANGED
   }

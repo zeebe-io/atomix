@@ -20,8 +20,8 @@ import java.nio.charset.Charset;
 
 /**
  * Readable bytes.
- * <p>
- * This interface exposes methods for reading bytes from specific positions in a byte array.
+ *
+ * <p>This interface exposes methods for reading bytes from specific positions in a byte array.
  *
  * @author <a href="http://github.com/kuujo">Jordan Halterman</a>
  */
@@ -30,10 +30,10 @@ public interface BytesInput<T extends BytesInput<T>> {
   /**
    * Reads bytes into the given byte array starting at the given offset up to the given length.
    *
-   * @param offset    The offset from which to start reading bytes.
-   * @param dst       The byte array into which to read bytes.
+   * @param offset The offset from which to start reading bytes.
+   * @param dst The byte array into which to read bytes.
    * @param dstOffset The offset at which to write bytes into the given buffer.
-   * @param length    The total number of bytes to read.
+   * @param length The total number of bytes to read.
    * @return The buffer.
    */
   T read(int offset, Bytes dst, int dstOffset, int length);
@@ -41,10 +41,10 @@ public interface BytesInput<T extends BytesInput<T>> {
   /**
    * Reads bytes into the given byte array starting at the given offset up to the given length.
    *
-   * @param offset    The offset from which to start reading bytes.
-   * @param dst       The byte array into which to read bytes.
+   * @param offset The offset from which to start reading bytes.
+   * @param dst The byte array into which to read bytes.
    * @param dstOffset The offset at which to write bytes into the given buffer
-   * @param length    The total number of bytes to read.
+   * @param length The total number of bytes to read.
    * @return The buffer.
    */
   T read(int offset, byte[] dst, int dstOffset, int length);
@@ -52,10 +52,10 @@ public interface BytesInput<T extends BytesInput<T>> {
   /**
    * Reads bytes into the given byte buffer starting at the given offset up to the given length.
    *
-   * @param offset    The offset from which to start reading bytes.
-   * @param dst       The byte buffer into which to read bytes.
+   * @param offset The offset from which to start reading bytes.
+   * @param dst The byte buffer into which to read bytes.
    * @param dstOffset The offset at which to write bytes into the given buffer
-   * @param length    The total number of bytes to read.
+   * @param length The total number of bytes to read.
    * @return the input buffer
    */
   T read(int offset, ByteBuffer dst, int dstOffset, int length);
@@ -175,7 +175,7 @@ public interface BytesInput<T extends BytesInput<T>> {
   /**
    * Reads a string from the buffer at the given offset.
    *
-   * @param offset  The offset at which to read the string.
+   * @param offset The offset at which to read the string.
    * @param charset The character set with which to decode the string.
    * @return The read string.
    */
@@ -188,5 +188,4 @@ public interface BytesInput<T extends BytesInput<T>> {
    * @return The read string.
    */
   String readUTF8(int offset);
-
 }

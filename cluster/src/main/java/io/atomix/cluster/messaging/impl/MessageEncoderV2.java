@@ -18,9 +18,7 @@ package io.atomix.cluster.messaging.impl;
 import io.atomix.utils.net.Address;
 import io.netty.buffer.ByteBuf;
 
-/**
- * V2 message encoder.
- */
+/** V2 message encoder. */
 class MessageEncoderV2 extends MessageEncoderV1 {
   MessageEncoderV2(Address address) {
     super(address);

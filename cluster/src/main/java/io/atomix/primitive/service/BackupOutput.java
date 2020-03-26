@@ -17,9 +17,7 @@ package io.atomix.primitive.service;
 
 import io.atomix.storage.buffer.BufferOutput;
 
-/**
- * Backup output.
- */
+/** Backup output. */
 public interface BackupOutput extends BufferOutput<BackupOutput> {
 
   /**
@@ -30,5 +28,4 @@ public interface BackupOutput extends BufferOutput<BackupOutput> {
    * @return the backup output
    */
   <U> BackupOutput writeObject(U object);
-
 }

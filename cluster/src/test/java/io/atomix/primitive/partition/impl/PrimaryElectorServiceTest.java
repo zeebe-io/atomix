@@ -15,9 +15,7 @@
  */
 package io.atomix.primitive.partition.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Consumer;
+import static org.junit.Assert.assertEquals;
 
 import io.atomix.cluster.MemberId;
 import io.atomix.primitive.PrimitiveId;
@@ -40,9 +38,10 @@ import io.atomix.primitive.session.SessionId;
 import io.atomix.utils.time.LogicalClock;
 import io.atomix.utils.time.WallClock;
 import io.atomix.utils.time.WallClockTimestamp;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 public class PrimaryElectorServiceTest {
   static long sessionNum = 0;
@@ -280,58 +279,59 @@ public class PrimaryElectorServiceTest {
 
   PrimaryElectorService newService() {
     PrimaryElectorService elector = new PrimaryElectorService();
-    elector.init(new ServiceContext() {
-      @Override
-      public PrimitiveId serviceId() {
-        return PrimitiveId.from(1L);
-      }
+    elector.init(
+        new ServiceContext() {
+          @Override
+          public PrimitiveId serviceId() {
+            return PrimitiveId.from(1L);
+          }
 
-      @Override
-      public String serviceName() {
-        return "test-primary-elector";
-      }
+          @Override
+          public String serviceName() {
+            return "test-primary-elector";
+          }
 
-      @SuppressWarnings("rawtypes")
-      @Override
-      public PrimitiveType serviceType() {
-        return PrimaryElectorType.instance();
-      }
+          @SuppressWarnings("rawtypes")
+          @Override
+          public PrimitiveType serviceType() {
+            return PrimaryElectorType.instance();
+          }
 
-      @Override
-      public MemberId localMemberId() {
-        return null;
-      }
+          @Override
+          public MemberId localMemberId() {
+            return null;
+          }
 
-      @Override
-      public <C extends ServiceConfig> C serviceConfig() {
-        return null;
-      }
+          @Override
+          public <C extends ServiceConfig> C serviceConfig() {
+            return null;
+          }
 
-      @Override
-      public long currentIndex() {
-        return 0;
-      }
+          @Override
+          public long currentIndex() {
+            return 0;
+          }
 
-      @Override
-      public Session<?> currentSession() {
-        return null;
-      }
+          @Override
+          public Session<?> currentSession() {
+            return null;
+          }
 
-      @Override
-      public OperationType currentOperation() {
-        return null;
-      }
+          @Override
+          public OperationType currentOperation() {
+            return null;
+          }
 
-      @Override
-      public LogicalClock logicalClock() {
-        return null;
-      }
+          @Override
+          public LogicalClock logicalClock() {
+            return null;
+          }
 
-      @Override
-      public WallClock wallClock() {
-        return null;
-      }
-    });
+          @Override
+          public WallClock wallClock() {
+            return null;
+          }
+        });
     elector.tick(WallClockTimestamp.from(System.currentTimeMillis()));
     return elector;
   }

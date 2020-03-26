@@ -19,18 +19,15 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.atomix.utils.net.Address;
 import io.netty.channel.Channel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * Internal Netty channel pool.
- */
+/** Internal Netty channel pool. */
 class ChannelPool {
   private static final Logger LOGGER = LoggerFactory.getLogger(ChannelPool.class);
 
@@ -54,13 +51,15 @@ class ChannelPool {
     if (channelPool != null) {
       return channelPool;
     }
-    return channels.computeIfAbsent(address, e -> {
-      List<CompletableFuture<Channel>> defaultList = new ArrayList<>(size);
-      for (int i = 0; i < size; i++) {
-        defaultList.add(null);
-      }
-      return Lists.newCopyOnWriteArrayList(defaultList);
-    });
+    return channels.computeIfAbsent(
+        address,
+        e -> {
+          List<CompletableFuture<Channel>> defaultList = new ArrayList<>(size);
+          for (int i = 0; i < size; i++) {
+            defaultList.add(null);
+          }
+          return Lists.newCopyOnWriteArrayList(defaultList);
+        });
   }
 
   /**
@@ -76,7 +75,7 @@ class ChannelPool {
   /**
    * Gets or creates a pooled channel to the given address for the given message type.
    *
-   * @param address     the address for which to get the channel
+   * @param address the address for which to get the channel
    * @param messageType the message type for which to get the channel
    * @return a future to be completed with a channel from the pool
    */
@@ -91,13 +90,14 @@ class ChannelPool {
         if (channelFuture == null || channelFuture.isCompletedExceptionally()) {
           LOGGER.debug("Connecting to {}", address);
           channelFuture = factory.apply(address);
-          channelFuture.whenComplete((channel, error) -> {
-            if (error == null) {
-              LOGGER.debug("Connected to {}", channel.remoteAddress());
-            } else {
-              LOGGER.debug("Failed to connect to {}", address, error);
-            }
-          });
+          channelFuture.whenComplete(
+              (channel, error) -> {
+                if (error == null) {
+                  LOGGER.debug("Connected to {}", channel.remoteAddress());
+                } else {
+                  LOGGER.debug("Failed to connect to {}", address, error);
+                }
+              });
           channelPool.set(offset, channelFuture);
         }
       }
@@ -105,51 +105,56 @@ class ChannelPool {
 
     final CompletableFuture<Channel> future = new CompletableFuture<>();
     final CompletableFuture<Channel> finalFuture = channelFuture;
-    finalFuture.whenComplete((channel, error) -> {
-      if (error == null) {
-        if (!channel.isActive()) {
-          CompletableFuture<Channel> currentFuture;
-          synchronized (channelPool) {
-            currentFuture = channelPool.get(offset);
-            if (currentFuture == finalFuture) {
-              channelPool.set(offset, null);
-            } else if (currentFuture == null) {
-              currentFuture = factory.apply(address);
-              currentFuture.whenComplete((c, e) -> {
-                if (e == null) {
-                  LOGGER.debug("Connected to {}", channel.remoteAddress());
-                } else {
-                  LOGGER.debug("Failed to connect to {}", channel.remoteAddress(), e);
+    finalFuture.whenComplete(
+        (channel, error) -> {
+          if (error == null) {
+            if (!channel.isActive()) {
+              CompletableFuture<Channel> currentFuture;
+              synchronized (channelPool) {
+                currentFuture = channelPool.get(offset);
+                if (currentFuture == finalFuture) {
+                  channelPool.set(offset, null);
+                } else if (currentFuture == null) {
+                  currentFuture = factory.apply(address);
+                  currentFuture.whenComplete(
+                      (c, e) -> {
+                        if (e == null) {
+                          LOGGER.debug("Connected to {}", channel.remoteAddress());
+                        } else {
+                          LOGGER.debug("Failed to connect to {}", channel.remoteAddress(), e);
+                        }
+                      });
+                  channelPool.set(offset, currentFuture);
                 }
-              });
-              channelPool.set(offset, currentFuture);
-            }
-          }
+              }
 
-          if (currentFuture == finalFuture) {
-            getChannel(address, messageType).whenComplete((recursiveResult, recursiveError) -> {
-              if (recursiveError == null) {
-                future.complete(recursiveResult);
+              if (currentFuture == finalFuture) {
+                getChannel(address, messageType)
+                    .whenComplete(
+                        (recursiveResult, recursiveError) -> {
+                          if (recursiveError == null) {
+                            future.complete(recursiveResult);
+                          } else {
+                            future.completeExceptionally(recursiveError);
+                          }
+                        });
               } else {
-                future.completeExceptionally(recursiveError);
+                currentFuture.whenComplete(
+                    (recursiveResult, recursiveError) -> {
+                      if (recursiveError == null) {
+                        future.complete(recursiveResult);
+                      } else {
+                        future.completeExceptionally(recursiveError);
+                      }
+                    });
               }
-            });
+            } else {
+              future.complete(channel);
+            }
           } else {
-            currentFuture.whenComplete((recursiveResult, recursiveError) -> {
-              if (recursiveError == null) {
-                future.complete(recursiveResult);
-              } else {
-                future.completeExceptionally(recursiveError);
-              }
-            });
+            future.completeExceptionally(error);
           }
-        } else {
-          future.complete(channel);
-        }
-      } else {
-        future.completeExceptionally(error);
-      }
-    });
+        });
     return future;
   }
 }

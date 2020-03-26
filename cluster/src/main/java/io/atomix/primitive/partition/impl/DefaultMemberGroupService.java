@@ -24,14 +24,11 @@ import io.atomix.primitive.partition.MemberGroupEventListener;
 import io.atomix.primitive.partition.MemberGroupProvider;
 import io.atomix.primitive.partition.MemberGroupService;
 import io.atomix.utils.event.AbstractListenerManager;
-
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * Default member group service.
- */
+/** Default member group service. */
 public class DefaultMemberGroupService
     extends AbstractListenerManager<MemberGroupEvent, MemberGroupEventListener>
     implements ManagedMemberGroupService {
@@ -42,7 +39,8 @@ public class DefaultMemberGroupService
   private final ClusterMembershipEventListener membershipEventListener = event -> recomputeGroups();
   private volatile Collection<MemberGroup> memberGroups;
 
-  public DefaultMemberGroupService(ClusterMembershipService membershipService, MemberGroupProvider memberGroupProvider) {
+  public DefaultMemberGroupService(
+      ClusterMembershipService membershipService, MemberGroupProvider memberGroupProvider) {
     this.membershipService = membershipService;
     this.memberGroupProvider = memberGroupProvider;
   }

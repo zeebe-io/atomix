@@ -40,9 +40,7 @@ public final class AtomixRule extends ExternalResource {
     }
   }
 
-  /**
-   * Creates an Atomix instance.
-   */
+  /** Creates an Atomix instance. */
   public AtomixBuilder buildAtomix(int id, Properties properties) {
     return Atomix.builder()
         .withClusterId("test")
@@ -54,17 +52,17 @@ public final class AtomixRule extends ExternalResource {
         .withMembershipProvider(new MulticastDiscoveryProvider());
   }
 
-  /**
-   * Creates an Atomix instance.
-   */
-  public AtomixBuilder buildAtomix(int id, List<Integer> memberIds,
-      Properties properties) {
-    final Collection<Node> nodes = memberIds.stream()
-        .map(memberId -> Node.builder()
-            .withId(String.valueOf(memberId))
-            .withAddress(Address.from("localhost", BASE_PORT + memberId))
-            .build())
-        .collect(Collectors.toList());
+  /** Creates an Atomix instance. */
+  public AtomixBuilder buildAtomix(int id, List<Integer> memberIds, Properties properties) {
+    final Collection<Node> nodes =
+        memberIds.stream()
+            .map(
+                memberId ->
+                    Node.builder()
+                        .withId(String.valueOf(memberId))
+                        .withAddress(Address.from("localhost", BASE_PORT + memberId))
+                        .build())
+            .collect(Collectors.toList());
 
     return Atomix.builder()
         .withClusterId("test")
@@ -73,37 +71,34 @@ public final class AtomixRule extends ExternalResource {
         .withPort(BASE_PORT + id)
         .withProperties(properties)
         .withMulticastEnabled()
-        .withMembershipProvider(!nodes.isEmpty() ? new BootstrapDiscoveryProvider(nodes)
-            : new MulticastDiscoveryProvider());
+        .withMembershipProvider(
+            !nodes.isEmpty()
+                ? new BootstrapDiscoveryProvider(nodes)
+                : new MulticastDiscoveryProvider());
   }
 
-  /**
-   * Creates an Atomix instance.
-   */
+  /** Creates an Atomix instance. */
   public Atomix createAtomix(int id, List<Integer> bootstrapIds, Profile... profiles) {
     return createAtomix(id, bootstrapIds, new Properties(), profiles);
   }
 
-  /**
-   * Creates an Atomix instance.
-   */
-  public Atomix createAtomix(int id, List<Integer> bootstrapIds, Properties properties,
-      Profile... profiles) {
+  /** Creates an Atomix instance. */
+  public Atomix createAtomix(
+      int id, List<Integer> bootstrapIds, Properties properties, Profile... profiles) {
     return createAtomix(id, bootstrapIds, properties, b -> b.withProfiles(profiles).build());
   }
 
-  /**
-   * Creates an Atomix instance.
-   */
-  public Atomix createAtomix(int id, List<Integer> bootstrapIds,
-      Function<AtomixBuilder, Atomix> builderFunction) {
+  /** Creates an Atomix instance. */
+  public Atomix createAtomix(
+      int id, List<Integer> bootstrapIds, Function<AtomixBuilder, Atomix> builderFunction) {
     return createAtomix(id, bootstrapIds, new Properties(), builderFunction);
   }
 
-  /**
-   * Creates an Atomix instance.
-   */
-  public Atomix createAtomix(int id, List<Integer> bootstrapIds, Properties properties,
+  /** Creates an Atomix instance. */
+  public Atomix createAtomix(
+      int id,
+      List<Integer> bootstrapIds,
+      Properties properties,
       Function<AtomixBuilder, Atomix> builderFunction) {
     return builderFunction.apply(buildAtomix(id, bootstrapIds, properties));
   }
@@ -120,25 +115,27 @@ public final class AtomixRule extends ExternalResource {
     }
   }
 
-  /**
-   * Deletes data from the test data directory.
-   */
+  /** Deletes data from the test data directory. */
   private static void deleteData() throws Exception {
     final Path directory = DATA_DIR.toPath();
     if (Files.exists(directory)) {
-      Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-          Files.delete(file);
-          return FileVisitResult.CONTINUE;
-        }
+      Files.walkFileTree(
+          directory,
+          new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+                throws IOException {
+              Files.delete(file);
+              return FileVisitResult.CONTINUE;
+            }
 
-        @Override
-        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-          Files.delete(dir);
-          return FileVisitResult.CONTINUE;
-        }
-      });
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException exc)
+                throws IOException {
+              Files.delete(dir);
+              return FileVisitResult.CONTINUE;
+            }
+          });
     }
   }
 }

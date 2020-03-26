@@ -15,6 +15,9 @@
  */
 package io.atomix.primitive.session.impl;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -33,21 +36,15 @@ import io.atomix.utils.concurrent.Scheduled;
 import io.atomix.utils.concurrent.ThreadContext;
 import io.atomix.utils.logging.ContextualLoggerFactory;
 import io.atomix.utils.logging.LoggerContext;
-import org.slf4j.Logger;
-
 import java.time.Duration;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import org.slf4j.Logger;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * Primitive proxy that supports recovery.
- */
+/** Primitive proxy that supports recovery. */
 public class RecoveringSessionClient implements SessionClient {
   private static final SessionId DEFAULT_SESSION_ID = SessionId.from(0);
   private final PartitionId partitionId;
@@ -61,7 +58,8 @@ public class RecoveringSessionClient implements SessionClient {
   private volatile SessionClient session;
   private volatile PrimitiveState state = PrimitiveState.CLOSED;
   private final Set<Consumer<PrimitiveState>> stateChangeListeners = Sets.newCopyOnWriteArraySet();
-  private final Multimap<EventType, Consumer<PrimitiveEvent>> eventListeners = HashMultimap.create();
+  private final Multimap<EventType, Consumer<PrimitiveEvent>> eventListeners =
+      HashMultimap.create();
   private Scheduled recoverTask;
   private volatile boolean connected;
 
@@ -77,9 +75,9 @@ public class RecoveringSessionClient implements SessionClient {
     this.primitiveType = checkNotNull(primitiveType);
     this.proxyFactory = checkNotNull(sessionFactory);
     this.context = checkNotNull(context);
-    this.log = ContextualLoggerFactory.getLogger(getClass(), LoggerContext.builder(SessionClient.class)
-        .addValue(clientId)
-        .build());
+    this.log =
+        ContextualLoggerFactory.getLogger(
+            getClass(), LoggerContext.builder(SessionClient.class).addValue(clientId).build());
   }
 
   @Override
@@ -151,9 +149,7 @@ public class RecoveringSessionClient implements SessionClient {
     stateChangeListeners.remove(listener);
   }
 
-  /**
-   * Recovers the client.
-   */
+  /** Recovers the client. */
   private void recover() {
     session = null;
     connectFuture = new OrderedFuture<>();
@@ -167,24 +163,33 @@ public class RecoveringSessionClient implements SessionClient {
    */
   private void openProxy(CompletableFuture<SessionClient> future) {
     log.debug("Opening proxy session");
-    proxyFactory.get().thenCompose(proxy -> proxy.connect()).whenComplete((proxy, error) -> {
-      if (error == null) {
-        synchronized (this) {
-          this.log = ContextualLoggerFactory.getLogger(getClass(), LoggerContext.builder(SessionClient.class)
-              .addValue(proxy.sessionId())
-              .add("type", proxy.type())
-              .add("name", proxy.name())
-              .build());
-          this.session = proxy;
-          proxy.addStateChangeListener(this::onStateChange);
-          eventListeners.entries().forEach(entry -> proxy.addEventListener(entry.getKey(), entry.getValue()));
-          onStateChange(PrimitiveState.CONNECTED);
-        }
-        future.complete(this);
-      } else {
-        recoverTask = context.schedule(Duration.ofSeconds(1), () -> openProxy(future));
-      }
-    });
+    proxyFactory
+        .get()
+        .thenCompose(proxy -> proxy.connect())
+        .whenComplete(
+            (proxy, error) -> {
+              if (error == null) {
+                synchronized (this) {
+                  this.log =
+                      ContextualLoggerFactory.getLogger(
+                          getClass(),
+                          LoggerContext.builder(SessionClient.class)
+                              .addValue(proxy.sessionId())
+                              .add("type", proxy.type())
+                              .add("name", proxy.name())
+                              .build());
+                  this.session = proxy;
+                  proxy.addStateChangeListener(this::onStateChange);
+                  eventListeners
+                      .entries()
+                      .forEach(entry -> proxy.addEventListener(entry.getKey(), entry.getValue()));
+                  onStateChange(PrimitiveState.CONNECTED);
+                }
+                future.complete(this);
+              } else {
+                recoverTask = context.schedule(Duration.ofSeconds(1), () -> openProxy(future));
+              }
+            });
   }
 
   @Override
@@ -198,7 +203,8 @@ public class RecoveringSessionClient implements SessionClient {
   }
 
   @Override
-  public synchronized void addEventListener(EventType eventType, Consumer<PrimitiveEvent> consumer) {
+  public synchronized void addEventListener(
+      EventType eventType, Consumer<PrimitiveEvent> consumer) {
     eventListeners.put(eventType.canonicalize(), consumer);
     SessionClient proxy = this.session;
     if (proxy != null) {
@@ -207,7 +213,8 @@ public class RecoveringSessionClient implements SessionClient {
   }
 
   @Override
-  public synchronized void removeEventListener(EventType eventType, Consumer<PrimitiveEvent> consumer) {
+  public synchronized void removeEventListener(
+      EventType eventType, Consumer<PrimitiveEvent> consumer) {
     eventListeners.remove(eventType.canonicalize(), consumer);
     SessionClient proxy = this.session;
     if (proxy != null) {
@@ -239,7 +246,8 @@ public class RecoveringSessionClient implements SessionClient {
     return close(SessionClient::delete);
   }
 
-  private CompletableFuture<Void> close(Function<SessionClient, CompletableFuture<Void>> closeFunction) {
+  private CompletableFuture<Void> close(
+      Function<SessionClient, CompletableFuture<Void>> closeFunction) {
     if (closeFuture == null) {
       synchronized (this) {
         if (closeFuture == null) {

@@ -20,9 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-/**
- * Byte buffer bytes.
- */
+/** Byte buffer bytes. */
 public abstract class ByteBufferBytes extends AbstractBytes {
   protected ByteBuffer buffer;
 
@@ -89,9 +87,7 @@ public abstract class ByteBufferBytes extends AbstractBytes {
     return reset(buffer.order(order));
   }
 
-  /**
-   * Returns the index for the given offset.
-   */
+  /** Returns the index for the given offset. */
   private int index(int offset) {
     return (int) offset;
   }
@@ -238,5 +234,4 @@ public abstract class ByteBufferBytes extends AbstractBytes {
     buffer.putDouble(index(offset), d);
     return this;
   }
-
 }

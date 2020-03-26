@@ -17,8 +17,5 @@ package io.atomix.primitive.partition;
 
 import io.atomix.utils.Managed;
 
-/**
- * Managed primary election.
- */
-public interface ManagedPrimaryElection extends PrimaryElection, Managed<PrimaryElection> {
-}
+/** Managed primary election. */
+public interface ManagedPrimaryElection extends PrimaryElection, Managed<PrimaryElection> {}

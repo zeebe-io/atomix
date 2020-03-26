@@ -15,22 +15,19 @@
  */
 package io.atomix.primitive.operation;
 
-import io.atomix.utils.misc.ArraySizeHashPrinter;
+import static com.google.common.base.MoreObjects.toStringHelper;
 
+import io.atomix.utils.misc.ArraySizeHashPrinter;
 import java.util.Arrays;
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
-/**
- * Base type for Raft state operations.
- */
+/** Base type for Raft state operations. */
 public class PrimitiveOperation {
 
   /**
    * Creates a new primitive operation with a simplified identifier and a null value.
    *
-   * @param id    the operation identifier
+   * @param id the operation identifier
    * @return the primitive operation
    */
   public static PrimitiveOperation operation(OperationId id) {
@@ -40,7 +37,7 @@ public class PrimitiveOperation {
   /**
    * Creates a new primitive operation with a simplified identifier.
    *
-   * @param id    the operation identifier
+   * @param id the operation identifier
    * @param value the operation value
    * @return the primitive operation
    */

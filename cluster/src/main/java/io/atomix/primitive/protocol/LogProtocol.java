@@ -18,9 +18,7 @@ package io.atomix.primitive.protocol;
 import io.atomix.primitive.log.LogClient;
 import io.atomix.primitive.partition.PartitionService;
 
-/**
- * Log replication based primitive protocol.
- */
+/** Log replication based primitive protocol. */
 public interface LogProtocol extends ProxyProtocol {
 
   /**
@@ -37,5 +35,4 @@ public interface LogProtocol extends ProxyProtocol {
    * @return a new log client
    */
   LogClient newClient(PartitionService partitionService);
-
 }

@@ -17,11 +17,6 @@ package io.atomix.cluster.messaging.impl;
 
 import com.google.common.collect.Maps;
 import io.atomix.cluster.messaging.MessagingException;
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.apache.commons.math3.stat.descriptive.SynchronizedDescriptiveStatistics;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.net.ConnectException;
 import java.time.Duration;
 import java.util.Map;
@@ -32,10 +27,12 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.apache.commons.math3.stat.descriptive.SynchronizedDescriptiveStatistics;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * Base class for client-side connections. Manages request futures and timeouts.
- */
+/** Base class for client-side connections. Manages request futures and timeouts. */
 abstract class AbstractClientConnection implements ClientConnection {
   private static final int WINDOW_SIZE = 10;
   private static final int MIN_SAMPLES = 50;
@@ -70,20 +67,24 @@ abstract class AbstractClientConnection implements ClientConnection {
         callback.completeExceptionally(new MessagingException.ProtocolException());
       }
     } else {
-      log.debug("Received a reply for message id:[{}] but was unable to locate the request handle", message.id());
+      log.debug(
+          "Received a reply for message id:[{}] but was unable to locate the request handle",
+          message.id());
     }
   }
 
   /**
    * Adds a reply time to the history.
    *
-   * @param type      the message type
+   * @param type the message type
    * @param replyTime the reply time to add to the history
    */
   private void addReplyTime(String type, long replyTime) {
     DescriptiveStatistics samples = replySamples.get(type);
     if (samples == null) {
-      samples = replySamples.computeIfAbsent(type, t -> new SynchronizedDescriptiveStatistics(WINDOW_SIZE));
+      samples =
+          replySamples.computeIfAbsent(
+              type, t -> new SynchronizedDescriptiveStatistics(WINDOW_SIZE));
     }
     samples.addValue(replyTime);
   }
@@ -91,7 +92,7 @@ abstract class AbstractClientConnection implements ClientConnection {
   /**
    * Returns the timeout in milliseconds for the given timeout duration
    *
-   * @param type    the message type
+   * @param type the message type
    * @param timeout the timeout duration or {@code null} if the timeout is dynamic
    * @return the timeout in milliseconds
    */
@@ -110,7 +111,8 @@ abstract class AbstractClientConnection implements ClientConnection {
     if (samples == null || samples.getN() < MIN_SAMPLES) {
       return MAX_TIMEOUT_MILLIS;
     }
-    return Math.min(Math.max((int) samples.getMax() * TIMEOUT_FACTOR, MIN_TIMEOUT_MILLIS), MAX_TIMEOUT_MILLIS);
+    return Math.min(
+        Math.max((int) samples.getMax() * TIMEOUT_FACTOR, MIN_TIMEOUT_MILLIS), MAX_TIMEOUT_MILLIS);
   }
 
   @Override
@@ -122,9 +124,7 @@ abstract class AbstractClientConnection implements ClientConnection {
     }
   }
 
-  /**
-   * Client connection callback.
-   */
+  /** Client connection callback. */
   final class Callback {
     private final long id;
     private final String type;
@@ -137,7 +137,8 @@ abstract class AbstractClientConnection implements ClientConnection {
       this.id = id;
       this.type = type;
       this.timeout = getTimeoutMillis(type, timeout);
-      this.scheduledFuture = executorService.schedule(this::timeout, this.timeout, TimeUnit.MILLISECONDS);
+      this.scheduledFuture =
+          executorService.schedule(this::timeout, this.timeout, TimeUnit.MILLISECONDS);
       this.replyFuture = future;
       future.thenRun(() -> addReplyTime(type, System.currentTimeMillis() - time));
       callbacks.put(id, this);
@@ -152,11 +153,11 @@ abstract class AbstractClientConnection implements ClientConnection {
       return type;
     }
 
-    /**
-     * Fails the callback future with a timeout exception.
-     */
+    /** Fails the callback future with a timeout exception. */
     private void timeout() {
-      replyFuture.completeExceptionally(new TimeoutException("Request type " + type + " timed out in " + timeout + " milliseconds"));
+      replyFuture.completeExceptionally(
+          new TimeoutException(
+              "Request type " + type + " timed out in " + timeout + " milliseconds"));
       callbacks.remove(id);
     }
 

@@ -19,9 +19,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Event utilities.
- */
+/** Event utilities. */
 public final class Events {
 
   /**
@@ -104,6 +102,5 @@ public final class Events {
     return events;
   }
 
-  private Events() {
-  }
+  private Events() {}
 }

@@ -20,9 +20,7 @@ import io.atomix.utils.ConfiguredType;
 import io.atomix.utils.config.Configured;
 import java.util.Collection;
 
-/**
- * Atomix profile.
- */
+/** Atomix profile. */
 public interface Profile extends Configured<ProfileConfig> {
 
   /**
@@ -54,9 +52,7 @@ public interface Profile extends Configured<ProfileConfig> {
     return new ClientProfile();
   }
 
-  /**
-   * Profile type.
-   */
+  /** Profile type. */
   interface Type<C extends ProfileConfig> extends ConfiguredType<C> {
 
     /**
@@ -74,5 +70,4 @@ public interface Profile extends Configured<ProfileConfig> {
    * @param config the Atomix configuration
    */
   void configure(AtomixConfig config);
-
 }

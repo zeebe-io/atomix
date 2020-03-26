@@ -19,11 +19,13 @@ import io.atomix.utils.event.ListenerService;
 
 /**
  * Partition primary election service.
- * <p>
- * The primary election service is used to elect primaries and backups for primary-backup replication protocols.
- * Each partition is provided a distinct {@link PrimaryElection} through which it elects a primary.
+ *
+ * <p>The primary election service is used to elect primaries and backups for primary-backup
+ * replication protocols. Each partition is provided a distinct {@link PrimaryElection} through
+ * which it elects a primary.
  */
-public interface PrimaryElectionService extends ListenerService<PrimaryElectionEvent, PrimaryElectionEventListener> {
+public interface PrimaryElectionService
+    extends ListenerService<PrimaryElectionEvent, PrimaryElectionEventListener> {
 
   /**
    * Returns the primary election for the given partition identifier.
@@ -32,5 +34,4 @@ public interface PrimaryElectionService extends ListenerService<PrimaryElectionE
    * @return the primary election for the given partition identifier
    */
   PrimaryElection getElectionFor(PartitionId partitionId);
-
 }

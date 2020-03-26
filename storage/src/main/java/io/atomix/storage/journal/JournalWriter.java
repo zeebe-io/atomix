@@ -79,9 +79,7 @@ public interface JournalWriter<E> extends AutoCloseable {
    */
   void truncate(long index);
 
-  /**
-   * Flushes written entries to disk.
-   */
+  /** Flushes written entries to disk. */
   void flush();
 
   @Override

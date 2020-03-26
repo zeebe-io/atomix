@@ -60,5 +60,4 @@ public class JournalMetrics {
   public void observeSegmentTruncation(Runnable segmentTruncation) {
     SEGMENT_TRUNCATE_TIME.labels(logName).time(segmentTruncation);
   }
-
 }

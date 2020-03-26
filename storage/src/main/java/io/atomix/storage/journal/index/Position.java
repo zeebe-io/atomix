@@ -17,9 +17,7 @@ package io.atomix.storage.journal.index;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-/**
- * Journal index position.
- */
+/** Journal index position. */
 public class Position {
   private final long index;
   private final int position;
@@ -39,9 +37,6 @@ public class Position {
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("index", index)
-        .add("position", position)
-        .toString();
+    return toStringHelper(this).add("index", index).add("position", position).toString();
   }
 }

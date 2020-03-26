@@ -15,8 +15,6 @@
  */
 package io.atomix.cluster.protocol;
 
-/**
- * Group membership protocol builder.
- */
-public abstract class GroupMembershipProtocolBuilder implements io.atomix.utils.Builder<GroupMembershipProtocol> {
-}
+/** Group membership protocol builder. */
+public abstract class GroupMembershipProtocolBuilder
+    implements io.atomix.utils.Builder<GroupMembershipProtocol> {}

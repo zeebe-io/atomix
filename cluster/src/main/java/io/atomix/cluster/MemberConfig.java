@@ -16,13 +16,10 @@
 package io.atomix.cluster;
 
 import io.atomix.utils.net.Address;
-
 import java.util.Map;
 import java.util.Properties;
 
-/**
- * Member configuration.
- */
+/** Member configuration. */
 public class MemberConfig extends NodeConfig {
   private MemberId id = MemberId.anonymous();
   private String zoneId;
@@ -205,7 +202,7 @@ public class MemberConfig extends NodeConfig {
   /**
    * Sets a member property.
    *
-   * @param key   the property key to et
+   * @param key the property key to et
    * @param value the property value to et
    * @return the member configuration
    */

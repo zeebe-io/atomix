@@ -15,17 +15,16 @@
  */
 package io.atomix.primitive.partition;
 
-import io.atomix.cluster.MemberId;
-
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
+
+import io.atomix.cluster.MemberId;
+import java.util.Objects;
 
 /**
  * Primary election member.
- * <p>
- * A member represents a tuple of {@link MemberId} and {@link MemberGroupId} which can be used to prioritize members
- * during primary elections.
+ *
+ * <p>A member represents a tuple of {@link MemberId} and {@link MemberGroupId} which can be used to
+ * prioritize members during primary elections.
  */
 public class GroupMember {
   private final MemberId memberId;
@@ -70,9 +69,6 @@ public class GroupMember {
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("memberId", memberId)
-        .add("groupId", groupId)
-        .toString();
+    return toStringHelper(this).add("memberId", memberId).add("groupId", groupId).toString();
   }
 }

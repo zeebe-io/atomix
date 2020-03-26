@@ -18,13 +18,10 @@ package io.atomix.utils.misc;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
-
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
-/**
- * Helper to print Object[] length and hashCode.
- */
+/** Helper to print Object[] length and hashCode. */
 public final class ArraySizeHashPrinter {
 
   /**
@@ -134,8 +131,7 @@ public final class ArraySizeHashPrinter {
   public String toString() {
     ToStringHelper helper = MoreObjects.toStringHelper(type);
     if (array != null) {
-      helper.add("length", array.length)
-          .add("hash", Arrays.hashCode(array));
+      helper.add("length", array.length).add("hash", Arrays.hashCode(array));
     } else {
       helper.addValue(array);
     }

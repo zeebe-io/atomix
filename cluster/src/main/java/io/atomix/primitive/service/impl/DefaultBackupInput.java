@@ -23,9 +23,7 @@ import io.atomix.utils.serializer.Serializer;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
-/**
- * Default backup input.
- */
+/** Default backup input. */
 public class DefaultBackupInput implements BackupInput {
   private final BufferInput<?> input;
   private final Serializer serializer;

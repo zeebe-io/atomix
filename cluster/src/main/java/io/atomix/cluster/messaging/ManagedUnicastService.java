@@ -17,8 +17,5 @@ package io.atomix.cluster.messaging;
 
 import io.atomix.utils.Managed;
 
-/**
- * Managed unicast service.
- */
-public interface ManagedUnicastService extends UnicastService, Managed<UnicastService> {
-}
+/** Managed unicast service. */
+public interface ManagedUnicastService extends UnicastService, Managed<UnicastService> {}

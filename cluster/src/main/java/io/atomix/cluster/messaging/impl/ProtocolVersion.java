@@ -15,13 +15,10 @@
  */
 package io.atomix.cluster.messaging.impl;
 
+import io.atomix.utils.net.Address;
 import java.util.stream.Stream;
 
-import io.atomix.utils.net.Address;
-
-/**
- * Messaging protocol version.
- */
+/** Messaging protocol version. */
 public enum ProtocolVersion {
   V1(1) {
     @Override
@@ -43,10 +40,7 @@ public enum ProtocolVersion {
    * @return the protocol version for the given version number
    */
   public static ProtocolVersion valueOf(int version) {
-    return Stream.of(values())
-        .filter(v -> v.version() == version)
-        .findFirst()
-        .orElse(null);
+    return Stream.of(values()).filter(v -> v.version() == version).findFirst().orElse(null);
   }
 
   /**
@@ -80,5 +74,4 @@ public enum ProtocolVersion {
    * @return a new protocol instance
    */
   public abstract MessagingProtocol createProtocol(Address address);
-
 }

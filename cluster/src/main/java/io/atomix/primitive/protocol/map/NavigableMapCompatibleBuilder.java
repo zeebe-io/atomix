@@ -15,9 +15,7 @@
  */
 package io.atomix.primitive.protocol.map;
 
-/**
- * Map builder.
- */
+/** Map builder. */
 public interface NavigableMapCompatibleBuilder<B extends NavigableMapCompatibleBuilder<B>> {
 
   /**
@@ -27,5 +25,4 @@ public interface NavigableMapCompatibleBuilder<B extends NavigableMapCompatibleB
    * @return the primitive builder
    */
   B withProtocol(NavigableMapProtocol protocol);
-
 }

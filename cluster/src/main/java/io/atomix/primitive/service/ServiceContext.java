@@ -27,10 +27,10 @@ import io.atomix.utils.time.WallClock;
 
 /**
  * State machine context.
- * <p>
- * The context is reflective of the current position and state of the Raft state machine. In particular,
- * it exposes the current approximate {@link ServiceContext#wallClock() time} and all open
- * {@link Sessions}.
+ *
+ * <p>The context is reflective of the current position and state of the Raft state machine. In
+ * particular, it exposes the current approximate {@link ServiceContext#wallClock() time} and all
+ * open {@link Sessions}.
  */
 public interface ServiceContext {
 
@@ -72,10 +72,10 @@ public interface ServiceContext {
 
   /**
    * Returns the current state machine index.
-   * <p>
-   * The state index is indicative of the index of the current operation
-   * being applied to the server state machine. If a query is being applied,
-   * the index of the last command applied will be used.
+   *
+   * <p>The state index is indicative of the index of the current operation being applied to the
+   * server state machine. If a query is being applied, the index of the last command applied will
+   * be used.
    *
    * @return The current state machine index.
    */
@@ -108,5 +108,4 @@ public interface ServiceContext {
    * @return The state machine's wall clock.
    */
   WallClock wallClock();
-
 }

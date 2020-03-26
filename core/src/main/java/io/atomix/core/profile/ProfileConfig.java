@@ -17,8 +17,5 @@ package io.atomix.core.profile;
 
 import io.atomix.utils.config.TypedConfig;
 
-/**
- * Profile configuration.
- */
-public abstract class ProfileConfig implements TypedConfig<Profile.Type> {
-}
+/** Profile configuration. */
+public abstract class ProfileConfig implements TypedConfig<Profile.Type> {}

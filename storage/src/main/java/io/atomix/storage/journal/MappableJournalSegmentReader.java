@@ -18,14 +18,11 @@ package io.atomix.storage.journal;
 import io.atomix.storage.StorageException;
 import io.atomix.storage.journal.index.JournalIndex;
 import io.atomix.utils.serializer.Namespace;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
-/**
- * Mappable log segment reader.
- */
+/** Mappable log segment reader. */
 class MappableJournalSegmentReader<E> implements JournalReader<E> {
   private final JournalSegment<E> segment;
   private final FileChannel channel;
@@ -45,7 +42,8 @@ class MappableJournalSegmentReader<E> implements JournalReader<E> {
     this.maxEntrySize = maxEntrySize;
     this.index = index;
     this.namespace = namespace;
-    this.reader = new FileChannelJournalSegmentReader<>(channel, segment, maxEntrySize, index, namespace);
+    this.reader =
+        new FileChannelJournalSegmentReader<>(channel, segment, maxEntrySize, index, namespace);
   }
 
   /**
@@ -56,19 +54,19 @@ class MappableJournalSegmentReader<E> implements JournalReader<E> {
   void map(ByteBuffer buffer) {
     if (!(reader instanceof MappedJournalSegmentReader)) {
       JournalReader<E> reader = this.reader;
-      this.reader = new MappedJournalSegmentReader<>(buffer, segment, maxEntrySize, index, namespace);
+      this.reader =
+          new MappedJournalSegmentReader<>(buffer, segment, maxEntrySize, index, namespace);
       this.reader.reset(reader.getNextIndex());
       reader.close();
     }
   }
 
-  /**
-   * Converts the reader to an unmapped reader.
-   */
+  /** Converts the reader to an unmapped reader. */
   void unmap() {
     if (reader instanceof MappedJournalSegmentReader) {
       JournalReader<E> reader = this.reader;
-      this.reader = new FileChannelJournalSegmentReader<>(channel, segment, maxEntrySize, index, namespace);
+      this.reader =
+          new FileChannelJournalSegmentReader<>(channel, segment, maxEntrySize, index, namespace);
       this.reader.reset(reader.getNextIndex());
       reader.close();
     }

@@ -17,9 +17,7 @@ package io.atomix.primitive.service;
 
 import io.atomix.storage.buffer.BufferInput;
 
-/**
- * Backup input.
- */
+/** Backup input. */
 public interface BackupInput extends BufferInput<BackupInput> {
 
   /**
@@ -29,5 +27,4 @@ public interface BackupInput extends BufferInput<BackupInput> {
    * @return the object to deserialize
    */
   <U> U readObject();
-
 }

@@ -19,9 +19,7 @@ import com.google.common.base.MoreObjects;
 import io.atomix.utils.misc.ArraySizeHashPrinter;
 import io.atomix.utils.net.Address;
 
-/**
- * Internal request message.
- */
+/** Internal request message. */
 public final class ProtocolRequest extends ProtocolMessage {
   private final Address sender;
   private final String subject;

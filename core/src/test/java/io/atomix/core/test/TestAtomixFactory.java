@@ -21,16 +21,15 @@ import io.atomix.core.test.messaging.TestBroadcastServiceFactory;
 import io.atomix.core.test.messaging.TestMessagingServiceFactory;
 import io.atomix.core.test.messaging.TestUnicastServiceFactory;
 import io.atomix.utils.net.Address;
-
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Test Atomix factory.
- */
+/** Test Atomix factory. */
 public class TestAtomixFactory {
-  private final TestMessagingServiceFactory messagingServiceFactory = new TestMessagingServiceFactory();
+  private final TestMessagingServiceFactory messagingServiceFactory =
+      new TestMessagingServiceFactory();
   private final TestUnicastServiceFactory unicastServiceFactory = new TestUnicastServiceFactory();
-  private final TestBroadcastServiceFactory broadcastServiceFactory = new TestBroadcastServiceFactory();
+  private final TestBroadcastServiceFactory broadcastServiceFactory =
+      new TestBroadcastServiceFactory();
   private final AtomicInteger memberId = new AtomicInteger();
 
   /**

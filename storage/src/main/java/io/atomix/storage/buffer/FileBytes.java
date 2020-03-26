@@ -28,14 +28,15 @@ import java.nio.file.Files;
 
 /**
  * File bytes.
- * <p>
- * File bytes wrap a simple {@link RandomAccessFile} instance to provide random access to a randomAccessFile on local disk. All
- * operations are delegated directly to the {@link RandomAccessFile} interface, and limitations are dependent on the
- * semantics of the underlying randomAccessFile.
- * <p>
- * Bytes are always stored in the underlying randomAccessFile in {@link ByteOrder#BIG_ENDIAN} order.
- * To flip the byte order to read or write to/from a randomAccessFile in {@link ByteOrder#LITTLE_ENDIAN} order use
- * {@link Bytes#order(ByteOrder)}.
+ *
+ * <p>File bytes wrap a simple {@link RandomAccessFile} instance to provide random access to a
+ * randomAccessFile on local disk. All operations are delegated directly to the {@link
+ * RandomAccessFile} interface, and limitations are dependent on the semantics of the underlying
+ * randomAccessFile.
+ *
+ * <p>Bytes are always stored in the underlying randomAccessFile in {@link ByteOrder#BIG_ENDIAN}
+ * order. To flip the byte order to read or write to/from a randomAccessFile in {@link
+ * ByteOrder#LITTLE_ENDIAN} order use {@link Bytes#order(ByteOrder)}.
  *
  * @author <a href="http://github.com/kuujo">Jordan Halterman</a>
  */
@@ -44,9 +45,9 @@ public class FileBytes extends AbstractBytes {
 
   /**
    * Allocates a randomAccessFile buffer of unlimited count.
-   * <p>
-   * The buffer will be allocated with {@link Long#MAX_VALUE} bytes. As bytes are written to the buffer, the underlying
-   * {@link RandomAccessFile} will expand.
+   *
+   * <p>The buffer will be allocated with {@link Long#MAX_VALUE} bytes. As bytes are written to the
+   * buffer, the underlying {@link RandomAccessFile} will expand.
    *
    * @param file The randomAccessFile to allocate.
    * @return The allocated buffer.
@@ -57,8 +58,9 @@ public class FileBytes extends AbstractBytes {
 
   /**
    * Allocates a randomAccessFile buffer.
-   * <p>
-   * If the underlying randomAccessFile is empty, the randomAccessFile count will expand dynamically as bytes are written to the randomAccessFile.
+   *
+   * <p>If the underlying randomAccessFile is empty, the randomAccessFile count will expand
+   * dynamically as bytes are written to the randomAccessFile.
    *
    * @param file The randomAccessFile to allocate.
    * @param size The count of the bytes to allocate.
@@ -70,8 +72,9 @@ public class FileBytes extends AbstractBytes {
 
   /**
    * Allocates a randomAccessFile buffer.
-   * <p>
-   * If the underlying randomAccessFile is empty, the randomAccessFile count will expand dynamically as bytes are written to the randomAccessFile.
+   *
+   * <p>If the underlying randomAccessFile is empty, the randomAccessFile count will expand
+   * dynamically as bytes are written to the randomAccessFile.
    *
    * @param file The randomAccessFile to allocate.
    * @param mode The mode in which to open the underlying {@link RandomAccessFile}.
@@ -140,7 +143,8 @@ public class FileBytes extends AbstractBytes {
   @Override
   public Bytes resize(int newSize) {
     if (newSize < size) {
-      throw new IllegalArgumentException("cannot decrease file bytes size; use zero() to decrease file size");
+      throw new IllegalArgumentException(
+          "cannot decrease file bytes size; use zero() to decrease file size");
     }
     int oldSize = this.size;
     this.size = newSize;
@@ -162,35 +166,37 @@ public class FileBytes extends AbstractBytes {
   }
 
   /**
-   * Maps a portion of the randomAccessFile into memory in {@link FileChannel.MapMode#READ_WRITE} mode and returns
-   * a {@link UnsafeMappedBytes} instance.
+   * Maps a portion of the randomAccessFile into memory in {@link FileChannel.MapMode#READ_WRITE}
+   * mode and returns a {@link UnsafeMappedBytes} instance.
    *
    * @param offset The offset from which to map the randomAccessFile into memory.
-   * @param size   The count of the bytes to map into memory.
+   * @param size The count of the bytes to map into memory.
    * @return The mapped bytes.
-   * @throws IllegalArgumentException If {@code count} is greater than the maximum allowed
-   *                                  {@link java.nio.MappedByteBuffer} count: {@link Integer#MAX_VALUE}
+   * @throws IllegalArgumentException If {@code count} is greater than the maximum allowed {@link
+   *     java.nio.MappedByteBuffer} count: {@link Integer#MAX_VALUE}
    */
   public MappedBytes map(int offset, int size) {
     return map(offset, size, parseMode(mode));
   }
 
   /**
-   * Maps a portion of the randomAccessFile into memory and returns a {@link UnsafeMappedBytes} instance.
+   * Maps a portion of the randomAccessFile into memory and returns a {@link UnsafeMappedBytes}
+   * instance.
    *
    * @param offset The offset from which to map the randomAccessFile into memory.
-   * @param size   The count of the bytes to map into memory.
-   * @param mode   The mode in which to map the randomAccessFile into memory.
+   * @param size The count of the bytes to map into memory.
+   * @param mode The mode in which to map the randomAccessFile into memory.
    * @return The mapped bytes.
-   * @throws IllegalArgumentException If {@code count} is greater than the maximum allowed
-   *                                  {@link java.nio.MappedByteBuffer} count: {@link Integer#MAX_VALUE}
+   * @throws IllegalArgumentException If {@code count} is greater than the maximum allowed {@link
+   *     java.nio.MappedByteBuffer} count: {@link Integer#MAX_VALUE}
    */
   public MappedBytes map(int offset, int size, FileChannel.MapMode mode) {
     MappedByteBuffer mappedByteBuffer = mapFile(randomAccessFile, offset, size, mode);
     return new MappedBytes(file, randomAccessFile, mappedByteBuffer, mode);
   }
 
-  private static MappedByteBuffer mapFile(RandomAccessFile randomAccessFile, int offset, int size, FileChannel.MapMode mode) {
+  private static MappedByteBuffer mapFile(
+      RandomAccessFile randomAccessFile, int offset, int size, FileChannel.MapMode mode) {
     try {
       return randomAccessFile.getChannel().map(mode, offset, size);
     } catch (IOException e) {
@@ -213,9 +219,7 @@ public class FileBytes extends AbstractBytes {
     return ByteOrder.BIG_ENDIAN;
   }
 
-  /**
-   * Seeks to the given offset.
-   */
+  /** Seeks to the given offset. */
   private void seekToOffset(int offset) throws IOException {
     if (randomAccessFile.getFilePointer() != offset) {
       randomAccessFile.seek(offset);
@@ -550,9 +554,7 @@ public class FileBytes extends AbstractBytes {
     super.close();
   }
 
-  /**
-   * Deletes the underlying file.
-   */
+  /** Deletes the underlying file. */
   public void delete() {
     try {
       close();
@@ -561,5 +563,4 @@ public class FileBytes extends AbstractBytes {
       throw new RuntimeException(e);
     }
   }
-
 }

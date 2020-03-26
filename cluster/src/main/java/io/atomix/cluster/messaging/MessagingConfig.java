@@ -16,14 +16,11 @@
 package io.atomix.cluster.messaging;
 
 import io.atomix.utils.config.Config;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Messaging configuration.
- */
+/** Messaging configuration. */
 public class MessagingConfig implements Config {
   private List<String> interfaces = new ArrayList<>();
   private Integer port;

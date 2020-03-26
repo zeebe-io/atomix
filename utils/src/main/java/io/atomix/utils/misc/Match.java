@@ -15,11 +15,11 @@
  */
 package io.atomix.utils.misc;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Function;
-
-import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Utility class for checking matching values.
@@ -70,7 +70,7 @@ public final class Match<T> {
    * Returns a Match that only matches the specified value.
    *
    * @param value value to match
-   * @param <T>   match type
+   * @param <T> match type
    * @return new instance
    */
   public static <T> Match<T> ifValue(T value) {
@@ -81,7 +81,7 @@ public final class Match<T> {
    * Returns a Match that matches any value except the specified value.
    *
    * @param value value to not match
-   * @param <T>   match type
+   * @param <T> match type
    * @return new instance
    */
   public static <T> Match<T> ifNotValue(T value) {
@@ -104,7 +104,7 @@ public final class Match<T> {
    * Maps this instance to a Match of another type.
    *
    * @param mapper transformation function
-   * @param <V>    new match type
+   * @param <V> new match type
    * @return new instance
    */
   public <V> Match<V> map(Function<T, V> mapper) {

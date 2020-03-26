@@ -17,9 +17,7 @@ package io.atomix.utils.time;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-/**
- * Wall clock.
- */
+/** Wall clock. */
 public class WallClock implements Clock<WallClockTimestamp> {
   @Override
   public WallClockTimestamp getTime() {
@@ -28,8 +26,6 @@ public class WallClock implements Clock<WallClockTimestamp> {
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("time", getTime())
-        .toString();
+    return toStringHelper(this).add("time", getTime()).toString();
   }
 }

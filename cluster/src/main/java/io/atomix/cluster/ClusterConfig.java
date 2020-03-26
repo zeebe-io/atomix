@@ -15,17 +15,15 @@
  */
 package io.atomix.cluster;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.atomix.cluster.discovery.NodeDiscoveryConfig;
 import io.atomix.cluster.messaging.MessagingConfig;
 import io.atomix.cluster.protocol.GroupMembershipProtocolConfig;
 import io.atomix.cluster.protocol.SwimMembershipProtocolConfig;
 import io.atomix.utils.config.Config;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * Cluster configuration.
- */
+/** Cluster configuration. */
 public class ClusterConfig implements Config {
   private static final String DEFAULT_CLUSTER_NAME = "atomix";
 

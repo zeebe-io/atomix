@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Provides classes and interfaces for defining distributed primitive state machines.
- */
+/** Provides classes and interfaces for defining distributed primitive state machines. */
 package io.atomix.primitive.service;

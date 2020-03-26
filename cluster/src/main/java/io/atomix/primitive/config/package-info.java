@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Primitive instance configuration store.
- */
+/** Primitive instance configuration store. */
 package io.atomix.primitive.config;

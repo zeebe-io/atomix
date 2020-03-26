@@ -17,8 +17,6 @@ package io.atomix.cluster.discovery;
 
 import io.atomix.utils.Managed;
 
-/**
- * Managed node discovery service.
- */
-public interface ManagedNodeDiscoveryService extends NodeDiscoveryService, Managed<NodeDiscoveryService> {
-}
+/** Managed node discovery service. */
+public interface ManagedNodeDiscoveryService
+    extends NodeDiscoveryService, Managed<NodeDiscoveryService> {}

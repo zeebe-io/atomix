@@ -17,8 +17,5 @@ package io.atomix.cluster.protocol;
 
 import io.atomix.utils.event.EventListener;
 
-/**
- * Node discovery event listener.
- */
-public interface GroupMembershipEventListener extends EventListener<GroupMembershipEvent> {
-}
+/** Node discovery event listener. */
+public interface GroupMembershipEventListener extends EventListener<GroupMembershipEvent> {}

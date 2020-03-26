@@ -15,9 +15,7 @@
  */
 package io.atomix.utils.config;
 
-/**
- * Named configuration.
- */
+/** Named configuration. */
 public interface NamedConfig<C extends NamedConfig<C>> extends Config {
 
   /**
@@ -34,5 +32,4 @@ public interface NamedConfig<C extends NamedConfig<C>> extends Config {
    * @return the configuration object
    */
   C setName(String name);
-
 }

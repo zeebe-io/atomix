@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Provides classes and interfaces for cluster management.
- */
+/** Provides classes and interfaces for cluster management. */
 package io.atomix.cluster;

@@ -15,15 +15,13 @@
  */
 package io.atomix.core.profile;
 
-import java.util.Collections;
-import java.util.Set;
-
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Consensus profile configuration.
- */
+import java.util.Collections;
+import java.util.Set;
+
+/** Consensus profile configuration. */
 public class ConsensusProfileConfig extends ProfileConfig {
   private String dataPath = System.getProperty("atomix.data", ".data");
   private String managementGroup = "system";

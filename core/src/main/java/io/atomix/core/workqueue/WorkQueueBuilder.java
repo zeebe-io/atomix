@@ -21,14 +21,13 @@ import io.atomix.primitive.protocol.PrimitiveProtocol;
 import io.atomix.primitive.protocol.ProxyCompatibleBuilder;
 import io.atomix.primitive.protocol.ProxyProtocol;
 
-/**
- * Work queue builder.
- */
+/** Work queue builder. */
 public abstract class WorkQueueBuilder<E>
     extends PrimitiveBuilder<WorkQueueBuilder<E>, WorkQueueConfig, WorkQueue<E>>
     implements ProxyCompatibleBuilder<WorkQueueBuilder<E>> {
 
-  protected WorkQueueBuilder(String name, WorkQueueConfig config, PrimitiveManagementService managementService) {
+  protected WorkQueueBuilder(
+      String name, WorkQueueConfig config, PrimitiveManagementService managementService) {
     super(WorkQueueType.instance(), name, config, managementService);
   }
 

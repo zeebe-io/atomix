@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Core APIs for managing Atomix clusters and operating on distributed primitives.
- */
+/** Core APIs for managing Atomix clusters and operating on distributed primitives. */
 package io.atomix.core;

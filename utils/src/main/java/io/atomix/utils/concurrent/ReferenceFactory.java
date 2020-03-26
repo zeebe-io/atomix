@@ -29,5 +29,4 @@ public interface ReferenceFactory<T extends ReferenceCounted<?>> {
    * @return The created reference.
    */
   T createReference(ReferenceManager<T> manager);
-
 }

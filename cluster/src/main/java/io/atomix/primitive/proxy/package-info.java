@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Provides interfaces for operating on primitive services via Java proxies.
- */
+/** Provides interfaces for operating on primitive services via Java proxies. */
 package io.atomix.primitive.proxy;

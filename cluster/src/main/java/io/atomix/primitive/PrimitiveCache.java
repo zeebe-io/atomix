@@ -18,9 +18,7 @@ package io.atomix.primitive;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
-/**
- * Atomix primitive cache.
- */
+/** Atomix primitive cache. */
 public interface PrimitiveCache {
 
   /**
@@ -31,6 +29,6 @@ public interface PrimitiveCache {
    * @param <P> the primitive type
    * @return the primitive instance
    */
-  <P extends DistributedPrimitive> CompletableFuture<P> getPrimitive(String name, Supplier<CompletableFuture<P>> supplier);
-
+  <P extends DistributedPrimitive> CompletableFuture<P> getPrimitive(
+      String name, Supplier<CompletableFuture<P>> supplier);
 }

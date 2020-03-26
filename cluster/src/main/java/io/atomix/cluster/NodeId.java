@@ -16,13 +16,10 @@
 package io.atomix.cluster;
 
 import io.atomix.utils.AbstractIdentifier;
-
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * Node identifier.
- */
+/** Node identifier. */
 public class NodeId extends AbstractIdentifier<String> implements Comparable<NodeId> {
 
   /**
@@ -44,9 +41,7 @@ public class NodeId extends AbstractIdentifier<String> implements Comparable<Nod
     return new NodeId(id);
   }
 
-  /**
-   * Constructor for serialization.
-   */
+  /** Constructor for serialization. */
   private NodeId() {
     this("");
   }

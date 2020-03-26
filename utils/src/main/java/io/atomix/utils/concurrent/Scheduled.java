@@ -23,9 +23,7 @@ package io.atomix.utils.concurrent;
  */
 public interface Scheduled {
 
-  /**
-   * Cancels the scheduled task.
-   */
+  /** Cancels the scheduled task. */
   void cancel();
 
   /**

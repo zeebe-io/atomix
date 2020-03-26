@@ -15,14 +15,12 @@
  */
 package io.atomix.utils.time;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-/**
- * Version test.
- */
+import org.junit.Test;
+
+/** Version test. */
 public class VersionTest {
   @Test
   public void testVersion() {

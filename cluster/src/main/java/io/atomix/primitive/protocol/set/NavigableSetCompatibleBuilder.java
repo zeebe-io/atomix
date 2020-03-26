@@ -15,9 +15,7 @@
  */
 package io.atomix.primitive.protocol.set;
 
-/**
- * Set builder.
- */
+/** Set builder. */
 public interface NavigableSetCompatibleBuilder<B extends NavigableSetCompatibleBuilder<B>> {
 
   /**
@@ -27,5 +25,4 @@ public interface NavigableSetCompatibleBuilder<B extends NavigableSetCompatibleB
    * @return the primitive builder
    */
   B withProtocol(NavigableSetProtocol protocol);
-
 }

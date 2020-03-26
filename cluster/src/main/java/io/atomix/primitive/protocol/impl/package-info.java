@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Implementations of primitive protocol interfaces.
- */
+/** Implementations of primitive protocol interfaces. */
 package io.atomix.primitive.protocol.impl;

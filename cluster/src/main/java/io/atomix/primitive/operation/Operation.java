@@ -20,21 +20,14 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * Operation annotation.
- */
+/** Operation annotation. */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Operation {
 
-  /**
-   * The operation name.
-   */
+  /** The operation name. */
   String value() default "";
 
-  /**
-   * The operation type.
-   */
+  /** The operation type. */
   OperationType type() default OperationType.COMMAND;
-
 }

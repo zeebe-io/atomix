@@ -15,6 +15,8 @@
  */
 package io.atomix.primitive.proxy.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import io.atomix.primitive.PrimitiveState;
@@ -24,7 +26,6 @@ import io.atomix.primitive.protocol.PrimitiveProtocol;
 import io.atomix.primitive.proxy.ProxyClient;
 import io.atomix.primitive.proxy.ProxySession;
 import io.atomix.utils.concurrent.Futures;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -35,11 +36,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * Default primitive proxy.
- */
+/** Default primitive proxy. */
 public abstract class AbstractProxyClient<S> implements ProxyClient<S> {
   private final String name;
   private final PrimitiveType type;
@@ -58,12 +55,13 @@ public abstract class AbstractProxyClient<S> implements ProxyClient<S> {
     this.name = checkNotNull(name, "name cannot be null");
     this.type = checkNotNull(type, "type cannot be null");
     this.protocol = checkNotNull(protocol, "protocol cannot be null");
-    partitions.forEach(partition -> {
-      this.partitionIds.add(partition.partitionId());
-      this.partitions.put(partition.partitionId(), partition);
-      states.put(partition.partitionId(), PrimitiveState.CLOSED);
-      partition.addStateChangeListener(state -> onStateChange(partition.partitionId(), state));
-    });
+    partitions.forEach(
+        partition -> {
+          this.partitionIds.add(partition.partitionId());
+          this.partitions.put(partition.partitionId(), partition);
+          states.put(partition.partitionId(), PrimitiveState.CLOSED);
+          partition.addStateChangeListener(state -> onStateChange(partition.partitionId(), state));
+        });
     Collections.sort(partitionIds);
   }
 
@@ -114,42 +112,37 @@ public abstract class AbstractProxyClient<S> implements ProxyClient<S> {
 
   @Override
   public CompletableFuture<ProxyClient<S>> connect() {
-    partitions.forEach((partitionId, partition) -> {
-      partition.addStateChangeListener(state -> onStateChange(partitionId, state));
-    });
-    return Futures.allOf(partitions.values()
-        .stream()
-        .map(ProxySession::connect)
-        .collect(Collectors.toList()))
+    partitions.forEach(
+        (partitionId, partition) -> {
+          partition.addStateChangeListener(state -> onStateChange(partitionId, state));
+        });
+    return Futures.allOf(
+            partitions.values().stream().map(ProxySession::connect).collect(Collectors.toList()))
         .thenApply(v -> this);
   }
 
   @Override
   public CompletableFuture<Void> delete() {
-    return Futures.allOf(partitions.values()
-        .stream()
-        .map(ProxySession::delete)
-        .collect(Collectors.toList()))
+    return Futures.allOf(
+            partitions.values().stream().map(ProxySession::delete).collect(Collectors.toList()))
         .thenApply(v -> null);
   }
 
   @Override
   public CompletableFuture<Void> close() {
-    return Futures.allOf(partitions.values()
-        .stream()
-        .map(ProxySession::close)
-        .collect(Collectors.toList()))
+    return Futures.allOf(
+            partitions.values().stream().map(ProxySession::close).collect(Collectors.toList()))
         .thenApply(v -> null);
   }
 
-  /**
-   * Handles a partition proxy state change.
-   */
+  /** Handles a partition proxy state change. */
   private synchronized void onStateChange(PartitionId partitionId, PrimitiveState state) {
     states.put(partitionId, state);
     switch (state) {
       case CONNECTED:
-        if (this.state != PrimitiveState.CONNECTED && !states.containsValue(PrimitiveState.SUSPENDED) && !states.containsValue(PrimitiveState.CLOSED)) {
+        if (this.state != PrimitiveState.CONNECTED
+            && !states.containsValue(PrimitiveState.SUSPENDED)
+            && !states.containsValue(PrimitiveState.CLOSED)) {
           this.state = PrimitiveState.CONNECTED;
           stateChangeListeners.forEach(l -> l.accept(PrimitiveState.CONNECTED));
         }

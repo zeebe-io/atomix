@@ -15,6 +15,8 @@
  */
 package io.atomix.primitive.session.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.collect.Maps;
 import io.atomix.cluster.MemberId;
 import io.atomix.primitive.PrimitiveException;
@@ -24,17 +26,12 @@ import io.atomix.primitive.event.Events;
 import io.atomix.primitive.event.PrimitiveEvent;
 import io.atomix.primitive.session.Session;
 import io.atomix.primitive.session.SessionId;
-
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * Client session.
- */
+/** Client session. */
 public class ClientSession<C> implements Session<C> {
   private final Session session;
   private final SessionProxy proxy;
@@ -84,18 +81,20 @@ public class ClientSession<C> implements Session<C> {
     proxy.accept(event);
   }
 
-  /**
-   * Session proxy.
-   */
+  /** Session proxy. */
   private final class SessionProxy {
     private final C proxy;
 
     @SuppressWarnings("unchecked")
     SessionProxy(Class<C> clientType) {
-      proxy = clientType == null ? null : (C) java.lang.reflect.Proxy.newProxyInstance(
-          clientType.getClassLoader(),
-          new Class[]{clientType},
-          new SessionProxyHandler(clientType));
+      proxy =
+          clientType == null
+              ? null
+              : (C)
+                  java.lang.reflect.Proxy.newProxyInstance(
+                      clientType.getClassLoader(),
+                      new Class[] {clientType},
+                      new SessionProxyHandler(clientType));
     }
 
     /**
@@ -108,9 +107,7 @@ public class ClientSession<C> implements Session<C> {
     }
   }
 
-  /**
-   * Session proxy invocation handler.
-   */
+  /** Session proxy invocation handler. */
   private final class SessionProxyHandler implements InvocationHandler {
     private final Map<Method, EventType> events;
 
@@ -122,7 +119,8 @@ public class ClientSession<C> implements Session<C> {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
       EventType eventType = events.get(method);
       if (eventType == null) {
-        throw new PrimitiveException.ServiceException("Cannot invoke unknown event type: " + method.getName());
+        throw new PrimitiveException.ServiceException(
+            "Cannot invoke unknown event type: " + method.getName());
       }
       session.publish(eventType, args);
       return null;

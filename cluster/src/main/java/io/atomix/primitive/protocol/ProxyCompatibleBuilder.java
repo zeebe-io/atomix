@@ -15,9 +15,7 @@
  */
 package io.atomix.primitive.protocol;
 
-/**
- * State machine replication compatible primitive.
- */
+/** State machine replication compatible primitive. */
 public interface ProxyCompatibleBuilder<B extends ProxyCompatibleBuilder<B>> {
 
   /**
@@ -27,5 +25,4 @@ public interface ProxyCompatibleBuilder<B extends ProxyCompatibleBuilder<B>> {
    * @return the primitive builder
    */
   B withProtocol(ProxyProtocol protocol);
-
 }

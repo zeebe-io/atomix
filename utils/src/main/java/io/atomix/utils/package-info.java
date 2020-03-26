@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Provides utility classes and interfaces used throughout Atomix projects.
- */
+/** Provides utility classes and interfaces used throughout Atomix projects. */
 package io.atomix.utils;

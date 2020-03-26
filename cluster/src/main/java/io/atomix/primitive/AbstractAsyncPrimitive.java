@@ -15,19 +15,19 @@
  */
 package io.atomix.primitive;
 
-import io.atomix.primitive.protocol.PrimitiveProtocol;
-import io.atomix.primitive.proxy.ProxyClient;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
+
+import io.atomix.primitive.protocol.PrimitiveProtocol;
+import io.atomix.primitive.proxy.ProxyClient;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 /**
  * Abstract base class for primitives that interact with Raft replicated state machines via proxy.
  */
-public abstract class AbstractAsyncPrimitive<A extends AsyncPrimitive, S> implements AsyncPrimitive {
+public abstract class AbstractAsyncPrimitive<A extends AsyncPrimitive, S>
+    implements AsyncPrimitive {
   private final ProxyClient<S> client;
   private final PrimitiveRegistry registry;
 
@@ -78,8 +78,7 @@ public abstract class AbstractAsyncPrimitive<A extends AsyncPrimitive, S> implem
    */
   @SuppressWarnings("unchecked")
   public CompletableFuture<A> connect() {
-    return registry.createPrimitive(name(), type())
-        .thenApply(v -> (A) this);
+    return registry.createPrimitive(name(), type()).thenApply(v -> (A) this);
   }
 
   @Override
@@ -94,8 +93,6 @@ public abstract class AbstractAsyncPrimitive<A extends AsyncPrimitive, S> implem
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("proxy", client)
-        .toString();
+    return toStringHelper(this).add("proxy", client).toString();
   }
 }

@@ -15,14 +15,12 @@
  */
 package io.atomix.primitive;
 
-/**
- * State of distributed primitive.
- */
+/** State of distributed primitive. */
 public enum PrimitiveState {
 
   /**
-   * Signifies a state wherein the primitive is operating correctly and is capable of meeting the advertised
-   * consistency and reliability guarantees.
+   * Signifies a state wherein the primitive is operating correctly and is capable of meeting the
+   * advertised consistency and reliability guarantees.
    */
   CONNECTED,
 
@@ -33,12 +31,14 @@ public enum PrimitiveState {
   SUSPENDED,
 
   /**
-   * Signifies a state wherein the primitive's session has been expired and therefore cannot perform its functions.
+   * Signifies a state wherein the primitive's session has been expired and therefore cannot perform
+   * its functions.
    */
   EXPIRED,
 
   /**
-   * Signifies a state wherein the primitive session has been closed and therefore cannot perform its functions.
+   * Signifies a state wherein the primitive session has been closed and therefore cannot perform
+   * its functions.
    */
   CLOSED
 }

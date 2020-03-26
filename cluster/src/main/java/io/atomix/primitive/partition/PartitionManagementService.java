@@ -20,9 +20,7 @@ import io.atomix.cluster.messaging.ClusterCommunicationService;
 import io.atomix.primitive.PrimitiveTypeRegistry;
 import io.atomix.primitive.session.SessionIdService;
 
-/**
- * Partition management service.
- */
+/** Partition management service. */
 public interface PartitionManagementService {
 
   /**
@@ -59,5 +57,4 @@ public interface PartitionManagementService {
    * @return the session ID generator service
    */
   SessionIdService getSessionIdService();
-
 }

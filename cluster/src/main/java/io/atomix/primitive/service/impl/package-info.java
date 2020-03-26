@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Implementations of primitive service interfaces.
- */
+/** Implementations of primitive service interfaces. */
 package io.atomix.primitive.service.impl;

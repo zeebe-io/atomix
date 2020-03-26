@@ -17,12 +17,9 @@ package io.atomix.cluster.messaging.impl;
 
 import com.google.common.collect.Sets;
 import io.atomix.cluster.messaging.ManagedBroadcastService;
-
 import java.util.Set;
 
-/**
- * Test broadcast service factory.
- */
+/** Test broadcast service factory. */
 public class TestBroadcastServiceFactory {
   private final Set<TestBroadcastService> services = Sets.newCopyOnWriteArraySet();
 

@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Work queue primitive proxy and service implementations.
- */
+/** Work queue primitive proxy and service implementations. */
 package io.atomix.core.workqueue.impl;

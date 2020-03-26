@@ -15,14 +15,12 @@
  */
 package io.atomix.utils.logging;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 import org.slf4j.Logger;
 import org.slf4j.Marker;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
-/**
- * Delegating logger.
- */
+/** Delegating logger. */
 public class DelegatingLogger implements Logger {
   private final Logger delegate;
 
@@ -337,8 +335,6 @@ public class DelegatingLogger implements Logger {
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .addValue(delegate)
-        .toString();
+    return toStringHelper(this).addValue(delegate).toString();
   }
 }

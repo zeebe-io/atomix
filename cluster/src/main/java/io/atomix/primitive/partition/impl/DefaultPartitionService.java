@@ -35,9 +35,6 @@ import io.atomix.primitive.session.impl.DefaultSessionIdService;
 import io.atomix.primitive.session.impl.ReplicatedSessionIdService;
 import io.atomix.utils.concurrent.Futures;
 import io.atomix.utils.config.ConfigurationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -45,10 +42,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * Default partition service.
- */
+/** Default partition service. */
 public class DefaultPartitionService implements ManagedPartitionService {
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPartitionService.class);
 
@@ -62,7 +59,8 @@ public class DefaultPartitionService implements ManagedPartitionService {
   private volatile ManagedPrimaryElectionService electionService;
   private volatile PartitionManagementService partitionManagementService;
   private final Map<String, ManagedPartitionGroup> groups = Maps.newConcurrentMap();
-  private final PartitionGroupMembershipEventListener groupMembershipEventListener = this::handleMembershipChange;
+  private final PartitionGroupMembershipEventListener groupMembershipEventListener =
+      this::handleMembershipChange;
   private final AtomicBoolean started = new AtomicBoolean();
 
   @SuppressWarnings("unchecked")
@@ -76,8 +74,9 @@ public class DefaultPartitionService implements ManagedPartitionService {
     this.clusterMembershipService = membershipService;
     this.communicationService = messagingService;
     this.primitiveTypeRegistry = primitiveTypeRegistry;
-    this.groupMembershipService = new DefaultPartitionGroupMembershipService(
-        membershipService, messagingService, systemGroup, groups, groupTypeRegistry);
+    this.groupMembershipService =
+        new DefaultPartitionGroupMembershipService(
+            membershipService, messagingService, systemGroup, groups, groupTypeRegistry);
     this.systemGroup = systemGroup;
     groups.forEach(group -> this.groups.put(group.name(), group));
   }
@@ -117,10 +116,14 @@ public class DefaultPartitionService implements ManagedPartitionService {
       synchronized (groups) {
         ManagedPartitionGroup group = groups.get(event.membership().group());
         if (group == null) {
-          group = ((PartitionGroup.Type) event.membership().config().getType())
-              .newPartitionGroup(event.membership().config());
+          group =
+              ((PartitionGroup.Type) event.membership().config().getType())
+                  .newPartitionGroup(event.membership().config());
           groups.put(event.membership().group(), group);
-          if (event.membership().members().contains(clusterMembershipService.getLocalMember().id())) {
+          if (event
+              .membership()
+              .members()
+              .contains(clusterMembershipService.getLocalMember().id())) {
             group.join(partitionManagementService);
           } else {
             group.connect(partitionManagementService);
@@ -134,70 +137,95 @@ public class DefaultPartitionService implements ManagedPartitionService {
   @SuppressWarnings("unchecked")
   public CompletableFuture<PartitionService> start() {
     groupMembershipService.addListener(groupMembershipEventListener);
-    return groupMembershipService.start()
-        .thenCompose(v -> {
-          PartitionGroupMembership systemGroupMembership = groupMembershipService.getSystemMembership();
-          if (systemGroupMembership != null) {
-            if (systemGroup == null) {
-              systemGroup = ((PartitionGroup.Type) systemGroupMembership.config().getType())
-                  .newPartitionGroup(systemGroupMembership.config());
-            }
+    return groupMembershipService
+        .start()
+        .thenCompose(
+            v -> {
+              PartitionGroupMembership systemGroupMembership =
+                  groupMembershipService.getSystemMembership();
+              if (systemGroupMembership != null) {
+                if (systemGroup == null) {
+                  systemGroup =
+                      ((PartitionGroup.Type) systemGroupMembership.config().getType())
+                          .newPartitionGroup(systemGroupMembership.config());
+                }
 
-            systemElectionService = new DefaultPrimaryElectionService(systemGroup);
-            systemSessionIdService = new ReplicatedSessionIdService(systemGroup);
-            electionService = new HashBasedPrimaryElectionService(clusterMembershipService, groupMembershipService, communicationService);
-            return electionService.start()
-                .thenCompose(s -> {
-                  PartitionManagementService managementService = new DefaultPartitionManagementService(
-                      clusterMembershipService,
-                      communicationService,
-                      primitiveTypeRegistry,
-                      electionService,
-                      new DefaultSessionIdService());
-                  if (systemGroupMembership.members().contains(clusterMembershipService.getLocalMember().id())) {
-                    return systemGroup.join(managementService);
-                  } else {
-                    return systemGroup.connect(managementService);
-                  }
-                });
-          } else {
-            return Futures.exceptionalFuture(new ConfigurationException("No system partition group found"));
-          }
-        })
-        .thenCompose(v -> systemElectionService.start()
-            .thenCompose(v2 -> systemSessionIdService.start())
-            .thenApply(v2 -> new DefaultPartitionManagementService(
-                clusterMembershipService,
-                communicationService,
-                primitiveTypeRegistry,
-                systemElectionService,
-                systemSessionIdService)))
-        .thenCompose(managementService -> {
-          this.partitionManagementService = (PartitionManagementService) managementService;
-          List<CompletableFuture> futures = groupMembershipService.getMemberships().stream()
-              .map(membership -> {
-                ManagedPartitionGroup group;
-                synchronized (groups) {
-                  group = groups.get(membership.group());
-                  if (group == null) {
-                    group = ((PartitionGroup.Type) membership.config().getType())
-                        .newPartitionGroup(membership.config());
-                    groups.put(group.name(), group);
-                  }
-                }
-                if (membership.members().contains(clusterMembershipService.getLocalMember().id())) {
-                  return group.join(partitionManagementService);
-                } else {
-                  return group.connect(partitionManagementService);
-                }
-              })
-              .collect(Collectors.toList());
-          return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()])).thenApply(v -> {
-            LOGGER.info("Started");
-            started.set(true);
-            return this;
-          });
-        });
+                systemElectionService = new DefaultPrimaryElectionService(systemGroup);
+                systemSessionIdService = new ReplicatedSessionIdService(systemGroup);
+                electionService =
+                    new HashBasedPrimaryElectionService(
+                        clusterMembershipService, groupMembershipService, communicationService);
+                return electionService
+                    .start()
+                    .thenCompose(
+                        s -> {
+                          PartitionManagementService managementService =
+                              new DefaultPartitionManagementService(
+                                  clusterMembershipService,
+                                  communicationService,
+                                  primitiveTypeRegistry,
+                                  electionService,
+                                  new DefaultSessionIdService());
+                          if (systemGroupMembership
+                              .members()
+                              .contains(clusterMembershipService.getLocalMember().id())) {
+                            return systemGroup.join(managementService);
+                          } else {
+                            return systemGroup.connect(managementService);
+                          }
+                        });
+              } else {
+                return Futures.exceptionalFuture(
+                    new ConfigurationException("No system partition group found"));
+              }
+            })
+        .thenCompose(
+            v ->
+                systemElectionService
+                    .start()
+                    .thenCompose(v2 -> systemSessionIdService.start())
+                    .thenApply(
+                        v2 ->
+                            new DefaultPartitionManagementService(
+                                clusterMembershipService,
+                                communicationService,
+                                primitiveTypeRegistry,
+                                systemElectionService,
+                                systemSessionIdService)))
+        .thenCompose(
+            managementService -> {
+              this.partitionManagementService = (PartitionManagementService) managementService;
+              List<CompletableFuture> futures =
+                  groupMembershipService.getMemberships().stream()
+                      .map(
+                          membership -> {
+                            ManagedPartitionGroup group;
+                            synchronized (groups) {
+                              group = groups.get(membership.group());
+                              if (group == null) {
+                                group =
+                                    ((PartitionGroup.Type) membership.config().getType())
+                                        .newPartitionGroup(membership.config());
+                                groups.put(group.name(), group);
+                              }
+                            }
+                            if (membership
+                                .members()
+                                .contains(clusterMembershipService.getLocalMember().id())) {
+                              return group.join(partitionManagementService);
+                            } else {
+                              return group.connect(partitionManagementService);
+                            }
+                          })
+                      .collect(Collectors.toList());
+              return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
+                  .thenApply(
+                      v -> {
+                        LOGGER.info("Started");
+                        started.set(true);
+                        return this;
+                      });
+            });
   }
 
   @Override
@@ -209,22 +237,40 @@ public class DefaultPartitionService implements ManagedPartitionService {
   @SuppressWarnings("unchecked")
   public CompletableFuture<Void> stop() {
     groupMembershipService.removeListener(groupMembershipEventListener);
-    Stream<CompletableFuture<Void>> systemStream = Stream.of(systemGroup != null ? systemGroup.close() : CompletableFuture.completedFuture(null));
-    Stream<CompletableFuture<Void>> groupStream = groups.values().stream().map(ManagedPartitionGroup::close);
-    List<CompletableFuture<Void>> futures = Stream.concat(systemStream, groupStream).collect(Collectors.toList());
+    Stream<CompletableFuture<Void>> systemStream =
+        Stream.of(
+            systemGroup != null ? systemGroup.close() : CompletableFuture.completedFuture(null));
+    Stream<CompletableFuture<Void>> groupStream =
+        groups.values().stream().map(ManagedPartitionGroup::close);
+    List<CompletableFuture<Void>> futures =
+        Stream.concat(systemStream, groupStream).collect(Collectors.toList());
 
-    return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()])).exceptionally(throwable -> {
-      LOGGER.error("Failed closing partition group(s)", throwable);
-      return null;
-    }).thenCompose(v -> electionService != null ? electionService.stop() : CompletableFuture.completedFuture(null)).exceptionally(throwable -> {
-      LOGGER.error("Failed stopping election service", throwable);
-      return null;
-    }).thenCompose(v -> groupMembershipService.stop()).exceptionally(throwable -> {
-      LOGGER.error("Failed stopping group membership service", throwable);
-      return null;
-    }).thenRun(() -> {
-      LOGGER.info("Stopped");
-      started.set(false);
-    });
+    return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
+        .exceptionally(
+            throwable -> {
+              LOGGER.error("Failed closing partition group(s)", throwable);
+              return null;
+            })
+        .thenCompose(
+            v ->
+                electionService != null
+                    ? electionService.stop()
+                    : CompletableFuture.completedFuture(null))
+        .exceptionally(
+            throwable -> {
+              LOGGER.error("Failed stopping election service", throwable);
+              return null;
+            })
+        .thenCompose(v -> groupMembershipService.stop())
+        .exceptionally(
+            throwable -> {
+              LOGGER.error("Failed stopping group membership service", throwable);
+              return null;
+            })
+        .thenRun(
+            () -> {
+              LOGGER.info("Stopped");
+              started.set(false);
+            });
   }
 }

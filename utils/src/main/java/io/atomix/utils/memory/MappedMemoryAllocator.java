@@ -23,11 +23,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Mapped memory allocator.
- * <p>
- * The mapped memory allocator provides direct memory access to memory mapped from a file on disk. The mapped allocator
- * supports allocating memory in any {@link FileChannel.MapMode}. Once the file is mapped and the
- * memory has been allocated, the mapped allocator provides the memory address of the underlying
- * {@link java.nio.MappedByteBuffer} for access via {@link sun.misc.Unsafe}.
+ *
+ * <p>The mapped memory allocator provides direct memory access to memory mapped from a file on
+ * disk. The mapped allocator supports allocating memory in any {@link FileChannel.MapMode}. Once
+ * the file is mapped and the memory has been allocated, the mapped allocator provides the memory
+ * address of the underlying {@link java.nio.MappedByteBuffer} for access via {@link
+ * sun.misc.Unsafe}.
  *
  * @author <a href="http://github.com/kuujo">Jordan Halterman</a>
  */
@@ -119,13 +120,10 @@ public class MappedMemoryAllocator implements MemoryAllocator<MappedMemory> {
     }
   }
 
-  /**
-   * Releases a reference from the allocator.
-   */
+  /** Releases a reference from the allocator. */
   void release() {
     if (referenceCount.decrementAndGet() == 0) {
       close();
     }
   }
-
 }

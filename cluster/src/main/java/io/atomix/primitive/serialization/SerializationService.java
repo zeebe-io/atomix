@@ -17,9 +17,7 @@ package io.atomix.primitive.serialization;
 
 import io.atomix.utils.serializer.SerializerBuilder;
 
-/**
- * Primitive serialization service.
- */
+/** Primitive serialization service. */
 public interface SerializationService {
 
   /**
@@ -36,5 +34,4 @@ public interface SerializationService {
    * @return the serializer builder
    */
   SerializerBuilder newBuilder(String name);
-
 }

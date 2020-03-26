@@ -15,21 +15,18 @@
  */
 package io.atomix.primitive.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.base.MoreObjects;
 import io.atomix.primitive.AsyncPrimitive;
 import io.atomix.primitive.PrimitiveState;
 import io.atomix.primitive.PrimitiveType;
 import io.atomix.primitive.protocol.PrimitiveProtocol;
-
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * Base class for primitive delegates.
- */
+/** Base class for primitive delegates. */
 public abstract class DelegatingAsyncPrimitive<T extends AsyncPrimitive> implements AsyncPrimitive {
   private final T primitive;
 
@@ -83,9 +80,7 @@ public abstract class DelegatingAsyncPrimitive<T extends AsyncPrimitive> impleme
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(getClass())
-        .add("delegate", primitive)
-        .toString();
+    return MoreObjects.toStringHelper(getClass()).add("delegate", primitive).toString();
   }
 
   @Override

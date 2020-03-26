@@ -16,17 +16,12 @@
 package io.atomix.primitive;
 
 import io.atomix.primitive.protocol.PrimitiveProtocol;
-
 import java.util.function.Consumer;
 
-/**
- * Interface for all distributed primitives.
- */
+/** Interface for all distributed primitives. */
 public interface DistributedPrimitive {
 
-  /**
-   * Default timeout for primitive operations.
-   */
+  /** Default timeout for primitive operations. */
   long DEFAULT_OPERATION_TIMEOUT_MILLIS = 5000L;
 
   /**
@@ -55,15 +50,12 @@ public interface DistributedPrimitive {
    *
    * @param listener The listener to be called when the state changes.
    */
-  default void addStateChangeListener(Consumer<PrimitiveState> listener) {
-  }
+  default void addStateChangeListener(Consumer<PrimitiveState> listener) {}
 
   /**
    * Unregisters a previously registered listener to be called when the primitive's state changes.
    *
    * @param listener The listener to unregister
    */
-  default void removeStateChangeListener(Consumer<PrimitiveState> listener) {
-  }
-
+  default void removeStateChangeListener(Consumer<PrimitiveState> listener) {}
 }

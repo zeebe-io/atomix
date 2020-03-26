@@ -22,12 +22,9 @@ import io.atomix.primitive.partition.PartitionGroupTypeRegistry;
 import io.atomix.primitive.partition.PartitionService;
 import io.atomix.primitive.protocol.PrimitiveProtocolTypeRegistry;
 import io.atomix.primitive.serialization.SerializationService;
-
 import java.util.concurrent.ScheduledExecutorService;
 
-/**
- * Primitive management service.
- */
+/** Primitive management service. */
 public interface PrimitiveManagementService {
 
   /**
@@ -106,5 +103,4 @@ public interface PrimitiveManagementService {
    * @return the partition group type registry
    */
   PartitionGroupTypeRegistry getPartitionGroupTypeRegistry();
-
 }

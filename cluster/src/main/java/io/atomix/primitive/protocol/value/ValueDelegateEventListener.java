@@ -17,8 +17,5 @@ package io.atomix.primitive.protocol.value;
 
 import io.atomix.utils.event.EventListener;
 
-/**
- * Value protocol event listener.
- */
-public interface ValueDelegateEventListener<E> extends EventListener<ValueDelegateEvent<E>> {
-}
+/** Value protocol event listener. */
+public interface ValueDelegateEventListener<E> extends EventListener<ValueDelegateEvent<E>> {}

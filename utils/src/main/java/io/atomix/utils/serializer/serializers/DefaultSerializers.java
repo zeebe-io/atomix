@@ -17,16 +17,11 @@ package io.atomix.utils.serializer.serializers;
 
 import io.atomix.utils.serializer.Serializer;
 
-/**
- * Default serializers.
- */
+/** Default serializers. */
 public class DefaultSerializers {
 
-  /**
-   * Basic serializer.
-   */
+  /** Basic serializer. */
   public static final Serializer BASIC = Serializer.builder().build();
 
-  private DefaultSerializers() {
-  }
+  private DefaultSerializers() {}
 }

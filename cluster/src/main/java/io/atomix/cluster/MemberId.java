@@ -17,9 +17,7 @@ package io.atomix.cluster;
 
 import java.util.UUID;
 
-/**
- * Controller cluster identity.
- */
+/** Controller cluster identity. */
 public class MemberId extends NodeId {
 
   /**

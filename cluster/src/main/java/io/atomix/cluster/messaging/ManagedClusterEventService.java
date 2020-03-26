@@ -17,8 +17,6 @@ package io.atomix.cluster.messaging;
 
 import io.atomix.utils.Managed;
 
-/**
- * Managed cluster event service.
- */
-public interface ManagedClusterEventService extends ClusterEventService, Managed<ClusterEventService> {
-}
+/** Managed cluster event service. */
+public interface ManagedClusterEventService
+    extends ClusterEventService, Managed<ClusterEventService> {}

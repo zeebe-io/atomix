@@ -17,8 +17,6 @@ package io.atomix.primitive.partition;
 
 import io.atomix.utils.event.EventListener;
 
-/**
- * Partition group membership event listener.
- */
-public interface PartitionGroupMembershipEventListener extends EventListener<PartitionGroupMembershipEvent> {
-}
+/** Partition group membership event listener. */
+public interface PartitionGroupMembershipEventListener
+    extends EventListener<PartitionGroupMembershipEvent> {}

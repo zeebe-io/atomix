@@ -15,6 +15,10 @@
  */
 package io.atomix.core.workqueue.impl;
 
+import static io.atomix.utils.concurrent.Threads.namedThreads;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import com.google.common.collect.ImmutableList;
 import io.atomix.core.workqueue.AsyncWorkQueue;
 import io.atomix.core.workqueue.Task;
@@ -26,8 +30,6 @@ import io.atomix.primitive.PrimitiveState;
 import io.atomix.primitive.proxy.ProxyClient;
 import io.atomix.utils.concurrent.AbstractAccumulator;
 import io.atomix.utils.concurrent.Accumulator;
-import org.slf4j.Logger;
-
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
@@ -39,16 +41,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import org.slf4j.Logger;
 
-import static io.atomix.utils.concurrent.Threads.namedThreads;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.slf4j.LoggerFactory.getLogger;
-
-/**
- * Distributed resource providing the {@link WorkQueue} primitive.
- */
-public class WorkQueueProxy
-    extends AbstractAsyncPrimitive<AsyncWorkQueue<byte[]>, WorkQueueService>
+/** Distributed resource providing the {@link WorkQueue} primitive. */
+public class WorkQueueProxy extends AbstractAsyncPrimitive<AsyncWorkQueue<byte[]>, WorkQueueService>
     implements AsyncWorkQueue<byte[]>, WorkQueueClient {
 
   private final Logger log = getLogger(getClass());
@@ -59,7 +55,8 @@ public class WorkQueueProxy
 
   public WorkQueueProxy(ProxyClient<WorkQueueService> proxy, PrimitiveRegistry registry) {
     super(proxy, registry);
-    executor = newSingleThreadExecutor(namedThreads("atomix-work-queue-" + proxy.name() + "-%d", log));
+    executor =
+        newSingleThreadExecutor(namedThreads("atomix-work-queue-" + proxy.name() + "-%d", log));
   }
 
   @Override
@@ -99,17 +96,12 @@ public class WorkQueueProxy
   }
 
   @Override
-  public CompletableFuture<Void> registerTaskProcessor(Consumer<byte[]> callback,
-                                                       int parallelism,
-                                                       Executor executor) {
+  public CompletableFuture<Void> registerTaskProcessor(
+      Consumer<byte[]> callback, int parallelism, Executor executor) {
     Accumulator<String> completedTaskAccumulator =
         new CompletedTaskAccumulator(timer, 50, 50); // TODO: make configurable
-    taskProcessor.set(new TaskProcessor(callback,
-        parallelism,
-        executor,
-        completedTaskAccumulator));
-    return register().thenCompose(v -> take(parallelism))
-        .thenAccept(taskProcessor.get());
+    taskProcessor.set(new TaskProcessor(callback, parallelism, executor, completedTaskAccumulator));
+    return register().thenCompose(v -> take(parallelism)).thenAccept(taskProcessor.get());
   }
 
   @Override
@@ -132,22 +124,31 @@ public class WorkQueueProxy
   }
 
   private CompletableFuture<Void> register() {
-    return getProxyClient().acceptBy(name(), service -> service.register()).thenRun(() -> isRegistered.set(true));
+    return getProxyClient()
+        .acceptBy(name(), service -> service.register())
+        .thenRun(() -> isRegistered.set(true));
   }
 
   private CompletableFuture<Void> unregister() {
-    return getProxyClient().acceptBy(name(), service -> service.unregister()).thenRun(() -> isRegistered.set(false));
+    return getProxyClient()
+        .acceptBy(name(), service -> service.unregister())
+        .thenRun(() -> isRegistered.set(false));
   }
 
   @Override
   public CompletableFuture<AsyncWorkQueue<byte[]>> connect() {
     return super.connect()
         .thenCompose(v -> getProxyClient().getPartition(name()).connect())
-        .thenRun(() -> getProxyClient().getPartition(name()).addStateChangeListener(state -> {
-          if (state == PrimitiveState.CONNECTED && isRegistered.get()) {
-            getProxyClient().acceptBy(name(), service -> service.register());
-          }
-        }))
+        .thenRun(
+            () ->
+                getProxyClient()
+                    .getPartition(name())
+                    .addStateChangeListener(
+                        state -> {
+                          if (state == PrimitiveState.CONNECTED && isRegistered.get()) {
+                            getProxyClient().acceptBy(name(), service -> service.register());
+                          }
+                        }))
         .thenApply(v -> this);
   }
 
@@ -175,10 +176,11 @@ public class WorkQueueProxy
     private final Executor executor;
     private final Accumulator<String> taskCompleter;
 
-    TaskProcessor(Consumer<byte[]> backingConsumer,
-                         int parallelism,
-                         Executor executor,
-                         Accumulator<String> taskCompleter) {
+    TaskProcessor(
+        Consumer<byte[]> backingConsumer,
+        int parallelism,
+        Executor executor,
+        Accumulator<String> taskCompleter) {
       this.backingConsumer = backingConsumer;
       this.headRoom = new AtomicInteger(parallelism);
       this.executor = executor;
@@ -195,18 +197,20 @@ public class WorkQueueProxy
         return;
       }
       headRoom.addAndGet(-1 * tasks.size());
-      tasks.forEach(task ->
-          executor.execute(() -> {
-            try {
-              backingConsumer.accept(task.payload());
-              taskCompleter.add(task.taskId());
-            } catch (Exception e) {
-              log.debug("Task execution failed", e);
-            } finally {
-              headRoom.incrementAndGet();
-              resumeWork();
-            }
-          }));
+      tasks.forEach(
+          task ->
+              executor.execute(
+                  () -> {
+                    try {
+                      backingConsumer.accept(task.payload());
+                      taskCompleter.add(task.taskId());
+                    } catch (Exception e) {
+                      log.debug("Task execution failed", e);
+                    } finally {
+                      headRoom.incrementAndGet();
+                      resumeWork();
+                    }
+                  }));
     }
   }
 }

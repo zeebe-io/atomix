@@ -15,8 +15,5 @@
  */
 package io.atomix.utils.config;
 
-/**
- * Atomix configuration.
- */
-public interface Config {
-}
+/** Atomix configuration. */
+public interface Config {}

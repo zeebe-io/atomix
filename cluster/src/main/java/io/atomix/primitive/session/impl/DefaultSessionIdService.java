@@ -18,14 +18,11 @@ package io.atomix.primitive.session.impl;
 import io.atomix.primitive.session.ManagedSessionIdService;
 import io.atomix.primitive.session.SessionId;
 import io.atomix.primitive.session.SessionIdService;
-
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * Default session ID service.
- */
+/** Default session ID service. */
 public class DefaultSessionIdService implements ManagedSessionIdService {
   private final Random random = new Random();
   private final AtomicBoolean started = new AtomicBoolean();

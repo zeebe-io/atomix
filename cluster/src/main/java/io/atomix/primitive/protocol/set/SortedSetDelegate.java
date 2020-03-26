@@ -16,12 +16,8 @@
 package io.atomix.primitive.protocol.set;
 
 import com.google.common.annotations.Beta;
-
 import java.util.SortedSet;
 
-/**
- * Sorted set protocol.
- */
+/** Sorted set protocol. */
 @Beta
-public interface SortedSetDelegate<E> extends SetDelegate<E>, SortedSet<E> {
-}
+public interface SortedSetDelegate<E> extends SetDelegate<E>, SortedSet<E> {}

@@ -23,8 +23,9 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * Abstract bytes implementation.
- * <p>
- * This class provides common state and bounds checking functionality for all {@link Bytes} implementations.
+ *
+ * <p>This class provides common state and bounds checking functionality for all {@link Bytes}
+ * implementations.
  *
  * @author <a href="http://github.com/kuujo">Jordan Halterman</a>
  */
@@ -34,18 +35,14 @@ public abstract class AbstractBytes implements Bytes {
   private boolean open = true;
   private SwappedBytes swap;
 
-  /**
-   * Checks whether the block is open.
-   */
+  /** Checks whether the block is open. */
   protected void checkOpen() {
     if (!open) {
       throw new IllegalStateException("bytes not open");
     }
   }
 
-  /**
-   * Checks that the offset is within the bounds of the buffer.
-   */
+  /** Checks that the offset is within the bounds of the buffer. */
   protected void checkOffset(int offset) {
     checkOpen();
     if (offset < 0 || offset > size()) {
@@ -53,9 +50,7 @@ public abstract class AbstractBytes implements Bytes {
     }
   }
 
-  /**
-   * Checks bounds for a read.
-   */
+  /** Checks bounds for a read. */
   protected int checkRead(int offset, int length) {
     checkOffset(offset);
     int position = offset + length;
@@ -65,9 +60,7 @@ public abstract class AbstractBytes implements Bytes {
     return position;
   }
 
-  /**
-   * Checks bounds for a write.
-   */
+  /** Checks bounds for a write. */
   protected int checkWrite(int offset, int length) {
     checkOffset(offset);
     int position = offset + length;
@@ -225,5 +218,4 @@ public abstract class AbstractBytes implements Bytes {
   public void close() {
     open = false;
   }
-
 }

@@ -15,6 +15,8 @@
  */
 package io.atomix.primitive.session.impl;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 import io.atomix.primitive.PrimitiveState;
 import io.atomix.primitive.PrimitiveType;
 import io.atomix.primitive.event.EventType;
@@ -24,15 +26,10 @@ import io.atomix.primitive.partition.PartitionId;
 import io.atomix.primitive.session.SessionClient;
 import io.atomix.primitive.session.SessionId;
 import io.atomix.utils.concurrent.ThreadContext;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
-/**
- * Base class for {@link SessionClient}s that delegate to an underlying client.
- */
+/** Base class for {@link SessionClient}s that delegate to an underlying client. */
 public class DelegatingSessionClient implements SessionClient {
   private final SessionClient session;
 
@@ -112,8 +109,6 @@ public class DelegatingSessionClient implements SessionClient {
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("client", session)
-        .toString();
+    return toStringHelper(this).add("client", session).toString();
   }
 }

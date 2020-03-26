@@ -17,9 +17,7 @@ package io.atomix.primitive.protocol;
 
 import java.util.Collection;
 
-/**
- * Primitive protocol type registry.
- */
+/** Primitive protocol type registry. */
 public interface PrimitiveProtocolTypeRegistry {
 
   /**
@@ -36,5 +34,4 @@ public interface PrimitiveProtocolTypeRegistry {
    * @return the protocol type for the given configuration
    */
   PrimitiveProtocol.Type getProtocolType(String type);
-
 }

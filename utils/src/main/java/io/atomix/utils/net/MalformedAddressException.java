@@ -17,9 +17,7 @@ package io.atomix.utils.net;
 
 import io.atomix.utils.AtomixRuntimeException;
 
-/**
- * Malformed address exception.
- */
+/** Malformed address exception. */
 public class MalformedAddressException extends AtomixRuntimeException {
   public MalformedAddressException(String message) {
     super(message);

@@ -15,15 +15,13 @@
  */
 package io.atomix.utils;
 
+import static org.junit.Assert.assertEquals;
+
 import io.atomix.utils.misc.TimestampPrinter;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-
-/**
- * Timestamp printer test.
- */
+/** Timestamp printer test. */
 public class TimestampPrinterTest {
   @Test
   @Ignore // Timestamp is environment specific

@@ -20,7 +20,6 @@ import com.google.common.collect.Sets;
 import io.atomix.cluster.messaging.ManagedUnicastService;
 import io.atomix.cluster.messaging.UnicastService;
 import io.atomix.utils.net.Address;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -28,13 +27,12 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 
-/**
- * Test unicast service.
- */
+/** Test unicast service. */
 public class TestUnicastService implements ManagedUnicastService {
   private final Address address;
   private final Map<Address, TestUnicastService> services;
-  private final Map<String, Map<BiConsumer<Address, byte[]>, Executor>> listeners = Maps.newConcurrentMap();
+  private final Map<String, Map<BiConsumer<Address, byte[]>, Executor>> listeners =
+      Maps.newConcurrentMap();
   private final AtomicBoolean started = new AtomicBoolean();
   private final Set<Address> partitions = Sets.newConcurrentHashSet();
 
@@ -52,16 +50,12 @@ public class TestUnicastService implements ManagedUnicastService {
     return address;
   }
 
-  /**
-   * Partitions the node from the given address.
-   */
+  /** Partitions the node from the given address. */
   void partition(Address address) {
     partitions.add(address);
   }
 
-  /**
-   * Heals the partition from the given address.
-   */
+  /** Heals the partition from the given address. */
   void heal(Address address) {
     partitions.remove(address);
   }
@@ -86,13 +80,15 @@ public class TestUnicastService implements ManagedUnicastService {
     if (service != null) {
       Map<BiConsumer<Address, byte[]>, Executor> listeners = service.listeners.get(subject);
       if (listeners != null) {
-        listeners.forEach((listener, executor) -> executor.execute(() -> listener.accept(this.address, message)));
+        listeners.forEach(
+            (listener, executor) -> executor.execute(() -> listener.accept(this.address, message)));
       }
     }
   }
 
   @Override
-  public synchronized void addListener(String subject, BiConsumer<Address, byte[]> listener, Executor executor) {
+  public synchronized void addListener(
+      String subject, BiConsumer<Address, byte[]> listener, Executor executor) {
     listeners.computeIfAbsent(subject, s -> Maps.newConcurrentMap()).put(listener, executor);
   }
 

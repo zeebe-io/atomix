@@ -16,12 +16,9 @@
 package io.atomix.primitive.partition;
 
 import com.google.common.hash.Hashing;
-
 import java.util.List;
 
-/**
- * Murmur 3 partitioner.
- */
+/** Murmur 3 partitioner. */
 public class Murmur3Partitioner implements Partitioner<String> {
   @Override
   public PartitionId partition(String key, List<PartitionId> partitions) {

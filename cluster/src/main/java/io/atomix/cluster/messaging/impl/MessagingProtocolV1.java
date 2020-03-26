@@ -19,9 +19,7 @@ import io.atomix.utils.net.Address;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
 
-/**
- * V1 messaging protocol.
- */
+/** V1 messaging protocol. */
 public class MessagingProtocolV1 implements MessagingProtocol {
   private final Address address;
 

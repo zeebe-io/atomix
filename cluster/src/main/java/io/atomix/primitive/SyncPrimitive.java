@@ -15,24 +15,19 @@
  */
 package io.atomix.primitive;
 
-/**
- * Synchronous primitive.
- */
+/** Synchronous primitive. */
 public interface SyncPrimitive extends DistributedPrimitive {
 
   /**
    * Purges state associated with this primitive.
-   * <p>
-   * Implementations can override and provide appropriate clean up logic for purging
-   * any state state associated with the primitive. Whether modifications made within the
-   * destroy method have local or global visibility is left unspecified.
+   *
+   * <p>Implementations can override and provide appropriate clean up logic for purging any state
+   * state associated with the primitive. Whether modifications made within the destroy method have
+   * local or global visibility is left unspecified.
    */
-  default void delete() {
-  }
+  default void delete() {}
 
-  /**
-   * Closes the primitive.
-   */
+  /** Closes the primitive. */
   void close();
 
   /**
@@ -41,5 +36,4 @@ public interface SyncPrimitive extends DistributedPrimitive {
    * @return the underlying asynchronous primitive
    */
   AsyncPrimitive async();
-
 }

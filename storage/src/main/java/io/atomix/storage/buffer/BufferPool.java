@@ -28,5 +28,4 @@ public class BufferPool extends ReferencePool<Buffer> {
   public BufferPool(ReferenceFactory<Buffer> factory) {
     super(factory);
   }
-
 }

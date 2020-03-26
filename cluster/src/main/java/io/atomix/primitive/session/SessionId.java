@@ -17,9 +17,7 @@ package io.atomix.primitive.session;
 
 import io.atomix.utils.AbstractIdentifier;
 
-/**
- * Session identifier.
- */
+/** Session identifier. */
 public class SessionId extends AbstractIdentifier<Long> {
 
   /**
@@ -32,8 +30,7 @@ public class SessionId extends AbstractIdentifier<Long> {
     return new SessionId(id);
   }
 
-  protected SessionId() {
-  }
+  protected SessionId() {}
 
   public SessionId(Long value) {
     super(value);

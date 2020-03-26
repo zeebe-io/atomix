@@ -17,9 +17,7 @@ package io.atomix.primitive.protocol.counter;
 
 import com.google.common.annotations.Beta;
 
-/**
- * Counter builder.
- */
+/** Counter builder. */
 @Beta
 public interface CounterCompatibleBuilder<B extends CounterCompatibleBuilder<B>> {
 
@@ -30,5 +28,4 @@ public interface CounterCompatibleBuilder<B extends CounterCompatibleBuilder<B>>
    * @return the primitive builder
    */
   B withProtocol(CounterProtocol protocol);
-
 }

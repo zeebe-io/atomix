@@ -18,9 +18,7 @@ package io.atomix.storage.journal;
 
 import java.util.NoSuchElementException;
 
-/**
- * Raft log reader.
- */
+/** Raft log reader. */
 public class SegmentedJournalReader<E> implements JournalReader<E> {
 
   private final SegmentedJournal<E> journal;
@@ -35,9 +33,7 @@ public class SegmentedJournalReader<E> implements JournalReader<E> {
     initialize(index);
   }
 
-  /**
-   * Initializes the reader to the given index.
-   */
+  /** Initializes the reader to the given index. */
   private void initialize(long index) {
     currentSegment = journal.getSegment(index);
     currentSegment.acquire();
@@ -151,9 +147,7 @@ public class SegmentedJournalReader<E> implements JournalReader<E> {
     journal.closeReader(this);
   }
 
-  /**
-   * Rewinds the journal to the given index.
-   */
+  /** Rewinds the journal to the given index. */
   private void rewind(long index) {
     if (currentSegment.index() >= index) {
       final JournalSegment<E> segment = journal.getSegment(index - 1);
@@ -166,9 +160,7 @@ public class SegmentedJournalReader<E> implements JournalReader<E> {
     previousEntry = currentReader.getCurrentEntry();
   }
 
-  /**
-   * Fast forwards the journal to the given index.
-   */
+  /** Fast forwards the journal to the given index. */
   private void forward(long index) {
     // skip to the correct segment if there is one
     if (!currentSegment.equals(journal.getLastSegment())) {

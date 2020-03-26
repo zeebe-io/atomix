@@ -15,15 +15,13 @@
  */
 package io.atomix.utils;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-/**
- * Version test.
- */
+import org.junit.Test;
+
+/** Version test. */
 public class VersionTest {
   @Test
   public void testVersionComparison() {

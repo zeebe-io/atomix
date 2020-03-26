@@ -15,9 +15,7 @@
  */
 package io.atomix.primitive.protocol;
 
-/**
- * Log compatible primitive.
- */
+/** Log compatible primitive. */
 public interface LogCompatibleBuilder<B extends LogCompatibleBuilder<B>> {
 
   /**
@@ -27,5 +25,4 @@ public interface LogCompatibleBuilder<B extends LogCompatibleBuilder<B>> {
    * @return the primitive builder
    */
   B withProtocol(LogProtocol protocol);
-
 }

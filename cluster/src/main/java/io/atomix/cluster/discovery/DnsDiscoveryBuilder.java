@@ -17,9 +17,7 @@ package io.atomix.cluster.discovery;
 
 import java.time.Duration;
 
-/**
- * DNS discovery builder.
- */
+/** DNS discovery builder. */
 public class DnsDiscoveryBuilder extends NodeDiscoveryBuilder {
   private final DnsDiscoveryConfig config = new DnsDiscoveryConfig();
 

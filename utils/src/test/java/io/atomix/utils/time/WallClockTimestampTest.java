@@ -15,13 +15,11 @@
  */
 package io.atomix.utils.time;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertTrue;
 
-/**
- * Tests for {@link WallClockTimestamp}.
- */
+import org.junit.Test;
+
+/** Tests for {@link WallClockTimestamp}. */
 public class WallClockTimestampTest {
   @Test
   public final void testBasic() throws InterruptedException {

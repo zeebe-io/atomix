@@ -15,17 +15,14 @@
  */
 package io.atomix.primitive.log;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-
 import io.atomix.primitive.PrimitiveState;
 import io.atomix.primitive.partition.PartitionId;
 import io.atomix.primitive.session.SessionId;
 import io.atomix.utils.concurrent.ThreadContext;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
-/**
- * Log session.
- */
+/** Log session. */
 public interface LogSession {
 
   /**
@@ -98,9 +95,6 @@ public interface LogSession {
    */
   CompletableFuture<Void> close();
 
-  /**
-   * Log session builder.
-   */
-  abstract class Builder implements io.atomix.utils.Builder<LogSession> {
-  }
+  /** Log session builder. */
+  abstract class Builder implements io.atomix.utils.Builder<LogSession> {}
 }

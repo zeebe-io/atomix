@@ -17,20 +17,23 @@ package io.atomix.cluster.messaging;
 
 import java.io.File;
 
-/**
- * TLS configuration.
- */
+/** TLS configuration. */
 public class TlsConfig {
   private static final String CONFIG_DIR = "/conf";
   private static final String KEYSTORE_FILE_NAME = "atomix.jks";
   private static final File DEFAULT_KEYSTORE_FILE = new File(CONFIG_DIR, KEYSTORE_FILE_NAME);
   private static final String DEFAULT_KEYSTORE_PASSWORD = "changeit";
 
-  private boolean enabled = Boolean.parseBoolean(System.getProperty("io.atomix.enableNettyTLS", Boolean.toString(false)));
-  private String keyStore = System.getProperty("javax.net.ssl.keyStore", DEFAULT_KEYSTORE_FILE.toString());
-  private String trustStore = System.getProperty("javax.net.ssl.trustStore", DEFAULT_KEYSTORE_FILE.toString());
-  private String keyStorePassword = System.getProperty("javax.net.ssl.keyStorePassword", DEFAULT_KEYSTORE_PASSWORD);
-  private String trustStorePassword = System.getProperty("javax.net.ssl.trustStorePassword", DEFAULT_KEYSTORE_PASSWORD);
+  private boolean enabled =
+      Boolean.parseBoolean(System.getProperty("io.atomix.enableNettyTLS", Boolean.toString(false)));
+  private String keyStore =
+      System.getProperty("javax.net.ssl.keyStore", DEFAULT_KEYSTORE_FILE.toString());
+  private String trustStore =
+      System.getProperty("javax.net.ssl.trustStore", DEFAULT_KEYSTORE_FILE.toString());
+  private String keyStorePassword =
+      System.getProperty("javax.net.ssl.keyStorePassword", DEFAULT_KEYSTORE_PASSWORD);
+  private String trustStorePassword =
+      System.getProperty("javax.net.ssl.trustStorePassword", DEFAULT_KEYSTORE_PASSWORD);
 
   /**
    * Returns whether TLS is enabled.

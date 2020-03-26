@@ -19,9 +19,7 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 
-/**
- * Local client-side connection.
- */
+/** Local client-side connection. */
 final class LocalClientConnection extends AbstractClientConnection {
   private final LocalServerConnection serverConnection;
 

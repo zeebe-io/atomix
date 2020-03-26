@@ -18,9 +18,7 @@ package io.atomix.storage.journal;
 import io.atomix.storage.statistics.JournalMetrics;
 import java.nio.BufferOverflowException;
 
-/**
- * Raft log writer.
- */
+/** Raft log writer. */
 public class SegmentedJournalWriter<E> implements JournalWriter<E> {
   private final SegmentedJournal<E> journal;
   private final JournalMetrics journalMetrics;
@@ -116,22 +114,23 @@ public class SegmentedJournalWriter<E> implements JournalWriter<E> {
       throw new IndexOutOfBoundsException("Cannot truncate committed index: " + index);
     }
 
-    journalMetrics.observeSegmentTruncation(() -> {
-      // Delete all segments with first indexes greater than the given index.
-      while (index < currentSegment.index() && currentSegment != journal.getFirstSegment()) {
-        currentSegment.release();
-        journal.removeSegment(currentSegment);
-        currentSegment = journal.getLastSegment();
-        currentSegment.acquire();
-        currentWriter = currentSegment.writer();
-      }
+    journalMetrics.observeSegmentTruncation(
+        () -> {
+          // Delete all segments with first indexes greater than the given index.
+          while (index < currentSegment.index() && currentSegment != journal.getFirstSegment()) {
+            currentSegment.release();
+            journal.removeSegment(currentSegment);
+            currentSegment = journal.getLastSegment();
+            currentSegment.acquire();
+            currentWriter = currentSegment.writer();
+          }
 
-      // Truncate the current index.
-      currentWriter.truncate(index);
+          // Truncate the current index.
+          currentWriter.truncate(index);
 
-      // Reset segment readers.
-      journal.resetTail(index + 1);
-    });
+          // Reset segment readers.
+          journal.resetTail(index + 1);
+        });
   }
 
   @Override

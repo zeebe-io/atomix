@@ -20,13 +20,10 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Collection of various helper methods to manipulate strings.
- */
+/** Collection of various helper methods to manipulate strings. */
 public final class StringUtils {
 
-  private StringUtils() {
-  }
+  private StringUtils() {}
 
   /**
    * Splits the input string with the given regex and filters empty strings.

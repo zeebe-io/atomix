@@ -17,8 +17,5 @@ package io.atomix.primitive.partition;
 
 import io.atomix.utils.event.EventListener;
 
-/**
- * Partition event listener.
- */
-public interface PartitionEventListener extends EventListener<PartitionEvent> {
-}
+/** Partition event listener. */
+public interface PartitionEventListener extends EventListener<PartitionEvent> {}

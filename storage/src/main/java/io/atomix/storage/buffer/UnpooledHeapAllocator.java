@@ -31,5 +31,4 @@ public class UnpooledHeapAllocator extends UnpooledAllocator {
   public Buffer allocate(int initialCapacity, int maxCapacity) {
     return HeapBuffer.allocate(initialCapacity, maxCapacity);
   }
-
 }

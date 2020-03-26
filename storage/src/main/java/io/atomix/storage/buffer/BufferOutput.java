@@ -21,9 +21,10 @@ import java.util.function.Function;
 
 /**
  * Writable buffer.
- * <p>
- * This interface exposes methods for writing to a byte buffer. Writable buffers maintain a small amount of state
- * regarding current cursor positions and limits similar to the behavior of {@link java.nio.ByteBuffer}.
+ *
+ * <p>This interface exposes methods for writing to a byte buffer. Writable buffers maintain a small
+ * amount of state regarding current cursor positions and limits similar to the behavior of {@link
+ * java.nio.ByteBuffer}.
  *
  * @author <a href="http://github.com/kuujo">Jordan Halterman</a>
  */
@@ -47,6 +48,7 @@ public interface BufferOutput<T extends BufferOutput<?>> extends AutoCloseable {
 
   /**
    * Writes bytes to the buffer.
+   *
    * @param bytes the bytes to write
    * @return the written buffer
    */
@@ -55,7 +57,7 @@ public interface BufferOutput<T extends BufferOutput<?>> extends AutoCloseable {
   /**
    * Writes the given bytes at offset {@code offset} up to a given {@code length}.
    *
-   * Note that this should NOT mutate the given {@link ByteBuffer}.
+   * <p>Note that this should NOT mutate the given {@link ByteBuffer}.
    *
    * @param source the bytes to write
    * @param offset the offset in the destination buffer to write to
@@ -67,7 +69,7 @@ public interface BufferOutput<T extends BufferOutput<?>> extends AutoCloseable {
   /**
    * Writes an array of bytes to the buffer.
    *
-   * @param bytes  The array of bytes to write.
+   * @param bytes The array of bytes to write.
    * @param offset The offset at which to start writing the bytes.
    * @param length The number of bytes from the provided byte array to write to the buffer.
    * @return The written buffer.
@@ -77,7 +79,7 @@ public interface BufferOutput<T extends BufferOutput<?>> extends AutoCloseable {
   /**
    * Writes an array of bytes to the buffer.
    *
-   * @param bytes  The array of bytes to write.
+   * @param bytes The array of bytes to write.
    * @param offset The offset at which to start writing the bytes.
    * @param length The number of bytes from the provided byte array to write to the buffer.
    * @return The written buffer.
@@ -233,7 +235,7 @@ public interface BufferOutput<T extends BufferOutput<?>> extends AutoCloseable {
   /**
    * Writes a string to the buffer.
    *
-   * @param s       The string to write.
+   * @param s The string to write.
    * @param charset The character set with which to encode the string.
    * @return The written buffer.
    */
@@ -256,5 +258,4 @@ public interface BufferOutput<T extends BufferOutput<?>> extends AutoCloseable {
 
   @Override
   void close();
-
 }

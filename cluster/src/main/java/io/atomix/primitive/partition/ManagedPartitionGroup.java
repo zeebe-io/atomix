@@ -17,9 +17,7 @@ package io.atomix.primitive.partition;
 
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Managed partition group.
- */
+/** Managed partition group. */
 public interface ManagedPartitionGroup extends PartitionGroup {
 
   /**
@@ -44,5 +42,4 @@ public interface ManagedPartitionGroup extends PartitionGroup {
    * @return a future to be completed once the partition group has been closed
    */
   CompletableFuture<Void> close();
-
 }

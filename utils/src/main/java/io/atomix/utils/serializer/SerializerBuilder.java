@@ -17,14 +17,11 @@ package io.atomix.utils.serializer;
 
 import io.atomix.utils.Builder;
 
-/**
- * Serializer builder.
- */
+/** Serializer builder. */
 public class SerializerBuilder implements Builder<Serializer> {
   private final String name;
-  private final Namespace.Builder namespaceBuilder = Namespace.builder()
-      .register(Namespaces.BASIC)
-      .nextId(Namespaces.BEGIN_USER_CUSTOM_ID);
+  private final Namespace.Builder namespaceBuilder =
+      Namespace.builder().register(Namespaces.BASIC).nextId(Namespaces.BEGIN_USER_CUSTOM_ID);
 
   public SerializerBuilder() {
     this(null);
@@ -46,7 +43,8 @@ public class SerializerBuilder implements Builder<Serializer> {
   /**
    * Sets whether serializable type registration is required for serializable types.
    *
-   * @param registrationRequired whether serializable type registration is required for serializable types
+   * @param registrationRequired whether serializable type registration is required for serializable
+   *     types
    * @return the serializer builder
    */
   public SerializerBuilder withRegistrationRequired(boolean registrationRequired) {
@@ -114,7 +112,8 @@ public class SerializerBuilder implements Builder<Serializer> {
    * @param types the serializable types
    * @return the serializer builder
    */
-  public SerializerBuilder addSerializer(com.esotericsoftware.kryo.Serializer serializer, Class<?>... types) {
+  public SerializerBuilder addSerializer(
+      com.esotericsoftware.kryo.Serializer serializer, Class<?>... types) {
     namespaceBuilder.register(serializer, types);
     return this;
   }

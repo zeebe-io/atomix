@@ -17,9 +17,7 @@ package io.atomix.utils.time;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-/**
- * Logical clock.
- */
+/** Logical clock. */
 public class LogicalClock implements Clock<LogicalTimestamp> {
   private LogicalTimestamp currentTimestamp;
 
@@ -74,8 +72,6 @@ public class LogicalClock implements Clock<LogicalTimestamp> {
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("time", getTime())
-        .toString();
+    return toStringHelper(this).add("time", getTime()).toString();
   }
 }

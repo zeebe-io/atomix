@@ -17,9 +17,7 @@ package io.atomix.primitive.partition;
 
 import io.atomix.utils.AbstractIdentifier;
 
-/**
- * Member group identifier.
- */
+/** Member group identifier. */
 public class MemberGroupId extends AbstractIdentifier<String> {
 
   /**
@@ -32,8 +30,7 @@ public class MemberGroupId extends AbstractIdentifier<String> {
     return new MemberGroupId(id);
   }
 
-  private MemberGroupId() {
-  }
+  private MemberGroupId() {}
 
   public MemberGroupId(String value) {
     super(value);

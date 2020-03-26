@@ -16,12 +16,9 @@
 package io.atomix.cluster;
 
 import io.atomix.utils.net.Address;
-
 import java.util.Properties;
 
-/**
- * Member builder.
- */
+/** Member builder. */
 public class MemberBuilder extends NodeBuilder {
   protected final MemberConfig config;
 
@@ -70,7 +67,8 @@ public class MemberBuilder extends NodeBuilder {
    *
    * @param address a host:port tuple
    * @return the member builder
-   * @throws io.atomix.utils.net.MalformedAddressException if a valid {@link Address} cannot be constructed from the arguments
+   * @throws io.atomix.utils.net.MalformedAddressException if a valid {@link Address} cannot be
+   *     constructed from the arguments
    * @deprecated since 3.1. Use {@link #withHost(String)} and/or {@link #withPort(int)} instead
    */
   @Deprecated
@@ -84,7 +82,8 @@ public class MemberBuilder extends NodeBuilder {
    * @param host the host name
    * @param port the port number
    * @return the member builder
-   * @throws io.atomix.utils.net.MalformedAddressException if a valid {@link Address} cannot be constructed from the arguments
+   * @throws io.atomix.utils.net.MalformedAddressException if a valid {@link Address} cannot be
+   *     constructed from the arguments
    * @deprecated since 3.1. Use {@link #withHost(String)} and {@link #withPort(int)} instead
    */
   @Deprecated
@@ -97,7 +96,8 @@ public class MemberBuilder extends NodeBuilder {
    *
    * @param port the port number
    * @return the member builder
-   * @throws io.atomix.utils.net.MalformedAddressException if a valid {@link Address} cannot be constructed from the arguments
+   * @throws io.atomix.utils.net.MalformedAddressException if a valid {@link Address} cannot be
+   *     constructed from the arguments
    * @deprecated since 3.1. Use {@link #withPort(int)} instead
    */
   @Deprecated
@@ -190,7 +190,7 @@ public class MemberBuilder extends NodeBuilder {
   /**
    * Sets a member property.
    *
-   * @param key   the property key to set
+   * @param key the property key to set
    * @param value the property value to set
    * @return the member builder
    * @throws NullPointerException if the property is null

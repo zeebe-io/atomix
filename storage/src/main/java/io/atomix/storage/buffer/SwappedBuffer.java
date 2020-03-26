@@ -16,7 +16,6 @@
 package io.atomix.storage.buffer;
 
 import io.atomix.utils.concurrent.ReferenceManager;
-
 import java.nio.ByteOrder;
 
 /**
@@ -32,8 +31,23 @@ public class SwappedBuffer extends AbstractBuffer {
     this.root = root;
   }
 
-  public SwappedBuffer(Buffer buffer, int offset, int initialCapacity, int maxCapacity, ReferenceManager<Buffer> referenceManager) {
-    super(buffer.bytes().order(buffer.order() == ByteOrder.BIG_ENDIAN ? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN), offset, initialCapacity, maxCapacity, referenceManager);
+  public SwappedBuffer(
+      Buffer buffer,
+      int offset,
+      int initialCapacity,
+      int maxCapacity,
+      ReferenceManager<Buffer> referenceManager) {
+    super(
+        buffer
+            .bytes()
+            .order(
+                buffer.order() == ByteOrder.BIG_ENDIAN
+                    ? ByteOrder.LITTLE_ENDIAN
+                    : ByteOrder.BIG_ENDIAN),
+        offset,
+        initialCapacity,
+        maxCapacity,
+        referenceManager);
     this.root = buffer instanceof SwappedBuffer ? ((SwappedBuffer) buffer).root : buffer;
     root.acquire();
   }
@@ -89,5 +103,4 @@ public class SwappedBuffer extends AbstractBuffer {
   public void close() {
     root.release();
   }
-
 }

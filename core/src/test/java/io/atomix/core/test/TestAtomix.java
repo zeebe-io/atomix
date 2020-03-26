@@ -28,17 +28,14 @@ import io.atomix.core.test.messaging.TestUnicastServiceFactory;
 import io.atomix.utils.net.Address;
 import java.util.Collections;
 
-/**
- * Test Atomix instance.
- */
+/** Test Atomix instance. */
 public class TestAtomix extends Atomix {
 
   private static AtomixConfig config(MemberId memberId, Address address) {
     return new AtomixConfig()
-        .setClusterConfig(new ClusterConfig()
-            .setNodeConfig(new MemberConfig()
-                .setId(memberId)
-                .setAddress(address)))
+        .setClusterConfig(
+            new ClusterConfig()
+                .setNodeConfig(new MemberConfig().setId(memberId).setAddress(address)))
         .setProfiles(Collections.singletonList(new ConsensusProfileConfig()));
   }
 

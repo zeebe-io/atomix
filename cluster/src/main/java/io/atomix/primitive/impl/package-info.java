@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Base classes for distributed primitive implementations.
- */
+/** Base classes for distributed primitive implementations. */
 package io.atomix.primitive.impl;

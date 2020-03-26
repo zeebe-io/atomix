@@ -17,8 +17,6 @@ package io.atomix.cluster.protocol;
 
 import io.atomix.utils.config.TypedConfig;
 
-/**
- * Group membership protocol configuration.
- */
-public abstract class GroupMembershipProtocolConfig implements TypedConfig<GroupMembershipProtocol.Type> {
-}
+/** Group membership protocol configuration. */
+public abstract class GroupMembershipProtocolConfig
+    implements TypedConfig<GroupMembershipProtocol.Type> {}

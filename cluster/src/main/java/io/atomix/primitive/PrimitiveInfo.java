@@ -15,13 +15,11 @@
  */
 package io.atomix.primitive;
 
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-/**
- * Distributed primitive info.
- */
+import java.util.Objects;
+
+/** Distributed primitive info. */
 public final class PrimitiveInfo {
   private final String name;
   private final PrimitiveType type;
@@ -65,9 +63,6 @@ public final class PrimitiveInfo {
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("name", name)
-        .add("type", type)
-        .toString();
+    return toStringHelper(this).add("name", name).add("type", type).toString();
   }
 }

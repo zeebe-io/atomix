@@ -19,16 +19,13 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import io.atomix.cluster.messaging.BroadcastService;
 import io.atomix.cluster.messaging.ManagedBroadcastService;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
-/**
- * Test broadcast service.
- */
+/** Test broadcast service. */
 public class TestBroadcastService implements ManagedBroadcastService {
   private final Set<TestBroadcastService> services;
   private final Map<String, Set<Consumer<byte[]>>> listeners = Maps.newConcurrentMap();
@@ -40,14 +37,16 @@ public class TestBroadcastService implements ManagedBroadcastService {
 
   @Override
   public void broadcast(String subject, byte[] message) {
-    services.forEach(service -> {
-      Set<Consumer<byte[]>> listeners = service.listeners.get(subject);
-      if (listeners != null) {
-        listeners.forEach(listener -> {
-          listener.accept(message);
+    services.forEach(
+        service -> {
+          Set<Consumer<byte[]>> listeners = service.listeners.get(subject);
+          if (listeners != null) {
+            listeners.forEach(
+                listener -> {
+                  listener.accept(message);
+                });
+          }
         });
-      }
-    });
   }
 
   @Override

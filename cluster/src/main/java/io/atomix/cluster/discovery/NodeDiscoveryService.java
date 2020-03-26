@@ -17,13 +17,11 @@ package io.atomix.cluster.discovery;
 
 import io.atomix.cluster.Node;
 import io.atomix.utils.event.ListenerService;
-
 import java.util.Set;
 
-/**
- * Node discovery service.
- */
-public interface NodeDiscoveryService extends ListenerService<NodeDiscoveryEvent, NodeDiscoveryEventListener> {
+/** Node discovery service. */
+public interface NodeDiscoveryService
+    extends ListenerService<NodeDiscoveryEvent, NodeDiscoveryEventListener> {
 
   /**
    * Returns the set of active nodes.
@@ -31,5 +29,4 @@ public interface NodeDiscoveryService extends ListenerService<NodeDiscoveryEvent
    * @return the set of active nodes
    */
   Set<Node> getNodes();
-
 }

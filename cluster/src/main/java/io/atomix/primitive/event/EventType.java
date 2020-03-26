@@ -18,9 +18,7 @@ package io.atomix.primitive.event;
 import io.atomix.primitive.event.impl.DefaultEventType;
 import io.atomix.utils.Identifier;
 
-/**
- * Raft event identifier.
- */
+/** Raft event identifier. */
 public interface EventType extends Identifier<String> {
 
   /**

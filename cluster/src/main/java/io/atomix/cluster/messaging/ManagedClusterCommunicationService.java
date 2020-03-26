@@ -17,8 +17,6 @@ package io.atomix.cluster.messaging;
 
 import io.atomix.utils.Managed;
 
-/**
- * Managed cluster communicator.
- */
-public interface ManagedClusterCommunicationService extends ClusterCommunicationService, Managed<ClusterCommunicationService> {
-}
+/** Managed cluster communicator. */
+public interface ManagedClusterCommunicationService
+    extends ClusterCommunicationService, Managed<ClusterCommunicationService> {}

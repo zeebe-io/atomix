@@ -15,14 +15,12 @@
  */
 package io.atomix.primitive.session;
 
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Primitive session metadata.
- */
+import java.util.Objects;
+
+/** Primitive session metadata. */
 public final class SessionMetadata {
   private final long id;
   private final String name;
@@ -70,17 +68,15 @@ public final class SessionMetadata {
   public boolean equals(Object object) {
     if (object instanceof SessionMetadata) {
       SessionMetadata metadata = (SessionMetadata) object;
-      return metadata.id == id && Objects.equals(metadata.name, name) && Objects.equals(metadata.type, type);
+      return metadata.id == id
+          && Objects.equals(metadata.name, name)
+          && Objects.equals(metadata.type, type);
     }
     return false;
   }
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("id", id)
-        .add("name", name)
-        .add("type", type)
-        .toString();
+    return toStringHelper(this).add("id", id).add("name", name).add("type", type).toString();
   }
 }

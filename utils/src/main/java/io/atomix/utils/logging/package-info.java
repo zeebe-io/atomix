@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Provides utility classes for logging in complex objects.
- */
+/** Provides utility classes for logging in complex objects. */
 package io.atomix.utils.logging;

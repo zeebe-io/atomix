@@ -17,12 +17,9 @@ package io.atomix.primitive;
 
 import com.google.common.hash.Hashing;
 import io.atomix.utils.AbstractIdentifier;
-
 import java.nio.charset.StandardCharsets;
 
-/**
- * Snapshot identifier.
- */
+/** Snapshot identifier. */
 public class PrimitiveId extends AbstractIdentifier<Long> {
 
   /**

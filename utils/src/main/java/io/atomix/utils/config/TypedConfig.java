@@ -15,9 +15,7 @@
  */
 package io.atomix.utils.config;
 
-/**
- * Typed configuration.
- */
+/** Typed configuration. */
 public interface TypedConfig<T> extends Config {
 
   /**
@@ -26,5 +24,4 @@ public interface TypedConfig<T> extends Config {
    * @return the type name
    */
   T getType();
-
 }

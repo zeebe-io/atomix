@@ -15,9 +15,7 @@
  */
 package io.atomix.primitive.protocol.set;
 
-/**
- * Set builder.
- */
+/** Set builder. */
 public interface SortedSetCompatibleBuilder<B extends SortedSetCompatibleBuilder<B>> {
 
   /**
@@ -27,5 +25,4 @@ public interface SortedSetCompatibleBuilder<B extends SortedSetCompatibleBuilder
    * @return the primitive builder
    */
   B withProtocol(SortedSetProtocol protocol);
-
 }

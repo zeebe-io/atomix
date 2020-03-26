@@ -18,9 +18,7 @@ package io.atomix.cluster.messaging.impl;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Client-side connection interface which handles sending messages.
- */
+/** Client-side connection interface which handles sending messages. */
 interface ClientConnection extends Connection<ProtocolReply> {
 
   /**
@@ -40,9 +38,6 @@ interface ClientConnection extends Connection<ProtocolReply> {
    */
   CompletableFuture<byte[]> sendAndReceive(ProtocolRequest message, Duration timeout);
 
-  /**
-   * Closes the connection.
-   */
-  default void close() {
-  }
+  /** Closes the connection. */
+  default void close() {}
 }

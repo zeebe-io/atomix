@@ -27,18 +27,15 @@ import io.atomix.primitive.partition.PrimaryElectionEventListener;
 import io.atomix.primitive.partition.PrimaryElectionService;
 import io.atomix.utils.concurrent.Threads;
 import io.atomix.utils.event.AbstractListenerManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * Hash-based primary election service.
- */
+/** Hash-based primary election service. */
 public class HashBasedPrimaryElectionService
     extends AbstractListenerManager<PrimaryElectionEvent, PrimaryElectionEventListener>
     implements ManagedPrimaryElectionService {
@@ -52,20 +49,33 @@ public class HashBasedPrimaryElectionService
   private final ScheduledExecutorService executor;
   private final AtomicBoolean started = new AtomicBoolean();
 
-  public HashBasedPrimaryElectionService(ClusterMembershipService clusterMembershipService, PartitionGroupMembershipService groupMembershipService, ClusterCommunicationService messagingService) {
+  public HashBasedPrimaryElectionService(
+      ClusterMembershipService clusterMembershipService,
+      PartitionGroupMembershipService groupMembershipService,
+      ClusterCommunicationService messagingService) {
     this.clusterMembershipService = clusterMembershipService;
     this.groupMembershipService = groupMembershipService;
     this.messagingService = messagingService;
-    this.executor = Executors.newSingleThreadScheduledExecutor(Threads.namedThreads("primary-election-%d", log));
+    this.executor =
+        Executors.newSingleThreadScheduledExecutor(
+            Threads.namedThreads("primary-election-%d", log));
   }
 
   @Override
   public PrimaryElection getElectionFor(PartitionId partitionId) {
-    return elections.computeIfAbsent(partitionId, id -> {
-      HashBasedPrimaryElection election = new HashBasedPrimaryElection(partitionId, clusterMembershipService, groupMembershipService, messagingService, executor);
-      election.addListener(primaryElectionListener);
-      return election;
-    });
+    return elections.computeIfAbsent(
+        partitionId,
+        id -> {
+          HashBasedPrimaryElection election =
+              new HashBasedPrimaryElection(
+                  partitionId,
+                  clusterMembershipService,
+                  groupMembershipService,
+                  messagingService,
+                  executor);
+          election.addListener(primaryElectionListener);
+          return election;
+        });
   }
 
   @Override

@@ -17,9 +17,7 @@ package io.atomix.core.workqueue;
 
 import com.google.common.base.MoreObjects;
 
-/**
- * Statistics for a {@link AsyncWorkQueue}.
- */
+/** Statistics for a {@link AsyncWorkQueue}. */
 public final class WorkQueueStats {
 
   private long totalPending;
@@ -35,8 +33,7 @@ public final class WorkQueueStats {
     return new Builder();
   }
 
-  private WorkQueueStats() {
-  }
+  private WorkQueueStats() {}
 
   public static class Builder {
 

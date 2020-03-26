@@ -15,10 +15,9 @@
  */
 package io.atomix.primitive.partition;
 
-/**
- * Partition group factory.
- */
-public interface PartitionGroupFactory<C extends PartitionGroupConfig<C>, P extends ManagedPartitionGroup> {
+/** Partition group factory. */
+public interface PartitionGroupFactory<
+    C extends PartitionGroupConfig<C>, P extends ManagedPartitionGroup> {
 
   /**
    * Creates a new partition group.
@@ -27,5 +26,4 @@ public interface PartitionGroupFactory<C extends PartitionGroupConfig<C>, P exte
    * @return the partition group
    */
   P createGroup(C config);
-
 }

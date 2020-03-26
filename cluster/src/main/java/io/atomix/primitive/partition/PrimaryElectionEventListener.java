@@ -17,8 +17,5 @@ package io.atomix.primitive.partition;
 
 import io.atomix.utils.event.EventListener;
 
-/**
- * Primary election event listener.
- */
-public interface PrimaryElectionEventListener extends EventListener<PrimaryElectionEvent> {
-}
+/** Primary election event listener. */
+public interface PrimaryElectionEventListener extends EventListener<PrimaryElectionEvent> {}

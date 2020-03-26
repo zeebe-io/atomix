@@ -22,7 +22,8 @@ class KryoOutputPool extends KryoIOPool<ByteArrayOutput> {
 
   @Override
   protected ByteArrayOutput create(int bufferSize) {
-    return new ByteArrayOutput(bufferSize, MAX_BUFFER_SIZE, new BufferAwareByteArrayOutputStream(bufferSize));
+    return new ByteArrayOutput(
+        bufferSize, MAX_BUFFER_SIZE, new BufferAwareByteArrayOutputStream(bufferSize));
   }
 
   @Override

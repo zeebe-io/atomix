@@ -17,9 +17,6 @@ package io.atomix.primitive.protocol;
 
 import com.google.common.annotations.Beta;
 
-/**
- * Dissemination protocol.
- */
+/** Dissemination protocol. */
 @Beta
-public interface GossipProtocol extends PrimitiveProtocol {
-}
+public interface GossipProtocol extends PrimitiveProtocol {}

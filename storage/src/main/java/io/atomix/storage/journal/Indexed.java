@@ -17,9 +17,7 @@ package io.atomix.storage.journal;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-/**
- * Indexed journal entry.
- */
+/** Indexed journal entry. */
 public class Indexed<E> {
   private final long index;
   private final E entry;
@@ -79,9 +77,6 @@ public class Indexed<E> {
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("index", index)
-        .add("entry", entry)
-        .toString();
+    return toStringHelper(this).add("index", index).add("entry", entry).toString();
   }
 }

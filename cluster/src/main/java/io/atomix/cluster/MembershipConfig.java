@@ -15,15 +15,12 @@
  */
 package io.atomix.cluster;
 
-import io.atomix.utils.config.Config;
-
-import java.time.Duration;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Cluster membership configuration.
- */
+import io.atomix.utils.config.Config;
+import java.time.Duration;
+
+/** Cluster membership configuration. */
 public class MembershipConfig implements Config {
   private static final int DEFAULT_BROADCAST_INTERVAL = 100;
   private static final int DEFAULT_REACHABILITY_TIMEOUT = 10000;

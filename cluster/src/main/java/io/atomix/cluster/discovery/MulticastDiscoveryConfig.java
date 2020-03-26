@@ -15,13 +15,11 @@
  */
 package io.atomix.cluster.discovery;
 
-import java.time.Duration;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Multicast discovery configuration.
- */
+import java.time.Duration;
+
+/** Multicast discovery configuration. */
 public class MulticastDiscoveryConfig extends NodeDiscoveryConfig {
   private static final int DEFAULT_BROADCAST_INTERVAL = 1000;
   private static final int DEFAULT_FAILURE_TIMEOUT = 10000;

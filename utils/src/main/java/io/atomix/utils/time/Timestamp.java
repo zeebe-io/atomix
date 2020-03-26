@@ -19,9 +19,9 @@ import com.google.common.base.Preconditions;
 
 /**
  * Opaque version structure.
- * <p>
- * Classes implementing this interface must also implement
- * {@link #hashCode()} and {@link #equals(Object)}.
+ *
+ * <p>Classes implementing this interface must also implement {@link #hashCode()} and {@link
+ * #equals(Object)}.
  */
 public interface Timestamp extends Comparable<Timestamp> {
 

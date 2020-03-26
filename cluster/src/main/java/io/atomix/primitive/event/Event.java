@@ -20,16 +20,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * Annotates an event method.
- */
+/** Annotates an event method. */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Event {
 
-  /**
-   * The event type name.
-   */
+  /** The event type name. */
   String value() default "";
-
 }

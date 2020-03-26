@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Common serializer implementations.
- */
+/** Common serializer implementations. */
 package io.atomix.utils.serializer.serializers;

@@ -15,6 +15,9 @@
  */
 package io.atomix.cluster.messaging.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static io.atomix.utils.concurrent.Threads.namedThreads;
+
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import io.atomix.cluster.messaging.BroadcastService;
@@ -37,9 +40,6 @@ import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.InternetProtocolFamily;
 import io.netty.channel.socket.nio.NioDatagramChannel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -48,13 +48,10 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static io.atomix.utils.concurrent.Threads.namedThreads;
-
-/**
- * Netty broadcast service.
- */
+/** Netty broadcast service. */
 public class NettyBroadcastService implements ManagedBroadcastService {
 
   /**
@@ -66,9 +63,7 @@ public class NettyBroadcastService implements ManagedBroadcastService {
     return new Builder();
   }
 
-  /**
-   * Netty broadcast service builder.
-   */
+  /** Netty broadcast service builder. */
   public static class Builder implements BroadcastService.Builder {
     private Address localAddress;
     private Address groupAddress;
@@ -113,11 +108,13 @@ public class NettyBroadcastService implements ManagedBroadcastService {
     }
   }
 
-  private static final Serializer SERIALIZER = Serializer.using(Namespace.builder()
-      .register(Namespaces.BASIC)
-      .nextId(Namespaces.BEGIN_USER_CUSTOM_ID)
-      .register(Message.class)
-      .build());
+  private static final Serializer SERIALIZER =
+      Serializer.using(
+          Namespace.builder()
+              .register(Namespaces.BASIC)
+              .nextId(Namespaces.BEGIN_USER_CUSTOM_ID)
+              .register(Message.class)
+              .build());
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -172,70 +169,99 @@ public class NettyBroadcastService implements ManagedBroadcastService {
   }
 
   private CompletableFuture<Void> bootstrapServer() {
-    Bootstrap serverBootstrap = new Bootstrap()
-        .group(group)
-        .channelFactory(() -> new NioDatagramChannel(InternetProtocolFamily.IPv4))
-        .handler(new SimpleChannelInboundHandler<Object>() {
-          @Override
-          public void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
-            // Nothing will be sent.
-          }
-        })
-        .option(ChannelOption.IP_MULTICAST_IF, iface)
-        .option(ChannelOption.SO_REUSEADDR, true);
+    Bootstrap serverBootstrap =
+        new Bootstrap()
+            .group(group)
+            .channelFactory(() -> new NioDatagramChannel(InternetProtocolFamily.IPv4))
+            .handler(
+                new SimpleChannelInboundHandler<Object>() {
+                  @Override
+                  public void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
+                    // Nothing will be sent.
+                  }
+                })
+            .option(ChannelOption.IP_MULTICAST_IF, iface)
+            .option(ChannelOption.SO_REUSEADDR, true);
 
     CompletableFuture<Void> future = new CompletableFuture<>();
-    serverBootstrap.bind(localAddress).addListener((ChannelFutureListener) f -> {
-      if (f.isSuccess()) {
-        serverChannel = f.channel();
-        future.complete(null);
-      } else {
-        future.completeExceptionally(f.cause());
-      }
-    });
+    serverBootstrap
+        .bind(localAddress)
+        .addListener(
+            (ChannelFutureListener)
+                f -> {
+                  if (f.isSuccess()) {
+                    serverChannel = f.channel();
+                    future.complete(null);
+                  } else {
+                    future.completeExceptionally(f.cause());
+                  }
+                });
     return future;
   }
 
   private CompletableFuture<Void> bootstrapClient() {
-    Bootstrap clientBootstrap = new Bootstrap()
-        .group(group)
-        .channelFactory(() -> new NioDatagramChannel(InternetProtocolFamily.IPv4))
-        .handler(new SimpleChannelInboundHandler<DatagramPacket>() {
-          @Override
-          protected void channelRead0(ChannelHandlerContext context, DatagramPacket packet) throws Exception {
-            byte[] payload = new byte[packet.content().readInt()];
-            packet.content().readBytes(payload);
-            Message message = SERIALIZER.decode(payload);
-            Set<Consumer<byte[]>> listeners = NettyBroadcastService.this.listeners.get(message.subject());
-            if (listeners != null) {
-              for (Consumer<byte[]> listener : listeners) {
-                listener.accept(message.payload());
-              }
-            }
-          }
-        })
-        .option(ChannelOption.IP_MULTICAST_IF, iface)
-        .option(ChannelOption.SO_REUSEADDR, true)
-        .localAddress(localAddress.getPort());
+    Bootstrap clientBootstrap =
+        new Bootstrap()
+            .group(group)
+            .channelFactory(() -> new NioDatagramChannel(InternetProtocolFamily.IPv4))
+            .handler(
+                new SimpleChannelInboundHandler<DatagramPacket>() {
+                  @Override
+                  protected void channelRead0(ChannelHandlerContext context, DatagramPacket packet)
+                      throws Exception {
+                    byte[] payload = new byte[packet.content().readInt()];
+                    packet.content().readBytes(payload);
+                    Message message = SERIALIZER.decode(payload);
+                    Set<Consumer<byte[]>> listeners =
+                        NettyBroadcastService.this.listeners.get(message.subject());
+                    if (listeners != null) {
+                      for (Consumer<byte[]> listener : listeners) {
+                        listener.accept(message.payload());
+                      }
+                    }
+                  }
+                })
+            .option(ChannelOption.IP_MULTICAST_IF, iface)
+            .option(ChannelOption.SO_REUSEADDR, true)
+            .localAddress(localAddress.getPort());
 
     CompletableFuture<Void> future = new CompletableFuture<>();
-    clientBootstrap.bind().addListener((ChannelFutureListener) f -> {
-      if (f.isSuccess()) {
-        clientChannel = (DatagramChannel) f.channel();
-        log.info("{} joining multicast group {} on port {}", localAddress.getHostName(), groupAddress.getHostName(), groupAddress.getPort());
-        clientChannel.joinGroup(groupAddress, iface).addListener(f2 -> {
-          if (f2.isSuccess()) {
-            log.info("{} successfully joined multicast group {} on port {}", localAddress.getHostName(), groupAddress.getHostName(), groupAddress.getPort());
-            future.complete(null);
-          } else {
-            log.info("{} failed to join group {} on port {}", localAddress.getHostName(), groupAddress.getHostName(), groupAddress.getPort());
-            future.completeExceptionally(f2.cause());
-          }
-        });
-      } else {
-        future.completeExceptionally(f.cause());
-      }
-    });
+    clientBootstrap
+        .bind()
+        .addListener(
+            (ChannelFutureListener)
+                f -> {
+                  if (f.isSuccess()) {
+                    clientChannel = (DatagramChannel) f.channel();
+                    log.info(
+                        "{} joining multicast group {} on port {}",
+                        localAddress.getHostName(),
+                        groupAddress.getHostName(),
+                        groupAddress.getPort());
+                    clientChannel
+                        .joinGroup(groupAddress, iface)
+                        .addListener(
+                            f2 -> {
+                              if (f2.isSuccess()) {
+                                log.info(
+                                    "{} successfully joined multicast group {} on port {}",
+                                    localAddress.getHostName(),
+                                    groupAddress.getHostName(),
+                                    groupAddress.getPort());
+                                future.complete(null);
+                              } else {
+                                log.info(
+                                    "{} failed to join group {} on port {}",
+                                    localAddress.getHostName(),
+                                    groupAddress.getHostName(),
+                                    groupAddress.getPort());
+                                future.completeExceptionally(f2.cause());
+                              }
+                            });
+                  } else {
+                    future.completeExceptionally(f.cause());
+                  }
+                });
     return future;
   }
 
@@ -263,20 +289,21 @@ public class NettyBroadcastService implements ManagedBroadcastService {
     }
     if (clientChannel != null) {
       CompletableFuture<Void> future = new CompletableFuture<>();
-      clientChannel.leaveGroup(groupAddress, iface).addListener(f -> {
-        started.set(false);
-        group.shutdownGracefully();
-        future.complete(null);
-      });
+      clientChannel
+          .leaveGroup(groupAddress, iface)
+          .addListener(
+              f -> {
+                started.set(false);
+                group.shutdownGracefully();
+                future.complete(null);
+              });
       return future;
     }
     started.set(false);
     return CompletableFuture.completedFuture(null);
   }
 
-  /**
-   * Internal broadcast service message.
-   */
+  /** Internal broadcast service message. */
   static class Message {
     private final String subject;
     private final byte[] payload;

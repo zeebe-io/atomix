@@ -15,18 +15,16 @@
  */
 package io.atomix.utils;
 
+import static org.junit.Assert.assertEquals;
+
 import io.atomix.utils.misc.ArraySizeHashPrinter;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-
-/**
- * Array size hash printer test.
- */
+/** Array size hash printer test. */
 public class ArraySizeHashPrinterTest {
   @Test
   public void testArraySizeHashPrinter() throws Exception {
-    ArraySizeHashPrinter printer = ArraySizeHashPrinter.of(new byte[]{1, 2, 3});
+    ArraySizeHashPrinter printer = ArraySizeHashPrinter.of(new byte[] {1, 2, 3});
     assertEquals("byte[]{length=3, hash=30817}", printer.toString());
   }
 }

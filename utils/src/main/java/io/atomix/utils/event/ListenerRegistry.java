@@ -15,17 +15,16 @@
  */
 package io.atomix.utils.event;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Base implementation of an event sink and a registry capable of tracking
- * listeners and dispatching events to them as part of event sink processing.
+ * Base implementation of an event sink and a registry capable of tracking listeners and dispatching
+ * events to them as part of event sink processing.
  */
 public class ListenerRegistry<E extends Event, L extends EventListener<E>>
     implements ListenerService<E, L>, EventSink<E> {
@@ -37,9 +36,7 @@ public class ListenerRegistry<E extends Event, L extends EventListener<E>>
   private long lastStart;
   private L lastListener;
 
-  /**
-   * Set of listeners that have registered.
-   */
+  /** Set of listeners that have registered. */
   protected final Set<L> listeners = new CopyOnWriteArraySet<>();
 
   @Override
@@ -77,7 +74,8 @@ public class ListenerRegistry<E extends Event, L extends EventListener<E>>
     if (lastStart > 0) {
       long duration = System.currentTimeMillis() - lastStart;
       if (duration > LIMIT) {
-        log.error("Listener {} exceeded execution time limit: {} ms; ejected",
+        log.error(
+            "Listener {} exceeded execution time limit: {} ms; ejected",
             lastListener.getClass().getName(),
             duration);
         removeListener(lastListener);
@@ -95,5 +93,4 @@ public class ListenerRegistry<E extends Event, L extends EventListener<E>>
   protected void reportProblem(E event, Throwable error) {
     log.warn("Exception encountered while processing event " + event, error);
   }
-
 }

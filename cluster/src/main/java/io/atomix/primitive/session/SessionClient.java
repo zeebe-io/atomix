@@ -22,13 +22,10 @@ import io.atomix.primitive.event.PrimitiveEvent;
 import io.atomix.primitive.operation.PrimitiveOperation;
 import io.atomix.primitive.partition.PartitionId;
 import io.atomix.utils.concurrent.ThreadContext;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-/**
- * Partition proxy.
- */
+/** Partition proxy. */
 public interface SessionClient {
 
   /**
@@ -86,7 +83,7 @@ public interface SessionClient {
    * Adds an event listener.
    *
    * @param eventType the event type for which to add the listener
-   * @param listener  the event listener to add
+   * @param listener the event listener to add
    */
   void addEventListener(EventType eventType, Consumer<PrimitiveEvent> listener);
 
@@ -94,7 +91,7 @@ public interface SessionClient {
    * Removes an event listener.
    *
    * @param eventType the event type for which to remove the listener
-   * @param listener  the event listener to remove
+   * @param listener the event listener to remove
    */
   void removeEventListener(EventType eventType, Consumer<PrimitiveEvent> listener);
 
@@ -133,9 +130,6 @@ public interface SessionClient {
    */
   CompletableFuture<Void> delete();
 
-  /**
-   * Partition proxy builder.
-   */
-  abstract class Builder implements io.atomix.utils.Builder<SessionClient> {
-  }
+  /** Partition proxy builder. */
+  abstract class Builder implements io.atomix.utils.Builder<SessionClient> {}
 }

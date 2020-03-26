@@ -15,15 +15,14 @@
  */
 package io.atomix.storage.buffer;
 
-import org.junit.AfterClass;
-import org.junit.Test;
-
-import java.io.File;
-import java.nio.file.Files;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.nio.file.Files;
+import org.junit.AfterClass;
+import org.junit.Test;
 
 /**
  * File buffer test.
@@ -59,9 +58,7 @@ public class FileBufferTest extends BufferTest {
     }
   }
 
-  /**
-   * Rests reopening a file that has been closed.
-   */
+  /** Rests reopening a file that has been closed. */
   @Test
   public void testPersist() {
     File file = FileTesting.createFile();
@@ -76,9 +73,7 @@ public class FileBufferTest extends BufferTest {
     }
   }
 
-  /**
-   * Tests deleting a file.
-   */
+  /** Tests deleting a file. */
   @Test
   public void testDelete() {
     File file = FileTesting.createFile();
@@ -90,5 +85,4 @@ public class FileBufferTest extends BufferTest {
     buffer.delete();
     assertFalse(Files.exists(file.toPath()));
   }
-
 }

@@ -18,9 +18,7 @@ package io.atomix.primitive.proxy.impl;
 import io.atomix.primitive.operation.OperationId;
 import io.atomix.primitive.session.SessionId;
 
-/**
- * Container for a distributed log based state machine operation.
- */
+/** Container for a distributed log based state machine operation. */
 public class LogOperation {
   private final SessionId sessionId;
   private final String primitive;
@@ -28,7 +26,12 @@ public class LogOperation {
   private final OperationId operationId;
   private final byte[] operation;
 
-  public LogOperation(SessionId sessionId, String primitive, long operationIndex, OperationId operationId, byte[] operation) {
+  public LogOperation(
+      SessionId sessionId,
+      String primitive,
+      long operationIndex,
+      OperationId operationId,
+      byte[] operation) {
     this.sessionId = sessionId;
     this.primitive = primitive;
     this.operationIndex = operationIndex;

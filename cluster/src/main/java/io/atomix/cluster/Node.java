@@ -15,17 +15,14 @@
  */
 package io.atomix.cluster;
 
-import io.atomix.utils.config.Configured;
-import io.atomix.utils.net.Address;
-
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Represents a node.
- */
+import io.atomix.utils.config.Configured;
+import io.atomix.utils.net.Address;
+import java.util.Objects;
+
+/** Represents a node. */
 public class Node implements Configured<NodeConfig> {
 
   /**
@@ -70,9 +67,7 @@ public class Node implements Configured<NodeConfig> {
 
   @Override
   public NodeConfig config() {
-    return new NodeConfig()
-        .setId(id)
-        .setAddress(address);
+    return new NodeConfig().setId(id).setAddress(address);
   }
 
   @Override
@@ -84,8 +79,7 @@ public class Node implements Configured<NodeConfig> {
   public boolean equals(Object object) {
     if (object instanceof Node) {
       Node member = (Node) object;
-      return member.id().equals(id())
-          && member.address().equals(address());
+      return member.id().equals(id()) && member.address().equals(address());
     }
     return false;
   }

@@ -18,9 +18,7 @@ package io.atomix.utils.logging;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
 
-/**
- * Contextual logger.
- */
+/** Contextual logger. */
 public class ContextualLogger extends DelegatingLogger {
   private static final String SEPARATOR = " - ";
   private final LoggerContext context;

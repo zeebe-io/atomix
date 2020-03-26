@@ -19,9 +19,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Operation utilities.
- */
+/** Operation utilities. */
 public final class Operations {
 
   /**
@@ -52,7 +50,8 @@ public final class Operations {
     for (Method method : type.getDeclaredMethods()) {
       OperationId operationId = getOperationId(method);
       if (operationId != null) {
-        if (operations.values().stream().anyMatch(operation -> operation.id().equals(operationId.id()))) {
+        if (operations.values().stream()
+            .anyMatch(operation -> operation.id().equals(operationId.id()))) {
           throw new IllegalStateException("Duplicate operation name '" + operationId.id() + "'");
         }
         operations.put(method, operationId);
@@ -96,7 +95,8 @@ public final class Operations {
     for (Method method : type.getDeclaredMethods()) {
       OperationId operationId = getOperationId(method);
       if (operationId != null) {
-        if (operations.keySet().stream().anyMatch(operation -> operation.id().equals(operationId.id()))) {
+        if (operations.keySet().stream()
+            .anyMatch(operation -> operation.id().equals(operationId.id()))) {
           throw new IllegalStateException("Duplicate operation name '" + operationId.id() + "'");
         }
         operations.put(operationId, method);
@@ -133,6 +133,5 @@ public final class Operations {
     return null;
   }
 
-  private Operations() {
-  }
+  private Operations() {}
 }

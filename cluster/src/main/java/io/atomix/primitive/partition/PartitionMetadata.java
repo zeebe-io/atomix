@@ -15,17 +15,16 @@
  */
 package io.atomix.primitive.partition;
 
-import io.atomix.cluster.MemberId;
+import static com.google.common.base.MoreObjects.toStringHelper;
 
+import io.atomix.cluster.MemberId;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 /**
- * A partition or shard is a group of controller nodes that are work together to maintain state.
- * A ONOS cluster is typically made of of one or partitions over which the the data is partitioned.
+ * A partition or shard is a group of controller nodes that are work together to maintain state. A
+ * ONOS cluster is typically made of of one or partitions over which the the data is partitioned.
  */
 public class PartitionMetadata {
   private final PartitionId id;
@@ -70,9 +69,6 @@ public class PartitionMetadata {
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("id", id)
-        .add("members", members)
-        .toString();
+    return toStringHelper(this).add("id", id).add("members", members).toString();
   }
 }

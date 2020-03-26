@@ -17,9 +17,7 @@ package io.atomix.primitive.session;
 
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Globally unique session ID provider.
- */
+/** Globally unique session ID provider. */
 public interface SessionIdService {
 
   /**
@@ -28,5 +26,4 @@ public interface SessionIdService {
    * @return the next unique session identifier
    */
   CompletableFuture<SessionId> nextSessionId();
-
 }

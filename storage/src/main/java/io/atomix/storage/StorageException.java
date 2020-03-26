@@ -22,8 +22,7 @@ package io.atomix.storage;
  */
 public class StorageException extends RuntimeException {
 
-  public StorageException() {
-  }
+  public StorageException() {}
 
   public StorageException(String message) {
     super(message);
@@ -37,18 +36,14 @@ public class StorageException extends RuntimeException {
     super(cause);
   }
 
-  /**
-   * Exception thrown when an entry being stored is too large.
-   */
+  /** Exception thrown when an entry being stored is too large. */
   public static class TooLarge extends StorageException {
     public TooLarge(String message) {
       super(message);
     }
   }
 
-  /**
-   * Exception thrown when storage runs out of disk space.
-   */
+  /** Exception thrown when storage runs out of disk space. */
   public static class OutOfDiskSpace extends StorageException {
     public OutOfDiskSpace(String message) {
       super(message);

@@ -17,16 +17,17 @@ package io.atomix.primitive.partition;
 
 import io.atomix.cluster.Member;
 import io.atomix.utils.event.ListenerService;
-
 import java.util.Collection;
 
 /**
  * Member group service.
- * <p>
- * The member group service provides member group info within the context of a {@link PartitionGroup}. Each partition
- * group may be assigned a different {@link MemberGroupProvider} and thus can define member groups differently.
+ *
+ * <p>The member group service provides member group info within the context of a {@link
+ * PartitionGroup}. Each partition group may be assigned a different {@link MemberGroupProvider} and
+ * thus can define member groups differently.
  */
-public interface MemberGroupService extends ListenerService<MemberGroupEvent, MemberGroupEventListener> {
+public interface MemberGroupService
+    extends ListenerService<MemberGroupEvent, MemberGroupEventListener> {
 
   /**
    * Returns the collection of member groups.
@@ -42,8 +43,7 @@ public interface MemberGroupService extends ListenerService<MemberGroupEvent, Me
    * @return the group for the given node
    */
   default MemberGroup getMemberGroup(Member member) {
-    return getMemberGroups()
-        .stream()
+    return getMemberGroups().stream()
         .filter(group -> group.isMember(member))
         .findAny()
         .orElse(null);

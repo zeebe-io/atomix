@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Primitive event implementations.
- */
+/** Primitive event implementations. */
 package io.atomix.primitive.event.impl;

@@ -35,9 +35,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import org.junit.Test;
 
-/**
- * Atomix configuration test.
- */
+/** Atomix configuration test. */
 public class AtomixConfigTest {
 
   @Test
@@ -49,8 +47,8 @@ public class AtomixConfigTest {
 
   @Test
   public void testAtomixConfig() throws Exception {
-    AtomixConfig config = Atomix
-        .config(getClass().getClassLoader().getResource("test.conf").getPath());
+    AtomixConfig config =
+        Atomix.config(getClass().getClassLoader().getResource("test.conf").getPath());
 
     ClusterConfig cluster = config.getClusterConfig();
     assertEquals("test", cluster.getClusterId());
@@ -69,8 +67,8 @@ public class AtomixConfigTest {
     assertEquals("230.0.1.1", multicast.getGroup().getHostAddress());
     assertEquals(56789, multicast.getPort());
 
-    HeartbeatMembershipProtocolConfig protocol = (HeartbeatMembershipProtocolConfig) cluster
-        .getProtocolConfig();
+    HeartbeatMembershipProtocolConfig protocol =
+        (HeartbeatMembershipProtocolConfig) cluster.getProtocolConfig();
     assertEquals(Duration.ofMillis(200), protocol.getHeartbeatInterval());
     assertEquals(12, protocol.getPhiFailureThreshold());
     assertEquals(Duration.ofSeconds(15), protocol.getFailureTimeout());
@@ -98,18 +96,18 @@ public class AtomixConfigTest {
     assertEquals("truststore.jks", messaging.getTlsConfig().getTrustStore());
     assertEquals("bar", messaging.getTlsConfig().getTrustStorePassword());
 
-    RaftPartitionGroupConfig managementGroup = (RaftPartitionGroupConfig) config
-        .getManagementGroup();
+    RaftPartitionGroupConfig managementGroup =
+        (RaftPartitionGroupConfig) config.getManagementGroup();
     assertEquals(RaftPartitionGroup.TYPE, managementGroup.getType());
     assertEquals(1, managementGroup.getPartitions());
     assertEquals(Duration.ofSeconds(5), managementGroup.getElectionTimeout());
     assertEquals(Duration.ofMillis(500), managementGroup.getHeartbeatInterval());
     assertEquals(Duration.ofSeconds(10), managementGroup.getDefaultSessionTimeout());
-    assertEquals(new MemorySize(1024 * 1024 * 16),
-        managementGroup.getStorageConfig().getSegmentSize());
+    assertEquals(
+        new MemorySize(1024 * 1024 * 16), managementGroup.getStorageConfig().getSegmentSize());
 
-    RaftPartitionGroupConfig groupOne = (RaftPartitionGroupConfig) config.getPartitionGroups()
-        .get("one");
+    RaftPartitionGroupConfig groupOne =
+        (RaftPartitionGroupConfig) config.getPartitionGroups().get("one");
     assertEquals(RaftPartitionGroup.TYPE, groupOne.getType());
     assertEquals("one", groupOne.getName());
     assertEquals(7, groupOne.getPartitions());

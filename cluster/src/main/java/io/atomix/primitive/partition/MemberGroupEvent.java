@@ -16,17 +16,13 @@
 package io.atomix.primitive.partition;
 
 import io.atomix.utils.event.AbstractEvent;
-
 import java.util.Collection;
 
-/**
- * Member group event.
- */
-public class MemberGroupEvent extends AbstractEvent<MemberGroupEvent.Type, Collection<MemberGroup>> {
+/** Member group event. */
+public class MemberGroupEvent
+    extends AbstractEvent<MemberGroupEvent.Type, Collection<MemberGroup>> {
 
-  /**
-   * Member group event type.
-   */
+  /** Member group event type. */
   public enum Type {
     GROUPS_CHANGED
   }

@@ -50,5 +50,4 @@ public abstract class PooledAllocator implements BufferAllocator {
   public Buffer allocate(int initialCapacity, int maxCapacity) {
     return pool.acquire().reset(0, initialCapacity, maxCapacity).clear();
   }
-
 }

@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Distributed queueing primitive interfaces.
- */
+/** Distributed queueing primitive interfaces. */
 package io.atomix.core.profile;

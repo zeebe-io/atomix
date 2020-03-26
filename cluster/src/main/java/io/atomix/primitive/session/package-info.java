@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Provides classes and interfaces for managing primitive sessions.
- */
+/** Provides classes and interfaces for managing primitive sessions. */
 package io.atomix.primitive.session;

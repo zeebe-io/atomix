@@ -15,9 +15,7 @@
  */
 package io.atomix.core.types;
 
-/**
- * Serializable type for use in tests.
- */
+/** Serializable type for use in tests. */
 public class Type2 {
   private String value1;
   private int value2;

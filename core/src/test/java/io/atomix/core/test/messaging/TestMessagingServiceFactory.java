@@ -18,12 +18,9 @@ package io.atomix.core.test.messaging;
 import com.google.common.collect.Maps;
 import io.atomix.cluster.messaging.ManagedMessagingService;
 import io.atomix.utils.net.Address;
-
 import java.util.Map;
 
-/**
- * Test messaging service factory.
- */
+/** Test messaging service factory. */
 public class TestMessagingServiceFactory {
   private final Map<Address, TestMessagingService> services = Maps.newConcurrentMap();
 
@@ -36,10 +33,11 @@ public class TestMessagingServiceFactory {
     TestMessagingService service = services.get(address);
     services.values().stream()
         .filter(s -> !s.address().equals(address))
-        .forEach(s -> {
-          service.partition(s.address());
-          s.partition(service.address());
-        });
+        .forEach(
+            s -> {
+              service.partition(s.address());
+              s.partition(service.address());
+            });
   }
 
   /**
@@ -51,10 +49,11 @@ public class TestMessagingServiceFactory {
     TestMessagingService service = services.get(address);
     services.values().stream()
         .filter(s -> !s.address().equals(address))
-        .forEach(s -> {
-          service.heal(s.address());
-          s.heal(service.address());
-        });
+        .forEach(
+            s -> {
+              service.heal(s.address());
+              s.heal(service.address());
+            });
   }
 
   /**

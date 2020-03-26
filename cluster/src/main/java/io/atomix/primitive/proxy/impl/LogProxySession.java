@@ -15,6 +15,8 @@
  */
 package io.atomix.primitive.proxy.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.base.Defaults;
 import com.google.common.collect.Maps;
 import io.atomix.cluster.MemberId;
@@ -49,9 +51,6 @@ import io.atomix.utils.time.LogicalClock;
 import io.atomix.utils.time.LogicalTimestamp;
 import io.atomix.utils.time.WallClock;
 import io.atomix.utils.time.WallClockTimestamp;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -63,21 +62,21 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * Log proxy session.
- */
+/** Log proxy session. */
 public class LogProxySession<S> implements ProxySession<S> {
-  private static final Serializer INTERNAL_SERIALIZER = Serializer.using(Namespace.builder()
-      .register(Namespaces.BASIC)
-      .nextId(Namespaces.BEGIN_USER_CUSTOM_ID)
-      .register(LogOperation.class)
-      .register(DefaultOperationId.class)
-      .register(OperationType.class)
-      .register(SessionId.class)
-      .build());
+  private static final Serializer INTERNAL_SERIALIZER =
+      Serializer.using(
+          Namespace.builder()
+              .register(Namespaces.BASIC)
+              .nextId(Namespaces.BEGIN_USER_CUSTOM_ID)
+              .register(LogOperation.class)
+              .register(DefaultOperationId.class)
+              .register(OperationType.class)
+              .register(SessionId.class)
+              .build());
 
   private final Logger log = LoggerFactory.getLogger(getClass());
   private final String name;
@@ -102,7 +101,13 @@ public class LogProxySession<S> implements ProxySession<S> {
   private long currentTimestamp;
 
   @SuppressWarnings("unchecked")
-  public LogProxySession(String name, PrimitiveType type, Class<S> serviceType, ServiceConfig serviceConfig, Serializer serializer, LogSession session) {
+  public LogProxySession(
+      String name,
+      PrimitiveType type,
+      Class<S> serviceType,
+      ServiceConfig serviceConfig,
+      Serializer serializer,
+      LogSession session) {
     this.name = checkNotNull(name, "name cannot be null");
     this.type = checkNotNull(type, "type cannot be null");
     this.service = type.newService(serviceConfig);
@@ -110,7 +115,10 @@ public class LogProxySession<S> implements ProxySession<S> {
     this.userSerializer = checkNotNull(serializer, "serializer cannot be null");
     this.session = checkNotNull(session, "session cannot be null");
     ServiceProxyHandler serviceProxyHandler = new ServiceProxyHandler(serviceType);
-    S serviceProxy = (S) java.lang.reflect.Proxy.newProxyInstance(serviceType.getClassLoader(), new Class[]{serviceType}, serviceProxyHandler);
+    S serviceProxy =
+        (S)
+            java.lang.reflect.Proxy.newProxyInstance(
+                serviceType.getClassLoader(), new Class[] {serviceType}, serviceProxyHandler);
     proxy = new ServiceProxy<>(serviceProxy, serviceProxyHandler);
   }
 
@@ -142,7 +150,8 @@ public class LogProxySession<S> implements ProxySession<S> {
   @Override
   public void register(Object client) {
     this.client = client;
-    Events.getEventMap(client.getClass()).forEach((eventType, method) -> eventMethods.put(eventType, method));
+    Events.getEventMap(client.getClass())
+        .forEach((eventType, method) -> eventMethods.put(eventType, method));
   }
 
   @Override
@@ -188,8 +197,10 @@ public class LogProxySession<S> implements ProxySession<S> {
     LogOperation operation = decodeInternal(record.value());
 
     // If this operation is not destined for this primitive, ignore it.
-    // TODO: If multiple primitives of different types are created and destroyed on the same distributed log,
-    // we need to be able to differentiate between different instances of a service by the service ID.
+    // TODO: If multiple primitives of different types are created and destroyed on the same
+    // distributed log,
+    // we need to be able to differentiate between different instances of a service by the service
+    // ID.
     if (!operation.primitive().equals(name())) {
       return;
     }
@@ -204,12 +215,14 @@ public class LogProxySession<S> implements ProxySession<S> {
     currentTimestamp = record.timestamp();
 
     // Apply the operation to the service.
-    byte[] output = service.apply(new DefaultCommit<>(
-        currentIndex,
-        operation.operationId(),
-        operation.operation(),
-        currentSession,
-        currentTimestamp));
+    byte[] output =
+        service.apply(
+            new DefaultCommit<>(
+                currentIndex,
+                operation.operationId(),
+                operation.operation(),
+                currentSession,
+                currentTimestamp));
 
     // If the operation session matches the local session, complete the write future.
     if (operation.sessionId().equals(this.session.sessionId())) {
@@ -219,19 +232,22 @@ public class LogProxySession<S> implements ProxySession<S> {
       }
     }
 
-    // Iterate through pending reads and complete any reads at indexes less than or equal to the applied index.
+    // Iterate through pending reads and complete any reads at indexes less than or equal to the
+    // applied index.
     PendingRead pendingRead = pendingReads.peek();
     while (pendingRead != null && pendingRead.index <= record.index()) {
       session = getOrCreateSession(this.session.sessionId());
       currentSession = session;
       currentOperation = OperationType.QUERY;
       try {
-        output = service.apply(new DefaultCommit<>(
-            currentIndex,
-            pendingRead.operationId,
-            pendingRead.bytes,
-            session,
-            currentTimestamp));
+        output =
+            service.apply(
+                new DefaultCommit<>(
+                    currentIndex,
+                    pendingRead.operationId,
+                    pendingRead.bytes,
+                    session,
+                    currentTimestamp));
         pendingRead.future.complete(output);
       } catch (Exception e) {
         pendingRead.future.completeExceptionally(new PrimitiveException.ServiceException());
@@ -279,7 +295,7 @@ public class LogProxySession<S> implements ProxySession<S> {
    * Encodes the given object using the configured {@link #userSerializer}.
    *
    * @param object the object to encode
-   * @param <T>    the object type
+   * @param <T> the object type
    * @return the encoded bytes
    */
   protected <T> byte[] encode(T object) {
@@ -290,7 +306,7 @@ public class LogProxySession<S> implements ProxySession<S> {
    * Decodes the given object using the configured {@link #userSerializer}.
    *
    * @param bytes the bytes to decode
-   * @param <T>   the object type
+   * @param <T> the object type
    * @return the decoded object
    */
   protected <T> T decode(byte[] bytes) {
@@ -301,7 +317,7 @@ public class LogProxySession<S> implements ProxySession<S> {
    * Encodes an internal object.
    *
    * @param object the object to encode
-   * @param <T>    the object type
+   * @param <T> the object type
    * @return the encoded bytes
    */
   private <T> byte[] encodeInternal(T object) {
@@ -312,16 +328,14 @@ public class LogProxySession<S> implements ProxySession<S> {
    * Decodes an internal object.
    *
    * @param bytes the bytes to decode
-   * @param <T>   the object type
+   * @param <T> the object type
    * @return the internal object
    */
   private <T> T decodeInternal(byte[] bytes) {
     return INTERNAL_SERIALIZER.decode(bytes);
   }
 
-  /**
-   * Log service context.
-   */
+  /** Log service context. */
   private class LogServiceContext implements ServiceContext {
     @Override
     public PrimitiveId serviceId() {
@@ -385,9 +399,7 @@ public class LogProxySession<S> implements ProxySession<S> {
     }
   }
 
-  /**
-   * Local session.
-   */
+  /** Local session. */
   private class LocalSession extends AbstractSession {
     LocalSession(
         SessionId sessionId,
@@ -418,9 +430,7 @@ public class LogProxySession<S> implements ProxySession<S> {
     }
   }
 
-  /**
-   * Service proxy container.
-   */
+  /** Service proxy container. */
   private class ServiceProxy<S> {
     private final S proxy;
     private final ServiceProxyHandler handler;
@@ -445,7 +455,7 @@ public class LogProxySession<S> implements ProxySession<S> {
      * Invokes a function on the underlying proxy.
      *
      * @param operation the operation to perform on the proxy
-     * @param <T>       the operation return type
+     * @param <T> the operation return type
      * @return the future result
      */
     <T> CompletableFuture<T> apply(Function<S, T> operation) {
@@ -456,8 +466,8 @@ public class LogProxySession<S> implements ProxySession<S> {
 
   /**
    * Service proxy invocation handler.
-   * <p>
-   * The invocation handler
+   *
+   * <p>The invocation handler
    */
   private class ServiceProxyHandler implements InvocationHandler {
     private final ThreadLocal<CompletableFuture> future = new ThreadLocal<>();
@@ -479,25 +489,35 @@ public class LogProxySession<S> implements ProxySession<S> {
         if (operationId.type() == OperationType.COMMAND) {
           long index = operationIndex.incrementAndGet();
           writeFutures.put(index, future);
-          LogOperation operation = new LogOperation(session.sessionId(), name, index, operationId, bytes);
-          session.producer().append(encodeInternal(operation))
-              .whenCompleteAsync((result, error) -> {
-                if (error == null) {
-                  lastIndex = result;
-                }
-              }, context());
+          LogOperation operation =
+              new LogOperation(session.sessionId(), name, index, operationId, bytes);
+          session
+              .producer()
+              .append(encodeInternal(operation))
+              .whenCompleteAsync(
+                  (result, error) -> {
+                    if (error == null) {
+                      lastIndex = result;
+                    }
+                  },
+                  context());
         } else {
-          context().execute(() -> {
-            if (currentIndex >= lastIndex) {
-              SessionId sessionId = session.sessionId();
-              Session session = getOrCreateSession(sessionId);
-              byte[] output = service.apply(new DefaultCommit<>(currentIndex, operationId, bytes, session, currentTimestamp));
-              future.complete(decode(output));
-              lastIndex = currentIndex;
-            } else {
-              pendingReads.add(new PendingRead(lastIndex, operationId, bytes, future));
-            }
-          });
+          context()
+              .execute(
+                  () -> {
+                    if (currentIndex >= lastIndex) {
+                      SessionId sessionId = session.sessionId();
+                      Session session = getOrCreateSession(sessionId);
+                      byte[] output =
+                          service.apply(
+                              new DefaultCommit<>(
+                                  currentIndex, operationId, bytes, session, currentTimestamp));
+                      future.complete(decode(output));
+                      lastIndex = currentIndex;
+                    } else {
+                      pendingReads.add(new PendingRead(lastIndex, operationId, bytes, future));
+                    }
+                  });
         }
       } else {
         throw new PrimitiveException("Unknown primitive operation: " + method.getName());
@@ -517,9 +537,7 @@ public class LogProxySession<S> implements ProxySession<S> {
     }
   }
 
-  /**
-   * Pending read operation.
-   */
+  /** Pending read operation. */
   private static class PendingRead {
     private final long index;
     private final OperationId operationId;

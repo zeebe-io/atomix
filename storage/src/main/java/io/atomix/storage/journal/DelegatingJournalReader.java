@@ -17,9 +17,7 @@ package io.atomix.storage.journal;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-/**
- * Journal reader delegate.
- */
+/** Journal reader delegate. */
 public class DelegatingJournalReader<E> implements JournalReader<E> {
   private final JournalReader<E> delegate;
 
@@ -84,8 +82,6 @@ public class DelegatingJournalReader<E> implements JournalReader<E> {
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("delegate", delegate)
-        .toString();
+    return toStringHelper(this).add("delegate", delegate).toString();
   }
 }

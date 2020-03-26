@@ -278,5 +278,4 @@ public class ReadOnlyBuffer extends AbstractBuffer {
   public void close() {
     root.release();
   }
-
 }

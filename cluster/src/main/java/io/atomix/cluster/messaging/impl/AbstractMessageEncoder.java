@@ -15,22 +15,19 @@
  */
 package io.atomix.cluster.messaging.impl;
 
-import java.io.IOException;
-
 import io.atomix.utils.net.Address;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
+import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Encode InternalMessage out into a byte buffer.
- */
+/** Encode InternalMessage out into a byte buffer. */
 abstract class AbstractMessageEncoder extends MessageToByteEncoder<Object> {
-// Effectively MessageToByteEncoder<InternalMessage>,
-// had to specify <Object> to avoid Class Loader not being able to find some classes.
+  // Effectively MessageToByteEncoder<InternalMessage>,
+  // had to specify <Object> to avoid Class Loader not being able to find some classes.
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -43,10 +40,7 @@ abstract class AbstractMessageEncoder extends MessageToByteEncoder<Object> {
   }
 
   @Override
-  protected void encode(
-      ChannelHandlerContext context,
-      Object rawMessage,
-      ByteBuf out) {
+  protected void encode(ChannelHandlerContext context, Object rawMessage, ByteBuf out) {
     if (!addressWritten) {
       encodeAddress((ProtocolMessage) rawMessage, out);
       addressWritten = true;

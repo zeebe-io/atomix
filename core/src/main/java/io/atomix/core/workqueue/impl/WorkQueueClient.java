@@ -17,15 +17,10 @@ package io.atomix.core.workqueue.impl;
 
 import io.atomix.primitive.event.Event;
 
-/**
- * Work queue client.
- */
+/** Work queue client. */
 public interface WorkQueueClient {
 
-  /**
-   * Notifies the client that a task is available.
-   */
+  /** Notifies the client that a task is available. */
   @Event
   void taskAvailable();
-
 }

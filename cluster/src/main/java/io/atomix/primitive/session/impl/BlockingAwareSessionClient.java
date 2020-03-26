@@ -15,6 +15,9 @@
  */
 package io.atomix.primitive.session.impl;
 
+import static io.atomix.utils.concurrent.Futures.asyncFuture;
+import static io.atomix.utils.concurrent.Futures.orderedFuture;
+
 import com.google.common.collect.Maps;
 import io.atomix.primitive.PrimitiveState;
 import io.atomix.primitive.event.EventType;
@@ -22,21 +25,17 @@ import io.atomix.primitive.event.PrimitiveEvent;
 import io.atomix.primitive.operation.PrimitiveOperation;
 import io.atomix.primitive.session.SessionClient;
 import io.atomix.utils.concurrent.ThreadContext;
-
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-import static io.atomix.utils.concurrent.Futures.asyncFuture;
-import static io.atomix.utils.concurrent.Futures.orderedFuture;
-
-/**
- * Session client delegate that completes futures on a thread pool.
- */
+/** Session client delegate that completes futures on a thread pool. */
 public class BlockingAwareSessionClient extends DelegatingSessionClient {
   private final ThreadContext context;
-  private final Map<Consumer<PrimitiveState>, Consumer<PrimitiveState>> stateChangeListeners = Maps.newConcurrentMap();
-  private final Map<Consumer<PrimitiveEvent>, Consumer<PrimitiveEvent>> eventListeners = Maps.newConcurrentMap();
+  private final Map<Consumer<PrimitiveState>, Consumer<PrimitiveState>> stateChangeListeners =
+      Maps.newConcurrentMap();
+  private final Map<Consumer<PrimitiveEvent>, Consumer<PrimitiveEvent>> eventListeners =
+      Maps.newConcurrentMap();
   private volatile CompletableFuture<SessionClient> connectFuture;
   private volatile CompletableFuture<Void> closeFuture;
 
@@ -47,7 +46,8 @@ public class BlockingAwareSessionClient extends DelegatingSessionClient {
 
   @Override
   public void addStateChangeListener(Consumer<PrimitiveState> listener) {
-    Consumer<PrimitiveState> wrappedListener = state -> context.execute(() -> listener.accept(state));
+    Consumer<PrimitiveState> wrappedListener =
+        state -> context.execute(() -> listener.accept(state));
     stateChangeListeners.put(listener, wrappedListener);
     super.addStateChangeListener(wrappedListener);
   }

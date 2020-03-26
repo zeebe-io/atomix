@@ -17,9 +17,7 @@ package io.atomix.primitive;
 
 import java.util.Collection;
 
-/**
- * Primitive registry.
- */
+/** Primitive registry. */
 public interface PrimitiveTypeRegistry {
 
   /**
@@ -36,5 +34,4 @@ public interface PrimitiveTypeRegistry {
    * @return the primitive type
    */
   PrimitiveType getPrimitiveType(String typeName);
-
 }

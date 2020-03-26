@@ -15,14 +15,16 @@
  */
 package io.atomix.primitive.protocol;
 
-import io.atomix.utils.Builder;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Primitive protocol builder.
- */
-public abstract class PrimitiveProtocolBuilder<B extends PrimitiveProtocolBuilder<B, C, P>, C extends PrimitiveProtocolConfig<C>, P extends PrimitiveProtocol> implements Builder<P> {
+import io.atomix.utils.Builder;
+
+/** Primitive protocol builder. */
+public abstract class PrimitiveProtocolBuilder<
+        B extends PrimitiveProtocolBuilder<B, C, P>,
+        C extends PrimitiveProtocolConfig<C>,
+        P extends PrimitiveProtocol>
+    implements Builder<P> {
   protected final C config;
 
   protected PrimitiveProtocolBuilder(C config) {

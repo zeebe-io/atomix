@@ -15,6 +15,11 @@
  */
 package io.atomix.primitive.service;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import io.atomix.primitive.PrimitiveId;
 import io.atomix.primitive.TestPrimitiveType;
 import io.atomix.primitive.operation.OperationId;
@@ -25,20 +30,12 @@ import io.atomix.primitive.session.Session;
 import io.atomix.utils.serializer.Namespaces;
 import io.atomix.utils.serializer.Serializer;
 import io.atomix.utils.time.WallClockTimestamp;
-import org.junit.Test;
-
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
+import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-/**
- * Default service executor test.
- */
+/** Default service executor test. */
 public class DefaultServiceExecutorTest {
   @Test
   public void testExecuteOperations() throws Exception {
@@ -47,18 +44,24 @@ public class DefaultServiceExecutorTest {
 
     executor.register(OperationId.command("a"), () -> calls.add("a"));
     executor.<Void>register(OperationId.command("b"), commit -> calls.add("b"));
-    executor.register(OperationId.query("c"), commit -> {
-      calls.add("c");
-      return null;
-    });
-    executor.register(OperationId.query("d"), () -> {
-      calls.add("d");
-      return null;
-    });
-    executor.register(OperationId.command("e"), commit -> {
-      calls.add("e");
-      return commit.value();
-    });
+    executor.register(
+        OperationId.query("c"),
+        commit -> {
+          calls.add("c");
+          return null;
+        });
+    executor.register(
+        OperationId.query("d"),
+        () -> {
+          calls.add("d");
+          return null;
+        });
+    executor.register(
+        OperationId.command("e"),
+        commit -> {
+          calls.add("e");
+          return commit.value();
+        });
 
     executor.apply(commit(OperationId.command("a"), 1, null, System.currentTimeMillis()));
     assertTrue(calls.contains("a"));
@@ -79,8 +82,7 @@ public class DefaultServiceExecutorTest {
   @Test
   public void testScheduling() throws Exception {
     ServiceExecutor executor = executor();
-    executor.register(OperationId.command("a"), () -> {
-    });
+    executor.register(OperationId.command("a"), () -> {});
     executor.apply(commit(OperationId.command("a"), 1, null, 0));
 
     Set<String> calls = new HashSet<>();

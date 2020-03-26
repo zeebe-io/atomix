@@ -17,8 +17,5 @@ package io.atomix.primitive.service;
 
 import io.atomix.utils.config.Config;
 
-/**
- * Service configuration class.
- */
-public class ServiceConfig implements Config {
-}
+/** Service configuration class. */
+public class ServiceConfig implements Config {}

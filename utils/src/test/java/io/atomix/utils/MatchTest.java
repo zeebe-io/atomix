@@ -15,17 +15,15 @@
  */
 package io.atomix.utils;
 
-import com.google.common.base.Objects;
-import io.atomix.utils.misc.Match;
-import org.junit.Test;
-
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;
 
-/**
- * Unit tests for Match.
- */
+import com.google.common.base.Objects;
+import io.atomix.utils.misc.Match;
+import org.junit.Test;
+
+/** Unit tests for Match. */
 public class MatchTest {
 
   @Test
@@ -112,7 +110,5 @@ public class MatchTest {
     assertTrue(m1.hashCode() == m3.hashCode());
     assertFalse(m2.hashCode() == m1.hashCode());
     assertFalse(m4.hashCode() == m5.hashCode());
-
   }
-
 }

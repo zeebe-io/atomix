@@ -15,13 +15,11 @@
  */
 package io.atomix.cluster.discovery;
 
-import java.time.Duration;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * DNS discovery configuration.
- */
+import java.time.Duration;
+
+/** DNS discovery configuration. */
 public class DnsDiscoveryConfig extends NodeDiscoveryConfig {
   private String service;
   private Duration resolutionInterval = Duration.ofSeconds(15);

@@ -15,16 +15,13 @@
  */
 package io.atomix.utils;
 
-import com.google.common.collect.ComparisonChain;
-
-import java.util.Objects;
-
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.lang.Integer.parseInt;
 
-/**
- * Atomix software version.
- */
+import com.google.common.collect.ComparisonChain;
+import java.util.Objects;
+
+/** Atomix software version. */
 public final class Version implements Comparable<Version> {
 
   /**
@@ -138,12 +135,8 @@ public final class Version implements Comparable<Version> {
 
   @Override
   public String toString() {
-    StringBuilder builder = new StringBuilder()
-        .append(major)
-        .append('.')
-        .append(minor)
-        .append('.')
-        .append(patch);
+    StringBuilder builder =
+        new StringBuilder().append(major).append('.').append(minor).append('.').append(patch);
     String build = Build.from(this.build).toString();
     if (build != null) {
       builder.append('-').append(build);
@@ -151,9 +144,7 @@ public final class Version implements Comparable<Version> {
     return builder.toString();
   }
 
-  /**
-   * Build version.
-   */
+  /** Build version. */
   private static class Build implements Comparable<Build> {
 
     /**
@@ -171,7 +162,9 @@ public final class Version implements Comparable<Version> {
       }
 
       for (Type type : Type.values()) {
-        if (type.name != null && build.length() >= type.name.length() && build.substring(0, type.name.length()).equalsIgnoreCase(type.name)) {
+        if (type.name != null
+            && build.length() >= type.name.length()
+            && build.substring(0, type.name.length()).equalsIgnoreCase(type.name)) {
           try {
             int version = parseInt(build.substring(type.name.length()));
             return new Build(type, version);
@@ -218,9 +211,7 @@ public final class Version implements Comparable<Version> {
       return type.format(version);
     }
 
-    /**
-     * Build type.
-     */
+    /** Build type. */
     private enum Type {
       SNAPSHOT("snapshot"),
       ALPHA("alpha"),

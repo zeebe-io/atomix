@@ -15,14 +15,11 @@
  */
 package io.atomix.primitive.partition;
 
-import io.atomix.primitive.protocol.ProxyProtocol;
 import io.atomix.primitive.protocol.PrimitiveProtocol;
-
+import io.atomix.primitive.protocol.ProxyProtocol;
 import java.util.Collection;
 
-/**
- * Partition service.
- */
+/** Partition service. */
 public interface PartitionService {
 
   /**
@@ -88,5 +85,4 @@ public interface PartitionService {
    * @return a collection of all partition groups
    */
   Collection<PartitionGroup> getPartitionGroups();
-
 }

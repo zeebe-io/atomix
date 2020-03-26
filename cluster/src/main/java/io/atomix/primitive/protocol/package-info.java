@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Provides classes and interfaces for defining and managing primitive protocols.
- */
+/** Provides classes and interfaces for defining and managing primitive protocols. */
 package io.atomix.primitive.protocol;

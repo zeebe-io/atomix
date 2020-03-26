@@ -15,9 +15,7 @@
  */
 package io.atomix.primitive.protocol.value;
 
-/**
- * Value builder.
- */
+/** Value builder. */
 public interface ValueCompatibleBuilder<B extends ValueCompatibleBuilder<B>> {
 
   /**
@@ -27,5 +25,4 @@ public interface ValueCompatibleBuilder<B extends ValueCompatibleBuilder<B>> {
    * @return the primitive builder
    */
   B withProtocol(ValueProtocol protocol);
-
 }

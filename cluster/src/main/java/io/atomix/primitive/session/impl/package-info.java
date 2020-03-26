@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Implementations of primitive session interfaces.
- */
+/** Implementations of primitive session interfaces. */
 package io.atomix.primitive.session.impl;

@@ -15,9 +15,9 @@
  */
 package io.atomix.utils.concurrent;
 
-import java.util.function.Function;
-
 import static com.google.common.base.Throwables.throwIfUnchecked;
+
+import java.util.function.Function;
 
 /**
  * Function that retries execution on failure.
@@ -31,7 +31,8 @@ public class RetryingFunction<U, V> implements Function<U, V> {
   private final int maxRetries;
   private final int maxDelayBetweenRetries;
 
-  public RetryingFunction(Function<U, V> baseFunction,
+  public RetryingFunction(
+      Function<U, V> baseFunction,
       Class<? extends Throwable> exceptionClass,
       int maxRetries,
       int maxDelayBetweenRetries) {

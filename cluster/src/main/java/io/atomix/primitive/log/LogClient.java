@@ -15,17 +15,14 @@
  */
 package io.atomix.primitive.log;
 
+import io.atomix.primitive.PrimitiveState;
+import io.atomix.primitive.partition.PartitionId;
+import io.atomix.primitive.protocol.LogProtocol;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-import io.atomix.primitive.PrimitiveState;
-import io.atomix.primitive.partition.PartitionId;
-import io.atomix.primitive.protocol.LogProtocol;
-
-/**
- * Log client.
- */
+/** Log client. */
 public interface LogClient {
 
   /**
@@ -109,5 +106,4 @@ public interface LogClient {
    * @return a future to be completed once the log client has been closed
    */
   CompletableFuture<Void> close();
-
 }

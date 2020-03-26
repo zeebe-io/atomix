@@ -20,9 +20,10 @@ import java.util.concurrent.Executor;
 
 /**
  * Executor that executes tasks in order on a shared thread pool.
- * <p>
- * The ordered executor behaves semantically like a single-threaded executor, but multiplexes tasks on a shared thread
- * pool, ensuring blocked threads in the shared thread pool don't block individual ordered executors.
+ *
+ * <p>The ordered executor behaves semantically like a single-threaded executor, but multiplexes
+ * tasks on a shared thread pool, ensuring blocked threads in the shared thread pool don't block
+ * individual ordered executors.
  */
 public class OrderedExecutor implements Executor {
   private final Executor parent;
@@ -34,7 +35,7 @@ public class OrderedExecutor implements Executor {
   }
 
   private void run() {
-    for (;;) {
+    for (; ; ) {
       final Runnable task;
       synchronized (tasks) {
         task = tasks.poll();

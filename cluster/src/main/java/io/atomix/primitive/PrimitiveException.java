@@ -18,13 +18,10 @@ package io.atomix.primitive;
 
 import io.atomix.utils.AtomixRuntimeException;
 
-/**
- * Top level exception for Store failures.
- */
+/** Top level exception for Store failures. */
 @SuppressWarnings("serial")
 public class PrimitiveException extends AtomixRuntimeException {
-  public PrimitiveException() {
-  }
+  public PrimitiveException() {}
 
   public PrimitiveException(String message) {
     super(message);
@@ -34,42 +31,27 @@ public class PrimitiveException extends AtomixRuntimeException {
     super(t);
   }
 
-  /**
-   * Store is temporarily unavailable.
-   */
+  /** Store is temporarily unavailable. */
   public static class Unavailable extends PrimitiveException {
-    public Unavailable() {
-    }
+    public Unavailable() {}
 
     public Unavailable(String message) {
       super(message);
     }
   }
 
-  /**
-   * Store operation timeout.
-   */
-  public static class Timeout extends PrimitiveException {
-  }
+  /** Store operation timeout. */
+  public static class Timeout extends PrimitiveException {}
 
-  /**
-   * Store update conflicts with an in flight transaction.
-   */
-  public static class ConcurrentModification extends PrimitiveException {
-  }
+  /** Store update conflicts with an in flight transaction. */
+  public static class ConcurrentModification extends PrimitiveException {}
 
-  /**
-   * Store operation interrupted.
-   */
-  public static class Interrupted extends PrimitiveException {
-  }
+  /** Store operation interrupted. */
+  public static class Interrupted extends PrimitiveException {}
 
-  /**
-   * Primitive service exception.
-   */
+  /** Primitive service exception. */
   public static class ServiceException extends PrimitiveException {
-    public ServiceException() {
-    }
+    public ServiceException() {}
 
     public ServiceException(String message) {
       super(message);
@@ -80,72 +62,54 @@ public class PrimitiveException extends AtomixRuntimeException {
     }
   }
 
-  /**
-   * Command failure exception.
-   */
+  /** Command failure exception. */
   public static class CommandFailure extends PrimitiveException {
-    public CommandFailure() {
-    }
+    public CommandFailure() {}
 
     public CommandFailure(String message) {
       super(message);
     }
   }
 
-  /**
-   * Query failure exception.
-   */
+  /** Query failure exception. */
   public static class QueryFailure extends PrimitiveException {
-    public QueryFailure() {
-    }
+    public QueryFailure() {}
 
     public QueryFailure(String message) {
       super(message);
     }
   }
 
-  /**
-   * Unknown client exception.
-   */
+  /** Unknown client exception. */
   public static class UnknownClient extends PrimitiveException {
-    public UnknownClient() {
-    }
+    public UnknownClient() {}
 
     public UnknownClient(String message) {
       super(message);
     }
   }
 
-  /**
-   * Unknown session exception.
-   */
+  /** Unknown session exception. */
   public static class UnknownSession extends PrimitiveException {
-    public UnknownSession() {
-    }
+    public UnknownSession() {}
 
     public UnknownSession(String message) {
       super(message);
     }
   }
 
-  /**
-   * Unknown service exception.
-   */
+  /** Unknown service exception. */
   public static class UnknownService extends PrimitiveException {
-    public UnknownService() {
-    }
+    public UnknownService() {}
 
     public UnknownService(String message) {
       super(message);
     }
   }
 
-  /**
-   * Closed session exception.
-   */
+  /** Closed session exception. */
   public static class ClosedSession extends PrimitiveException {
-    public ClosedSession() {
-    }
+    public ClosedSession() {}
 
     public ClosedSession(String message) {
       super(message);

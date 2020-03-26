@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Interfaces for map-compatible gossip protocols and delegates.
- */
+/** Interfaces for map-compatible gossip protocols and delegates. */
 package io.atomix.primitive.protocol.map;

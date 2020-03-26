@@ -15,6 +15,8 @@
  */
 package io.atomix.primitive.proxy.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.io.BaseEncoding;
 import io.atomix.primitive.PrimitiveType;
 import io.atomix.primitive.partition.PartitionId;
@@ -23,15 +25,10 @@ import io.atomix.primitive.protocol.PrimitiveProtocol;
 import io.atomix.primitive.proxy.ProxySession;
 import io.atomix.primitive.session.SessionClient;
 import io.atomix.utils.serializer.Serializer;
-
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * Default proxy client.
- */
+/** Default proxy client. */
 public class DefaultProxyClient<S> extends AbstractProxyClient<S> {
   private final Partitioner<String> partitioner;
   private final Serializer serializer;
@@ -63,6 +60,7 @@ public class DefaultProxyClient<S> extends AbstractProxyClient<S> {
 
   @Override
   public PartitionId getPartitionId(Object key) {
-    return partitioner.partition(BaseEncoding.base16().encode(serializer.encode(key)), getPartitionIds());
+    return partitioner.partition(
+        BaseEncoding.base16().encode(serializer.encode(key)), getPartitionIds());
   }
 }

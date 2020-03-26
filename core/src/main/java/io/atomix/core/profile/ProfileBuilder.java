@@ -17,8 +17,5 @@ package io.atomix.core.profile;
 
 import io.atomix.utils.Builder;
 
-/**
- * Profile builder.
- */
-public abstract class ProfileBuilder implements Builder<Profile> {
-}
+/** Profile builder. */
+public abstract class ProfileBuilder implements Builder<Profile> {}

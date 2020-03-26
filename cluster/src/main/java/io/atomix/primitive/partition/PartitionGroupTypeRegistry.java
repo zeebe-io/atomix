@@ -17,9 +17,7 @@ package io.atomix.primitive.partition;
 
 import java.util.Collection;
 
-/**
- * Partition group type registry.
- */
+/** Partition group type registry. */
 public interface PartitionGroupTypeRegistry {
 
   /**
@@ -36,5 +34,4 @@ public interface PartitionGroupTypeRegistry {
    * @return the group type
    */
   PartitionGroup.Type getGroupType(String name);
-
 }

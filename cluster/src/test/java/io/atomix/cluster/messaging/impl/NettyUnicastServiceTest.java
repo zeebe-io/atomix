@@ -15,25 +15,22 @@
  */
 package io.atomix.cluster.messaging.impl;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import io.atomix.cluster.messaging.ManagedUnicastService;
 import io.atomix.cluster.messaging.MessagingConfig;
 import io.atomix.utils.net.Address;
+import java.io.IOException;
+import java.net.ServerSocket;
 import net.jodah.concurrentunit.ConcurrentTestCase;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 
-import java.io.IOException;
-import java.net.ServerSocket;
-
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.slf4j.LoggerFactory.getLogger;
-
-/**
- * Netty unicast service test.
- */
+/** Netty unicast service test. */
 public class NettyUnicastServiceTest extends ConcurrentTestCase {
   private static final Logger LOGGER = getLogger(NettyBroadcastServiceTest.class);
 
@@ -45,11 +42,13 @@ public class NettyUnicastServiceTest extends ConcurrentTestCase {
 
   @Test
   public void testUnicast() throws Exception {
-    service1.addListener("test", (address, payload) -> {
-      assertEquals(address2, address);
-      assertArrayEquals("Hello world!".getBytes(), payload);
-      resume();
-    });
+    service1.addListener(
+        "test",
+        (address, payload) -> {
+          assertEquals(address2, address);
+          assertArrayEquals("Hello world!".getBytes(), payload);
+          resume();
+        });
 
     service2.unicast(address1, "test", "Hello world!".getBytes());
     await(5000);

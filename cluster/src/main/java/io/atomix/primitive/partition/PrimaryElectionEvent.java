@@ -15,18 +15,14 @@
  */
 package io.atomix.primitive.partition;
 
-import io.atomix.utils.event.AbstractEvent;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-/**
- * Primary election event.
- */
+import io.atomix.utils.event.AbstractEvent;
+
+/** Primary election event. */
 public class PrimaryElectionEvent extends AbstractEvent<PrimaryElectionEvent.Type, PrimaryTerm> {
 
-  /**
-   * Returns the election event type.
-   */
+  /** Returns the election event type. */
   public enum Type {
     CHANGED
   }
@@ -58,9 +54,6 @@ public class PrimaryElectionEvent extends AbstractEvent<PrimaryElectionEvent.Typ
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("partition", partitionId)
-        .add("term", term())
-        .toString();
+    return toStringHelper(this).add("partition", partitionId).add("term", term()).toString();
   }
 }
