@@ -54,9 +54,8 @@ import java.util.function.Supplier;
  *
  * <p>To create a new server, use the server {@link RaftServer.Builder}. Servers require cluster
  * membership information in order to perform communication. Each server must be provided a local
- * {@link MemberId} to which to bind the internal {@link
- * io.atomix.raft.protocol.RaftServerProtocol} and a set of addresses for other members in
- * the cluster.
+ * {@link MemberId} to which to bind the internal {@link io.atomix.raft.protocol.RaftServerProtocol}
+ * and a set of addresses for other members in the cluster.
  *
  * <h2>State machines</h2>
  *
@@ -203,8 +202,8 @@ public interface RaftServer {
    * <p>The server name is provided to the server via the {@link Builder#withName(String) builder
    * configuration}. The name is used internally to manage the server's on-disk state. {@link
    * RaftLog Log}, {@link DefaultSnapshotStore snapshot}, and {@link
-   * io.atomix.raft.storage.system.MetaStore configuration} files stored on disk use the
-   * server name as the prefix.
+   * io.atomix.raft.storage.system.MetaStore configuration} files stored on disk use the server name
+   * as the prefix.
    *
    * @return The server name.
    */

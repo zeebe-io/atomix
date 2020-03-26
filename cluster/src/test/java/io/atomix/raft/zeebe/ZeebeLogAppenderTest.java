@@ -34,10 +34,7 @@ import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Tests the {@link io.atomix.raft.roles.LeaderRole} implementation of {@link
- * ZeebeLogAppender}
- */
+/** Tests the {@link io.atomix.raft.roles.LeaderRole} implementation of {@link ZeebeLogAppender} */
 public class ZeebeLogAppenderTest {
   @Rule public final TemporaryFolder temporaryFolder = new TemporaryFolder();
 

@@ -346,9 +346,9 @@ public interface RaftCluster {
    * resources are properly closed.
    *
    * <p>When a server leaves the cluster, the server submits a {@link
-   * io.atomix.raft.protocol.LeaveRequest} to the cluster leader. The leader will
-   * replicate and commit the configuration change in order to remove the leaving server from the
-   * cluster and notify each member of the leaving server.
+   * io.atomix.raft.protocol.LeaveRequest} to the cluster leader. The leader will replicate and
+   * commit the configuration change in order to remove the leaving server from the cluster and
+   * notify each member of the leaving server.
    *
    * <p>In order to preserve safety during configuration changes, Raft leaders do not allow
    * concurrent configuration changes. In the event that an existing configuration change (a server
