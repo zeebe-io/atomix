@@ -17,8 +17,8 @@ package io.atomix.core.profile;
 
 import com.google.common.collect.Sets;
 import io.atomix.core.AtomixConfig;
-import io.atomix.protocols.raft.partition.RaftPartitionGroupConfig;
-import io.atomix.protocols.raft.partition.RaftStorageConfig;
+import io.atomix.raft.partition.RaftPartitionGroupConfig;
+import io.atomix.raft.partition.RaftStorageConfig;
 import java.util.Collection;
 
 /** Consensus profile. */
