@@ -157,6 +157,7 @@ public class Member extends Node {
 
   @Override
   public boolean equals(final Object object) {
+
     if (object instanceof Member) {
       final Member member = (Member) object;
       return member.id().equals(id())
@@ -165,6 +166,10 @@ public class Member extends Node {
           && Objects.equals(member.rack(), rack())
           && Objects.equals(member.host(), host())
           && Objects.equals(member.properties(), properties());
+    }
+
+    if (object instanceof Node) {
+      return object.equals(this);
     }
     return false;
   }

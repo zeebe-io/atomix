@@ -99,7 +99,7 @@ abstract class AbstractAppender implements AutoCloseable {
     final DefaultRaftMember leader = raft.getLeader();
     return builderWithPreviousEntry(prevEntry)
         .withTerm(raft.getTerm())
-        .withLeader(leader != null ? leader.memberId() : null)
+        .withLeader(leader.memberId())
         .withEntries(Collections.emptyList())
         .withCommitIndex(raft.getCommitIndex())
         .build();
@@ -134,7 +134,7 @@ abstract class AbstractAppender implements AutoCloseable {
     final AppendRequest.Builder builder =
         builderWithPreviousEntry(prevEntry)
             .withTerm(raft.getTerm())
-            .withLeader(leader != null ? leader.memberId() : null)
+            .withLeader(leader.memberId())
             .withCommitIndex(raft.getCommitIndex());
 
     // Build a list of entries to send to the member.
@@ -356,7 +356,7 @@ abstract class AbstractAppender implements AutoCloseable {
     final DefaultRaftMember leader = raft.getLeader();
     return ConfigureRequest.builder()
         .withTerm(raft.getTerm())
-        .withLeader(leader != null ? leader.memberId() : null)
+        .withLeader(leader.memberId())
         .withIndex(raft.getCluster().getConfiguration().index())
         .withTime(raft.getCluster().getConfiguration().time())
         .withMembers(raft.getCluster().getConfiguration().members())
@@ -468,7 +468,7 @@ abstract class AbstractAppender implements AutoCloseable {
         request =
             InstallRequest.builder()
                 .withCurrentTerm(raft.getTerm())
-                .withLeader(leader != null ? leader.memberId() : null)
+                .withLeader(leader.memberId())
                 .withIndex(snapshot.index())
                 .withTerm(snapshot.term())
                 .withTimestamp(snapshot.timestamp().unixTimestamp())

@@ -50,7 +50,7 @@ public abstract class PrimitiveBuilder<
   protected final String name;
   protected final C config;
   protected PrimitiveProtocol protocol;
-  protected Serializer serializer;
+  protected volatile Serializer serializer;
   protected final PrimitiveManagementService managementService;
 
   public PrimitiveBuilder(

@@ -569,7 +569,7 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
     private final String topic;
     private final InternalSubscriber subscribers = new InternalSubscriber();
     private final List<InternalSubscriptionInfo> subscriptions = Lists.newCopyOnWriteArrayList();
-    private TopicIterator iterator;
+    private volatile TopicIterator iterator;
 
     InternalTopic(final String topic) {
       this.topic = topic;

@@ -1023,7 +1023,7 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
       final LeaderHeartbeatRequest heartbeat =
           LeaderHeartbeatRequest.builder()
               .withTerm(raft.getTerm())
-              .withLeader(leader != null ? leader.memberId() : null)
+              .withLeader(leader.memberId())
               .withCommitIndex(raft.getCommitIndex())
               .build();
       for (final RaftMemberContext member : raft.getCluster().getRemoteMemberStates()) {
@@ -1503,7 +1503,7 @@ public final class LeaderRole extends ActiveRole implements ZeebeLogAppender {
             raft.getThreadContext());
   }
 
-  public void onInitialEntriesCommitted(final Runnable runnable) {
+  public synchronized void onInitialEntriesCommitted(final Runnable runnable) {
     commitInitialEntriesFuture.whenComplete(
         (v, error) -> {
           if (error == null) {

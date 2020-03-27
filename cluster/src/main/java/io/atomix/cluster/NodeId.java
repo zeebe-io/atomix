@@ -62,7 +62,15 @@ public class NodeId extends AbstractIdentifier<String> implements Comparable<Nod
 
   @Override
   public boolean equals(final Object object) {
-    return object instanceof NodeId && ((NodeId) object).id().equals(id());
+    if (object instanceof NodeId) {
+      return ((NodeId) object).id().equals(id());
+    }
+
+    if (object instanceof AbstractIdentifier) {
+      return object.equals(this);
+    }
+
+    return false;
   }
 
   @Override

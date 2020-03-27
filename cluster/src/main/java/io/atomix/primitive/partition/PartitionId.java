@@ -74,6 +74,10 @@ public class PartitionId extends AbstractIdentifier<Integer> implements Comparab
       final PartitionId partitionId = (PartitionId) object;
       return partitionId.id().equals(id()) && partitionId.group().equals(group());
     }
+
+    if (object instanceof AbstractIdentifier) {
+      return object.equals(this);
+    }
     return false;
   }
 

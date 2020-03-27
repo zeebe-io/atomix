@@ -61,12 +61,18 @@ public class VectorTimestamp<T extends Identifier> extends LogicalTimestamp {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof VectorTimestamp)) {
-      return false;
+
+    if (obj instanceof VectorTimestamp) {
+      final var that = (VectorTimestamp) obj;
+      return Objects.equals(this.identifier, that.identifier)
+          && Objects.equals(this.value(), that.value());
     }
-    final VectorTimestamp that = (VectorTimestamp) obj;
-    return Objects.equals(this.identifier, that.identifier)
-        && Objects.equals(this.value(), that.value());
+
+    if (obj instanceof LogicalTimestamp) {
+      return obj.equals(this);
+    }
+
+    return false;
   }
 
   @Override

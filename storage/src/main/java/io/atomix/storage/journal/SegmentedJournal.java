@@ -62,7 +62,7 @@ public class SegmentedJournal<E> implements Journal<E> {
   private volatile long commitIndex;
   private final NavigableMap<Long, JournalSegment<E>> segments = new ConcurrentSkipListMap<>();
   private final Collection<SegmentedJournalReader> readers = Sets.newConcurrentHashSet();
-  private JournalSegment<E> currentSegment;
+  private volatile JournalSegment<E> currentSegment;
   private volatile boolean open = true;
 
   public SegmentedJournal(
@@ -256,7 +256,7 @@ public class SegmentedJournal<E> implements Journal<E> {
   }
 
   /** Opens the segments. */
-  private void open() {
+  private synchronized void open() {
     // Load existing log segments from disk.
     for (final JournalSegment<E> segment : loadSegments()) {
       segments.put(segment.descriptor().index(), segment);

@@ -51,7 +51,6 @@
       </plugins>
     </pluginManagement>
     <plugins>
-
       <!-- LICENSE PLUGIN -->
       <!-- EXCLUDE EVERYTHING FOR NOW -->
       <plugin>
@@ -334,6 +333,7 @@
   </parent>
 
   <properties>
+    <version.java>11</version.java>
     <argLine.common>-Xss256k -Xms512m -Xmx2G -XX:+UseConcMarkSweepGC -XX:+UseParNewGC
       -Dio.atomix.whitelistPackages=io.atomix
     </argLine.common>
@@ -379,7 +379,6 @@
     <prometheus.client.version>0.8.1</prometheus.client.version>
     <slf4j.version>1.7.30</slf4j.version> <!-- Overridden in some profiles -->
     <version.errorprone>2.3.4</version.errorprone>
-    <version.java>8</version.java>
     <version.objenesis>3.1</version.objenesis>
   </properties>
 

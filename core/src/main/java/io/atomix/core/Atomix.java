@@ -158,7 +158,7 @@ public class Atomix extends AtomixCluster {
   private final ManagedPartitionService partitions;
   private final boolean enableShutdownHook;
   private final ThreadContext threadContext = new SingleThreadContext("atomix-%d");
-  private Thread shutdownHook = null;
+  private volatile Thread shutdownHook = null;
 
   public Atomix(final String... configFiles) {
     this(Thread.currentThread().getContextClassLoader(), configFiles);
