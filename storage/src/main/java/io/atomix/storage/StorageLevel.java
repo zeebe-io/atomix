@@ -15,25 +15,16 @@
  */
 package io.atomix.storage;
 
-/**
- * Storage level configuration values which control how logs are stored on disk or in memory.
- */
+/** Storage level configuration values which control how logs are stored on disk or in memory. */
 public enum StorageLevel {
 
-  /**
-   * Stores data in memory only.
-   */
+  /** Stores data in memory only. */
   @Deprecated
   MEMORY,
 
-  /**
-   * Stores data in a memory-mapped file.
-   */
+  /** Stores data in a memory-mapped file. */
   MAPPED,
 
-  /**
-   * Stores data on disk.
-   */
+  /** Stores data on disk. */
   DISK
-
 }

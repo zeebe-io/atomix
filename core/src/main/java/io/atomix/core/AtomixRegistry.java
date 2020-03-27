@@ -17,12 +17,9 @@ package io.atomix.core;
 
 import io.atomix.core.registry.ClasspathScanningRegistry;
 import io.atomix.utils.NamedType;
-
 import java.util.Collection;
 
-/**
- * Atomix registry.
- */
+/** Atomix registry. */
 public interface AtomixRegistry {
 
   /**
@@ -40,7 +37,7 @@ public interface AtomixRegistry {
    * @param classLoader the registry class loader
    * @return the registry instance
    */
-  static AtomixRegistry registry(ClassLoader classLoader) {
+  static AtomixRegistry registry(final ClassLoader classLoader) {
     return ClasspathScanningRegistry.builder().withClassLoader(classLoader).build();
   }
 
@@ -48,7 +45,7 @@ public interface AtomixRegistry {
    * Returns the collection of registrations for the given type.
    *
    * @param type the type for which to return registrations
-   * @param <T>  the type for which to return registrations
+   * @param <T> the type for which to return registrations
    * @return a collection of registrations for the given type
    */
   <T extends NamedType> Collection<T> getTypes(Class<T> type);
@@ -58,9 +55,8 @@ public interface AtomixRegistry {
    *
    * @param type the registration type
    * @param name the registration name
-   * @param <T>  the registration type
+   * @param <T> the registration type
    * @return the registration instance
    */
   <T extends NamedType> T getType(Class<T> type, String name);
-
 }

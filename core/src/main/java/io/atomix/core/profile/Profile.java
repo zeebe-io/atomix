@@ -20,9 +20,7 @@ import io.atomix.utils.ConfiguredType;
 import io.atomix.utils.config.Configured;
 import java.util.Collection;
 
-/**
- * Atomix profile.
- */
+/** Atomix profile. */
 public interface Profile extends Configured<ProfileConfig> {
 
   /**
@@ -31,7 +29,7 @@ public interface Profile extends Configured<ProfileConfig> {
    * @param members the consensus members
    * @return the consensus profile
    */
-  static Profile consensus(String... members) {
+  static Profile consensus(final String... members) {
     return new ConsensusProfile(members);
   }
 
@@ -41,7 +39,7 @@ public interface Profile extends Configured<ProfileConfig> {
    * @param members the consensus members
    * @return the consensus profile
    */
-  static Profile consensus(Collection<String> members) {
+  static Profile consensus(final Collection<String> members) {
     return new ConsensusProfile(members);
   }
 
@@ -55,8 +53,13 @@ public interface Profile extends Configured<ProfileConfig> {
   }
 
   /**
-   * Profile type.
+   * Configures the Atomix instance.
+   *
+   * @param config the Atomix configuration
    */
+  void configure(AtomixConfig config);
+
+  /** Profile type. */
   interface Type<C extends ProfileConfig> extends ConfiguredType<C> {
 
     /**
@@ -67,12 +70,4 @@ public interface Profile extends Configured<ProfileConfig> {
      */
     Profile newProfile(C config);
   }
-
-  /**
-   * Configures the Atomix instance.
-   *
-   * @param config the Atomix configuration
-   */
-  void configure(AtomixConfig config);
-
 }

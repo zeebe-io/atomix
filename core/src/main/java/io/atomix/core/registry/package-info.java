@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Extension registry implementations.
- */
+/** Extension registry implementations. */
 package io.atomix.core.registry;

@@ -16,14 +16,25 @@
 package io.atomix.cluster;
 
 import io.atomix.utils.AbstractIdentifier;
-
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * Node identifier.
- */
+/** Node identifier. */
 public class NodeId extends AbstractIdentifier<String> implements Comparable<NodeId> {
+
+  /** Constructor for serialization. */
+  private NodeId() {
+    this("");
+  }
+
+  /**
+   * Creates a new cluster node identifier from the specified string.
+   *
+   * @param id string identifier
+   */
+  public NodeId(final String id) {
+    super(id);
+  }
 
   /**
    * Creates a new cluster node identifier from the specified string.
@@ -40,24 +51,8 @@ public class NodeId extends AbstractIdentifier<String> implements Comparable<Nod
    * @param id string identifier
    * @return node id
    */
-  public static NodeId from(String id) {
+  public static NodeId from(final String id) {
     return new NodeId(id);
-  }
-
-  /**
-   * Constructor for serialization.
-   */
-  private NodeId() {
-    this("");
-  }
-
-  /**
-   * Creates a new cluster node identifier from the specified string.
-   *
-   * @param id string identifier
-   */
-  public NodeId(String id) {
-    super(id);
   }
 
   @Override
@@ -66,12 +61,12 @@ public class NodeId extends AbstractIdentifier<String> implements Comparable<Nod
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     return object instanceof NodeId && ((NodeId) object).id().equals(id());
   }
 
   @Override
-  public int compareTo(NodeId that) {
+  public int compareTo(final NodeId that) {
     return identifier.compareTo(that.identifier);
   }
 }

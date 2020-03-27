@@ -17,16 +17,21 @@ package io.atomix.storage.buffer;
 
 /**
  * Sliced buffer.
- * <p>
- * The sliced buffer provides a view of a subset of an underlying buffer. This buffer operates directly on the {@link Bytes}
- * underlying the child {@link Buffer} instance.
+ *
+ * <p>The sliced buffer provides a view of a subset of an underlying buffer. This buffer operates
+ * directly on the {@link Bytes} underlying the child {@link Buffer} instance.
  *
  * @author <a href="http://github.com/kuujo">Jordan Halterman</a>
  */
 public class SlicedBuffer extends AbstractBuffer {
   private final Buffer root;
 
-  public SlicedBuffer(Buffer root, Bytes bytes, int offset, int initialCapacity, int maxCapacity) {
+  public SlicedBuffer(
+      final Buffer root,
+      final Bytes bytes,
+      final int offset,
+      final int initialCapacity,
+      final int maxCapacity) {
     super(bytes, offset, initialCapacity, maxCapacity, null);
     this.root = root;
     root.acquire();
@@ -39,33 +44,6 @@ public class SlicedBuffer extends AbstractBuffer {
    */
   public Buffer root() {
     return root;
-  }
-
-  @Override
-  public boolean isDirect() {
-    return root.isDirect();
-  }
-
-  @Override
-  protected void compact(int from, int to, int length) {
-    if (root instanceof AbstractBuffer) {
-      ((AbstractBuffer) root).compact(from, to, length);
-    }
-  }
-
-  @Override
-  public boolean isFile() {
-    return root.isFile();
-  }
-
-  @Override
-  public boolean isReadOnly() {
-    return root.isReadOnly();
-  }
-
-  @Override
-  public Buffer compact() {
-    return null;
   }
 
   @Override
@@ -85,8 +63,34 @@ public class SlicedBuffer extends AbstractBuffer {
   }
 
   @Override
+  public boolean isDirect() {
+    return root.isDirect();
+  }
+
+  @Override
+  public boolean isFile() {
+    return root.isFile();
+  }
+
+  @Override
+  public boolean isReadOnly() {
+    return root.isReadOnly();
+  }
+
+  @Override
+  public Buffer compact() {
+    return null;
+  }
+
+  @Override
+  protected void compact(final int from, final int to, final int length) {
+    if (root instanceof AbstractBuffer) {
+      ((AbstractBuffer) root).compact(from, to, length);
+    }
+  }
+
+  @Override
   public void close() {
     root.release();
   }
-
 }

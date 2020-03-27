@@ -21,30 +21,26 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.google.common.collect.ImmutableList;
 
-/**
- * Creates {@link ImmutableList} serializer instance.
- */
+/** Creates {@link ImmutableList} serializer instance. */
 public class ImmutableListSerializer extends Serializer<ImmutableList<?>> {
 
-  /**
-   * Creates {@link ImmutableList} serializer instance.
-   */
+  /** Creates {@link ImmutableList} serializer instance. */
   public ImmutableListSerializer() {
     // non-null, immutable
     super(false, true);
   }
 
   @Override
-  public void write(Kryo kryo, Output output, ImmutableList<?> object) {
+  public void write(final Kryo kryo, final Output output, final ImmutableList<?> object) {
     output.writeInt(object.size());
-    for (Object e : object) {
+    for (final Object e : object) {
       kryo.writeClassAndObject(output, e);
     }
   }
 
   @Override
-  public ImmutableList<?> read(Kryo kryo, Input input,
-      Class<ImmutableList<?>> type) {
+  public ImmutableList<?> read(
+      final Kryo kryo, final Input input, final Class<ImmutableList<?>> type) {
     final int size = input.readInt();
     switch (size) {
       case 0:
@@ -52,7 +48,7 @@ public class ImmutableListSerializer extends Serializer<ImmutableList<?>> {
       case 1:
         return ImmutableList.of(kryo.readClassAndObject(input));
       default:
-        Object[] elms = new Object[size];
+        final Object[] elms = new Object[size];
         for (int i = 0; i < size; ++i) {
           elms[i] = kryo.readClassAndObject(input);
         }

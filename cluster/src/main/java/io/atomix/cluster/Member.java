@@ -15,19 +15,51 @@
  */
 package io.atomix.cluster;
 
-import io.atomix.utils.Version;
-import io.atomix.utils.net.Address;
-
-import java.util.Objects;
-import java.util.Properties;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Represents a node as a member in a cluster.
- */
+import io.atomix.utils.Version;
+import io.atomix.utils.net.Address;
+import java.util.Objects;
+import java.util.Properties;
+
+/** Represents a node as a member in a cluster. */
 public class Member extends Node {
+
+  private final MemberId id;
+  private final String zone;
+  private final String rack;
+  private final String host;
+  private final Properties properties;
+
+  public Member(final MemberConfig config) {
+    super(config);
+    this.id = config.getId();
+    this.zone = config.getZoneId();
+    this.rack = config.getRackId();
+    this.host = config.getHostId();
+    this.properties = new Properties();
+    properties.putAll(config.getProperties());
+  }
+
+  protected Member(final MemberId id, final Address address) {
+    this(id, address, null, null, null, new Properties());
+  }
+
+  protected Member(
+      final MemberId id,
+      final Address address,
+      final String zone,
+      final String rack,
+      final String host,
+      final Properties properties) {
+    super(id, address);
+    this.id = checkNotNull(id, "id cannot be null");
+    this.zone = zone;
+    this.rack = rack;
+    this.host = host;
+    this.properties = properties;
+  }
 
   /**
    * Returns a new member builder with no ID.
@@ -45,7 +77,7 @@ public class Member extends Node {
    * @return the member builder
    * @throws NullPointerException if the member ID is null
    */
-  public static MemberBuilder builder(String memberId) {
+  public static MemberBuilder builder(final String memberId) {
     return builder(MemberId.from(memberId));
   }
 
@@ -56,7 +88,7 @@ public class Member extends Node {
    * @return the member builder
    * @throws NullPointerException if the member ID is null
    */
-  public static MemberBuilder builder(MemberId memberId) {
+  public static MemberBuilder builder(final MemberId memberId) {
     return builder().withId(memberId);
   }
 
@@ -66,18 +98,18 @@ public class Member extends Node {
    * @param address the member address
    * @return the member
    */
-  public static Member member(String address) {
+  public static Member member(final String address) {
     return member(Address.from(address));
   }
 
   /**
    * Returns a new named cluster member.
    *
-   * @param name    the member identifier
+   * @param name the member identifier
    * @param address the member address
    * @return the member
    */
-  public static Member member(String name, String address) {
+  public static Member member(final String name, final String address) {
     return member(MemberId.from(name), Address.from(address));
   }
 
@@ -87,57 +119,67 @@ public class Member extends Node {
    * @param address the member address
    * @return the member
    */
-  public static Member member(Address address) {
-    return builder()
-        .withAddress(address)
-        .build();
+  public static Member member(final Address address) {
+    return builder().withAddress(address).build();
   }
 
   /**
    * Returns a new named cluster member.
    *
    * @param memberId the member identifier
-   * @param address  the member address
+   * @param address the member address
    * @return the member
    */
-  public static Member member(MemberId memberId, Address address) {
-    return builder(memberId)
-        .withAddress(address)
-        .build();
-  }
-
-  private final MemberId id;
-  private final String zone;
-  private final String rack;
-  private final String host;
-  private final Properties properties;
-
-  public Member(MemberConfig config) {
-    super(config);
-    this.id = config.getId();
-    this.zone = config.getZoneId();
-    this.rack = config.getRackId();
-    this.host = config.getHostId();
-    this.properties = new Properties();
-    properties.putAll(config.getProperties());
-  }
-
-  protected Member(MemberId id, Address address) {
-    this(id, address, null, null, null, new Properties());
-  }
-
-  protected Member(MemberId id, Address address, String zone, String rack, String host, Properties properties) {
-    super(id, address);
-    this.id = checkNotNull(id, "id cannot be null");
-    this.zone = zone;
-    this.rack = rack;
-    this.host = host;
-    this.properties = properties;
+  public static Member member(final MemberId memberId, final Address address) {
+    return builder(memberId).withAddress(address).build();
   }
 
   @Override
   public MemberId id() {
     return id;
+  }
+
+  @Override
+  public MemberConfig config() {
+    return new MemberConfig()
+        .setId(id())
+        .setAddress(address())
+        .setZoneId(zone())
+        .setRackId(rack())
+        .setHostId(host())
+        .setProperties(properties());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(id(), address(), zone(), rack(), host(), properties());
+  }
+
+  @Override
+  public boolean equals(final Object object) {
+    if (object instanceof Member) {
+      final Member member = (Member) object;
+      return member.id().equals(id())
+          && member.address().equals(address())
+          && Objects.equals(member.zone(), zone())
+          && Objects.equals(member.rack(), rack())
+          && Objects.equals(member.host(), host())
+          && Objects.equals(member.properties(), properties());
+    }
+    return false;
+  }
+
+  @Override
+  public String toString() {
+    return toStringHelper(Member.class)
+        .add("id", id())
+        .add("address", address())
+        .add("zone", zone())
+        .add("rack", rack())
+        .add("host", host())
+        .add("properties", properties())
+        .omitNullValues()
+        .toString();
   }
 
   /**
@@ -210,48 +252,5 @@ public class Member extends Node {
    */
   public long timestamp() {
     return 0;
-  }
-
-  @Override
-  public MemberConfig config() {
-    return new MemberConfig()
-        .setId(id())
-        .setAddress(address())
-        .setZoneId(zone())
-        .setRackId(rack())
-        .setHostId(host())
-        .setProperties(properties());
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(id(), address(), zone(), rack(), host(), properties());
-  }
-
-  @Override
-  public boolean equals(Object object) {
-    if (object instanceof Member) {
-      Member member = (Member) object;
-      return member.id().equals(id())
-          && member.address().equals(address())
-          && Objects.equals(member.zone(), zone())
-          && Objects.equals(member.rack(), rack())
-          && Objects.equals(member.host(), host())
-          && Objects.equals(member.properties(), properties());
-    }
-    return false;
-  }
-
-  @Override
-  public String toString() {
-    return toStringHelper(Member.class)
-        .add("id", id())
-        .add("address", address())
-        .add("zone", zone())
-        .add("rack", rack())
-        .add("host", host())
-        .add("properties", properties())
-        .omitNullValues()
-        .toString();
   }
 }

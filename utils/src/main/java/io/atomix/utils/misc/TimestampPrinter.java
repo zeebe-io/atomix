@@ -20,10 +20,16 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
-/**
- * Timestamp printer.
- */
+/** Timestamp printer. */
 public class TimestampPrinter {
+
+  private static final DateTimeFormatter FORMATTER =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss,SSS");
+  private final long timestamp;
+
+  public TimestampPrinter(final long timestamp) {
+    this.timestamp = timestamp;
+  }
 
   /**
    * Returns a new timestamp printer.
@@ -31,20 +37,13 @@ public class TimestampPrinter {
    * @param timestamp the timestamp to print
    * @return the timestamp printer
    */
-  public static TimestampPrinter of(long timestamp) {
+  public static TimestampPrinter of(final long timestamp) {
     return new TimestampPrinter(timestamp);
-  }
-
-  private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss,SSS");
-
-  private final long timestamp;
-
-  public TimestampPrinter(long timestamp) {
-    this.timestamp = timestamp;
   }
 
   @Override
   public String toString() {
-    return FORMATTER.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault()));
+    return FORMATTER.format(
+        LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault()));
   }
 }

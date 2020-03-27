@@ -29,15 +29,16 @@ import java.util.zip.CRC32;
 
 /**
  * Segment writer.
- * <p>
- * The format of an entry in the log is as follows:
+ *
+ * <p>The format of an entry in the log is as follows:
+ *
  * <ul>
- * <li>64-bit index</li>
- * <li>8-bit boolean indicating whether a term change is contained in the entry</li>
- * <li>64-bit optional term</li>
- * <li>32-bit signed entry length, including the entry type ID</li>
- * <li>8-bit signed entry type ID</li>
- * <li>n-bit entry bytes</li>
+ *   <li>64-bit index
+ *   <li>8-bit boolean indicating whether a term change is contained in the entry
+ *   <li>64-bit optional term
+ *   <li>32-bit signed entry length, including the entry type ID
+ *   <li>8-bit signed entry type ID
+ *   <li>n-bit entry bytes
  * </ul>
  *
  * @author <a href="http://github.com/kuujo">Jordan Halterman</a>
@@ -54,11 +55,11 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
   private Indexed<E> lastEntry;
 
   MappedJournalSegmentWriter(
-      MappedByteBuffer buffer,
-      JournalSegment<E> segment,
-      int maxEntrySize,
-      JournalIndex index,
-      Namespace namespace) {
+      final MappedByteBuffer buffer,
+      final JournalSegment<E> segment,
+      final int maxEntrySize,
+      final JournalIndex index,
+      final Namespace namespace) {
     this.mappedBuffer = buffer;
     this.buffer = buffer.slice();
     this.segment = segment;
@@ -79,7 +80,99 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
   }
 
   @Override
-  public void reset(long index) {
+  public long getLastIndex() {
+    return lastEntry != null ? lastEntry.index() : segment.index() - 1;
+  }
+
+  @Override
+  public Indexed<E> getLastEntry() {
+    return lastEntry;
+  }
+
+  @Override
+  public long getNextIndex() {
+    if (lastEntry != null) {
+      return lastEntry.index() + 1;
+    } else {
+      return firstIndex;
+    }
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public <T extends E> Indexed<T> append(final T entry) {
+    // Store the entry index.
+    final long index = getNextIndex();
+
+    // Serialize the entry.
+    final int position = buffer.position();
+    if (position + Integer.BYTES + Integer.BYTES > buffer.limit()) {
+      throw new BufferOverflowException();
+    }
+
+    buffer.position(position + Integer.BYTES + Integer.BYTES);
+
+    try {
+      namespace.serialize(entry, buffer);
+    } catch (final KryoException e) {
+      throw new BufferOverflowException();
+    }
+
+    final int length = buffer.position() - (position + Integer.BYTES + Integer.BYTES);
+
+    // If the entry length exceeds the maximum entry size then throw an exception.
+    if (length > maxEntrySize) {
+      // Just reset the buffer. There's no need to zero the bytes since we haven't written the
+      // length or checksum.
+      buffer.position(position);
+      throw new StorageException.TooLarge(
+          "Entry size " + length + " exceeds maximum allowed bytes (" + maxEntrySize + ")");
+    }
+
+    // Compute the checksum for the entry.
+    final CRC32 crc32 = new CRC32();
+    buffer.position(position + Integer.BYTES + Integer.BYTES);
+    final ByteBuffer slice = buffer.slice();
+    slice.limit(length);
+    crc32.update(slice);
+    final long checksum = crc32.getValue();
+
+    // Create a single byte[] in memory for the entire entry and write it as a batch to the
+    // underlying buffer.
+    buffer.position(position);
+    buffer.putInt(length);
+    buffer.putInt((int) checksum);
+    buffer.position(position + Integer.BYTES + Integer.BYTES + length);
+
+    // Update the last entry with the correct index/term/length.
+    final Indexed<E> indexedEntry = new Indexed<>(index, entry, length);
+    this.lastEntry = indexedEntry;
+    this.index.index(lastEntry, position);
+    return (Indexed<T>) indexedEntry;
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public void append(final Indexed<E> entry) {
+    final long nextIndex = getNextIndex();
+
+    // If the entry's index is greater than the next index in the segment, skip some entries.
+    if (entry.index() > nextIndex) {
+      throw new IndexOutOfBoundsException("Entry index is not sequential");
+    }
+
+    // If the entry's index is less than the next index, truncate the segment.
+    if (entry.index() < nextIndex) {
+      truncate(entry.index() - 1);
+    }
+    append(entry.entry());
+  }
+
+  @Override
+  public void commit(final long index) {}
+
+  @Override
+  public void reset(final long index) {
     long nextIndex = firstIndex;
 
     // Clear the buffer indexes.
@@ -102,7 +195,7 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
 
         // Compute the checksum for the entry bytes.
         final CRC32 crc32 = new CRC32();
-        ByteBuffer slice = buffer.slice();
+        final ByteBuffer slice = buffer.slice();
         slice.limit(length);
         crc32.update(slice);
 
@@ -127,124 +220,14 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
 
       // Reset the buffer to the previous mark.
       buffer.reset();
-    } catch (BufferUnderflowException e) {
+    } catch (final BufferUnderflowException e) {
       buffer.reset();
     }
   }
 
   @Override
-  public long getLastIndex() {
-    return lastEntry != null ? lastEntry.index() : segment.index() - 1;
-  }
-
-  @Override
-  public Indexed<E> getLastEntry() {
-    return lastEntry;
-  }
-
-  @Override
-  public long getNextIndex() {
-    if (lastEntry != null) {
-      return lastEntry.index() + 1;
-    } else {
-      return firstIndex;
-    }
-  }
-
-  /**
-   * Returns the size of the underlying buffer.
-   *
-   * @return The size of the underlying buffer.
-   */
-  public long size() {
-    return buffer.position() + JournalSegmentDescriptor.BYTES;
-  }
-
-  /**
-   * Returns a boolean indicating whether the segment is empty.
-   *
-   * @return Indicates whether the segment is empty.
-   */
-  public boolean isEmpty() {
-    return lastEntry == null;
-  }
-
-  @Override
   @SuppressWarnings("unchecked")
-  public void append(Indexed<E> entry) {
-    final long nextIndex = getNextIndex();
-
-    // If the entry's index is greater than the next index in the segment, skip some entries.
-    if (entry.index() > nextIndex) {
-      throw new IndexOutOfBoundsException("Entry index is not sequential");
-    }
-
-    // If the entry's index is less than the next index, truncate the segment.
-    if (entry.index() < nextIndex) {
-      truncate(entry.index() - 1);
-    }
-    append(entry.entry());
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public <T extends E> Indexed<T> append(T entry) {
-    // Store the entry index.
-    final long index = getNextIndex();
-
-    // Serialize the entry.
-    int position = buffer.position();
-    if (position + Integer.BYTES + Integer.BYTES > buffer.limit()) {
-      throw new BufferOverflowException();
-    }
-
-    buffer.position(position + Integer.BYTES + Integer.BYTES);
-
-    try {
-      namespace.serialize(entry, buffer);
-    } catch (KryoException e) {
-      throw new BufferOverflowException();
-    }
-
-    final int length = buffer.position() - (position + Integer.BYTES + Integer.BYTES);
-
-    // If the entry length exceeds the maximum entry size then throw an exception.
-    if (length > maxEntrySize) {
-      // Just reset the buffer. There's no need to zero the bytes since we haven't written the length or checksum.
-      buffer.position(position);
-      throw new StorageException.TooLarge(
-          "Entry size " + length + " exceeds maximum allowed bytes (" + maxEntrySize + ")");
-    }
-
-    // Compute the checksum for the entry.
-    final CRC32 crc32 = new CRC32();
-    buffer.position(position + Integer.BYTES + Integer.BYTES);
-    ByteBuffer slice = buffer.slice();
-    slice.limit(length);
-    crc32.update(slice);
-    final long checksum = crc32.getValue();
-
-    // Create a single byte[] in memory for the entire entry and write it as a batch to the underlying buffer.
-    buffer.position(position);
-    buffer.putInt(length);
-    buffer.putInt((int) checksum);
-    buffer.position(position + Integer.BYTES + Integer.BYTES + length);
-
-    // Update the last entry with the correct index/term/length.
-    Indexed<E> indexedEntry = new Indexed<>(index, entry, length);
-    this.lastEntry = indexedEntry;
-    this.index.index(lastEntry, position);
-    return (Indexed<T>) indexedEntry;
-  }
-
-  @Override
-  public void commit(long index) {
-
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public void truncate(long index) {
+  public void truncate(final long index) {
     // If the index is greater than or equal to the last index, skip the truncate.
     if (index >= getLastIndex()) {
       return;
@@ -266,7 +249,7 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
       reset(index);
 
       // Zero entries after the given index.
-      int position = buffer.position();
+      final int position = buffer.position();
       buffer.putInt(0);
       buffer.putInt(0);
       buffer.position(position);
@@ -283,8 +266,26 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
     flush();
     try {
       BufferCleaner.freeBuffer(mappedBuffer);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new StorageException(e);
     }
+  }
+
+  /**
+   * Returns the size of the underlying buffer.
+   *
+   * @return The size of the underlying buffer.
+   */
+  public long size() {
+    return buffer.position() + JournalSegmentDescriptor.BYTES;
+  }
+
+  /**
+   * Returns a boolean indicating whether the segment is empty.
+   *
+   * @return Indicates whether the segment is empty.
+   */
+  public boolean isEmpty() {
+    return lastEntry == null;
   }
 }

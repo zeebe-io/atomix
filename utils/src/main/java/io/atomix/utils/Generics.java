@@ -18,24 +18,25 @@ package io.atomix.utils;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
-/**
- * Generics utility.
- */
-public class Generics {
+/** Generics utility. */
+public final class Generics {
+
+  private Generics() {}
 
   /**
    * Returns the generic type at the given position for the given class.
    *
    * @param instance the implementing instance
-   * @param clazz    the generic class
+   * @param clazz the generic class
    * @param position the generic position
    * @return the generic type at the given position
    */
-  public static Type getGenericClassType(Object instance, Class<?> clazz, int position) {
+  public static Type getGenericClassType(
+      final Object instance, final Class<?> clazz, final int position) {
     Class<?> type = instance.getClass();
     while (type != Object.class) {
       if (type.getGenericSuperclass() instanceof ParameterizedType) {
-        ParameterizedType genericSuperclass = (ParameterizedType) type.getGenericSuperclass();
+        final ParameterizedType genericSuperclass = (ParameterizedType) type.getGenericSuperclass();
         if (genericSuperclass.getRawType() == clazz) {
           return genericSuperclass.getActualTypeArguments()[position];
         } else {
@@ -52,16 +53,17 @@ public class Generics {
    * Returns the generic type at the given position for the given interface.
    *
    * @param instance the implementing instance
-   * @param iface    the generic interface
+   * @param iface the generic interface
    * @param position the generic position
    * @return the generic type at the given position
    */
-  public static Type getGenericInterfaceType(Object instance, Class<?> iface, int position) {
+  public static Type getGenericInterfaceType(
+      final Object instance, final Class<?> iface, final int position) {
     Class<?> type = instance.getClass();
     while (type != Object.class) {
-      for (Type genericType : type.getGenericInterfaces()) {
+      for (final Type genericType : type.getGenericInterfaces()) {
         if (genericType instanceof ParameterizedType) {
-          ParameterizedType parameterizedType = (ParameterizedType) genericType;
+          final ParameterizedType parameterizedType = (ParameterizedType) genericType;
           if (parameterizedType.getRawType() == iface) {
             return parameterizedType.getActualTypeArguments()[position];
           }
@@ -70,8 +72,5 @@ public class Generics {
       type = type.getSuperclass();
     }
     return null;
-  }
-
-  private Generics() {
   }
 }

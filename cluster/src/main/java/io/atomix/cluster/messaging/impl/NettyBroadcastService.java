@@ -15,6 +15,9 @@
  */
 package io.atomix.cluster.messaging.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static io.atomix.utils.concurrent.Threads.namedThreads;
+
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import io.atomix.cluster.messaging.BroadcastService;
@@ -37,9 +40,6 @@ import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.InternetProtocolFamily;
 import io.netty.channel.socket.nio.NioDatagramChannel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -48,14 +48,42 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static io.atomix.utils.concurrent.Threads.namedThreads;
-
-/**
- * Netty broadcast service.
- */
+/** Netty broadcast service. */
 public class NettyBroadcastService implements ManagedBroadcastService {
+
+  private static final Serializer SERIALIZER =
+      Serializer.using(
+          Namespace.builder()
+              .register(Namespaces.BASIC)
+              .nextId(Namespaces.BEGIN_USER_CUSTOM_ID)
+              .register(Message.class)
+              .build());
+  private final Logger log = LoggerFactory.getLogger(getClass());
+  private final boolean enabled;
+  private final InetSocketAddress localAddress;
+  private final InetSocketAddress groupAddress;
+  private final NetworkInterface iface;
+  private EventLoopGroup group;
+  private Channel serverChannel;
+  private DatagramChannel clientChannel;
+  private final Map<String, Set<Consumer<byte[]>>> listeners = Maps.newConcurrentMap();
+  private final AtomicBoolean started = new AtomicBoolean();
+
+  public NettyBroadcastService(
+      final Address localAddress, final Address groupAddress, final boolean enabled) {
+    this.enabled = enabled;
+    // intentionally using the multicast port for localAddress
+    this.localAddress = new InetSocketAddress(localAddress.host(), groupAddress.port());
+    this.groupAddress = new InetSocketAddress(groupAddress.host(), groupAddress.port());
+    try {
+      iface = NetworkInterface.getByInetAddress(localAddress.address());
+    } catch (final SocketException e) {
+      throw new AtomixRuntimeException(e);
+    }
+  }
 
   /**
    * Returns a new broadcast service builder.
@@ -66,103 +94,25 @@ public class NettyBroadcastService implements ManagedBroadcastService {
     return new Builder();
   }
 
-  /**
-   * Netty broadcast service builder.
-   */
-  public static class Builder implements BroadcastService.Builder {
-    private Address localAddress;
-    private Address groupAddress;
-    private boolean enabled = true;
-
-    /**
-     * Sets the local address.
-     *
-     * @param address the local address
-     * @return the broadcast service builder
-     */
-    public Builder withLocalAddress(Address address) {
-      this.localAddress = checkNotNull(address);
-      return this;
-    }
-
-    /**
-     * Sets the group address.
-     *
-     * @param address the group address
-     * @return the broadcast service builder
-     */
-    public Builder withGroupAddress(Address address) {
-      this.groupAddress = checkNotNull(address);
-      return this;
-    }
-
-    /**
-     * Sets whether the service is enabled.
-     *
-     * @param enabled whether the service is enabled
-     * @return the broadcast service builder
-     */
-    public Builder withEnabled(boolean enabled) {
-      this.enabled = enabled;
-      return this;
-    }
-
-    @Override
-    public ManagedBroadcastService build() {
-      return new NettyBroadcastService(localAddress, groupAddress, enabled);
-    }
-  }
-
-  private static final Serializer SERIALIZER = Serializer.using(Namespace.builder()
-      .register(Namespaces.BASIC)
-      .nextId(Namespaces.BEGIN_USER_CUSTOM_ID)
-      .register(Message.class)
-      .build());
-
-  private final Logger log = LoggerFactory.getLogger(getClass());
-
-  private final boolean enabled;
-  private final InetSocketAddress localAddress;
-  private final InetSocketAddress groupAddress;
-  private final NetworkInterface iface;
-  private EventLoopGroup group;
-  private Channel serverChannel;
-  private DatagramChannel clientChannel;
-
-  private final Map<String, Set<Consumer<byte[]>>> listeners = Maps.newConcurrentMap();
-  private final AtomicBoolean started = new AtomicBoolean();
-
-  public NettyBroadcastService(Address localAddress, Address groupAddress, boolean enabled) {
-    this.enabled = enabled;
-    // intentionally using the multicast port for localAddress
-    this.localAddress = new InetSocketAddress(localAddress.host(), groupAddress.port());
-    this.groupAddress = new InetSocketAddress(groupAddress.host(), groupAddress.port());
-    try {
-      iface = NetworkInterface.getByInetAddress(localAddress.address());
-    } catch (SocketException e) {
-      throw new AtomixRuntimeException(e);
-    }
-  }
-
   @Override
-  public void broadcast(String subject, byte[] payload) {
+  public void broadcast(final String subject, final byte[] payload) {
     if (enabled) {
-      Message message = new Message(subject, payload);
-      byte[] bytes = SERIALIZER.encode(message);
-      ByteBuf buf = serverChannel.alloc().buffer(4 + bytes.length);
+      final Message message = new Message(subject, payload);
+      final byte[] bytes = SERIALIZER.encode(message);
+      final ByteBuf buf = serverChannel.alloc().buffer(4 + bytes.length);
       buf.writeInt(bytes.length).writeBytes(bytes);
       serverChannel.writeAndFlush(new DatagramPacket(buf, groupAddress));
     }
   }
 
   @Override
-  public synchronized void addListener(String subject, Consumer<byte[]> listener) {
+  public synchronized void addListener(final String subject, final Consumer<byte[]> listener) {
     listeners.computeIfAbsent(subject, s -> Sets.newCopyOnWriteArraySet()).add(listener);
   }
 
   @Override
-  public synchronized void removeListener(String subject, Consumer<byte[]> listener) {
-    Set<Consumer<byte[]>> listeners = this.listeners.get(subject);
+  public synchronized void removeListener(final String subject, final Consumer<byte[]> listener) {
+    final Set<Consumer<byte[]>> listeners = this.listeners.get(subject);
     if (listeners != null) {
       listeners.remove(listener);
       if (listeners.isEmpty()) {
@@ -172,70 +122,101 @@ public class NettyBroadcastService implements ManagedBroadcastService {
   }
 
   private CompletableFuture<Void> bootstrapServer() {
-    Bootstrap serverBootstrap = new Bootstrap()
-        .group(group)
-        .channelFactory(() -> new NioDatagramChannel(InternetProtocolFamily.IPv4))
-        .handler(new SimpleChannelInboundHandler<Object>() {
-          @Override
-          public void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
-            // Nothing will be sent.
-          }
-        })
-        .option(ChannelOption.IP_MULTICAST_IF, iface)
-        .option(ChannelOption.SO_REUSEADDR, true);
+    final Bootstrap serverBootstrap =
+        new Bootstrap()
+            .group(group)
+            .channelFactory(() -> new NioDatagramChannel(InternetProtocolFamily.IPv4))
+            .handler(
+                new SimpleChannelInboundHandler<Object>() {
+                  @Override
+                  public void channelRead0(final ChannelHandlerContext ctx, final Object msg)
+                      throws Exception {
+                    // Nothing will be sent.
+                  }
+                })
+            .option(ChannelOption.IP_MULTICAST_IF, iface)
+            .option(ChannelOption.SO_REUSEADDR, true);
 
-    CompletableFuture<Void> future = new CompletableFuture<>();
-    serverBootstrap.bind(localAddress).addListener((ChannelFutureListener) f -> {
-      if (f.isSuccess()) {
-        serverChannel = f.channel();
-        future.complete(null);
-      } else {
-        future.completeExceptionally(f.cause());
-      }
-    });
+    final CompletableFuture<Void> future = new CompletableFuture<>();
+    serverBootstrap
+        .bind(localAddress)
+        .addListener(
+            (ChannelFutureListener)
+                f -> {
+                  if (f.isSuccess()) {
+                    serverChannel = f.channel();
+                    future.complete(null);
+                  } else {
+                    future.completeExceptionally(f.cause());
+                  }
+                });
     return future;
   }
 
   private CompletableFuture<Void> bootstrapClient() {
-    Bootstrap clientBootstrap = new Bootstrap()
-        .group(group)
-        .channelFactory(() -> new NioDatagramChannel(InternetProtocolFamily.IPv4))
-        .handler(new SimpleChannelInboundHandler<DatagramPacket>() {
-          @Override
-          protected void channelRead0(ChannelHandlerContext context, DatagramPacket packet) throws Exception {
-            byte[] payload = new byte[packet.content().readInt()];
-            packet.content().readBytes(payload);
-            Message message = SERIALIZER.decode(payload);
-            Set<Consumer<byte[]>> listeners = NettyBroadcastService.this.listeners.get(message.subject());
-            if (listeners != null) {
-              for (Consumer<byte[]> listener : listeners) {
-                listener.accept(message.payload());
-              }
-            }
-          }
-        })
-        .option(ChannelOption.IP_MULTICAST_IF, iface)
-        .option(ChannelOption.SO_REUSEADDR, true)
-        .localAddress(localAddress.getPort());
+    final Bootstrap clientBootstrap =
+        new Bootstrap()
+            .group(group)
+            .channelFactory(() -> new NioDatagramChannel(InternetProtocolFamily.IPv4))
+            .handler(
+                new SimpleChannelInboundHandler<DatagramPacket>() {
+                  @Override
+                  protected void channelRead0(
+                      final ChannelHandlerContext context, final DatagramPacket packet)
+                      throws Exception {
+                    final byte[] payload = new byte[packet.content().readInt()];
+                    packet.content().readBytes(payload);
+                    final Message message = SERIALIZER.decode(payload);
+                    final Set<Consumer<byte[]>> listeners =
+                        NettyBroadcastService.this.listeners.get(message.subject());
+                    if (listeners != null) {
+                      for (final Consumer<byte[]> listener : listeners) {
+                        listener.accept(message.payload());
+                      }
+                    }
+                  }
+                })
+            .option(ChannelOption.IP_MULTICAST_IF, iface)
+            .option(ChannelOption.SO_REUSEADDR, true)
+            .localAddress(localAddress.getPort());
 
-    CompletableFuture<Void> future = new CompletableFuture<>();
-    clientBootstrap.bind().addListener((ChannelFutureListener) f -> {
-      if (f.isSuccess()) {
-        clientChannel = (DatagramChannel) f.channel();
-        log.info("{} joining multicast group {} on port {}", localAddress.getHostName(), groupAddress.getHostName(), groupAddress.getPort());
-        clientChannel.joinGroup(groupAddress, iface).addListener(f2 -> {
-          if (f2.isSuccess()) {
-            log.info("{} successfully joined multicast group {} on port {}", localAddress.getHostName(), groupAddress.getHostName(), groupAddress.getPort());
-            future.complete(null);
-          } else {
-            log.info("{} failed to join group {} on port {}", localAddress.getHostName(), groupAddress.getHostName(), groupAddress.getPort());
-            future.completeExceptionally(f2.cause());
-          }
-        });
-      } else {
-        future.completeExceptionally(f.cause());
-      }
-    });
+    final CompletableFuture<Void> future = new CompletableFuture<>();
+    clientBootstrap
+        .bind()
+        .addListener(
+            (ChannelFutureListener)
+                f -> {
+                  if (f.isSuccess()) {
+                    clientChannel = (DatagramChannel) f.channel();
+                    log.info(
+                        "{} joining multicast group {} on port {}",
+                        localAddress.getHostName(),
+                        groupAddress.getHostName(),
+                        groupAddress.getPort());
+                    clientChannel
+                        .joinGroup(groupAddress, iface)
+                        .addListener(
+                            f2 -> {
+                              if (f2.isSuccess()) {
+                                log.info(
+                                    "{} successfully joined multicast group {} on port {}",
+                                    localAddress.getHostName(),
+                                    groupAddress.getHostName(),
+                                    groupAddress.getPort());
+                                future.complete(null);
+                              } else {
+                                log.info(
+                                    "{} failed to join group {} on port {}",
+                                    localAddress.getHostName(),
+                                    groupAddress.getHostName(),
+                                    groupAddress.getPort());
+                                future.completeExceptionally(f2.cause());
+                              }
+                            });
+                  } else {
+                    future.completeExceptionally(f.cause());
+                  }
+                });
     return future;
   }
 
@@ -262,21 +243,67 @@ public class NettyBroadcastService implements ManagedBroadcastService {
       return CompletableFuture.completedFuture(null);
     }
     if (clientChannel != null) {
-      CompletableFuture<Void> future = new CompletableFuture<>();
-      clientChannel.leaveGroup(groupAddress, iface).addListener(f -> {
-        started.set(false);
-        group.shutdownGracefully();
-        future.complete(null);
-      });
+      final CompletableFuture<Void> future = new CompletableFuture<>();
+      clientChannel
+          .leaveGroup(groupAddress, iface)
+          .addListener(
+              f -> {
+                started.set(false);
+                group.shutdownGracefully();
+                future.complete(null);
+              });
       return future;
     }
     started.set(false);
     return CompletableFuture.completedFuture(null);
   }
 
-  /**
-   * Internal broadcast service message.
-   */
+  /** Netty broadcast service builder. */
+  public static class Builder implements BroadcastService.Builder {
+    private Address localAddress;
+    private Address groupAddress;
+    private boolean enabled = true;
+
+    /**
+     * Sets the local address.
+     *
+     * @param address the local address
+     * @return the broadcast service builder
+     */
+    public Builder withLocalAddress(final Address address) {
+      this.localAddress = checkNotNull(address);
+      return this;
+    }
+
+    /**
+     * Sets the group address.
+     *
+     * @param address the group address
+     * @return the broadcast service builder
+     */
+    public Builder withGroupAddress(final Address address) {
+      this.groupAddress = checkNotNull(address);
+      return this;
+    }
+
+    /**
+     * Sets whether the service is enabled.
+     *
+     * @param enabled whether the service is enabled
+     * @return the broadcast service builder
+     */
+    public Builder withEnabled(final boolean enabled) {
+      this.enabled = enabled;
+      return this;
+    }
+
+    @Override
+    public ManagedBroadcastService build() {
+      return new NettyBroadcastService(localAddress, groupAddress, enabled);
+    }
+  }
+
+  /** Internal broadcast service message. */
   static class Message {
     private final String subject;
     private final byte[] payload;
@@ -285,7 +312,7 @@ public class NettyBroadcastService implements ManagedBroadcastService {
       this(null, null);
     }
 
-    Message(String subject, byte[] payload) {
+    Message(final String subject, final byte[] payload) {
       this.subject = subject;
       this.payload = payload;
     }

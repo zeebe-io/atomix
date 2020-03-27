@@ -15,38 +15,45 @@
  */
 package io.atomix.utils.time;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ComparisonChain;
-
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ComparisonChain;
+import java.util.Objects;
+
 /**
- * A logical timestamp that derives its value from two input values. The first
- * value always takes precedence over the second value when comparing timestamps.
+ * A logical timestamp that derives its value from two input values. The first value always takes
+ * precedence over the second value when comparing timestamps.
  */
-public class MultiValuedTimestamp<T extends Comparable<T>, U extends Comparable<U>> implements Timestamp {
+public class MultiValuedTimestamp<T extends Comparable<T>, U extends Comparable<U>>
+    implements Timestamp {
   private final T value1;
   private final U value2;
 
   /**
-   * Creates a new timestamp based on two values. The first value has higher
-   * precedence than the second when comparing timestamps.
+   * Creates a new timestamp based on two values. The first value has higher precedence than the
+   * second when comparing timestamps.
    *
    * @param value1 first value
    * @param value2 second value
    */
-  public MultiValuedTimestamp(T value1, U value2) {
+  public MultiValuedTimestamp(final T value1, final U value2) {
     this.value1 = Preconditions.checkNotNull(value1);
     this.value2 = Preconditions.checkNotNull(value2);
   }
 
+  // Default constructor for serialization
+  @SuppressWarnings("unused")
+  private MultiValuedTimestamp() {
+    this.value1 = null;
+    this.value2 = null;
+  }
+
   @Override
-  public int compareTo(Timestamp o) {
-    Preconditions.checkArgument(o instanceof MultiValuedTimestamp,
-        "Must be MultiValuedTimestamp", o);
-    MultiValuedTimestamp that = (MultiValuedTimestamp) o;
+  public int compareTo(final Timestamp o) {
+    Preconditions.checkArgument(
+        o instanceof MultiValuedTimestamp, "Must be MultiValuedTimestamp", o);
+    final MultiValuedTimestamp that = (MultiValuedTimestamp) o;
 
     return ComparisonChain.start()
         .compare(this.value1, that.value1)
@@ -60,24 +67,20 @@ public class MultiValuedTimestamp<T extends Comparable<T>, U extends Comparable<
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(final Object obj) {
     if (this == obj) {
       return true;
     }
     if (!(obj instanceof MultiValuedTimestamp)) {
       return false;
     }
-    MultiValuedTimestamp that = (MultiValuedTimestamp) obj;
-    return Objects.equals(this.value1, that.value1)
-        && Objects.equals(this.value2, that.value2);
+    final MultiValuedTimestamp that = (MultiValuedTimestamp) obj;
+    return Objects.equals(this.value1, that.value1) && Objects.equals(this.value2, that.value2);
   }
 
   @Override
   public String toString() {
-    return toStringHelper(getClass())
-        .add("value1", value1)
-        .add("value2", value2)
-        .toString();
+    return toStringHelper(getClass()).add("value1", value1).add("value2", value2).toString();
   }
 
   /**
@@ -96,12 +99,5 @@ public class MultiValuedTimestamp<T extends Comparable<T>, U extends Comparable<
    */
   public U value2() {
     return value2;
-  }
-
-  // Default constructor for serialization
-  @SuppressWarnings("unused")
-  private MultiValuedTimestamp() {
-    this.value1 = null;
-    this.value2 = null;
   }
 }

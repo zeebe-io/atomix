@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Miscellaneous utilities.
- */
+/** Miscellaneous utilities. */
 package io.atomix.utils.misc;

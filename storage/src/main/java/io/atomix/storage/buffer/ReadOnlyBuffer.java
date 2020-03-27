@@ -27,34 +27,9 @@ import java.nio.ReadOnlyBufferException;
 public class ReadOnlyBuffer extends AbstractBuffer {
   private final Buffer root;
 
-  public ReadOnlyBuffer(Buffer buffer, ReferenceManager<Buffer> referenceManager) {
+  public ReadOnlyBuffer(final Buffer buffer, final ReferenceManager<Buffer> referenceManager) {
     super(buffer.bytes(), referenceManager);
     this.root = buffer;
-  }
-
-  @Override
-  public boolean isDirect() {
-    return root.isDirect();
-  }
-
-  @Override
-  public boolean isFile() {
-    return root.isFile();
-  }
-
-  @Override
-  public boolean isReadOnly() {
-    return true;
-  }
-
-  @Override
-  public Buffer compact() {
-    throw new ReadOnlyBufferException();
-  }
-
-  @Override
-  protected void compact(int from, int to, int length) {
-    throw new ReadOnlyBufferException();
   }
 
   @Override
@@ -74,62 +49,127 @@ public class ReadOnlyBuffer extends AbstractBuffer {
   }
 
   @Override
-  public Buffer zero(int offset, int length) {
+  public boolean isDirect() {
+    return root.isDirect();
+  }
+
+  @Override
+  public boolean isReadOnly() {
+    return true;
+  }
+
+  @Override
+  public boolean isFile() {
+    return root.isFile();
+  }
+
+  @Override
+  public void close() {
+    root.release();
+  }
+
+  @Override
+  public Buffer compact() {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer zero(int offset) {
+  public Buffer write(final Bytes bytes) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer zero() {
+  public Buffer write(final byte[] bytes) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer writeBoolean(int offset, boolean b) {
+  public Buffer write(final ByteBuffer src) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer write(Buffer buffer) {
+  public Buffer write(final Bytes bytes, final int offset, final int length) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer write(Bytes bytes) {
+  public Buffer write(final byte[] bytes, final int offset, final int length) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer write(Bytes bytes, int offset, int length) {
+  public Buffer write(final Buffer buffer) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer write(int offset, Bytes bytes, int srcOffset, int length) {
+  public Buffer writeByte(final int b) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer write(byte[] bytes) {
+  public Buffer writeUnsignedByte(final int b) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer write(ByteBuffer src) {
+  public Buffer writeChar(final char c) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer write(byte[] bytes, int offset, int length) {
+  public Buffer writeShort(final short s) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer write(int offset, byte[] bytes, int srcOffset, int length) {
+  public Buffer writeUnsignedShort(final int s) {
+    throw new ReadOnlyBufferException();
+  }
+
+  @Override
+  public Buffer writeInt(final int i) {
+    throw new ReadOnlyBufferException();
+  }
+
+  @Override
+  public Buffer writeUnsignedInt(final long i) {
+    throw new ReadOnlyBufferException();
+  }
+
+  @Override
+  public Buffer writeLong(final long l) {
+    throw new ReadOnlyBufferException();
+  }
+
+  @Override
+  public Buffer writeFloat(final float f) {
+    throw new ReadOnlyBufferException();
+  }
+
+  @Override
+  public Buffer writeDouble(final double d) {
+    throw new ReadOnlyBufferException();
+  }
+
+  @Override
+  public Buffer writeBoolean(final boolean b) {
+    throw new ReadOnlyBufferException();
+  }
+
+  @Override
+  public Buffer writeUTF8(final String s) {
+    throw new ReadOnlyBufferException();
+  }
+
+  @Override
+  public Buffer write(final int offset, final Bytes bytes, final int srcOffset, final int length) {
+    throw new ReadOnlyBufferException();
+  }
+
+  @Override
+  public Buffer write(final int offset, final byte[] bytes, final int srcOffset, final int length) {
     throw new ReadOnlyBufferException();
   }
 
@@ -140,132 +180,87 @@ public class ReadOnlyBuffer extends AbstractBuffer {
   }
 
   @Override
-  public Buffer writeByte(int b) {
+  public Buffer writeByte(final int offset, final int b) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer writeByte(int offset, int b) {
+  public Buffer writeUnsignedByte(final int offset, final int b) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer writeUnsignedByte(int b) {
+  public Buffer writeChar(final int offset, final char c) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer writeUnsignedByte(int offset, int b) {
+  public Buffer writeShort(final int offset, final short s) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer writeChar(char c) {
+  public Buffer writeUnsignedShort(final int offset, final int s) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer writeChar(int offset, char c) {
+  public Buffer writeInt(final int offset, final int i) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer writeShort(short s) {
+  public Buffer writeUnsignedInt(final int offset, final long i) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer writeShort(int offset, short s) {
+  public Buffer writeLong(final int offset, final long l) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer writeUnsignedShort(int s) {
+  public Buffer writeFloat(final int offset, final float f) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer writeUnsignedShort(int offset, int s) {
+  public Buffer writeDouble(final int offset, final double d) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer writeMedium(int m) {
+  public Buffer writeBoolean(final int offset, final boolean b) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer writeMedium(int offset, int m) {
+  protected void compact(final int from, final int to, final int length) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer writeUnsignedMedium(int m) {
+  public Buffer zero() {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer writeUnsignedMedium(int offset, int m) {
+  public Buffer zero(final int offset) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer writeInt(int i) {
+  public Buffer zero(final int offset, final int length) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer writeInt(int offset, int i) {
+  public Buffer writeMedium(final int offset, final int m) {
     throw new ReadOnlyBufferException();
   }
 
   @Override
-  public Buffer writeUnsignedInt(long i) {
-    throw new ReadOnlyBufferException();
-  }
-
-  @Override
-  public Buffer writeUnsignedInt(int offset, long i) {
-    throw new ReadOnlyBufferException();
-  }
-
-  @Override
-  public Buffer writeLong(long l) {
-    throw new ReadOnlyBufferException();
-  }
-
-  @Override
-  public Buffer writeLong(int offset, long l) {
-    throw new ReadOnlyBufferException();
-  }
-
-  @Override
-  public Buffer writeFloat(float f) {
-    throw new ReadOnlyBufferException();
-  }
-
-  @Override
-  public Buffer writeFloat(int offset, float f) {
-    throw new ReadOnlyBufferException();
-  }
-
-  @Override
-  public Buffer writeDouble(double d) {
-    throw new ReadOnlyBufferException();
-  }
-
-  @Override
-  public Buffer writeDouble(int offset, double d) {
-    throw new ReadOnlyBufferException();
-  }
-
-  @Override
-  public Buffer writeBoolean(boolean b) {
-    throw new ReadOnlyBufferException();
-  }
-
-  @Override
-  public Buffer writeUTF8(String s) {
+  public Buffer writeUnsignedMedium(final int offset, final int m) {
     throw new ReadOnlyBufferException();
   }
 
@@ -275,8 +270,12 @@ public class ReadOnlyBuffer extends AbstractBuffer {
   }
 
   @Override
-  public void close() {
-    root.release();
+  public Buffer writeMedium(final int m) {
+    throw new ReadOnlyBufferException();
   }
 
+  @Override
+  public Buffer writeUnsignedMedium(final int m) {
+    throw new ReadOnlyBufferException();
+  }
 }

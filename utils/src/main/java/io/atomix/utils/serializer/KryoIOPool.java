@@ -28,7 +28,8 @@ abstract class KryoIOPool<T> {
     T element;
     SoftReference<T> reference;
     while ((reference = queue.poll()) != null) {
-      if ((element = reference.get()) != null) {
+      element = reference.get();
+      if (element != null) {
         return element;
       }
     }

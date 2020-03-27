@@ -19,9 +19,9 @@ import com.google.common.base.Preconditions;
 
 /**
  * Opaque version structure.
- * <p>
- * Classes implementing this interface must also implement
- * {@link #hashCode()} and {@link #equals(Object)}.
+ *
+ * <p>Classes implementing this interface must also implement {@link #hashCode()} and {@link
+ * #equals(Object)}.
  */
 public interface Timestamp extends Comparable<Timestamp> {
 
@@ -37,7 +37,7 @@ public interface Timestamp extends Comparable<Timestamp> {
    * @param other timestamp to compare against
    * @return true if this instance is newer
    */
-  default boolean isNewerThan(Timestamp other) {
+  default boolean isNewerThan(final Timestamp other) {
     return this.compareTo(Preconditions.checkNotNull(other)) > 0;
   }
 
@@ -47,7 +47,7 @@ public interface Timestamp extends Comparable<Timestamp> {
    * @param other timestamp to compare against
    * @return true if this instance is older
    */
-  default boolean isOlderThan(Timestamp other) {
+  default boolean isOlderThan(final Timestamp other) {
     return this.compareTo(Preconditions.checkNotNull(other)) < 0;
   }
 }

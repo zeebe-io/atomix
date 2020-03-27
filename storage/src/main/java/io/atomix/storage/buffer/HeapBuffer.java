@@ -15,9 +15,9 @@
  */
 package io.atomix.storage.buffer;
 
-import io.atomix.utils.memory.Memory;
-
 import static com.google.common.base.Preconditions.checkArgument;
+
+import io.atomix.utils.memory.Memory;
 
 /**
  * Direct {@link java.nio.ByteBuffer} based buffer.
@@ -26,8 +26,17 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public class HeapBuffer extends ByteBufferBuffer {
 
+  private final HeapBytes bytes;
+
+  protected HeapBuffer(
+      final HeapBytes bytes, final int offset, final int initialCapacity, final int maxCapacity) {
+    super(bytes, offset, initialCapacity, maxCapacity, null);
+    this.bytes = bytes;
+  }
+
   /**
-   * Allocates a direct buffer with an initial capacity of {@code 4096} and a maximum capacity of {@link Long#MAX_VALUE}.
+   * Allocates a direct buffer with an initial capacity of {@code 4096} and a maximum capacity of
+   * {@link Long#MAX_VALUE}.
    *
    * @return The direct buffer.
    * @see HeapBuffer#allocate(int)
@@ -42,12 +51,12 @@ public class HeapBuffer extends ByteBufferBuffer {
    *
    * @param initialCapacity The initial capacity of the buffer to allocate (in bytes).
    * @return The direct buffer.
-   * @throws IllegalArgumentException If {@code capacity} is greater than the maximum allowed count for
-   *                                  a {@link java.nio.ByteBuffer} - {@code Integer.MAX_VALUE - 5}
+   * @throws IllegalArgumentException If {@code capacity} is greater than the maximum allowed count
+   *     for a {@link java.nio.ByteBuffer} - {@code Integer.MAX_VALUE - 5}
    * @see HeapBuffer#allocate()
    * @see HeapBuffer#allocate(int, int)
    */
-  public static HeapBuffer allocate(int initialCapacity) {
+  public static HeapBuffer allocate(final int initialCapacity) {
     return allocate(initialCapacity, MAX_SIZE);
   }
 
@@ -55,35 +64,34 @@ public class HeapBuffer extends ByteBufferBuffer {
    * Allocates a new direct buffer.
    *
    * @param initialCapacity The initial capacity of the buffer to allocate (in bytes).
-   * @param maxCapacity     The maximum capacity of the buffer.
+   * @param maxCapacity The maximum capacity of the buffer.
    * @return The direct buffer.
-   * @throws IllegalArgumentException If {@code capacity} or {@code maxCapacity} is greater than the maximum
-   *                                  allowed count for a {@link java.nio.ByteBuffer} - {@code Integer.MAX_VALUE - 5}
+   * @throws IllegalArgumentException If {@code capacity} or {@code maxCapacity} is greater than the
+   *     maximum allowed count for a {@link java.nio.ByteBuffer} - {@code Integer.MAX_VALUE - 5}
    * @see HeapBuffer#allocate()
    * @see HeapBuffer#allocate(int)
    */
-  public static HeapBuffer allocate(int initialCapacity, int maxCapacity) {
-    checkArgument(initialCapacity <= maxCapacity, "initial capacity cannot be greater than maximum capacity");
-    return new HeapBuffer(HeapBytes.allocate((int) Math.min(Memory.Util.toPow2(initialCapacity), MAX_SIZE)), 0, initialCapacity, maxCapacity);
+  public static HeapBuffer allocate(final int initialCapacity, final int maxCapacity) {
+    checkArgument(
+        initialCapacity <= maxCapacity, "initial capacity cannot be greater than maximum capacity");
+    return new HeapBuffer(
+        HeapBytes.allocate((int) Math.min(Memory.Util.toPow2(initialCapacity), MAX_SIZE)),
+        0,
+        initialCapacity,
+        maxCapacity);
   }
 
   /**
    * Wraps the given bytes in a heap buffer.
-   * <p>
-   * The buffer will be created with an initial capacity and maximum capacity equal to the byte array count.
+   *
+   * <p>The buffer will be created with an initial capacity and maximum capacity equal to the byte
+   * array count.
    *
    * @param bytes The bytes to wrap.
    * @return The wrapped bytes.
    */
-  public static HeapBuffer wrap(byte[] bytes) {
+  public static HeapBuffer wrap(final byte[] bytes) {
     return new HeapBuffer(HeapBytes.wrap(bytes), 0, bytes.length, bytes.length);
-  }
-
-  private final HeapBytes bytes;
-
-  protected HeapBuffer(HeapBytes bytes, int offset, int initialCapacity, int maxCapacity) {
-    super(bytes, offset, initialCapacity, maxCapacity, null);
-    this.bytes = bytes;
   }
 
   @Override

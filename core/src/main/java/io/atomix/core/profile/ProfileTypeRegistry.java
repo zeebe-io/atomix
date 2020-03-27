@@ -17,9 +17,7 @@ package io.atomix.core.profile;
 
 import java.util.Collection;
 
-/**
- * Profile type registry.
- */
+/** Profile type registry. */
 public interface ProfileTypeRegistry {
 
   /**
@@ -36,5 +34,4 @@ public interface ProfileTypeRegistry {
    * @return the profile
    */
   Profile.Type getProfileType(String name);
-
 }

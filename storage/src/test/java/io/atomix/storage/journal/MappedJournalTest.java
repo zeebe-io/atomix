@@ -17,11 +17,9 @@ package io.atomix.storage.journal;
 
 import io.atomix.storage.StorageLevel;
 
-/**
- * Memory mapped journal test.
- */
+/** Memory mapped journal test. */
 public class MappedJournalTest extends PersistentJournalTest {
-  public MappedJournalTest(int maxSegmentSize, int cacheSize) {
+  public MappedJournalTest(final int maxSegmentSize, final int cacheSize) {
     super(maxSegmentSize, cacheSize);
   }
 

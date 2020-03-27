@@ -15,12 +15,11 @@
  */
 package io.atomix.storage.buffer;
 
-import org.junit.Test;
-
-import java.nio.ByteBuffer;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
+import java.nio.ByteBuffer;
+import org.junit.Test;
 
 /**
  * Direct buffer test.
@@ -30,27 +29,26 @@ import static org.junit.Assert.assertTrue;
 public class DirectBufferTest extends BufferTest {
 
   @Override
-  protected Buffer createBuffer(int capacity) {
+  protected Buffer createBuffer(final int capacity) {
     return DirectBuffer.allocate(capacity);
   }
 
   @Override
-  protected Buffer createBuffer(int capacity, int maxCapacity) {
+  protected Buffer createBuffer(final int capacity, final int maxCapacity) {
     return DirectBuffer.allocate(capacity, maxCapacity);
   }
 
   @Test
   public void testByteBufferToDirectBuffer() {
-    ByteBuffer byteBuffer = ByteBuffer.allocate(8);
+    final ByteBuffer byteBuffer = ByteBuffer.allocate(8);
     byteBuffer.putLong(10);
     byteBuffer.flip();
 
-    DirectBuffer directBuffer = DirectBuffer.allocate(8);
+    final DirectBuffer directBuffer = DirectBuffer.allocate(8);
     directBuffer.write(byteBuffer.array());
     directBuffer.flip();
     assertEquals(directBuffer.readLong(), byteBuffer.getLong());
     assertTrue(directBuffer.isDirect());
     directBuffer.release();
   }
-
 }

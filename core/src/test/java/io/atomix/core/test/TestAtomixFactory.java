@@ -21,16 +21,15 @@ import io.atomix.core.test.messaging.TestBroadcastServiceFactory;
 import io.atomix.core.test.messaging.TestMessagingServiceFactory;
 import io.atomix.core.test.messaging.TestUnicastServiceFactory;
 import io.atomix.utils.net.Address;
-
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Test Atomix factory.
- */
+/** Test Atomix factory. */
 public class TestAtomixFactory {
-  private final TestMessagingServiceFactory messagingServiceFactory = new TestMessagingServiceFactory();
+  private final TestMessagingServiceFactory messagingServiceFactory =
+      new TestMessagingServiceFactory();
   private final TestUnicastServiceFactory unicastServiceFactory = new TestUnicastServiceFactory();
-  private final TestBroadcastServiceFactory broadcastServiceFactory = new TestBroadcastServiceFactory();
+  private final TestBroadcastServiceFactory broadcastServiceFactory =
+      new TestBroadcastServiceFactory();
   private final AtomicInteger memberId = new AtomicInteger();
 
   /**
@@ -39,7 +38,7 @@ public class TestAtomixFactory {
    * @return a new Atomix instance
    */
   public Atomix newInstance() {
-    int id = memberId.incrementAndGet();
+    final int id = memberId.incrementAndGet();
     return new TestAtomix(
         MemberId.from(String.valueOf(id)),
         Address.from("localhost", 5000 + id),

@@ -15,17 +15,14 @@
  */
 package io.atomix.cluster.discovery;
 
-import io.atomix.cluster.NodeConfig;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import io.atomix.cluster.NodeConfig;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * Bootstrap discovery configuration.
- */
+/** Bootstrap discovery configuration. */
 public class BootstrapDiscoveryConfig extends NodeDiscoveryConfig {
   private static final int DEFAULT_HEARTBEAT_INTERVAL = 1000;
   private static final int DEFAULT_FAILURE_TIMEOUT = 10000;
@@ -56,7 +53,7 @@ public class BootstrapDiscoveryConfig extends NodeDiscoveryConfig {
    * @param nodes the bootstrap nodes
    * @return the bootstrap provider configuration
    */
-  public BootstrapDiscoveryConfig setNodes(Collection<NodeConfig> nodes) {
+  public BootstrapDiscoveryConfig setNodes(final Collection<NodeConfig> nodes) {
     this.nodes = nodes;
     return this;
   }
@@ -78,7 +75,7 @@ public class BootstrapDiscoveryConfig extends NodeDiscoveryConfig {
    * @return the group membership configuration
    */
   @Deprecated
-  public BootstrapDiscoveryConfig setHeartbeatInterval(Duration heartbeatInterval) {
+  public BootstrapDiscoveryConfig setHeartbeatInterval(final Duration heartbeatInterval) {
     this.heartbeatInterval = checkNotNull(heartbeatInterval);
     return this;
   }
@@ -100,7 +97,7 @@ public class BootstrapDiscoveryConfig extends NodeDiscoveryConfig {
    * @return the group membership configuration
    */
   @Deprecated
-  public BootstrapDiscoveryConfig setFailureThreshold(int failureThreshold) {
+  public BootstrapDiscoveryConfig setFailureThreshold(final int failureThreshold) {
     this.failureThreshold = failureThreshold;
     return this;
   }
@@ -122,7 +119,7 @@ public class BootstrapDiscoveryConfig extends NodeDiscoveryConfig {
    * @return the group membership configuration
    */
   @Deprecated
-  public BootstrapDiscoveryConfig setFailureTimeout(Duration failureTimeout) {
+  public BootstrapDiscoveryConfig setFailureTimeout(final Duration failureTimeout) {
     this.failureTimeout = checkNotNull(failureTimeout);
     return this;
   }

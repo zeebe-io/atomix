@@ -20,9 +20,6 @@ import io.atomix.cluster.discovery.BootstrapDiscoveryProvider;
 import io.atomix.cluster.discovery.MulticastDiscoveryProvider;
 import io.atomix.core.profile.Profile;
 import io.atomix.utils.net.Address;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -36,23 +33,21 @@ import java.util.List;
 import java.util.Properties;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 
-/**
- * Base Atomix test.
- */
+/** Base Atomix test. */
 public abstract class AbstractAtomixTest {
-  private static final int BASE_PORT = 5000;
   protected static final File DATA_DIR = new File(System.getProperty("user.dir"), ".data");
+  private static final int BASE_PORT = 5000;
 
   @BeforeClass
   public static void setupAtomix() throws Exception {
     deleteData();
   }
 
-  /**
-   * Creates an Atomix instance.
-   */
-  protected static AtomixBuilder buildAtomix(int id, Properties properties) {
+  /** Creates an Atomix instance. */
+  protected static AtomixBuilder buildAtomix(final int id, final Properties properties) {
     return Atomix.builder()
         .withClusterId("test")
         .withMemberId(String.valueOf(id))
@@ -63,16 +58,18 @@ public abstract class AbstractAtomixTest {
         .withMembershipProvider(new MulticastDiscoveryProvider());
   }
 
-  /**
-   * Creates an Atomix instance.
-   */
-  protected static AtomixBuilder buildAtomix(int id, List<Integer> memberIds, Properties properties) {
-    Collection<Node> nodes = memberIds.stream()
-        .map(memberId -> Node.builder()
-            .withId(String.valueOf(memberId))
-            .withAddress(Address.from("localhost", BASE_PORT + memberId))
-            .build())
-        .collect(Collectors.toList());
+  /** Creates an Atomix instance. */
+  protected static AtomixBuilder buildAtomix(
+      final int id, final List<Integer> memberIds, final Properties properties) {
+    final Collection<Node> nodes =
+        memberIds.stream()
+            .map(
+                memberId ->
+                    Node.builder()
+                        .withId(String.valueOf(memberId))
+                        .withAddress(Address.from("localhost", BASE_PORT + memberId))
+                        .build())
+            .collect(Collectors.toList());
 
     return Atomix.builder()
         .withClusterId("test")
@@ -81,34 +78,41 @@ public abstract class AbstractAtomixTest {
         .withPort(BASE_PORT + id)
         .withProperties(properties)
         .withMulticastEnabled()
-        .withMembershipProvider(!nodes.isEmpty() ? new BootstrapDiscoveryProvider(nodes) : new MulticastDiscoveryProvider());
+        .withMembershipProvider(
+            !nodes.isEmpty()
+                ? new BootstrapDiscoveryProvider(nodes)
+                : new MulticastDiscoveryProvider());
   }
 
-  /**
-   * Creates an Atomix instance.
-   */
-  protected static Atomix createAtomix(int id, List<Integer> bootstrapIds, Profile... profiles) {
+  /** Creates an Atomix instance. */
+  protected static Atomix createAtomix(
+      final int id, final List<Integer> bootstrapIds, final Profile... profiles) {
     return createAtomix(id, bootstrapIds, new Properties(), profiles);
   }
 
-  /**
-   * Creates an Atomix instance.
-   */
-  protected static Atomix createAtomix(int id, List<Integer> bootstrapIds, Properties properties, Profile... profiles) {
+  /** Creates an Atomix instance. */
+  protected static Atomix createAtomix(
+      final int id,
+      final List<Integer> bootstrapIds,
+      final Properties properties,
+      final Profile... profiles) {
     return createAtomix(id, bootstrapIds, properties, b -> b.withProfiles(profiles).build());
   }
 
-  /**
-   * Creates an Atomix instance.
-   */
-  protected static Atomix createAtomix(int id, List<Integer> bootstrapIds, Function<AtomixBuilder, Atomix> builderFunction) {
+  /** Creates an Atomix instance. */
+  protected static Atomix createAtomix(
+      final int id,
+      final List<Integer> bootstrapIds,
+      final Function<AtomixBuilder, Atomix> builderFunction) {
     return createAtomix(id, bootstrapIds, new Properties(), builderFunction);
   }
 
-  /**
-   * Creates an Atomix instance.
-   */
-  protected static Atomix createAtomix(int id, List<Integer> bootstrapIds, Properties properties, Function<AtomixBuilder, Atomix> builderFunction) {
+  /** Creates an Atomix instance. */
+  protected static Atomix createAtomix(
+      final int id,
+      final List<Integer> bootstrapIds,
+      final Properties properties,
+      final Function<AtomixBuilder, Atomix> builderFunction) {
     return builderFunction.apply(buildAtomix(id, bootstrapIds, properties));
   }
 
@@ -117,37 +121,39 @@ public abstract class AbstractAtomixTest {
     deleteData();
   }
 
-  protected static int findAvailablePort(int defaultPort) {
+  protected static int findAvailablePort(final int defaultPort) {
     try {
-      ServerSocket socket = new ServerSocket(0);
+      final ServerSocket socket = new ServerSocket(0);
       socket.setReuseAddress(true);
-      int port = socket.getLocalPort();
+      final int port = socket.getLocalPort();
       socket.close();
       return port;
-    } catch (IOException ex) {
+    } catch (final IOException ex) {
       return defaultPort;
     }
   }
 
-  /**
-   * Deletes data from the test data directory.
-   */
+  /** Deletes data from the test data directory. */
   protected static void deleteData() throws Exception {
-    Path directory = DATA_DIR.toPath();
+    final Path directory = DATA_DIR.toPath();
     if (Files.exists(directory)) {
-      Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-          Files.delete(file);
-          return FileVisitResult.CONTINUE;
-        }
+      Files.walkFileTree(
+          directory,
+          new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs)
+                throws IOException {
+              Files.delete(file);
+              return FileVisitResult.CONTINUE;
+            }
 
-        @Override
-        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-          Files.delete(dir);
-          return FileVisitResult.CONTINUE;
-        }
-      });
+            @Override
+            public FileVisitResult postVisitDirectory(final Path dir, final IOException exc)
+                throws IOException {
+              Files.delete(dir);
+              return FileVisitResult.CONTINUE;
+            }
+          });
     }
   }
 }

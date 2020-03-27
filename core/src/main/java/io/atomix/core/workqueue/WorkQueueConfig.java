@@ -15,12 +15,10 @@
  */
 package io.atomix.core.workqueue;
 
-import io.atomix.primitive.config.PrimitiveConfig;
 import io.atomix.primitive.PrimitiveType;
+import io.atomix.primitive.config.PrimitiveConfig;
 
-/**
- * Work queue configuration.
- */
+/** Work queue configuration. */
 public class WorkQueueConfig extends PrimitiveConfig<WorkQueueConfig> {
   @Override
   public PrimitiveType getType() {

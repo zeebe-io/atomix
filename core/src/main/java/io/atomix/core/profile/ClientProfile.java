@@ -17,15 +17,30 @@ package io.atomix.core.profile;
 
 import io.atomix.core.AtomixConfig;
 
-/**
- * Client profile.
- */
+/** Client profile. */
 public class ClientProfile implements Profile {
   public static final Type TYPE = new Type();
+  private final ClientProfileConfig config;
 
-  /**
-   * Client profile type.
-   */
+  ClientProfile() {
+    this(new ClientProfileConfig());
+  }
+
+  ClientProfile(final ClientProfileConfig config) {
+    this.config = config;
+  }
+
+  @Override
+  public ClientProfileConfig config() {
+    return config;
+  }
+
+  @Override
+  public void configure(final AtomixConfig config) {
+    // Do nothing! This profile is just for code readability.
+  }
+
+  /** Client profile type. */
   public static class Type implements Profile.Type<ClientProfileConfig> {
     private static final String NAME = "client";
 
@@ -40,28 +55,8 @@ public class ClientProfile implements Profile {
     }
 
     @Override
-    public Profile newProfile(ClientProfileConfig config) {
+    public Profile newProfile(final ClientProfileConfig config) {
       return new ClientProfile();
     }
-  }
-
-  private final ClientProfileConfig config;
-
-  ClientProfile() {
-    this(new ClientProfileConfig());
-  }
-
-  ClientProfile(ClientProfileConfig config) {
-    this.config = config;
-  }
-
-  @Override
-  public ClientProfileConfig config() {
-    return config;
-  }
-
-  @Override
-  public void configure(AtomixConfig config) {
-    // Do nothing! This profile is just for code readability.
   }
 }

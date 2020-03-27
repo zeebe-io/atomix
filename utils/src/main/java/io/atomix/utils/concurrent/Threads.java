@@ -16,23 +16,19 @@
 package io.atomix.utils.concurrent;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import java.util.concurrent.ThreadFactory;
 import org.slf4j.Logger;
 
-import java.util.concurrent.ThreadFactory;
-
-/**
- * Thread utilities.
- */
+/** Thread utilities. */
 public final class Threads {
 
   /**
-   * Returns a thread factory that produces threads named according to the
-   * supplied name pattern.
+   * Returns a thread factory that produces threads named according to the supplied name pattern.
    *
    * @param pattern name pattern
    * @return thread factory
    */
-  public static ThreadFactory namedThreads(String pattern, Logger log) {
+  public static ThreadFactory namedThreads(final String pattern, final Logger log) {
     return new ThreadFactoryBuilder()
         .setNameFormat(pattern)
         .setThreadFactory(new AtomixThreadFactory())

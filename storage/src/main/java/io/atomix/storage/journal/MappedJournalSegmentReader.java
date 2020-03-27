@@ -38,11 +38,11 @@ class MappedJournalSegmentReader<E> implements JournalReader<E> {
   private Indexed<E> nextEntry;
 
   MappedJournalSegmentReader(
-      ByteBuffer buffer,
-      JournalSegment<E> segment,
-      int maxEntrySize,
-      JournalIndex index,
-      Namespace namespace) {
+      final ByteBuffer buffer,
+      final JournalSegment<E> segment,
+      final int maxEntrySize,
+      final JournalIndex index,
+      final Namespace namespace) {
     this.buffer = buffer.slice();
     this.maxEntrySize = maxEntrySize;
     this.index = index;
@@ -82,35 +82,6 @@ class MappedJournalSegmentReader<E> implements JournalReader<E> {
   }
 
   @Override
-  public void reset(long index) {
-    final long firstIndex = segment.index();
-    final long lastIndex = segment.lastIndex();
-
-    reset();
-
-    final Position position = this.index.lookup(index - 1);
-    if (position != null && position.index() >= firstIndex && position.index() <= lastIndex) {
-      currentEntry = new Indexed<>(position.index() - 1, null, 0);
-      buffer.position(position.position());
-
-      nextEntry = null;
-      readNext();
-    }
-
-    while (getNextIndex() < index && hasNext()) {
-      next();
-    }
-  }
-
-  @Override
-  public void reset() {
-    buffer.position(JournalSegmentDescriptor.BYTES);
-    currentEntry = null;
-    nextEntry = null;
-    readNext();
-  }
-
-  @Override
   public boolean hasNext() {
     // If the next entry is null, check whether a next entry exists.
     if (nextEntry == null) {
@@ -138,6 +109,40 @@ class MappedJournalSegmentReader<E> implements JournalReader<E> {
     return currentEntry;
   }
 
+  @Override
+  public void reset() {
+    buffer.position(JournalSegmentDescriptor.BYTES);
+    currentEntry = null;
+    nextEntry = null;
+    readNext();
+  }
+
+  @Override
+  public void reset(final long index) {
+    final long firstIndex = segment.index();
+    final long lastIndex = segment.lastIndex();
+
+    reset();
+
+    final Position position = this.index.lookup(index - 1);
+    if (position != null && position.index() >= firstIndex && position.index() <= lastIndex) {
+      currentEntry = new Indexed<>(position.index() - 1, null, 0);
+      buffer.position(position.position());
+
+      nextEntry = null;
+      readNext();
+    }
+
+    while (getNextIndex() < index && hasNext()) {
+      next();
+    }
+  }
+
+  @Override
+  public void close() {
+    // Do nothing. The writer is responsible for cleaning the mapped buffer.
+  }
+
   /** Reads the next entry in the segment. */
   @SuppressWarnings("unchecked")
   private void readNext() {
@@ -159,32 +164,27 @@ class MappedJournalSegmentReader<E> implements JournalReader<E> {
       }
 
       // Read the checksum of the entry.
-      long checksum = buffer.getInt() & 0xFFFFFFFFL;
+      final long checksum = buffer.getInt() & 0xFFFFFFFFL;
 
       // Compute the checksum for the entry bytes.
       final CRC32 crc32 = new CRC32();
-      ByteBuffer slice = buffer.slice();
+      final ByteBuffer slice = buffer.slice();
       slice.limit(length);
       crc32.update(slice);
 
       // If the stored checksum equals the computed checksum, return the entry.
       if (checksum == crc32.getValue()) {
         slice.rewind();
-        E entry = namespace.deserialize(slice);
+        final E entry = namespace.deserialize(slice);
         nextEntry = new Indexed<>(index, entry, length);
         buffer.position(buffer.position() + length);
       } else {
         buffer.reset();
         nextEntry = null;
       }
-    } catch (BufferUnderflowException e) {
+    } catch (final BufferUnderflowException e) {
       buffer.reset();
       nextEntry = null;
     }
-  }
-
-  @Override
-  public void close() {
-    // Do nothing. The writer is responsible for cleaning the mapped buffer.
   }
 }

@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Provides classes and interfaces for creating and handling generic events.
- */
+/** Provides classes and interfaces for creating and handling generic events. */
 package io.atomix.utils.event;

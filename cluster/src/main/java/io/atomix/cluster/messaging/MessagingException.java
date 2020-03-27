@@ -17,39 +17,32 @@ package io.atomix.cluster.messaging;
 
 import java.io.IOException;
 
-/**
- * Top level exception for MessagingService failures.
- */
+/** Top level exception for MessagingService failures. */
 @SuppressWarnings("serial")
 public class MessagingException extends IOException {
 
-  public MessagingException() {
-  }
+  public MessagingException() {}
 
-  public MessagingException(String message) {
+  public MessagingException(final String message) {
     super(message);
   }
 
-  public MessagingException(String message, Throwable t) {
+  public MessagingException(final String message, final Throwable t) {
     super(message, t);
   }
 
-  public MessagingException(Throwable t) {
+  public MessagingException(final Throwable t) {
     super(t);
   }
 
-  /**
-   * Exception indicating no remote registered remote handler.
-   */
+  /** Exception indicating no remote registered remote handler. */
   public static class NoRemoteHandler extends MessagingException {
     public NoRemoteHandler() {
       super("No remote message handler registered for this message");
     }
   }
 
-  /**
-   * Exception indicating handler failure.
-   */
+  /** Exception indicating handler failure. */
   public static class RemoteHandlerFailure extends MessagingException {
     public RemoteHandlerFailure() {
       super("Remote handler failed to handle message");

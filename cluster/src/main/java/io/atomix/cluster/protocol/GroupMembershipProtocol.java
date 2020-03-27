@@ -22,30 +22,13 @@ import io.atomix.cluster.discovery.NodeDiscoveryService;
 import io.atomix.utils.ConfiguredType;
 import io.atomix.utils.config.Configured;
 import io.atomix.utils.event.ListenerService;
-
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Group membership protocol.
- */
+/** Group membership protocol. */
 public interface GroupMembershipProtocol
     extends ListenerService<GroupMembershipEvent, GroupMembershipEventListener>,
-    Configured<GroupMembershipProtocolConfig> {
-
-  /**
-   * Group membership protocol type.
-   */
-  interface Type<C extends GroupMembershipProtocolConfig> extends ConfiguredType<C> {
-
-    /**
-     * Creates a new instance of the protocol.
-     *
-     * @param config the protocol configuration
-     * @return the protocol instance
-     */
-    GroupMembershipProtocol newProtocol(C config);
-  }
+        Configured<GroupMembershipProtocolConfig> {
 
   /**
    * Returns the set of current cluster members.
@@ -70,7 +53,8 @@ public interface GroupMembershipProtocol
    * @param localMember the local member info
    * @return a future to be completed once the join is complete
    */
-  CompletableFuture<Void> join(BootstrapService bootstrap, NodeDiscoveryService discovery, Member localMember);
+  CompletableFuture<Void> join(
+      BootstrapService bootstrap, NodeDiscoveryService discovery, Member localMember);
 
   /**
    * Leaves the cluster.
@@ -80,4 +64,15 @@ public interface GroupMembershipProtocol
    */
   CompletableFuture<Void> leave(Member localMember);
 
+  /** Group membership protocol type. */
+  interface Type<C extends GroupMembershipProtocolConfig> extends ConfiguredType<C> {
+
+    /**
+     * Creates a new instance of the protocol.
+     *
+     * @param config the protocol configuration
+     * @return the protocol instance
+     */
+    GroupMembershipProtocol newProtocol(C config);
+  }
 }

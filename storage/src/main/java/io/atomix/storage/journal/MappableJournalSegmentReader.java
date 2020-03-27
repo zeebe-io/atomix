@@ -18,14 +18,11 @@ package io.atomix.storage.journal;
 import io.atomix.storage.StorageException;
 import io.atomix.storage.journal.index.JournalIndex;
 import io.atomix.utils.serializer.Namespace;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
-/**
- * Mappable log segment reader.
- */
+/** Mappable log segment reader. */
 class MappableJournalSegmentReader<E> implements JournalReader<E> {
   private final JournalSegment<E> segment;
   private final FileChannel channel;
@@ -35,17 +32,18 @@ class MappableJournalSegmentReader<E> implements JournalReader<E> {
   private JournalReader<E> reader;
 
   MappableJournalSegmentReader(
-      FileChannel channel,
-      JournalSegment<E> segment,
-      int maxEntrySize,
-      JournalIndex index,
-      Namespace namespace) {
+      final FileChannel channel,
+      final JournalSegment<E> segment,
+      final int maxEntrySize,
+      final JournalIndex index,
+      final Namespace namespace) {
     this.channel = channel;
     this.segment = segment;
     this.maxEntrySize = maxEntrySize;
     this.index = index;
     this.namespace = namespace;
-    this.reader = new FileChannelJournalSegmentReader<>(channel, segment, maxEntrySize, index, namespace);
+    this.reader =
+        new FileChannelJournalSegmentReader<>(channel, segment, maxEntrySize, index, namespace);
   }
 
   /**
@@ -53,22 +51,22 @@ class MappableJournalSegmentReader<E> implements JournalReader<E> {
    *
    * @param buffer the mapped buffer
    */
-  void map(ByteBuffer buffer) {
+  void map(final ByteBuffer buffer) {
     if (!(reader instanceof MappedJournalSegmentReader)) {
-      JournalReader<E> reader = this.reader;
-      this.reader = new MappedJournalSegmentReader<>(buffer, segment, maxEntrySize, index, namespace);
+      final JournalReader<E> reader = this.reader;
+      this.reader =
+          new MappedJournalSegmentReader<>(buffer, segment, maxEntrySize, index, namespace);
       this.reader.reset(reader.getNextIndex());
       reader.close();
     }
   }
 
-  /**
-   * Converts the reader to an unmapped reader.
-   */
+  /** Converts the reader to an unmapped reader. */
   void unmap() {
     if (reader instanceof MappedJournalSegmentReader) {
-      JournalReader<E> reader = this.reader;
-      this.reader = new FileChannelJournalSegmentReader<>(channel, segment, maxEntrySize, index, namespace);
+      final JournalReader<E> reader = this.reader;
+      this.reader =
+          new FileChannelJournalSegmentReader<>(channel, segment, maxEntrySize, index, namespace);
       this.reader.reset(reader.getNextIndex());
       reader.close();
     }
@@ -120,7 +118,7 @@ class MappableJournalSegmentReader<E> implements JournalReader<E> {
   }
 
   @Override
-  public void reset(long index) {
+  public void reset(final long index) {
     reader.reset(index);
   }
 
@@ -129,7 +127,7 @@ class MappableJournalSegmentReader<E> implements JournalReader<E> {
     reader.close();
     try {
       channel.close();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new StorageException(e);
     } finally {
       segment.closeReader(this);

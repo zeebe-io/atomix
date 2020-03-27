@@ -15,31 +15,31 @@
  */
 package io.atomix.utils.concurrent;
 
-import org.slf4j.Logger;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static io.atomix.utils.concurrent.Threads.namedThreads;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import org.slf4j.Logger;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static io.atomix.utils.concurrent.Threads.namedThreads;
-
-/**
- * Single thread context factory.
- */
+/** Single thread context factory. */
 public class BlockingAwareSingleThreadContextFactory implements ThreadContextFactory {
   private final ThreadFactory threadFactory;
   private final Executor threadPoolExecutor;
 
-  public BlockingAwareSingleThreadContextFactory(String nameFormat, int threadPoolSize, Logger logger) {
+  public BlockingAwareSingleThreadContextFactory(
+      final String nameFormat, final int threadPoolSize, final Logger logger) {
     this(threadPoolSize, namedThreads(nameFormat, logger));
   }
 
-  public BlockingAwareSingleThreadContextFactory(int threadPoolSize, ThreadFactory threadFactory) {
+  public BlockingAwareSingleThreadContextFactory(
+      final int threadPoolSize, final ThreadFactory threadFactory) {
     this(threadFactory, Executors.newScheduledThreadPool(threadPoolSize, threadFactory));
   }
 
-  public BlockingAwareSingleThreadContextFactory(ThreadFactory threadFactory, Executor threadPoolExecutor) {
+  public BlockingAwareSingleThreadContextFactory(
+      final ThreadFactory threadFactory, final Executor threadPoolExecutor) {
     this.threadFactory = checkNotNull(threadFactory);
     this.threadPoolExecutor = checkNotNull(threadPoolExecutor);
   }

@@ -15,41 +15,21 @@
  */
 package io.atomix.cluster.messaging.impl;
 
-import java.net.InetAddress;
-import java.util.List;
+import static com.google.common.base.Preconditions.checkState;
 
 import io.atomix.utils.net.Address;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
+import java.net.InetAddress;
+import java.util.List;
 
-import static com.google.common.base.Preconditions.checkState;
-
-/**
- * Decoder for inbound messages.
- */
+/** Decoder for inbound messages. */
 class MessageDecoderV1 extends AbstractMessageDecoder {
 
-  /**
-   * V1 decoder state.
-   */
-  enum DecoderState {
-    READ_TYPE,
-    READ_MESSAGE_ID,
-    READ_SENDER_IP,
-    READ_SENDER_PORT,
-    READ_SUBJECT_LENGTH,
-    READ_SUBJECT,
-    READ_STATUS,
-    READ_CONTENT_LENGTH,
-    READ_CONTENT
-  }
-
   private DecoderState currentState = DecoderState.READ_SENDER_IP;
-
   private InetAddress senderIp;
   private int senderPort;
   private Address senderAddress;
-
   private ProtocolMessage.Type type;
   private long messageId;
   private int contentLength;
@@ -59,9 +39,8 @@ class MessageDecoderV1 extends AbstractMessageDecoder {
   @Override
   @SuppressWarnings("squid:S128") // suppress switch fall through warning
   protected void decode(
-      ChannelHandlerContext context,
-      ByteBuf buffer,
-      List<Object> out) throws Exception {
+      final ChannelHandlerContext context, final ByteBuf buffer, final List<Object> out)
+      throws Exception {
 
     switch (currentState) {
       case READ_SENDER_IP:
@@ -69,13 +48,13 @@ class MessageDecoderV1 extends AbstractMessageDecoder {
           return;
         }
         buffer.markReaderIndex();
-        int octetsLength = buffer.readByte();
+        final int octetsLength = buffer.readByte();
         if (buffer.readableBytes() < octetsLength) {
           buffer.resetReaderIndex();
           return;
         }
 
-        byte[] octets = new byte[octetsLength];
+        final byte[] octets = new byte[octetsLength];
         buffer.readBytes(octets);
         senderIp = InetAddress.getByAddress(octets);
         currentState = DecoderState.READ_SENDER_PORT;
@@ -95,14 +74,14 @@ class MessageDecoderV1 extends AbstractMessageDecoder {
       case READ_MESSAGE_ID:
         try {
           messageId = readLong(buffer);
-        } catch (Escape e) {
+        } catch (final Escape e) {
           return;
         }
         currentState = DecoderState.READ_CONTENT_LENGTH;
       case READ_CONTENT_LENGTH:
         try {
           contentLength = readInt(buffer);
-        } catch (Escape e) {
+        } catch (final Escape e) {
           return;
         }
         currentState = DecoderState.READ_CONTENT;
@@ -147,7 +126,8 @@ class MessageDecoderV1 extends AbstractMessageDecoder {
               return;
             }
             final String subject = readString(buffer, subjectLength);
-            ProtocolRequest message = new ProtocolRequest(messageId, senderAddress, subject, content);
+            final ProtocolRequest message =
+                new ProtocolRequest(messageId, senderAddress, subject, content);
             out.add(message);
             currentState = DecoderState.READ_TYPE;
             break;
@@ -161,8 +141,8 @@ class MessageDecoderV1 extends AbstractMessageDecoder {
             if (buffer.readableBytes() < Byte.BYTES) {
               return;
             }
-            ProtocolReply.Status status = ProtocolReply.Status.forId(buffer.readByte());
-            ProtocolReply message = new ProtocolReply(messageId, content, status);
+            final ProtocolReply.Status status = ProtocolReply.Status.forId(buffer.readByte());
+            final ProtocolReply message = new ProtocolReply(messageId, content, status);
             out.add(message);
             currentState = DecoderState.READ_TYPE;
             break;
@@ -173,5 +153,18 @@ class MessageDecoderV1 extends AbstractMessageDecoder {
       default:
         checkState(false, "Must not be here");
     }
+  }
+
+  /** V1 decoder state. */
+  enum DecoderState {
+    READ_TYPE,
+    READ_MESSAGE_ID,
+    READ_SENDER_IP,
+    READ_SENDER_PORT,
+    READ_SUBJECT_LENGTH,
+    READ_SUBJECT,
+    READ_STATUS,
+    READ_CONTENT_LENGTH,
+    READ_CONTENT
   }
 }

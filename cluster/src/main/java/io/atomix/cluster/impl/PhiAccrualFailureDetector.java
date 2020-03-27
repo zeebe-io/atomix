@@ -15,15 +15,15 @@
  */
 package io.atomix.cluster.impl;
 
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-
 import static com.google.common.base.Preconditions.checkArgument;
+
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 /**
  * Phi Accrual failure detector.
- * <p>
- * A modified version based on a paper titled:
- * "The φ Accrual Failure Detector" by Hayashibara, et al.
+ *
+ * <p>A modified version based on a paper titled: "The φ Accrual Failure Detector" by Hayashibara,
+ * et al.
  */
 public class PhiAccrualFailureDetector {
   // Default value
@@ -35,9 +35,7 @@ public class PhiAccrualFailureDetector {
   private final double phiFactor;
   private final History history;
 
-  /**
-   * Creates a new failure detector with the default configuration.
-   */
+  /** Creates a new failure detector with the default configuration. */
   public PhiAccrualFailureDetector() {
     this(DEFAULT_MIN_SAMPLES, DEFAULT_PHI_FACTOR, DEFAULT_WINDOW_SIZE);
   }
@@ -46,9 +44,9 @@ public class PhiAccrualFailureDetector {
    * Creates a new failure detector.
    *
    * @param minSamples the minimum number of samples required to compute phi
-   * @param phiFactor  the phi factor
+   * @param phiFactor the phi factor
    */
-  public PhiAccrualFailureDetector(int minSamples, double phiFactor) {
+  public PhiAccrualFailureDetector(final int minSamples, final double phiFactor) {
     this(minSamples, phiFactor, DEFAULT_WINDOW_SIZE);
   }
 
@@ -56,10 +54,11 @@ public class PhiAccrualFailureDetector {
    * Creates a new failure detector.
    *
    * @param minSamples the minimum number of samples required to compute phi
-   * @param phiFactor  the phi factor
+   * @param phiFactor the phi factor
    * @param windowSize the phi accrual window size
    */
-  public PhiAccrualFailureDetector(int minSamples, double phiFactor, int windowSize) {
+  public PhiAccrualFailureDetector(
+      final int minSamples, final double phiFactor, final int windowSize) {
     this.minSamples = minSamples;
     this.phiFactor = phiFactor;
     this.history = new History(windowSize);
@@ -74,9 +73,7 @@ public class PhiAccrualFailureDetector {
     return history.latestHeartbeatTime();
   }
 
-  /**
-   * Report a new heart beat for the specified node id.
-   */
+  /** Report a new heart beat for the specified node id. */
   public void report() {
     report(System.currentTimeMillis());
   }
@@ -86,9 +83,9 @@ public class PhiAccrualFailureDetector {
    *
    * @param arrivalTime arrival time
    */
-  public void report(long arrivalTime) {
+  public void report(final long arrivalTime) {
     checkArgument(arrivalTime >= 0, "arrivalTime must not be negative");
-    long latestHeartbeat = history.latestHeartbeatTime();
+    final long latestHeartbeat = history.latestHeartbeatTime();
     history.samples().addValue(arrivalTime - latestHeartbeat);
     history.setLatestHeartbeatTime(arrivalTime);
   }
@@ -99,8 +96,8 @@ public class PhiAccrualFailureDetector {
    * @return phi value
    */
   public double phi() {
-    long latestHeartbeat = history.latestHeartbeatTime();
-    DescriptiveStatistics samples = history.samples();
+    final long latestHeartbeat = history.latestHeartbeatTime();
+    final DescriptiveStatistics samples = history.samples();
     if (samples.getN() < minSamples) {
       return 0.0;
     }
@@ -109,31 +106,28 @@ public class PhiAccrualFailureDetector {
 
   /**
    * Computes the phi value from the given samples.
-   * <p>
-   * The original phi value in Hayashibara's paper is calculated based on a normal distribution.
+   *
+   * <p>The original phi value in Hayashibara's paper is calculated based on a normal distribution.
    * Here, we calculate it based on an exponential distribution.
    *
-   * @param samples       the samples from which to compute phi
+   * @param samples the samples from which to compute phi
    * @param lastHeartbeat the last heartbeat
-   * @param currentTime   the current time
+   * @param currentTime the current time
    * @return phi
    */
-  private double computePhi(DescriptiveStatistics samples, long lastHeartbeat, long currentTime) {
-    long size = samples.getN();
-    long t = currentTime - lastHeartbeat;
-    return (size > 0)
-        ? phiFactor * t / samples.getMean()
-        : 100;
+  private double computePhi(
+      final DescriptiveStatistics samples, final long lastHeartbeat, final long currentTime) {
+    final long size = samples.getN();
+    final long t = currentTime - lastHeartbeat;
+    return (size > 0) ? phiFactor * t / samples.getMean() : 100;
   }
 
-  /**
-   * Stores the history of heartbeats for a node.
-   */
-  private static class History {
-    private final DescriptiveStatistics samples;
+  /** Stores the history of heartbeats for a node. */
+  private static final class History {
     long lastHeartbeatTime = System.currentTimeMillis();
+    private final DescriptiveStatistics samples;
 
-    private History(int windowSize) {
+    private History(final int windowSize) {
       this.samples = new DescriptiveStatistics(windowSize);
     }
 
@@ -145,7 +139,7 @@ public class PhiAccrualFailureDetector {
       return lastHeartbeatTime;
     }
 
-    void setLatestHeartbeatTime(long value) {
+    void setLatestHeartbeatTime(final long value) {
       lastHeartbeatTime = value;
     }
   }

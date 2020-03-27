@@ -43,11 +43,11 @@ class FileChannelJournalSegmentReader<E> implements JournalReader<E> {
   private Indexed<E> nextEntry;
 
   FileChannelJournalSegmentReader(
-      FileChannel channel,
-      JournalSegment<E> segment,
-      int maxEntrySize,
-      JournalIndex index,
-      Namespace namespace) {
+      final FileChannel channel,
+      final JournalSegment<E> segment,
+      final int maxEntrySize,
+      final JournalIndex index,
+      final Namespace namespace) {
     this.channel = channel;
     this.maxEntrySize = maxEntrySize;
     this.index = index;
@@ -61,7 +61,7 @@ class FileChannelJournalSegmentReader<E> implements JournalReader<E> {
   public boolean isEmpty() {
     try {
       return channel.size() == 0;
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new StorageException(e);
     }
   }
@@ -92,46 +92,6 @@ class FileChannelJournalSegmentReader<E> implements JournalReader<E> {
   }
 
   @Override
-  public void reset(final long index) {
-    final long firstIndex = segment.index();
-    final long lastIndex = segment.lastIndex();
-
-    reset();
-
-    final Position position = this.index.lookup(index - 1);
-    if (position != null && position.index() >= firstIndex && position.index() <= lastIndex) {
-      currentEntry = new Indexed<>(position.index() - 1, null, 0);
-      try {
-        channel.position(position.position());
-        memory.clear().flip();
-      } catch (IOException e) {
-        currentEntry = null;
-        throw new StorageException(e);
-      }
-
-      nextEntry = null;
-      readNext();
-    }
-
-    while (getNextIndex() < index && hasNext()) {
-      next();
-    }
-  }
-
-  @Override
-  public void reset() {
-    try {
-      channel.position(JournalSegmentDescriptor.BYTES);
-    } catch (IOException e) {
-      throw new StorageException(e);
-    }
-    memory.clear().limit(0);
-    currentEntry = null;
-    nextEntry = null;
-    readNext();
-  }
-
-  @Override
   public boolean hasNext() {
     // If the next entry is null, check whether a next entry exists.
     if (nextEntry == null) {
@@ -159,9 +119,52 @@ class FileChannelJournalSegmentReader<E> implements JournalReader<E> {
     return currentEntry;
   }
 
-  /**
-   * Reads the next entry in the segment.
-   */
+  @Override
+  public void reset() {
+    try {
+      channel.position(JournalSegmentDescriptor.BYTES);
+    } catch (final IOException e) {
+      throw new StorageException(e);
+    }
+    memory.clear().limit(0);
+    currentEntry = null;
+    nextEntry = null;
+    readNext();
+  }
+
+  @Override
+  public void reset(final long index) {
+    final long firstIndex = segment.index();
+    final long lastIndex = segment.lastIndex();
+
+    reset();
+
+    final Position position = this.index.lookup(index - 1);
+    if (position != null && position.index() >= firstIndex && position.index() <= lastIndex) {
+      currentEntry = new Indexed<>(position.index() - 1, null, 0);
+      try {
+        channel.position(position.position());
+        memory.clear().flip();
+      } catch (final IOException e) {
+        currentEntry = null;
+        throw new StorageException(e);
+      }
+
+      nextEntry = null;
+      readNext();
+    }
+
+    while (getNextIndex() < index && hasNext()) {
+      next();
+    }
+  }
+
+  @Override
+  public void close() {
+    // Do nothing. The parent reader manages the channel.
+  }
+
+  /** Reads the next entry in the segment. */
   @SuppressWarnings("unchecked")
   private void readNext() {
     // Compute the index of the next entry in the segment.
@@ -170,7 +173,7 @@ class FileChannelJournalSegmentReader<E> implements JournalReader<E> {
     try {
       // Read more bytes from the segment if necessary.
       if (memory.remaining() < maxEntrySize) {
-        long position = channel.position() + memory.position();
+        final long position = channel.position() + memory.position();
         channel.position(position);
         memory.clear();
         channel.read(memory);
@@ -193,7 +196,7 @@ class FileChannelJournalSegmentReader<E> implements JournalReader<E> {
         }
 
         // Read the checksum of the entry.
-        long checksum = memory.getInt() & 0xFFFFFFFFL;
+        final long checksum = memory.getInt() & 0xFFFFFFFFL;
 
         // Compute the checksum for the entry bytes.
         final Checksum crc32 = new CRC32();
@@ -201,26 +204,21 @@ class FileChannelJournalSegmentReader<E> implements JournalReader<E> {
 
         // If the stored checksum equals the computed checksum, return the entry.
         if (checksum == crc32.getValue()) {
-          int limit = memory.limit();
+          final int limit = memory.limit();
           memory.limit(memory.position() + length);
-          E entry = namespace.deserialize(memory);
+          final E entry = namespace.deserialize(memory);
           memory.limit(limit);
           nextEntry = new Indexed<>(index, entry, length);
         } else {
           memory.reset().limit(memory.position());
           nextEntry = null;
         }
-      } catch (BufferUnderflowException e) {
+      } catch (final BufferUnderflowException e) {
         memory.reset().limit(memory.position());
         nextEntry = null;
       }
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new StorageException(e);
     }
-  }
-
-  @Override
-  public void close() {
-    // Do nothing. The parent reader manages the channel.
   }
 }

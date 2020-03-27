@@ -19,12 +19,9 @@ import io.atomix.core.workqueue.Task;
 import io.atomix.core.workqueue.WorkQueueStats;
 import io.atomix.primitive.operation.Command;
 import io.atomix.primitive.operation.Query;
-
 import java.util.Collection;
 
-/**
- * Work queue service.
- */
+/** Work queue service. */
 public interface WorkQueueService {
 
   /**
@@ -38,8 +35,8 @@ public interface WorkQueueService {
   /**
    * Picks up multiple tasks from the work queue to work on.
    *
-   * @param maxItems maximum number of items to take from the queue. The actual number of tasks returned
-   *                 can be at the max this number
+   * @param maxItems maximum number of items to take from the queue. The actual number of tasks
+   *     returned can be at the max this number
    * @return an empty collection if there are no unassigned tasks in the work queue
    */
   @Command
@@ -61,22 +58,15 @@ public interface WorkQueueService {
   @Query
   WorkQueueStats stats();
 
-  /**
-   * Registers the current session as a task processor.
-   */
+  /** Registers the current session as a task processor. */
   @Command
   void register();
 
-  /**
-   * Unregisters the current session as a task processor.
-   */
+  /** Unregisters the current session as a task processor. */
   @Command
   void unregister();
 
-  /**
-   * Removes all pending tasks from the queue.
-   */
+  /** Removes all pending tasks from the queue. */
   @Command
   void clear();
-
 }

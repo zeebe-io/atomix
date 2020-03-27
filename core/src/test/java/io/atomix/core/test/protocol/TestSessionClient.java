@@ -27,16 +27,13 @@ import io.atomix.primitive.partition.PartitionId;
 import io.atomix.primitive.session.SessionClient;
 import io.atomix.primitive.session.SessionId;
 import io.atomix.utils.concurrent.ThreadContext;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-/**
- * Test proxy session.
- */
+/** Test proxy session. */
 public class TestSessionClient implements SessionClient {
   private final String name;
   private final PrimitiveType type;
@@ -48,15 +45,16 @@ public class TestSessionClient implements SessionClient {
   private final Set<Consumer<PrimitiveState>> stateChangeListeners = Sets.newConcurrentHashSet();
   private volatile PrimitiveState state = PrimitiveState.CLOSED;
 
-  private final Map<EventType, List<Consumer<PrimitiveEvent>>> eventListeners = Maps.newConcurrentMap();
+  private final Map<EventType, List<Consumer<PrimitiveEvent>>> eventListeners =
+      Maps.newConcurrentMap();
 
   TestSessionClient(
-      String name,
-      PrimitiveType type,
-      SessionId sessionId,
-      PartitionId partitionId,
-      ThreadContext context,
-      TestProtocolService service) {
+      final String name,
+      final PrimitiveType type,
+      final SessionId sessionId,
+      final PartitionId partitionId,
+      final ThreadContext context,
+      final TestProtocolService service) {
     this.name = name;
     this.type = type;
     this.sessionId = sessionId;
@@ -96,41 +94,36 @@ public class TestSessionClient implements SessionClient {
   }
 
   @Override
-  public CompletableFuture<byte[]> execute(PrimitiveOperation operation) {
-    CompletableFuture<byte[]> future = new CompletableFuture<>();
-    service.execute(sessionId, operation).whenCompleteAsync((result, error) -> {
-      if (error == null) {
-        future.complete(result);
-      } else {
-        future.completeExceptionally(error);
-      }
-    }, context);
+  public CompletableFuture<byte[]> execute(final PrimitiveOperation operation) {
+    final CompletableFuture<byte[]> future = new CompletableFuture<>();
+    service
+        .execute(sessionId, operation)
+        .whenCompleteAsync(
+            (result, error) -> {
+              if (error == null) {
+                future.complete(result);
+              } else {
+                future.completeExceptionally(error);
+              }
+            },
+            context);
     return future;
   }
 
-  /**
-   * Handles a primitive event.
-   */
-  void accept(PrimitiveEvent event) {
-    context.execute(() -> {
-      List<Consumer<PrimitiveEvent>> listeners = eventListeners.get(event.type());
-      if (listeners != null) {
-        listeners.forEach(l -> l.accept(event));
-      }
-    });
-  }
-
   @Override
-  public synchronized void addEventListener(EventType eventType, Consumer<PrimitiveEvent> listener) {
-    List<Consumer<PrimitiveEvent>> listeners = eventListeners.computeIfAbsent(eventType, type -> Lists.newCopyOnWriteArrayList());
+  public synchronized void addEventListener(
+      final EventType eventType, final Consumer<PrimitiveEvent> listener) {
+    final List<Consumer<PrimitiveEvent>> listeners =
+        eventListeners.computeIfAbsent(eventType, type -> Lists.newCopyOnWriteArrayList());
     if (!listeners.contains(listener)) {
       listeners.add(listener);
     }
   }
 
   @Override
-  public synchronized void removeEventListener(EventType eventType, Consumer<PrimitiveEvent> listener) {
-    List<Consumer<PrimitiveEvent>> listeners = eventListeners.get(eventType);
+  public synchronized void removeEventListener(
+      final EventType eventType, final Consumer<PrimitiveEvent> listener) {
+    final List<Consumer<PrimitiveEvent>> listeners = eventListeners.get(eventType);
     if (listeners != null && listeners.contains(listener)) {
       listeners.remove(listener);
       if (listeners.isEmpty()) {
@@ -140,50 +133,51 @@ public class TestSessionClient implements SessionClient {
   }
 
   @Override
-  public void addStateChangeListener(Consumer<PrimitiveState> listener) {
+  public void addStateChangeListener(final Consumer<PrimitiveState> listener) {
     stateChangeListeners.add(listener);
   }
 
   @Override
-  public void removeStateChangeListener(Consumer<PrimitiveState> listener) {
+  public void removeStateChangeListener(final Consumer<PrimitiveState> listener) {
     stateChangeListeners.remove(listener);
-  }
-
-  private synchronized void changeState(PrimitiveState state) {
-    if (this.state != state) {
-      this.state = state;
-      stateChangeListeners.forEach(l -> l.accept(state));
-    }
   }
 
   @Override
   public synchronized CompletableFuture<SessionClient> connect() {
-    CompletableFuture<SessionClient> future = new CompletableFuture<>();
-    service.open(sessionId, this).whenCompleteAsync((result, error) -> {
-      if (error == null) {
-        changeState(PrimitiveState.CONNECTED);
-        future.complete(this);
-      } else {
-        future.completeExceptionally(error);
-      }
-    }, context);
+    final CompletableFuture<SessionClient> future = new CompletableFuture<>();
+    service
+        .open(sessionId, this)
+        .whenCompleteAsync(
+            (result, error) -> {
+              if (error == null) {
+                changeState(PrimitiveState.CONNECTED);
+                future.complete(this);
+              } else {
+                future.completeExceptionally(error);
+              }
+            },
+            context);
     return future;
   }
 
   @Override
   public synchronized CompletableFuture<Void> close() {
-    CompletableFuture<Void> future = new CompletableFuture<>();
+    final CompletableFuture<Void> future = new CompletableFuture<>();
     if (state == PrimitiveState.CLOSED) {
       future.complete(null);
     } else {
-      service.close(sessionId).whenCompleteAsync((result, error) -> {
-        if (error == null) {
-          changeState(PrimitiveState.CLOSED);
-          future.complete(null);
-        } else {
-          future.completeExceptionally(error);
-        }
-      }, context);
+      service
+          .close(sessionId)
+          .whenCompleteAsync(
+              (result, error) -> {
+                if (error == null) {
+                  changeState(PrimitiveState.CLOSED);
+                  future.complete(null);
+                } else {
+                  future.completeExceptionally(error);
+                }
+              },
+              context);
     }
     return future;
   }
@@ -191,5 +185,23 @@ public class TestSessionClient implements SessionClient {
   @Override
   public CompletableFuture<Void> delete() {
     return close().thenCompose(v -> service.delete());
+  }
+
+  /** Handles a primitive event. */
+  void accept(final PrimitiveEvent event) {
+    context.execute(
+        () -> {
+          final List<Consumer<PrimitiveEvent>> listeners = eventListeners.get(event.type());
+          if (listeners != null) {
+            listeners.forEach(l -> l.accept(event));
+          }
+        });
+  }
+
+  private synchronized void changeState(final PrimitiveState state) {
+    if (this.state != state) {
+      this.state = state;
+      stateChangeListeners.forEach(l -> l.accept(state));
+    }
   }
 }

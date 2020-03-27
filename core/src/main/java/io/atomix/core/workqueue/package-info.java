@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Distributed work processing primitives.
- */
+/** Distributed work processing primitives. */
 package io.atomix.core.workqueue;

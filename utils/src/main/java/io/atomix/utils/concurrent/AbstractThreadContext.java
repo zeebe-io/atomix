@@ -15,9 +15,7 @@
  */
 package io.atomix.utils.concurrent;
 
-/**
- * Abstract thread context.
- */
+/** Abstract thread context. */
 public abstract class AbstractThreadContext implements ThreadContext {
   private volatile boolean blocked;
 

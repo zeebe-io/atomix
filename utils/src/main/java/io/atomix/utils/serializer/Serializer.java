@@ -16,9 +16,7 @@
 
 package io.atomix.utils.serializer;
 
-/**
- * Interface for serialization of store artifacts.
- */
+/** Interface for serialization of store artifacts. */
 public interface Serializer {
 
   /**
@@ -36,7 +34,7 @@ public interface Serializer {
    * @param name the serializer name
    * @return a new serializer builder
    */
-  static SerializerBuilder builder(String name) {
+  static SerializerBuilder builder(final String name) {
     return new SerializerBuilder(name);
   }
 
@@ -44,7 +42,7 @@ public interface Serializer {
    * Serialize the specified object.
    *
    * @param object object to serialize.
-   * @param <T>    encoded type
+   * @param <T> encoded type
    * @return serialized bytes.
    */
   <T> byte[] encode(T object);
@@ -53,7 +51,7 @@ public interface Serializer {
    * Deserialize the specified bytes.
    *
    * @param bytes byte array to deserialize.
-   * @param <T>   decoded type
+   * @param <T> decoded type
    * @return deserialized object.
    */
   <T> T decode(byte[] bytes);
@@ -64,18 +62,17 @@ public interface Serializer {
    * @param namespace serializer namespace
    * @return Serializer instance
    */
-  static Serializer using(Namespace namespace) {
+  static Serializer using(final Namespace namespace) {
     return new Serializer() {
       @Override
-      public <T> byte[] encode(T object) {
+      public <T> byte[] encode(final T object) {
         return namespace.serialize(object);
       }
 
       @Override
-      public <T> T decode(byte[] bytes) {
+      public <T> T decode(final byte[] bytes) {
         return namespace.deserialize(bytes);
       }
     };
   }
-
 }

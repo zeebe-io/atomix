@@ -44,5 +44,4 @@ public interface Managed<T> {
    * @return A completable future to be completed once the object has been stopped.
    */
   CompletableFuture<Void> stop();
-
 }

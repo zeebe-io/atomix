@@ -15,6 +15,10 @@
  */
 package io.atomix.core.workqueue.impl;
 
+import static io.atomix.utils.concurrent.Threads.namedThreads;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import com.google.common.collect.ImmutableList;
 import io.atomix.core.workqueue.AsyncWorkQueue;
 import io.atomix.core.workqueue.Task;
@@ -26,8 +30,6 @@ import io.atomix.primitive.PrimitiveState;
 import io.atomix.primitive.proxy.ProxyClient;
 import io.atomix.utils.concurrent.AbstractAccumulator;
 import io.atomix.utils.concurrent.Accumulator;
-import org.slf4j.Logger;
-
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
@@ -39,16 +41,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import org.slf4j.Logger;
 
-import static io.atomix.utils.concurrent.Threads.namedThreads;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.slf4j.LoggerFactory.getLogger;
-
-/**
- * Distributed resource providing the {@link WorkQueue} primitive.
- */
-public class WorkQueueProxy
-    extends AbstractAsyncPrimitive<AsyncWorkQueue<byte[]>, WorkQueueService>
+/** Distributed resource providing the {@link WorkQueue} primitive. */
+public class WorkQueueProxy extends AbstractAsyncPrimitive<AsyncWorkQueue<byte[]>, WorkQueueService>
     implements AsyncWorkQueue<byte[]>, WorkQueueClient {
 
   private final Logger log = getLogger(getClass());
@@ -57,9 +53,11 @@ public class WorkQueueProxy
   private final Timer timer = new Timer("atomix-work-queue-completer");
   private final AtomicBoolean isRegistered = new AtomicBoolean(false);
 
-  public WorkQueueProxy(ProxyClient<WorkQueueService> proxy, PrimitiveRegistry registry) {
+  public WorkQueueProxy(
+      final ProxyClient<WorkQueueService> proxy, final PrimitiveRegistry registry) {
     super(proxy, registry);
-    executor = newSingleThreadExecutor(namedThreads("atomix-work-queue-" + proxy.name() + "-%d", log));
+    executor =
+        newSingleThreadExecutor(namedThreads("atomix-work-queue-" + proxy.name() + "-%d", log));
   }
 
   @Override
@@ -68,14 +66,7 @@ public class WorkQueueProxy
   }
 
   @Override
-  public CompletableFuture<Void> delete() {
-    executor.shutdown();
-    timer.cancel();
-    return super.delete();
-  }
-
-  @Override
-  public CompletableFuture<Void> addMultiple(Collection<byte[]> items) {
+  public CompletableFuture<Void> addMultiple(final Collection<byte[]> items) {
     if (items.isEmpty()) {
       return CompletableFuture.completedFuture(null);
     }
@@ -83,7 +74,7 @@ public class WorkQueueProxy
   }
 
   @Override
-  public CompletableFuture<Collection<Task<byte[]>>> take(int maxTasks) {
+  public CompletableFuture<Collection<Task<byte[]>>> take(final int maxTasks) {
     if (maxTasks <= 0) {
       return CompletableFuture.completedFuture(ImmutableList.of());
     }
@@ -91,7 +82,7 @@ public class WorkQueueProxy
   }
 
   @Override
-  public CompletableFuture<Void> complete(Collection<String> taskIds) {
+  public CompletableFuture<Void> complete(final Collection<String> taskIds) {
     if (taskIds.isEmpty()) {
       return CompletableFuture.completedFuture(null);
     }
@@ -99,17 +90,12 @@ public class WorkQueueProxy
   }
 
   @Override
-  public CompletableFuture<Void> registerTaskProcessor(Consumer<byte[]> callback,
-                                                       int parallelism,
-                                                       Executor executor) {
-    Accumulator<String> completedTaskAccumulator =
+  public CompletableFuture<Void> registerTaskProcessor(
+      final Consumer<byte[]> callback, final int parallelism, final Executor executor) {
+    final Accumulator<String> completedTaskAccumulator =
         new CompletedTaskAccumulator(timer, 50, 50); // TODO: make configurable
-    taskProcessor.set(new TaskProcessor(callback,
-        parallelism,
-        executor,
-        completedTaskAccumulator));
-    return register().thenCompose(v -> take(parallelism))
-        .thenAccept(taskProcessor.get());
+    taskProcessor.set(new TaskProcessor(callback, parallelism, executor, completedTaskAccumulator));
+    return register().thenCompose(v -> take(parallelism)).thenAccept(taskProcessor.get());
   }
 
   @Override
@@ -123,7 +109,7 @@ public class WorkQueueProxy
   }
 
   private void resumeWork() {
-    TaskProcessor activeProcessor = taskProcessor.get();
+    final TaskProcessor activeProcessor = taskProcessor.get();
     if (activeProcessor == null) {
       return;
     }
@@ -132,38 +118,55 @@ public class WorkQueueProxy
   }
 
   private CompletableFuture<Void> register() {
-    return getProxyClient().acceptBy(name(), service -> service.register()).thenRun(() -> isRegistered.set(true));
+    return getProxyClient()
+        .acceptBy(name(), service -> service.register())
+        .thenRun(() -> isRegistered.set(true));
   }
 
   private CompletableFuture<Void> unregister() {
-    return getProxyClient().acceptBy(name(), service -> service.unregister()).thenRun(() -> isRegistered.set(false));
+    return getProxyClient()
+        .acceptBy(name(), service -> service.unregister())
+        .thenRun(() -> isRegistered.set(false));
   }
 
   @Override
   public CompletableFuture<AsyncWorkQueue<byte[]>> connect() {
     return super.connect()
         .thenCompose(v -> getProxyClient().getPartition(name()).connect())
-        .thenRun(() -> getProxyClient().getPartition(name()).addStateChangeListener(state -> {
-          if (state == PrimitiveState.CONNECTED && isRegistered.get()) {
-            getProxyClient().acceptBy(name(), service -> service.register());
-          }
-        }))
+        .thenRun(
+            () ->
+                getProxyClient()
+                    .getPartition(name())
+                    .addStateChangeListener(
+                        state -> {
+                          if (state == PrimitiveState.CONNECTED && isRegistered.get()) {
+                            getProxyClient().acceptBy(name(), service -> service.register());
+                          }
+                        }))
         .thenApply(v -> this);
   }
 
   @Override
-  public WorkQueue<byte[]> sync(Duration operationTimeout) {
+  public CompletableFuture<Void> delete() {
+    executor.shutdown();
+    timer.cancel();
+    return super.delete();
+  }
+
+  @Override
+  public WorkQueue<byte[]> sync(final Duration operationTimeout) {
     return new BlockingWorkQueue<>(this, operationTimeout.toMillis());
   }
 
   // TaskId accumulator for paced triggering of task completion calls.
   private class CompletedTaskAccumulator extends AbstractAccumulator<String> {
-    CompletedTaskAccumulator(Timer timer, int maxTasksToBatch, int maxBatchMillis) {
+    CompletedTaskAccumulator(
+        final Timer timer, final int maxTasksToBatch, final int maxBatchMillis) {
       super(timer, maxTasksToBatch, maxBatchMillis, Integer.MAX_VALUE);
     }
 
     @Override
-    public void processItems(List<String> items) {
+    public void processItems(final List<String> items) {
       complete(items);
     }
   }
@@ -175,10 +178,11 @@ public class WorkQueueProxy
     private final Executor executor;
     private final Accumulator<String> taskCompleter;
 
-    TaskProcessor(Consumer<byte[]> backingConsumer,
-                         int parallelism,
-                         Executor executor,
-                         Accumulator<String> taskCompleter) {
+    TaskProcessor(
+        final Consumer<byte[]> backingConsumer,
+        final int parallelism,
+        final Executor executor,
+        final Accumulator<String> taskCompleter) {
       this.backingConsumer = backingConsumer;
       this.headRoom = new AtomicInteger(parallelism);
       this.executor = executor;
@@ -190,23 +194,25 @@ public class WorkQueueProxy
     }
 
     @Override
-    public void accept(Collection<Task<byte[]>> tasks) {
+    public void accept(final Collection<Task<byte[]>> tasks) {
       if (tasks == null) {
         return;
       }
       headRoom.addAndGet(-1 * tasks.size());
-      tasks.forEach(task ->
-          executor.execute(() -> {
-            try {
-              backingConsumer.accept(task.payload());
-              taskCompleter.add(task.taskId());
-            } catch (Exception e) {
-              log.debug("Task execution failed", e);
-            } finally {
-              headRoom.incrementAndGet();
-              resumeWork();
-            }
-          }));
+      tasks.forEach(
+          task ->
+              executor.execute(
+                  () -> {
+                    try {
+                      backingConsumer.accept(task.payload());
+                      taskCompleter.add(task.taskId());
+                    } catch (final Exception e) {
+                      log.debug("Task execution failed", e);
+                    } finally {
+                      headRoom.incrementAndGet();
+                      resumeWork();
+                    }
+                  }));
     }
   }
 }

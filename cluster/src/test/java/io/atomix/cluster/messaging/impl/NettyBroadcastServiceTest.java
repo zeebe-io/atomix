@@ -15,22 +15,19 @@
  */
 package io.atomix.cluster.messaging.impl;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import io.atomix.cluster.messaging.ManagedBroadcastService;
 import io.atomix.utils.net.Address;
+import java.io.IOException;
+import java.net.ServerSocket;
 import net.jodah.concurrentunit.ConcurrentTestCase;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 
-import java.io.IOException;
-import java.net.ServerSocket;
-
-import static org.slf4j.LoggerFactory.getLogger;
-
-/**
- * Netty broadcast service test.
- */
+/** Netty broadcast service test. */
 public class NettyBroadcastServiceTest extends ConcurrentTestCase {
 
   private static final Logger LOGGER = getLogger(NettyBroadcastServiceTest.class);
@@ -44,10 +41,12 @@ public class NettyBroadcastServiceTest extends ConcurrentTestCase {
 
   @Test
   public void testBroadcast() throws Exception {
-    netty1.addListener("test", bytes -> {
-      threadAssertEquals(0, bytes.length);
-      resume();
-    });
+    netty1.addListener(
+        "test",
+        bytes -> {
+          threadAssertEquals(0, bytes.length);
+          resume();
+        });
 
     netty2.broadcast("test", new byte[0]);
     await(5000);
@@ -59,19 +58,23 @@ public class NettyBroadcastServiceTest extends ConcurrentTestCase {
     localAddress2 = Address.from("127.0.0.1", findAvailablePort(5002));
     groupAddress = Address.from("230.0.0.1", findAvailablePort(1234));
 
-    netty1 = (ManagedBroadcastService) NettyBroadcastService.builder()
-        .withLocalAddress(localAddress1)
-        .withGroupAddress(groupAddress)
-        .build()
-        .start()
-        .join();
+    netty1 =
+        (ManagedBroadcastService)
+            NettyBroadcastService.builder()
+                .withLocalAddress(localAddress1)
+                .withGroupAddress(groupAddress)
+                .build()
+                .start()
+                .join();
 
-    netty2 = (ManagedBroadcastService) NettyBroadcastService.builder()
-        .withLocalAddress(localAddress2)
-        .withGroupAddress(groupAddress)
-        .build()
-        .start()
-        .join();
+    netty2 =
+        (ManagedBroadcastService)
+            NettyBroadcastService.builder()
+                .withLocalAddress(localAddress2)
+                .withGroupAddress(groupAddress)
+                .build()
+                .start()
+                .join();
   }
 
   @After
@@ -79,7 +82,7 @@ public class NettyBroadcastServiceTest extends ConcurrentTestCase {
     if (netty1 != null) {
       try {
         netty1.stop().join();
-      } catch (Exception e) {
+      } catch (final Exception e) {
         LOGGER.warn("Failed stopping netty1", e);
       }
     }
@@ -87,20 +90,20 @@ public class NettyBroadcastServiceTest extends ConcurrentTestCase {
     if (netty2 != null) {
       try {
         netty2.stop().join();
-      } catch (Exception e) {
+      } catch (final Exception e) {
         LOGGER.warn("Failed stopping netty2", e);
       }
     }
   }
 
-  private static int findAvailablePort(int defaultPort) {
+  private static int findAvailablePort(final int defaultPort) {
     try {
-      ServerSocket socket = new ServerSocket(0);
+      final ServerSocket socket = new ServerSocket(0);
       socket.setReuseAddress(true);
-      int port = socket.getLocalPort();
+      final int port = socket.getLocalPort();
       socket.close();
       return port;
-    } catch (IOException ex) {
+    } catch (final IOException ex) {
       return defaultPort;
     }
   }

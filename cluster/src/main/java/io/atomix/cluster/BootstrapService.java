@@ -21,8 +21,8 @@ import io.atomix.cluster.messaging.UnicastService;
 
 /**
  * Cluster bootstrap service.
- * <p>
- * This service provides the low level APIs that can be used to bootstrap a cluster.
+ *
+ * <p>This service provides the low level APIs that can be used to bootstrap a cluster.
  */
 public interface BootstrapService {
 
@@ -46,5 +46,4 @@ public interface BootstrapService {
    * @return the cluster broadcast service
    */
   BroadcastService getBroadcastService();
-
 }

@@ -15,26 +15,29 @@
  */
 package io.atomix.cluster.messaging.impl;
 
+import io.atomix.utils.net.Address;
 import java.util.stream.Stream;
 
-import io.atomix.utils.net.Address;
-
-/**
- * Messaging protocol version.
- */
+/** Messaging protocol version. */
 public enum ProtocolVersion {
   V1(1) {
     @Override
-    public MessagingProtocol createProtocol(Address address) {
+    public MessagingProtocol createProtocol(final Address address) {
       return new MessagingProtocolV1(address);
     }
   },
   V2(2) {
     @Override
-    public MessagingProtocol createProtocol(Address address) {
+    public MessagingProtocol createProtocol(final Address address) {
       return new MessagingProtocolV2(address);
     }
   };
+
+  private final short version;
+
+  ProtocolVersion(final int version) {
+    this.version = (short) version;
+  }
 
   /**
    * Returns the protocol version for the given version number.
@@ -42,11 +45,8 @@ public enum ProtocolVersion {
    * @param version the version number for which to return the protocol version
    * @return the protocol version for the given version number
    */
-  public static ProtocolVersion valueOf(int version) {
-    return Stream.of(values())
-        .filter(v -> v.version() == version)
-        .findFirst()
-        .orElse(null);
+  public static ProtocolVersion valueOf(final int version) {
+    return Stream.of(values()).filter(v -> v.version() == version).findFirst().orElse(null);
   }
 
   /**
@@ -56,12 +56,6 @@ public enum ProtocolVersion {
    */
   public static ProtocolVersion latest() {
     return values()[values().length - 1];
-  }
-
-  private final short version;
-
-  ProtocolVersion(int version) {
-    this.version = (short) version;
   }
 
   /**
@@ -80,5 +74,4 @@ public enum ProtocolVersion {
    * @return a new protocol instance
    */
   public abstract MessagingProtocol createProtocol(Address address);
-
 }

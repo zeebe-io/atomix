@@ -15,15 +15,13 @@
  */
 package io.atomix.core.profile;
 
-import java.util.Collections;
-import java.util.Set;
-
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Consensus profile configuration.
- */
+import java.util.Collections;
+import java.util.Set;
+
+/** Consensus profile configuration. */
 public class ConsensusProfileConfig extends ProfileConfig {
   private String dataPath = System.getProperty("atomix.data", ".data");
   private String managementGroup = "system";
@@ -52,7 +50,7 @@ public class ConsensusProfileConfig extends ProfileConfig {
    * @param dataPath the consensus data file path
    * @return the consensus profile configuration
    */
-  public ConsensusProfileConfig setDataPath(String dataPath) {
+  public ConsensusProfileConfig setDataPath(final String dataPath) {
     this.dataPath = checkNotNull(dataPath);
     return this;
   }
@@ -72,7 +70,7 @@ public class ConsensusProfileConfig extends ProfileConfig {
    * @param managementGroup the management partition group name
    * @return the consensus profile configurations
    */
-  public ConsensusProfileConfig setManagementGroup(String managementGroup) {
+  public ConsensusProfileConfig setManagementGroup(final String managementGroup) {
     this.managementGroup = checkNotNull(managementGroup);
     return this;
   }
@@ -92,7 +90,7 @@ public class ConsensusProfileConfig extends ProfileConfig {
    * @param dataGroup the data partition group name
    * @return the consensus profile configurations
    */
-  public ConsensusProfileConfig setDataGroup(String dataGroup) {
+  public ConsensusProfileConfig setDataGroup(final String dataGroup) {
     this.dataGroup = checkNotNull(dataGroup);
     return this;
   }
@@ -112,7 +110,7 @@ public class ConsensusProfileConfig extends ProfileConfig {
    * @param partitionSize the data partition size
    * @return the consensus profile configurations
    */
-  public ConsensusProfileConfig setPartitionSize(int partitionSize) {
+  public ConsensusProfileConfig setPartitionSize(final int partitionSize) {
     checkArgument(partitionSize > 0, "partitionSize must be positive");
     this.partitionSize = partitionSize;
     return this;
@@ -133,7 +131,7 @@ public class ConsensusProfileConfig extends ProfileConfig {
    * @param partitions the number of data partitions to configure
    * @return the consensus profile configurations
    */
-  public ConsensusProfileConfig setPartitions(int partitions) {
+  public ConsensusProfileConfig setPartitions(final int partitions) {
     checkArgument(partitions > 0, "partitions must be positive");
     this.partitions = partitions;
     return this;
@@ -154,7 +152,7 @@ public class ConsensusProfileConfig extends ProfileConfig {
    * @param members the consensus members
    * @return the profile configuration
    */
-  public ConsensusProfileConfig setMembers(Set<String> members) {
+  public ConsensusProfileConfig setMembers(final Set<String> members) {
     this.members = members;
     return this;
   }

@@ -17,12 +17,10 @@ package io.atomix.utils.serializer;
 
 import java.io.ByteArrayOutputStream;
 
-/**
- * Exposes protected byte array length in {@link ByteArrayOutputStream}.
- */
+/** Exposes protected byte array length in {@link ByteArrayOutputStream}. */
 final class BufferAwareByteArrayOutputStream extends ByteArrayOutputStream {
 
-  BufferAwareByteArrayOutputStream(int size) {
+  BufferAwareByteArrayOutputStream(final int size) {
     super(size);
   }
 

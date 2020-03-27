@@ -15,15 +15,13 @@
  */
 package io.atomix.utils;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-/**
- * Version test.
- */
+import org.junit.Test;
+
+/** Version test. */
 public class VersionTest {
   @Test
   public void testVersionComparison() {
@@ -63,11 +61,12 @@ public class VersionTest {
     assertIllegalArgument(() -> Version.from("1.0.0-rc"));
   }
 
-  private void assertIllegalArgument(Runnable callback) {
+  private void assertIllegalArgument(final Runnable callback) {
     try {
       callback.run();
       fail();
-    } catch (IllegalArgumentException e) {
+    } catch (final IllegalArgumentException e) {
+      // expected
     }
   }
 }

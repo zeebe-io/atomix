@@ -21,8 +21,6 @@ import java.nio.ByteBuffer;
 @FunctionalInterface
 interface Cleaner {
 
-  /**
-   * Free {@link ByteBuffer} if possible.
-   */
+  /** Free {@link ByteBuffer} if possible. */
   void freeBuffer(ByteBuffer buffer) throws IOException;
 }

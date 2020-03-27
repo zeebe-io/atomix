@@ -17,16 +17,13 @@ package io.atomix.cluster.discovery;
 
 import io.atomix.cluster.Node;
 import io.atomix.utils.net.Address;
-
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/**
- * Bootstrap discovery builder.
- */
+/** Bootstrap discovery builder. */
 public class BootstrapDiscoveryBuilder extends NodeDiscoveryBuilder {
   private final BootstrapDiscoveryConfig config = new BootstrapDiscoveryConfig();
 
@@ -36,12 +33,11 @@ public class BootstrapDiscoveryBuilder extends NodeDiscoveryBuilder {
    * @param nodes the bootstrap nodes
    * @return the location provider builder
    */
-  public BootstrapDiscoveryBuilder withNodes(Address... nodes) {
-    return withNodes(Stream.of(nodes)
-        .map(address -> Node.builder()
-            .withAddress(address)
-            .build())
-        .collect(Collectors.toSet()));
+  public BootstrapDiscoveryBuilder withNodes(final Address... nodes) {
+    return withNodes(
+        Stream.of(nodes)
+            .map(address -> Node.builder().withAddress(address).build())
+            .collect(Collectors.toSet()));
   }
 
   /**
@@ -50,7 +46,7 @@ public class BootstrapDiscoveryBuilder extends NodeDiscoveryBuilder {
    * @param nodes the bootstrap nodes
    * @return the location provider builder
    */
-  public BootstrapDiscoveryBuilder withNodes(Node... nodes) {
+  public BootstrapDiscoveryBuilder withNodes(final Node... nodes) {
     return withNodes(Arrays.asList(nodes));
   }
 
@@ -60,7 +56,7 @@ public class BootstrapDiscoveryBuilder extends NodeDiscoveryBuilder {
    * @param locations the bootstrap member locations
    * @return the location provider builder
    */
-  public BootstrapDiscoveryBuilder withNodes(Collection<Node> locations) {
+  public BootstrapDiscoveryBuilder withNodes(final Collection<Node> locations) {
     config.setNodes(locations.stream().map(Node::config).collect(Collectors.toList()));
     return this;
   }
@@ -71,7 +67,7 @@ public class BootstrapDiscoveryBuilder extends NodeDiscoveryBuilder {
    * @param heartbeatInterval the failure detection heartbeat interval
    * @return the location provider builder
    */
-  public BootstrapDiscoveryBuilder withHeartbeatInterval(Duration heartbeatInterval) {
+  public BootstrapDiscoveryBuilder withHeartbeatInterval(final Duration heartbeatInterval) {
     config.setHeartbeatInterval(heartbeatInterval);
     return this;
   }
@@ -82,7 +78,7 @@ public class BootstrapDiscoveryBuilder extends NodeDiscoveryBuilder {
    * @param failureThreshold the phi accrual failure threshold
    * @return the location provider builder
    */
-  public BootstrapDiscoveryBuilder withFailureThreshold(int failureThreshold) {
+  public BootstrapDiscoveryBuilder withFailureThreshold(final int failureThreshold) {
     config.setFailureThreshold(failureThreshold);
     return this;
   }
@@ -93,7 +89,7 @@ public class BootstrapDiscoveryBuilder extends NodeDiscoveryBuilder {
    * @param failureTimeout the failure timeout
    * @return the location provider builder
    */
-  public BootstrapDiscoveryBuilder withFailureTimeout(Duration failureTimeout) {
+  public BootstrapDiscoveryBuilder withFailureTimeout(final Duration failureTimeout) {
     config.setFailureTimeout(failureTimeout);
     return this;
   }

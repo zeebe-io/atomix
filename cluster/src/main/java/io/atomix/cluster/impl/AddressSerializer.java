@@ -20,20 +20,18 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import io.atomix.utils.net.Address;
 
-/**
- * Address serializer.
- */
+/** Address serializer. */
 public class AddressSerializer extends com.esotericsoftware.kryo.Serializer<Address> {
   @Override
-  public void write(Kryo kryo, Output output, Address address) {
+  public void write(final Kryo kryo, final Output output, final Address address) {
     output.writeString(address.host());
     output.writeInt(address.port());
   }
 
   @Override
-  public Address read(Kryo kryo, Input input, Class<Address> type) {
-    String host = input.readString();
-    int port = input.readInt();
+  public Address read(final Kryo kryo, final Input input, final Class<Address> type) {
+    final String host = input.readString();
+    final int port = input.readInt();
     return Address.from(host, port);
   }
 }

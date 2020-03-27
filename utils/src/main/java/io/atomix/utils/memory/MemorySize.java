@@ -17,10 +17,14 @@ package io.atomix.utils.memory;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-/**
- * Memory size.
- */
+/** Memory size. */
 public class MemorySize {
+
+  private final long bytes;
+
+  public MemorySize(final long bytes) {
+    this.bytes = bytes;
+  }
 
   /**
    * Creates a memory size from the given bytes.
@@ -28,14 +32,8 @@ public class MemorySize {
    * @param bytes the number of bytes
    * @return the memory size
    */
-  public static MemorySize from(long bytes) {
+  public static MemorySize from(final long bytes) {
     return new MemorySize(bytes);
-  }
-
-  private final long bytes;
-
-  public MemorySize(long bytes) {
-    this.bytes = bytes;
   }
 
   /**
@@ -53,14 +51,12 @@ public class MemorySize {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     return object instanceof MemorySize && ((MemorySize) object).bytes == bytes;
   }
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .addValue(bytes)
-        .toString();
+    return toStringHelper(this).addValue(bytes).toString();
   }
 }

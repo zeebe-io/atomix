@@ -15,19 +15,24 @@
  */
 package io.atomix.utils.time;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ComparisonChain;
-
 import java.util.Objects;
-
-import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Timestamp based on logical sequence value.
- * <p>
- * LogicalTimestamps are ordered by their sequence values.
+ *
+ * <p>LogicalTimestamps are ordered by their sequence values.
  */
 public class LogicalTimestamp implements Timestamp {
+
+  private final long value;
+
+  public LogicalTimestamp(final long value) {
+    this.value = value;
+  }
 
   /**
    * Returns a new logical timestamp for the given logical time.
@@ -35,14 +40,8 @@ public class LogicalTimestamp implements Timestamp {
    * @param value the logical time for which to create a new logical timestamp
    * @return the logical timestamp
    */
-  public static LogicalTimestamp of(long value) {
+  public static LogicalTimestamp of(final long value) {
     return new LogicalTimestamp(value);
-  }
-
-  private final long value;
-
-  public LogicalTimestamp(long value) {
-    this.value = value;
   }
 
   /**
@@ -64,14 +63,11 @@ public class LogicalTimestamp implements Timestamp {
   }
 
   @Override
-  public int compareTo(Timestamp o) {
-    Preconditions.checkArgument(o instanceof LogicalTimestamp,
-        "Must be LogicalTimestamp", o);
-    LogicalTimestamp that = (LogicalTimestamp) o;
+  public int compareTo(final Timestamp o) {
+    Preconditions.checkArgument(o instanceof LogicalTimestamp, "Must be LogicalTimestamp", o);
+    final LogicalTimestamp that = (LogicalTimestamp) o;
 
-    return ComparisonChain.start()
-        .compare(this.value, that.value)
-        .result();
+    return ComparisonChain.start().compare(this.value, that.value).result();
   }
 
   @Override
@@ -80,21 +76,19 @@ public class LogicalTimestamp implements Timestamp {
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(final Object obj) {
     if (this == obj) {
       return true;
     }
     if (!(obj instanceof LogicalTimestamp)) {
       return false;
     }
-    LogicalTimestamp that = (LogicalTimestamp) obj;
+    final LogicalTimestamp that = (LogicalTimestamp) obj;
     return Objects.equals(this.value, that.value);
   }
 
   @Override
   public String toString() {
-    return toStringHelper(getClass())
-        .add("value", value)
-        .toString();
+    return toStringHelper(getClass()).add("value", value).toString();
   }
 }

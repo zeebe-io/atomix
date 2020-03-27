@@ -15,16 +15,13 @@
  */
 package io.atomix.storage.journal;
 
-import java.io.File;
-
-import org.junit.Test;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-/**
- * Journal segment file test.
- */
+import java.io.File;
+import org.junit.Test;
+
+/** Journal segment file test. */
 public class JournalSegmentFileTest {
 
   @Test
@@ -36,8 +33,8 @@ public class JournalSegmentFileTest {
 
   @Test
   public void testCreateSegmentFile() throws Exception {
-    File file = JournalSegmentFile.createSegmentFile("foo", new File(System.getProperty("user.dir")), 1);
+    final File file =
+        JournalSegmentFile.createSegmentFile("foo", new File(System.getProperty("user.dir")), 1);
     assertTrue(JournalSegmentFile.isSegmentFile("foo", file));
   }
-
 }

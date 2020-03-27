@@ -17,14 +17,11 @@ package io.atomix.cluster.discovery;
 
 import java.time.Duration;
 
-/**
- * Multicast discovery provider builder.
- */
+/** Multicast discovery provider builder. */
 public class MulticastDiscoveryBuilder extends NodeDiscoveryBuilder {
   private final MulticastDiscoveryConfig config = new MulticastDiscoveryConfig();
 
-  protected MulticastDiscoveryBuilder() {
-  }
+  protected MulticastDiscoveryBuilder() {}
 
   /**
    * Sets the broadcast interval.
@@ -32,7 +29,7 @@ public class MulticastDiscoveryBuilder extends NodeDiscoveryBuilder {
    * @param broadcastInterval the broadcast interval
    * @return the location provider builder
    */
-  public MulticastDiscoveryBuilder withBroadcastInterval(Duration broadcastInterval) {
+  public MulticastDiscoveryBuilder withBroadcastInterval(final Duration broadcastInterval) {
     config.setBroadcastInterval(broadcastInterval);
     return this;
   }
@@ -43,7 +40,7 @@ public class MulticastDiscoveryBuilder extends NodeDiscoveryBuilder {
    * @param failureThreshold the phi accrual failure threshold
    * @return the location provider builder
    */
-  public MulticastDiscoveryBuilder withFailureThreshold(int failureThreshold) {
+  public MulticastDiscoveryBuilder withFailureThreshold(final int failureThreshold) {
     config.setFailureThreshold(failureThreshold);
     return this;
   }
@@ -54,7 +51,7 @@ public class MulticastDiscoveryBuilder extends NodeDiscoveryBuilder {
    * @param failureTimeout the failure timeout
    * @return the location provider builder
    */
-  public MulticastDiscoveryBuilder withFailureTimeout(Duration failureTimeout) {
+  public MulticastDiscoveryBuilder withFailureTimeout(final Duration failureTimeout) {
     config.setFailureTimeout(failureTimeout);
     return this;
   }

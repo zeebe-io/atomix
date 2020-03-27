@@ -21,9 +21,7 @@ import static org.junit.Assert.assertNull;
 import io.atomix.storage.journal.Indexed;
 import org.junit.Test;
 
-/**
- * Sparse journal index test.
- */
+/** Sparse journal index test. */
 public class SparseJournalIndexTest {
 
   @Test
@@ -38,7 +36,7 @@ public class SparseJournalIndexTest {
     assertNull(position);
   }
 
-  public static Indexed asIndexedEntry(long index) {
+  public static Indexed asIndexedEntry(final long index) {
     return new Indexed(index, null, 0);
   }
 
@@ -57,7 +55,6 @@ public class SparseJournalIndexTest {
     // then
     assertEquals(5, index.lookup(5).index());
     assertEquals(10, index.lookup(5).position());
-
   }
 
   @Test

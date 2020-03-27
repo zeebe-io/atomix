@@ -20,18 +20,25 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Objects;
 
-/**
- * Representation of a network address.
- */
+/** Representation of a network address. */
 public final class Address {
   private static final int DEFAULT_PORT = 5679;
+  private final String host;
+  private final int port;
+  private transient volatile Type type;
+  private transient volatile InetAddress address;
 
-  /**
-   * Address type.
-   */
-  public enum Type {
-    IPV4,
-    IPV6,
+  public Address(final String host, final int port) {
+    this(host, port, null);
+  }
+
+  public Address(final String host, final int port, final InetAddress address) {
+    this.host = host;
+    this.port = port;
+    this.address = address;
+    if (address != null) {
+      this.type = address instanceof Inet6Address ? Type.IPV6 : Type.IPV4;
+    }
   }
 
   /**
@@ -49,12 +56,12 @@ public final class Address {
    * @param address the address string
    * @return the address
    */
-  public static Address from(String address) {
-    int lastColon = address.lastIndexOf(':');
-    int openBracket = address.indexOf('[');
-    int closeBracket = address.indexOf(']');
+  public static Address from(final String address) {
+    final int lastColon = address.lastIndexOf(':');
+    final int openBracket = address.indexOf('[');
+    final int closeBracket = address.indexOf(']');
 
-    String host;
+    final String host;
     if (openBracket != -1 && closeBracket != -1) {
       host = address.substring(openBracket + 1, closeBracket);
     } else if (lastColon != -1) {
@@ -63,11 +70,11 @@ public final class Address {
       host = address;
     }
 
-    int port;
+    final int port;
     if (lastColon != -1) {
       try {
         port = Integer.parseInt(address.substring(lastColon + 1));
-      } catch (NumberFormatException e) {
+      } catch (final NumberFormatException e) {
         throw new MalformedAddressException(address, e);
       }
     } else {
@@ -83,7 +90,7 @@ public final class Address {
    * @param port the port
    * @return a new address
    */
-  public static Address from(String host, int port) {
+  public static Address from(final String host, final int port) {
     return new Address(host, port);
   }
 
@@ -93,41 +100,21 @@ public final class Address {
    * @param port the port
    * @return a new address
    */
-  public static Address from(int port) {
+  public static Address from(final int port) {
     try {
-      InetAddress address = getLocalAddress();
+      final InetAddress address = getLocalAddress();
       return new Address(address.getHostName(), port);
-    } catch (UnknownHostException e) {
+    } catch (final UnknownHostException e) {
       throw new IllegalArgumentException("Failed to locate host", e);
     }
   }
 
-  /**
-   * Returns the local host.
-   */
+  /** Returns the local host. */
   private static InetAddress getLocalAddress() throws UnknownHostException {
     try {
-      return InetAddress.getLocalHost();  // first NIC
-    } catch (Exception ignore) {
+      return InetAddress.getLocalHost(); // first NIC
+    } catch (final Exception ignore) {
       return InetAddress.getByName(null);
-    }
-  }
-
-  private final String host;
-  private final int port;
-  private transient volatile Type type;
-  private transient volatile InetAddress address;
-
-  public Address(String host, int port) {
-    this(host, port, null);
-  }
-
-  public Address(String host, int port, InetAddress address) {
-    this.host = host;
-    this.port = port;
-    this.address = address;
-    if (address != null) {
-      this.type = address instanceof Inet6Address ? Type.IPV6 : Type.IPV4;
     }
   }
 
@@ -164,7 +151,7 @@ public final class Address {
    * @param resolve whether to force resolve the hostname
    * @return the IP address
    */
-  public InetAddress address(boolean resolve) {
+  public InetAddress address(final boolean resolve) {
     if (resolve) {
       address = resolveAddress();
       return address;
@@ -188,7 +175,7 @@ public final class Address {
   private InetAddress resolveAddress() {
     try {
       return InetAddress.getByName(host);
-    } catch (UnknownHostException e) {
+    } catch (final UnknownHostException e) {
       return null;
     }
   }
@@ -210,23 +197,12 @@ public final class Address {
   }
 
   @Override
-  public String toString() {
-    String host = host();
-    int port = port();
-    if (host.matches("([0-9a-f]{1,4}:){7}([0-9a-f]){1,4}")) {
-      return String.format("[%s]:%d", host, port);
-    } else {
-      return String.format("%s:%d", host, port);
-    }
-  }
-
-  @Override
   public int hashCode() {
     return Objects.hash(host, port);
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(final Object obj) {
     if (this == obj) {
       return true;
     }
@@ -236,8 +212,24 @@ public final class Address {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    Address that = (Address) obj;
-    return this.host.equals(that.host)
-        && this.port == that.port;
+    final Address that = (Address) obj;
+    return this.host.equals(that.host) && this.port == that.port;
+  }
+
+  @Override
+  public String toString() {
+    final String host = host();
+    final int port = port();
+    if (host.matches("([0-9a-f]{1,4}:){7}([0-9a-f]){1,4}")) {
+      return String.format("[%s]:%d", host, port);
+    } else {
+      return String.format("%s:%d", host, port);
+    }
+  }
+
+  /** Address type. */
+  public enum Type {
+    IPV4,
+    IPV6,
   }
 }

@@ -17,11 +17,9 @@ package io.atomix.storage.journal;
 
 import io.atomix.storage.StorageLevel;
 
-/**
- * Disk journal test.
- */
+/** Disk journal test. */
 public class DiskJournalTest extends PersistentJournalTest {
-  public DiskJournalTest(int maxSegmentSize, int cacheSize) {
+  public DiskJournalTest(final int maxSegmentSize, final int cacheSize) {
     super(maxSegmentSize, cacheSize);
   }
 

@@ -20,7 +20,6 @@ import com.google.common.collect.Sets;
 import io.atomix.cluster.messaging.ManagedUnicastService;
 import io.atomix.cluster.messaging.UnicastService;
 import io.atomix.utils.net.Address;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -28,17 +27,17 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 
-/**
- * Test unicast service.
- */
+/** Test unicast service. */
 public class TestUnicastService implements ManagedUnicastService {
   private final Address address;
   private final Map<Address, TestUnicastService> services;
-  private final Map<String, Map<BiConsumer<Address, byte[]>, Executor>> listeners = Maps.newConcurrentMap();
+  private final Map<String, Map<BiConsumer<Address, byte[]>, Executor>> listeners =
+      Maps.newConcurrentMap();
   private final AtomicBoolean started = new AtomicBoolean();
   private final Set<Address> partitions = Sets.newConcurrentHashSet();
 
-  public TestUnicastService(Address address, Map<Address, TestUnicastService> services) {
+  public TestUnicastService(
+      final Address address, final Map<Address, TestUnicastService> services) {
     this.address = address;
     this.services = services;
   }
@@ -52,17 +51,13 @@ public class TestUnicastService implements ManagedUnicastService {
     return address;
   }
 
-  /**
-   * Partitions the node from the given address.
-   */
-  void partition(Address address) {
+  /** Partitions the node from the given address. */
+  void partition(final Address address) {
     partitions.add(address);
   }
 
-  /**
-   * Heals the partition from the given address.
-   */
-  void heal(Address address) {
+  /** Heals the partition from the given address. */
+  void heal(final Address address) {
     partitions.remove(address);
   }
 
@@ -72,33 +67,36 @@ public class TestUnicastService implements ManagedUnicastService {
    * @param address the address to check
    * @return whether this node is partitioned from the given address
    */
-  boolean isPartitioned(Address address) {
+  boolean isPartitioned(final Address address) {
     return partitions.contains(address);
   }
 
   @Override
-  public void unicast(Address address, String subject, byte[] message) {
+  public void unicast(final Address address, final String subject, final byte[] message) {
     if (isPartitioned(address)) {
       return;
     }
 
-    TestUnicastService service = services.get(address);
+    final TestUnicastService service = services.get(address);
     if (service != null) {
-      Map<BiConsumer<Address, byte[]>, Executor> listeners = service.listeners.get(subject);
+      final Map<BiConsumer<Address, byte[]>, Executor> listeners = service.listeners.get(subject);
       if (listeners != null) {
-        listeners.forEach((listener, executor) -> executor.execute(() -> listener.accept(this.address, message)));
+        listeners.forEach(
+            (listener, executor) -> executor.execute(() -> listener.accept(this.address, message)));
       }
     }
   }
 
   @Override
-  public synchronized void addListener(String subject, BiConsumer<Address, byte[]> listener, Executor executor) {
+  public synchronized void addListener(
+      final String subject, final BiConsumer<Address, byte[]> listener, final Executor executor) {
     listeners.computeIfAbsent(subject, s -> Maps.newConcurrentMap()).put(listener, executor);
   }
 
   @Override
-  public synchronized void removeListener(String subject, BiConsumer<Address, byte[]> listener) {
-    Map<BiConsumer<Address, byte[]>, Executor> listeners = this.listeners.get(subject);
+  public synchronized void removeListener(
+      final String subject, final BiConsumer<Address, byte[]> listener) {
+    final Map<BiConsumer<Address, byte[]>, Executor> listeners = this.listeners.get(subject);
     if (listeners != null) {
       listeners.remove(listener);
       if (listeners.isEmpty()) {

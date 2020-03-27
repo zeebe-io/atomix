@@ -23,29 +23,23 @@ import io.atomix.primitive.session.impl.AbstractSession;
 import io.atomix.utils.concurrent.ThreadContext;
 import io.atomix.utils.serializer.Serializer;
 
-/**
- * Test protocol session.
- */
+/** Test protocol session. */
 public class TestProtocolSession<C> extends AbstractSession<C> {
   private final TestSessionClient client;
   private final ThreadContext context;
   private volatile State state = State.CLOSED;
 
   public TestProtocolSession(
-      SessionId sessionId,
-      String primitiveName,
-      PrimitiveType primitiveType,
-      MemberId memberId,
-      Serializer serializer,
-      TestSessionClient client,
-      ThreadContext context) {
+      final SessionId sessionId,
+      final String primitiveName,
+      final PrimitiveType primitiveType,
+      final MemberId memberId,
+      final Serializer serializer,
+      final TestSessionClient client,
+      final ThreadContext context) {
     super(sessionId, primitiveName, primitiveType, memberId, serializer);
     this.client = client;
     this.context = context;
-  }
-
-  void setState(State state) {
-    this.state = state;
   }
 
   @Override
@@ -53,8 +47,12 @@ public class TestProtocolSession<C> extends AbstractSession<C> {
     return state;
   }
 
+  void setState(final State state) {
+    this.state = state;
+  }
+
   @Override
-  public void publish(PrimitiveEvent event) {
+  public void publish(final PrimitiveEvent event) {
     context.execute(() -> client.accept(event));
   }
 }

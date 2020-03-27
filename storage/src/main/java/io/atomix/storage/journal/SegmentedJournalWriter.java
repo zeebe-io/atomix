@@ -18,16 +18,14 @@ package io.atomix.storage.journal;
 import io.atomix.storage.statistics.JournalMetrics;
 import java.nio.BufferOverflowException;
 
-/**
- * Raft log writer.
- */
+/** Raft log writer. */
 public class SegmentedJournalWriter<E> implements JournalWriter<E> {
   private final SegmentedJournal<E> journal;
   private final JournalMetrics journalMetrics;
   private JournalSegment<E> currentSegment;
   private MappableJournalSegmentWriter<E> currentWriter;
 
-  public SegmentedJournalWriter(SegmentedJournal<E> journal) {
+  public SegmentedJournalWriter(final SegmentedJournal<E> journal) {
     this.journal = journal;
     journalMetrics = journal.getJournalMetrics();
     this.currentSegment = journal.getLastSegment();
@@ -51,7 +49,46 @@ public class SegmentedJournalWriter<E> implements JournalWriter<E> {
   }
 
   @Override
-  public void reset(long index) {
+  public <T extends E> Indexed<T> append(final T entry) {
+    try {
+      return currentWriter.append(entry);
+    } catch (final BufferOverflowException e) {
+      if (currentSegment.index() == currentWriter.getNextIndex()) {
+        throw e;
+      }
+
+      journalMetrics.observeSegmentCreation(this::createNewSegment);
+
+      return currentWriter.append(entry);
+    }
+  }
+
+  @Override
+  public void append(final Indexed<E> entry) {
+    try {
+      currentWriter.append(entry);
+    } catch (final BufferOverflowException e) {
+      if (currentSegment.index() == currentWriter.getNextIndex()) {
+        throw e;
+      }
+      journalMetrics.observeSegmentCreation(this::createNewSegment);
+
+      currentWriter.append(entry);
+    }
+  }
+
+  @Override
+  public void commit(final long index) {
+    if (index > journal.getCommitIndex()) {
+      journal.setCommitIndex(index);
+      if (journal.isFlushOnCommit()) {
+        flush();
+      }
+    }
+  }
+
+  @Override
+  public void reset(final long index) {
     if (index > currentSegment.index()) {
       currentSegment.release();
       currentSegment = journal.resetSegments(index);
@@ -64,74 +101,28 @@ public class SegmentedJournalWriter<E> implements JournalWriter<E> {
   }
 
   @Override
-  public void commit(long index) {
-    if (index > journal.getCommitIndex()) {
-      journal.setCommitIndex(index);
-      if (journal.isFlushOnCommit()) {
-        flush();
-      }
-    }
-  }
-
-  @Override
-  public <T extends E> Indexed<T> append(T entry) {
-    try {
-      return currentWriter.append(entry);
-    } catch (BufferOverflowException e) {
-      if (currentSegment.index() == currentWriter.getNextIndex()) {
-        throw e;
-      }
-
-      journalMetrics.observeSegmentCreation(this::createNewSegment);
-
-      return currentWriter.append(entry);
-    }
-  }
-
-  @Override
-  public void append(Indexed<E> entry) {
-    try {
-      currentWriter.append(entry);
-    } catch (BufferOverflowException e) {
-      if (currentSegment.index() == currentWriter.getNextIndex()) {
-        throw e;
-      }
-      journalMetrics.observeSegmentCreation(this::createNewSegment);
-
-      currentWriter.append(entry);
-    }
-  }
-
-  private void createNewSegment() {
-    currentWriter.flush();
-    currentSegment.release();
-    currentSegment = journal.getNextSegment();
-    currentSegment.acquire();
-    currentWriter = currentSegment.writer();
-  }
-
-  @Override
-  public void truncate(long index) {
+  public void truncate(final long index) {
     if (index < journal.getCommitIndex()) {
       throw new IndexOutOfBoundsException("Cannot truncate committed index: " + index);
     }
 
-    journalMetrics.observeSegmentTruncation(() -> {
-      // Delete all segments with first indexes greater than the given index.
-      while (index < currentSegment.index() && currentSegment != journal.getFirstSegment()) {
-        currentSegment.release();
-        journal.removeSegment(currentSegment);
-        currentSegment = journal.getLastSegment();
-        currentSegment.acquire();
-        currentWriter = currentSegment.writer();
-      }
+    journalMetrics.observeSegmentTruncation(
+        () -> {
+          // Delete all segments with first indexes greater than the given index.
+          while (index < currentSegment.index() && currentSegment != journal.getFirstSegment()) {
+            currentSegment.release();
+            journal.removeSegment(currentSegment);
+            currentSegment = journal.getLastSegment();
+            currentSegment.acquire();
+            currentWriter = currentSegment.writer();
+          }
 
-      // Truncate the current index.
-      currentWriter.truncate(index);
+          // Truncate the current index.
+          currentWriter.truncate(index);
 
-      // Reset segment readers.
-      journal.resetTail(index + 1);
-    });
+          // Reset segment readers.
+          journal.resetTail(index + 1);
+        });
   }
 
   @Override
@@ -142,5 +133,13 @@ public class SegmentedJournalWriter<E> implements JournalWriter<E> {
   @Override
   public void close() {
     currentWriter.close();
+  }
+
+  private void createNewSegment() {
+    currentWriter.flush();
+    currentSegment.release();
+    currentSegment = journal.getNextSegment();
+    currentSegment.acquire();
+    currentWriter = currentSegment.writer();
   }
 }

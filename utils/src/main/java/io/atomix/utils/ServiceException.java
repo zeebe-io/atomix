@@ -15,18 +15,15 @@
  */
 package io.atomix.utils;
 
-/**
- * Service exception.
- */
+/** Service exception. */
 public class ServiceException extends AtomixRuntimeException {
-  public ServiceException() {
-  }
+  public ServiceException() {}
 
-  public ServiceException(String message) {
+  public ServiceException(final String message) {
     super(message);
   }
 
-  public ServiceException(String message, Throwable cause) {
+  public ServiceException(final String message, final Throwable cause) {
     super(message, cause);
   }
 }

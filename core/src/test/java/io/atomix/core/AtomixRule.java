@@ -35,15 +35,13 @@ public final class AtomixRule extends ExternalResource {
   protected void after() {
     try {
       deleteData();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       LoggerFactory.getLogger(AtomixRule.class).error("Unexpected error on clean up data", e);
     }
   }
 
-  /**
-   * Creates an Atomix instance.
-   */
-  public AtomixBuilder buildAtomix(int id, Properties properties) {
+  /** Creates an Atomix instance. */
+  public AtomixBuilder buildAtomix(final int id, final Properties properties) {
     return Atomix.builder()
         .withClusterId("test")
         .withMemberId(String.valueOf(id))
@@ -54,17 +52,18 @@ public final class AtomixRule extends ExternalResource {
         .withMembershipProvider(new MulticastDiscoveryProvider());
   }
 
-  /**
-   * Creates an Atomix instance.
-   */
-  public AtomixBuilder buildAtomix(int id, List<Integer> memberIds,
-      Properties properties) {
-    final Collection<Node> nodes = memberIds.stream()
-        .map(memberId -> Node.builder()
-            .withId(String.valueOf(memberId))
-            .withAddress(Address.from("localhost", BASE_PORT + memberId))
-            .build())
-        .collect(Collectors.toList());
+  /** Creates an Atomix instance. */
+  public AtomixBuilder buildAtomix(
+      final int id, final List<Integer> memberIds, final Properties properties) {
+    final Collection<Node> nodes =
+        memberIds.stream()
+            .map(
+                memberId ->
+                    Node.builder()
+                        .withId(String.valueOf(memberId))
+                        .withAddress(Address.from("localhost", BASE_PORT + memberId))
+                        .build())
+            .collect(Collectors.toList());
 
     return Atomix.builder()
         .withClusterId("test")
@@ -73,72 +72,77 @@ public final class AtomixRule extends ExternalResource {
         .withPort(BASE_PORT + id)
         .withProperties(properties)
         .withMulticastEnabled()
-        .withMembershipProvider(!nodes.isEmpty() ? new BootstrapDiscoveryProvider(nodes)
-            : new MulticastDiscoveryProvider());
+        .withMembershipProvider(
+            !nodes.isEmpty()
+                ? new BootstrapDiscoveryProvider(nodes)
+                : new MulticastDiscoveryProvider());
   }
 
-  /**
-   * Creates an Atomix instance.
-   */
-  public Atomix createAtomix(int id, List<Integer> bootstrapIds, Profile... profiles) {
+  /** Creates an Atomix instance. */
+  public Atomix createAtomix(
+      final int id, final List<Integer> bootstrapIds, final Profile... profiles) {
     return createAtomix(id, bootstrapIds, new Properties(), profiles);
   }
 
-  /**
-   * Creates an Atomix instance.
-   */
-  public Atomix createAtomix(int id, List<Integer> bootstrapIds, Properties properties,
-      Profile... profiles) {
+  /** Creates an Atomix instance. */
+  public Atomix createAtomix(
+      final int id,
+      final List<Integer> bootstrapIds,
+      final Properties properties,
+      final Profile... profiles) {
     return createAtomix(id, bootstrapIds, properties, b -> b.withProfiles(profiles).build());
   }
 
-  /**
-   * Creates an Atomix instance.
-   */
-  public Atomix createAtomix(int id, List<Integer> bootstrapIds,
-      Function<AtomixBuilder, Atomix> builderFunction) {
+  /** Creates an Atomix instance. */
+  public Atomix createAtomix(
+      final int id,
+      final List<Integer> bootstrapIds,
+      final Function<AtomixBuilder, Atomix> builderFunction) {
     return createAtomix(id, bootstrapIds, new Properties(), builderFunction);
   }
 
-  /**
-   * Creates an Atomix instance.
-   */
-  public Atomix createAtomix(int id, List<Integer> bootstrapIds, Properties properties,
-      Function<AtomixBuilder, Atomix> builderFunction) {
+  /** Creates an Atomix instance. */
+  public Atomix createAtomix(
+      final int id,
+      final List<Integer> bootstrapIds,
+      final Properties properties,
+      final Function<AtomixBuilder, Atomix> builderFunction) {
     return builderFunction.apply(buildAtomix(id, bootstrapIds, properties));
   }
 
-  private int findAvailablePort(int defaultPort) {
+  private int findAvailablePort(final int defaultPort) {
     try {
       final ServerSocket socket = new ServerSocket(0);
       socket.setReuseAddress(true);
       final int port = socket.getLocalPort();
       socket.close();
       return port;
-    } catch (IOException ex) {
+    } catch (final IOException ex) {
       return defaultPort;
     }
   }
 
-  /**
-   * Deletes data from the test data directory.
-   */
+  /** Deletes data from the test data directory. */
   private static void deleteData() throws Exception {
     final Path directory = DATA_DIR.toPath();
     if (Files.exists(directory)) {
-      Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-          Files.delete(file);
-          return FileVisitResult.CONTINUE;
-        }
+      Files.walkFileTree(
+          directory,
+          new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs)
+                throws IOException {
+              Files.delete(file);
+              return FileVisitResult.CONTINUE;
+            }
 
-        @Override
-        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-          Files.delete(dir);
-          return FileVisitResult.CONTINUE;
-        }
-      });
+            @Override
+            public FileVisitResult postVisitDirectory(final Path dir, final IOException exc)
+                throws IOException {
+              Files.delete(dir);
+              return FileVisitResult.CONTINUE;
+            }
+          });
     }
   }
 }

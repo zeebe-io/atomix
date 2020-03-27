@@ -20,13 +20,10 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Collection of various helper methods to manipulate strings.
- */
+/** Collection of various helper methods to manipulate strings. */
 public final class StringUtils {
 
-  private StringUtils() {
-  }
+  private StringUtils() {}
 
   /**
    * Splits the input string with the given regex and filters empty strings.
@@ -34,13 +31,13 @@ public final class StringUtils {
    * @param input the string to split.
    * @return the array of strings computed by splitting this string
    */
-  public static String[] split(String input, String regex) {
+  public static String[] split(final String input, final String regex) {
     if (input == null) {
       return null;
     }
-    String[] arr = input.split(regex);
-    List<String> results = new ArrayList<>(arr.length);
-    for (String a : arr) {
+    final String[] arr = input.split(regex);
+    final List<String> results = new ArrayList<>(arr.length);
+    for (final String a : arr) {
       if (!a.trim().isEmpty()) {
         results.add(a);
       }

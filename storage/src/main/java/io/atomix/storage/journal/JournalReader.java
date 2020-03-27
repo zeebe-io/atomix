@@ -25,22 +25,6 @@ import java.util.Iterator;
 public interface JournalReader<E> extends Iterator<Indexed<E>>, AutoCloseable {
 
   /**
-   * Raft log reader mode.
-   */
-  enum Mode {
-
-    /**
-     * Reads all entries from the log.
-     */
-    ALL,
-
-    /**
-     * Reads committed entries from the log.
-     */
-    COMMITS,
-  }
-
-  /**
    * Returns true if there is nothing available to read regardless of the current reader position,
    * meaning even if we reset the reader to any position there would be nothing to read.
    *
@@ -100,9 +84,7 @@ public interface JournalReader<E> extends Iterator<Indexed<E>>, AutoCloseable {
   @Override
   Indexed<E> next();
 
-  /**
-   * Resets the reader to the start.
-   */
+  /** Resets the reader to the start. */
   void reset();
 
   /**
@@ -114,4 +96,14 @@ public interface JournalReader<E> extends Iterator<Indexed<E>>, AutoCloseable {
 
   @Override
   void close();
+
+  /** Raft log reader mode. */
+  enum Mode {
+
+    /** Reads all entries from the log. */
+    ALL,
+
+    /** Reads committed entries from the log. */
+    COMMITS,
+  }
 }

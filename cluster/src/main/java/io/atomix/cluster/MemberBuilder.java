@@ -16,51 +16,37 @@
 package io.atomix.cluster;
 
 import io.atomix.utils.net.Address;
-
 import java.util.Properties;
 
-/**
- * Member builder.
- */
+/** Member builder. */
 public class MemberBuilder extends NodeBuilder {
   protected final MemberConfig config;
 
-  protected MemberBuilder(MemberConfig config) {
+  protected MemberBuilder(final MemberConfig config) {
     super(config);
     this.config = config;
   }
 
   @Override
-  public MemberBuilder withId(String id) {
+  public MemberBuilder withId(final String id) {
     super.withId(id);
     return this;
   }
 
   @Override
-  public MemberBuilder withId(NodeId id) {
+  public MemberBuilder withId(final NodeId id) {
     super.withId(id);
     return this;
   }
 
-  /**
-   * Sets the member identifier.
-   *
-   * @param id the member identifier
-   * @return the member builder
-   */
-  public MemberBuilder withId(MemberId id) {
-    config.setId(id);
-    return this;
-  }
-
   @Override
-  public MemberBuilder withHost(String host) {
+  public MemberBuilder withHost(final String host) {
     super.withHost(host);
     return this;
   }
 
   @Override
-  public MemberBuilder withPort(int port) {
+  public MemberBuilder withPort(final int port) {
     super.withPort(port);
     return this;
   }
@@ -70,11 +56,12 @@ public class MemberBuilder extends NodeBuilder {
    *
    * @param address a host:port tuple
    * @return the member builder
-   * @throws io.atomix.utils.net.MalformedAddressException if a valid {@link Address} cannot be constructed from the arguments
+   * @throws io.atomix.utils.net.MalformedAddressException if a valid {@link Address} cannot be
+   *     constructed from the arguments
    * @deprecated since 3.1. Use {@link #withHost(String)} and/or {@link #withPort(int)} instead
    */
   @Deprecated
-  public MemberBuilder withAddress(String address) {
+  public MemberBuilder withAddress(final String address) {
     return withAddress(Address.from(address));
   }
 
@@ -84,11 +71,12 @@ public class MemberBuilder extends NodeBuilder {
    * @param host the host name
    * @param port the port number
    * @return the member builder
-   * @throws io.atomix.utils.net.MalformedAddressException if a valid {@link Address} cannot be constructed from the arguments
+   * @throws io.atomix.utils.net.MalformedAddressException if a valid {@link Address} cannot be
+   *     constructed from the arguments
    * @deprecated since 3.1. Use {@link #withHost(String)} and {@link #withPort(int)} instead
    */
   @Deprecated
-  public MemberBuilder withAddress(String host, int port) {
+  public MemberBuilder withAddress(final String host, final int port) {
     return withAddress(Address.from(host, port));
   }
 
@@ -97,11 +85,12 @@ public class MemberBuilder extends NodeBuilder {
    *
    * @param port the port number
    * @return the member builder
-   * @throws io.atomix.utils.net.MalformedAddressException if a valid {@link Address} cannot be constructed from the arguments
+   * @throws io.atomix.utils.net.MalformedAddressException if a valid {@link Address} cannot be
+   *     constructed from the arguments
    * @deprecated since 3.1. Use {@link #withPort(int)} instead
    */
   @Deprecated
-  public MemberBuilder withAddress(int port) {
+  public MemberBuilder withAddress(final int port) {
     return withAddress(Address.from(port));
   }
 
@@ -111,8 +100,24 @@ public class MemberBuilder extends NodeBuilder {
    * @param address the member address
    * @return the member builder
    */
-  public MemberBuilder withAddress(Address address) {
+  public MemberBuilder withAddress(final Address address) {
     config.setAddress(address);
+    return this;
+  }
+
+  @Override
+  public Member build() {
+    return new Member(config);
+  }
+
+  /**
+   * Sets the member identifier.
+   *
+   * @param id the member identifier
+   * @return the member builder
+   */
+  public MemberBuilder withId(final MemberId id) {
+    config.setId(id);
     return this;
   }
 
@@ -122,7 +127,7 @@ public class MemberBuilder extends NodeBuilder {
    * @param zoneId the zone to which the member belongs
    * @return the member builder
    */
-  public MemberBuilder withZoneId(String zoneId) {
+  public MemberBuilder withZoneId(final String zoneId) {
     config.setZoneId(zoneId);
     return this;
   }
@@ -135,7 +140,7 @@ public class MemberBuilder extends NodeBuilder {
    * @deprecated since 3.1. Use {@link #withZoneId(String)} instead
    */
   @Deprecated
-  public MemberBuilder withZone(String zone) {
+  public MemberBuilder withZone(final String zone) {
     config.setZoneId(zone);
     return this;
   }
@@ -146,7 +151,7 @@ public class MemberBuilder extends NodeBuilder {
    * @param rack the rack to which the member belongs
    * @return the member builder
    */
-  public MemberBuilder withRackId(String rack) {
+  public MemberBuilder withRackId(final String rack) {
     config.setRackId(rack);
     return this;
   }
@@ -159,7 +164,7 @@ public class MemberBuilder extends NodeBuilder {
    * @deprecated since 3.1. Use {@link #withRackId(String)} instead
    */
   @Deprecated
-  public MemberBuilder withRack(String rack) {
+  public MemberBuilder withRack(final String rack) {
     config.setRackId(rack);
     return this;
   }
@@ -170,7 +175,7 @@ public class MemberBuilder extends NodeBuilder {
    * @param hostId the host to which the member belongs
    * @return the member builder
    */
-  public MemberBuilder withHostId(String hostId) {
+  public MemberBuilder withHostId(final String hostId) {
     config.setHostId(hostId);
     return this;
   }
@@ -182,7 +187,7 @@ public class MemberBuilder extends NodeBuilder {
    * @return the member builder
    * @throws NullPointerException if the properties are null
    */
-  public MemberBuilder withProperties(Properties properties) {
+  public MemberBuilder withProperties(final Properties properties) {
     config.setProperties(properties);
     return this;
   }
@@ -190,18 +195,13 @@ public class MemberBuilder extends NodeBuilder {
   /**
    * Sets a member property.
    *
-   * @param key   the property key to set
+   * @param key the property key to set
    * @param value the property value to set
    * @return the member builder
    * @throws NullPointerException if the property is null
    */
-  public MemberBuilder withProperty(String key, String value) {
+  public MemberBuilder withProperty(final String key, final String value) {
     config.setProperty(key, value);
     return this;
-  }
-
-  @Override
-  public Member build() {
-    return new Member(config);
   }
 }

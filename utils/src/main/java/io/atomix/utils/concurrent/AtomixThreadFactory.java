@@ -24,7 +24,7 @@ import java.util.concurrent.ThreadFactory;
  */
 public class AtomixThreadFactory implements ThreadFactory {
   @Override
-  public Thread newThread(Runnable r) {
+  public Thread newThread(final Runnable r) {
     return new AtomixThread(r);
   }
 }

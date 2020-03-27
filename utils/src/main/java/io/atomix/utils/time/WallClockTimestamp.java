@@ -15,28 +15,17 @@
  */
 package io.atomix.utils.time;
 
-import com.google.common.collect.ComparisonChain;
-import io.atomix.utils.misc.TimestampPrinter;
-
-import java.util.Objects;
-
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.common.collect.ComparisonChain;
+import io.atomix.utils.misc.TimestampPrinter;
+import java.util.Objects;
+
 /**
- * A Timestamp that derives its value from the prevailing
- * wallclock time on the controller where it is generated.
+ * A Timestamp that derives its value from the prevailing wallclock time on the controller where it
+ * is generated.
  */
 public class WallClockTimestamp implements Timestamp {
-
-  /**
-   * Returns a new wall clock timestamp for the given unix timestamp.
-   *
-   * @param unixTimestamp the unix timestamp for which to create a new wall clock timestamp
-   * @return the wall clock timestamp
-   */
-  public static WallClockTimestamp from(long unixTimestamp) {
-    return new WallClockTimestamp(unixTimestamp);
-  }
 
   private final long unixTimestamp;
 
@@ -44,19 +33,26 @@ public class WallClockTimestamp implements Timestamp {
     unixTimestamp = System.currentTimeMillis();
   }
 
-  public WallClockTimestamp(long timestamp) {
+  public WallClockTimestamp(final long timestamp) {
     unixTimestamp = timestamp;
   }
 
-  @Override
-  public int compareTo(Timestamp o) {
-    checkArgument(o instanceof WallClockTimestamp,
-        "Must be WallClockTimestamp", o);
-    WallClockTimestamp that = (WallClockTimestamp) o;
+  /**
+   * Returns a new wall clock timestamp for the given unix timestamp.
+   *
+   * @param unixTimestamp the unix timestamp for which to create a new wall clock timestamp
+   * @return the wall clock timestamp
+   */
+  public static WallClockTimestamp from(final long unixTimestamp) {
+    return new WallClockTimestamp(unixTimestamp);
+  }
 
-    return ComparisonChain.start()
-        .compare(this.unixTimestamp, that.unixTimestamp)
-        .result();
+  @Override
+  public int compareTo(final Timestamp o) {
+    checkArgument(o instanceof WallClockTimestamp, "Must be WallClockTimestamp", o);
+    final WallClockTimestamp that = (WallClockTimestamp) o;
+
+    return ComparisonChain.start().compare(this.unixTimestamp, that.unixTimestamp).result();
   }
 
   @Override
@@ -65,14 +61,14 @@ public class WallClockTimestamp implements Timestamp {
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(final Object obj) {
     if (this == obj) {
       return true;
     }
     if (!(obj instanceof WallClockTimestamp)) {
       return false;
     }
-    WallClockTimestamp that = (WallClockTimestamp) obj;
+    final WallClockTimestamp that = (WallClockTimestamp) obj;
     return Objects.equals(this.unixTimestamp, that.unixTimestamp);
   }
 

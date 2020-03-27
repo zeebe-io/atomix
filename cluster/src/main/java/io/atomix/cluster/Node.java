@@ -15,18 +15,28 @@
  */
 package io.atomix.cluster;
 
-import io.atomix.utils.config.Configured;
-import io.atomix.utils.net.Address;
-
-import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Represents a node.
- */
+import io.atomix.utils.config.Configured;
+import io.atomix.utils.net.Address;
+import java.util.Objects;
+
+/** Represents a node. */
 public class Node implements Configured<NodeConfig> {
+
+  private final NodeId id;
+  private final Address address;
+
+  public Node(final NodeConfig config) {
+    this.id = config.getId();
+    this.address = checkNotNull(config.getAddress(), "address cannot be null");
+  }
+
+  protected Node(final NodeId id, final Address address) {
+    this.id = checkNotNull(id, "id cannot be null");
+    this.address = checkNotNull(address, "address cannot be null");
+  }
 
   /**
    * Returns a new member builder with no ID.
@@ -35,19 +45,6 @@ public class Node implements Configured<NodeConfig> {
    */
   public static NodeBuilder builder() {
     return new NodeBuilder(new NodeConfig());
-  }
-
-  private final NodeId id;
-  private final Address address;
-
-  public Node(NodeConfig config) {
-    this.id = config.getId();
-    this.address = checkNotNull(config.getAddress(), "address cannot be null");
-  }
-
-  protected Node(NodeId id, Address address) {
-    this.id = checkNotNull(id, "id cannot be null");
-    this.address = checkNotNull(address, "address cannot be null");
   }
 
   /**
@@ -70,9 +67,7 @@ public class Node implements Configured<NodeConfig> {
 
   @Override
   public NodeConfig config() {
-    return new NodeConfig()
-        .setId(id)
-        .setAddress(address);
+    return new NodeConfig().setId(id).setAddress(address);
   }
 
   @Override
@@ -81,11 +76,10 @@ public class Node implements Configured<NodeConfig> {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof Node) {
-      Node member = (Node) object;
-      return member.id().equals(id())
-          && member.address().equals(address());
+      final Node member = (Node) object;
+      return member.id().equals(id()) && member.address().equals(address());
     }
     return false;
   }

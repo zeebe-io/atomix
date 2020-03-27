@@ -15,36 +15,34 @@
  */
 package io.atomix.utils.time;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 import com.google.common.annotations.Beta;
 import io.atomix.utils.Identifier;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
-/**
- * Vector clock.
- */
+/** Vector clock. */
 @Beta
 public class VectorClock<T extends Identifier> implements Clock<VectorTimestamp<T>> {
   private final T localIdentifier;
   private final Map<T, VectorTimestamp<T>> vector = new HashMap<>();
 
-  public VectorClock(T localIdentifier) {
+  public VectorClock(final T localIdentifier) {
     this(new VectorTimestamp<T>(localIdentifier, 0));
   }
 
-  public VectorClock(VectorTimestamp<T> localTimestamp) {
+  public VectorClock(final VectorTimestamp<T> localTimestamp) {
     this(localTimestamp, Collections.emptyList());
   }
 
-  public VectorClock(VectorTimestamp<T> localTimestamp, Collection<VectorTimestamp<T>> vector) {
+  public VectorClock(
+      final VectorTimestamp<T> localTimestamp, final Collection<VectorTimestamp<T>> vector) {
     this.localIdentifier = localTimestamp.identifier();
     this.vector.put(localTimestamp.identifier(), localTimestamp);
-    for (VectorTimestamp<T> timestamp : vector) {
+    for (final VectorTimestamp<T> timestamp : vector) {
       this.vector.put(timestamp.identifier(), timestamp);
     }
   }
@@ -69,7 +67,7 @@ public class VectorClock<T extends Identifier> implements Clock<VectorTimestamp<
    * @param identifier the identifier for which to return the timestamp
    * @return the logical timestamp for the given identifier
    */
-  public LogicalTimestamp getTimestamp(T identifier) {
+  public LogicalTimestamp getTimestamp(final T identifier) {
     return vector.get(identifier);
   }
 
@@ -87,8 +85,8 @@ public class VectorClock<T extends Identifier> implements Clock<VectorTimestamp<
    *
    * @param timestamp the timestamp to update
    */
-  public void update(VectorTimestamp<T> timestamp) {
-    VectorTimestamp<T> currentTimestamp = vector.get(timestamp.identifier());
+  public void update(final VectorTimestamp<T> timestamp) {
+    final VectorTimestamp<T> currentTimestamp = vector.get(timestamp.identifier());
     if (currentTimestamp == null || currentTimestamp.value() < timestamp.value()) {
       vector.put(timestamp.identifier(), timestamp);
     }
@@ -99,17 +97,14 @@ public class VectorClock<T extends Identifier> implements Clock<VectorTimestamp<
    *
    * @param clock the vector clock with which to update this clock
    */
-  public void update(VectorClock<T> clock) {
-    for (VectorTimestamp<T> timestamp : clock.vector.values()) {
+  public void update(final VectorClock<T> clock) {
+    for (final VectorTimestamp<T> timestamp : clock.vector.values()) {
       update(timestamp);
     }
   }
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("time", getTime())
-        .add("vector", getTimestamps())
-        .toString();
+    return toStringHelper(this).add("time", getTime()).add("vector", getTimestamps()).toString();
   }
 }

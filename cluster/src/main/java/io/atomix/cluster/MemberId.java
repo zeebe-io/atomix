@@ -17,10 +17,12 @@ package io.atomix.cluster;
 
 import java.util.UUID;
 
-/**
- * Controller cluster identity.
- */
+/** Controller cluster identity. */
 public class MemberId extends NodeId {
+
+  public MemberId(final String id) {
+    super(id);
+  }
 
   /**
    * Creates a new cluster node identifier from the specified string.
@@ -37,11 +39,7 @@ public class MemberId extends NodeId {
    * @param id string identifier
    * @return node id
    */
-  public static MemberId from(String id) {
+  public static MemberId from(final String id) {
     return new MemberId(id);
-  }
-
-  public MemberId(String id) {
-    super(id);
   }
 }

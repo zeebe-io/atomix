@@ -17,9 +17,7 @@ package io.atomix.cluster.protocol;
 
 import java.time.Duration;
 
-/**
- * SWIM membership protocol builder.
- */
+/** SWIM membership protocol builder. */
 public class SwimMembershipProtocolBuilder extends GroupMembershipProtocolBuilder {
   private final SwimMembershipProtocolConfig config = new SwimMembershipProtocolConfig();
 
@@ -29,7 +27,7 @@ public class SwimMembershipProtocolBuilder extends GroupMembershipProtocolBuilde
    * @param broadcastUpdates whether to broadcast member updates to all peers
    * @return the protocol builder
    */
-  public SwimMembershipProtocolBuilder withBroadcastUpdates(boolean broadcastUpdates) {
+  public SwimMembershipProtocolBuilder withBroadcastUpdates(final boolean broadcastUpdates) {
     config.setBroadcastUpdates(broadcastUpdates);
     return this;
   }
@@ -40,7 +38,7 @@ public class SwimMembershipProtocolBuilder extends GroupMembershipProtocolBuilde
    * @param broadcastDisputes whether to broadcast disputes to all peers
    * @return the protocol builder
    */
-  public SwimMembershipProtocolBuilder withBroadcastDisputes(boolean broadcastDisputes) {
+  public SwimMembershipProtocolBuilder withBroadcastDisputes(final boolean broadcastDisputes) {
     config.setBroadcastDisputes(broadcastDisputes);
     return this;
   }
@@ -51,7 +49,7 @@ public class SwimMembershipProtocolBuilder extends GroupMembershipProtocolBuilde
    * @param notifySuspect whether to notify a suspect node on state changes
    * @return the protocol builder
    */
-  public SwimMembershipProtocolBuilder withNotifySuspect(boolean notifySuspect) {
+  public SwimMembershipProtocolBuilder withNotifySuspect(final boolean notifySuspect) {
     config.setNotifySuspect(notifySuspect);
     return this;
   }
@@ -62,7 +60,7 @@ public class SwimMembershipProtocolBuilder extends GroupMembershipProtocolBuilde
    * @param gossipInterval the gossip interval
    * @return the protocol builder
    */
-  public SwimMembershipProtocolBuilder withGossipInterval(Duration gossipInterval) {
+  public SwimMembershipProtocolBuilder withGossipInterval(final Duration gossipInterval) {
     config.setGossipInterval(gossipInterval);
     return this;
   }
@@ -73,7 +71,7 @@ public class SwimMembershipProtocolBuilder extends GroupMembershipProtocolBuilde
    * @param gossipFanout the gossip fanout
    * @return the protocol builder
    */
-  public SwimMembershipProtocolBuilder withGossipFanout(int gossipFanout) {
+  public SwimMembershipProtocolBuilder withGossipFanout(final int gossipFanout) {
     config.setGossipFanout(gossipFanout);
     return this;
   }
@@ -84,7 +82,7 @@ public class SwimMembershipProtocolBuilder extends GroupMembershipProtocolBuilde
    * @param probeInterval the probe interval
    * @return the protocol builder
    */
-  public SwimMembershipProtocolBuilder withProbeInterval(Duration probeInterval) {
+  public SwimMembershipProtocolBuilder withProbeInterval(final Duration probeInterval) {
     config.setProbeInterval(probeInterval);
     return this;
   }
@@ -95,7 +93,7 @@ public class SwimMembershipProtocolBuilder extends GroupMembershipProtocolBuilde
    * @param suspectProbes the number of probes to perform on suspect members
    * @return the protocol builder
    */
-  public SwimMembershipProtocolBuilder withSuspectProbes(int suspectProbes) {
+  public SwimMembershipProtocolBuilder withSuspectProbes(final int suspectProbes) {
     config.setSuspectProbes(suspectProbes);
     return this;
   }
@@ -106,7 +104,7 @@ public class SwimMembershipProtocolBuilder extends GroupMembershipProtocolBuilde
    * @param failureTimeout the failure timeout
    * @return the protocol builder
    */
-  public SwimMembershipProtocolBuilder withFailureTimeout(Duration failureTimeout) {
+  public SwimMembershipProtocolBuilder withFailureTimeout(final Duration failureTimeout) {
     config.setFailureTimeout(failureTimeout);
     return this;
   }
@@ -118,7 +116,7 @@ public class SwimMembershipProtocolBuilder extends GroupMembershipProtocolBuilde
    * @param syncInterval the interval at which nodes should sync with another, random node
    * @return the protocol builder
    */
-  public SwimMembershipProtocolBuilder withSyncInterval(Duration syncInterval) {
+  public SwimMembershipProtocolBuilder withSyncInterval(final Duration syncInterval) {
     config.setSyncInterval(syncInterval);
     return this;
   }

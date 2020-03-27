@@ -17,13 +17,11 @@ package io.atomix.storage.journal;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-/**
- * Journal writer delegate.
- */
+/** Journal writer delegate. */
 public class DelegatingJournalWriter<E> implements JournalWriter<E> {
   private final JournalWriter<E> delegate;
 
-  public DelegatingJournalWriter(JournalWriter<E> delegate) {
+  public DelegatingJournalWriter(final JournalWriter<E> delegate) {
     this.delegate = delegate;
   }
 
@@ -43,27 +41,27 @@ public class DelegatingJournalWriter<E> implements JournalWriter<E> {
   }
 
   @Override
-  public <T extends E> Indexed<T> append(T entry) {
+  public <T extends E> Indexed<T> append(final T entry) {
     return delegate.append(entry);
   }
 
   @Override
-  public void append(Indexed<E> entry) {
+  public void append(final Indexed<E> entry) {
     delegate.append(entry);
   }
 
   @Override
-  public void commit(long index) {
+  public void commit(final long index) {
     delegate.commit(index);
   }
 
   @Override
-  public void reset(long index) {
+  public void reset(final long index) {
     delegate.reset(index);
   }
 
   @Override
-  public void truncate(long index) {
+  public void truncate(final long index) {
     delegate.truncate(index);
   }
 
@@ -79,8 +77,6 @@ public class DelegatingJournalWriter<E> implements JournalWriter<E> {
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("delegate", delegate)
-        .toString();
+    return toStringHelper(this).add("delegate", delegate).toString();
   }
 }

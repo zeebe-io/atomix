@@ -23,12 +23,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  *
  * @author <a href="http://github.com/kuujo">Jordan Halterman</a>
  */
-public class ReferencePool<T extends ReferenceCounted<?>> implements ReferenceManager<T>, AutoCloseable {
+public class ReferencePool<T extends ReferenceCounted<?>>
+    implements ReferenceManager<T>, AutoCloseable {
   private final ReferenceFactory<T> factory;
   private final Queue<T> pool = new ConcurrentLinkedQueue<>();
   private volatile boolean closed;
 
-  public ReferencePool(ReferenceFactory<T> factory) {
+  public ReferencePool(final ReferenceFactory<T> factory) {
     if (factory == null) {
       throw new NullPointerException("factory cannot be null");
     }
@@ -54,7 +55,7 @@ public class ReferencePool<T extends ReferenceCounted<?>> implements ReferenceMa
   }
 
   @Override
-  public void release(T reference) {
+  public void release(final T reference) {
     if (!closed) {
       pool.add(reference);
     }
@@ -67,9 +68,8 @@ public class ReferencePool<T extends ReferenceCounted<?>> implements ReferenceMa
     }
 
     closed = true;
-    for (T reference : pool) {
+    for (final T reference : pool) {
       reference.close();
     }
   }
-
 }

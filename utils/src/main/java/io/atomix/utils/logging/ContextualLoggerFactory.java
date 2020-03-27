@@ -17,10 +17,10 @@ package io.atomix.utils.logging;
 
 import org.slf4j.LoggerFactory;
 
-/**
- * Contextual logger factory.
- */
-public class ContextualLoggerFactory {
+/** Contextual logger factory. */
+public final class ContextualLoggerFactory {
+
+  private ContextualLoggerFactory() {}
 
   /**
    * Returns a contextual logger.
@@ -29,7 +29,7 @@ public class ContextualLoggerFactory {
    * @param context the logger context
    * @return the logger
    */
-  public static ContextualLogger getLogger(String name, LoggerContext context) {
+  public static ContextualLogger getLogger(final String name, final LoggerContext context) {
     return new ContextualLogger(LoggerFactory.getLogger(name), context);
   }
 
@@ -40,10 +40,7 @@ public class ContextualLoggerFactory {
    * @param context the logger context
    * @return the logger
    */
-  public static ContextualLogger getLogger(Class clazz, LoggerContext context) {
+  public static ContextualLogger getLogger(final Class clazz, final LoggerContext context) {
     return new ContextualLogger(LoggerFactory.getLogger(clazz), context);
-  }
-
-  private ContextualLoggerFactory() {
   }
 }

@@ -21,30 +21,26 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.google.common.collect.ImmutableSet;
 
-/**
- * Kryo Serializer for {@link ImmutableSet}.
- */
+/** Kryo Serializer for {@link ImmutableSet}. */
 public class ImmutableSetSerializer extends Serializer<ImmutableSet<?>> {
 
-  /**
-   * Creates {@link ImmutableSet} serializer instance.
-   */
+  /** Creates {@link ImmutableSet} serializer instance. */
   public ImmutableSetSerializer() {
     // non-null, immutable
     super(false, true);
   }
 
   @Override
-  public void write(Kryo kryo, Output output, ImmutableSet<?> object) {
+  public void write(final Kryo kryo, final Output output, final ImmutableSet<?> object) {
     output.writeInt(object.size());
-    for (Object e : object) {
+    for (final Object e : object) {
       kryo.writeClassAndObject(output, e);
     }
   }
 
   @Override
-  public ImmutableSet<?> read(Kryo kryo, Input input,
-      Class<ImmutableSet<?>> type) {
+  public ImmutableSet<?> read(
+      final Kryo kryo, final Input input, final Class<ImmutableSet<?>> type) {
     final int size = input.readInt();
     switch (size) {
       case 0:
@@ -52,7 +48,7 @@ public class ImmutableSetSerializer extends Serializer<ImmutableSet<?>> {
       case 1:
         return ImmutableSet.of(kryo.readClassAndObject(input));
       default:
-        Object[] elms = new Object[size];
+        final Object[] elms = new Object[size];
         for (int i = 0; i < size; ++i) {
           elms[i] = kryo.readClassAndObject(input);
         }

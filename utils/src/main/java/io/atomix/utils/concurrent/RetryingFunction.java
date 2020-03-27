@@ -15,9 +15,9 @@
  */
 package io.atomix.utils.concurrent;
 
-import java.util.function.Function;
-
 import static com.google.common.base.Throwables.throwIfUnchecked;
+
+import java.util.function.Function;
 
 /**
  * Function that retries execution on failure.
@@ -31,10 +31,11 @@ public class RetryingFunction<U, V> implements Function<U, V> {
   private final int maxRetries;
   private final int maxDelayBetweenRetries;
 
-  public RetryingFunction(Function<U, V> baseFunction,
-      Class<? extends Throwable> exceptionClass,
-      int maxRetries,
-      int maxDelayBetweenRetries) {
+  public RetryingFunction(
+      final Function<U, V> baseFunction,
+      final Class<? extends Throwable> exceptionClass,
+      final int maxRetries,
+      final int maxDelayBetweenRetries) {
     this.baseFunction = baseFunction;
     this.exceptionClass = exceptionClass;
     this.maxRetries = maxRetries;
@@ -44,12 +45,12 @@ public class RetryingFunction<U, V> implements Function<U, V> {
   @SuppressWarnings("squid:S1181")
   // Yes we really do want to catch Throwable
   @Override
-  public V apply(U input) {
+  public V apply(final U input) {
     int retryAttempts = 0;
     while (true) {
       try {
         return baseFunction.apply(input);
-      } catch (Throwable t) {
+      } catch (final Throwable t) {
         if (!exceptionClass.isAssignableFrom(t.getClass()) || retryAttempts == maxRetries) {
           throwIfUnchecked(t);
           throw new RuntimeException(t);

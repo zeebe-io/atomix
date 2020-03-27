@@ -121,8 +121,8 @@ public interface BufferInput<T extends BufferInput<?>> extends AutoCloseable {
    * @param <U> the type of the object to read
    * @return the read object.
    */
-  default <U> U readObject(Function<byte[], U> decoder) {
-    byte[] bytes = readBytes(readInt());
+  default <U> U readObject(final Function<byte[], U> decoder) {
+    final byte[] bytes = readBytes(readInt());
     return decoder.apply(bytes);
   }
 
@@ -132,8 +132,8 @@ public interface BufferInput<T extends BufferInput<?>> extends AutoCloseable {
    * @param length The byte array length
    * @return The read byte array.
    */
-  default byte[] readBytes(int length) {
-    byte[] bytes = new byte[length];
+  default byte[] readBytes(final int length) {
+    final byte[] bytes = new byte[length];
     read(bytes);
     return bytes;
   }

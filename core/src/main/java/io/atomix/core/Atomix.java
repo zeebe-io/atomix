@@ -75,70 +75,76 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Primary interface for managing Atomix clusters and operating on distributed primitives.
- * <p>
- * The {@code Atomix} class is the primary interface to all Atomix features. To construct an {@code
- * Atomix} instance, either configure the instance with a configuration file or construct a new
- * instance from an {@link AtomixBuilder}. Builders can be created via various {@link #builder()}
- * methods:
- * <pre>
- *   {@code
- *   Atomix atomix = Atomix.builder()
- *     .withMemberId("member-1")
- *     .withHost("192.168.10.2")
- *     .build();
- *   }
- * </pre>
+ *
+ * <p>The {@code Atomix} class is the primary interface to all Atomix features. To construct an
+ * {@code Atomix} instance, either configure the instance with a configuration file or construct a
+ * new instance from an {@link AtomixBuilder}. Builders can be created via various {@link
+ * #builder()} methods:
+ *
+ * <pre>{@code
+ * Atomix atomix = Atomix.builder()
+ *   .withMemberId("member-1")
+ *   .withHost("192.168.10.2")
+ *   .build();
+ *
+ * }</pre>
+ *
  * Once an {@code Atomix} instance has been constructed, start the instance by calling {@link
  * #start()}:
- * <pre>
- *   {@code
- *   atomix.start().join();
- *   }
- * </pre>
+ *
+ * <pre>{@code
+ * atomix.start().join();
+ *
+ * }</pre>
+ *
  * The returned {@link CompletableFuture} will be completed once the node has been bootstrapped and
  * all services are available.
- * <p>
- * The instance can be used to access services for managing the cluster or communicating with other
- * nodes. Additionally, it provides various methods for creating and operating on distributed
+ *
+ * <p>The instance can be used to access services for managing the cluster or communicating with
+ * other nodes. Additionally, it provides various methods for creating and operating on distributed
  * primitives. Generally, the primitive methods are separated into two types. Primitive getters
  * return multiton instances of a primitive. Primitives created via getters must be pre-configured
  * in the Atomix instance configuration. Alternatively, primitive builders can be used to create and
  * configure primitives in code:
- * <pre>
- *   {@code
- *   DistributedMap<String, String> map = atomix.mapBuilder("my-map")
- *     .withProtocol(MultiRaftProtocol.builder("raft")
- *       .withReadConsistency(ReadConsistency.SEQUENTIAL)
- *       .build())
- *     .build();
- *   }
- * </pre>
+ *
+ * <pre>{@code
+ * DistributedMap<String, String> map = atomix.mapBuilder("my-map")
+ *   .withProtocol(MultiRaftProtocol.builder("raft")
+ *     .withReadConsistency(ReadConsistency.SEQUENTIAL)
+ *     .build())
+ *   .build();
+ *
+ * }</pre>
+ *
  * Custom primitives can be constructed by providing a custom {@link PrimitiveType} and using the
  * {@link #primitiveBuilder(String, PrimitiveType)} method:
- * <pre>
- *   {@code
- *   MyPrimitive myPrimitive = atomix.primitiveBuilder("my-primitive, MyPrimitiveType.instance())
- *     .withProtocol(MultiRaftProtocol.builder("raft")
- *       .withReadConsistency(ReadConsistency.SEQUENTIAL)
- *       .build())
- *     .build();
- *   }
- * </pre>
+ *
+ * <pre>{@code
+ * MyPrimitive myPrimitive = atomix.primitiveBuilder("my-primitive, MyPrimitiveType.instance())
+ *   .withProtocol(MultiRaftProtocol.builder("raft")
+ *     .withReadConsistency(ReadConsistency.SEQUENTIAL)
+ *     .build())
+ *   .build();
+ *
+ * }</pre>
  */
 public class Atomix extends AtomixCluster {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(Atomix.class);
-  private static final String[] RESOURCES = System.getProperty("atomix.config.resources", "atomix")
-      .split(",");
+  private static final String[] RESOURCES =
+      System.getProperty("atomix.config.resources", "atomix").split(",");
   private static final String VERSION_RESOURCE = "VERSION";
   private static final String BUILD;
   private static final Version VERSION;
 
   static {
     try {
-      BUILD = Resources
-          .toString(checkNotNull(Atomix.class.getClassLoader().getResource(VERSION_RESOURCE),
-              VERSION_RESOURCE + " resource is null"), StandardCharsets.UTF_8);
+      BUILD =
+          Resources.toString(
+              checkNotNull(
+                  Atomix.class.getClassLoader().getResource(VERSION_RESOURCE),
+                  VERSION_RESOURCE + " resource is null"),
+              StandardCharsets.UTF_8);
     } catch (final IOException | NullPointerException e) {
       throw new ConfigurationException("Failed to load Atomix version", e);
     }
@@ -171,7 +177,8 @@ public class Atomix extends AtomixCluster {
   }
 
   public Atomix(final ClassLoader classLoader, final List<File> configFiles) {
-    this(config(classLoader, configFiles, AtomixRegistry.registry(classLoader)),
+    this(
+        config(classLoader, configFiles, AtomixRegistry.registry(classLoader)),
         AtomixRegistry.registry(classLoader));
   }
 
@@ -187,25 +194,29 @@ public class Atomix extends AtomixCluster {
       final ManagedUnicastService unicastService,
       final ManagedBroadcastService broadcastService) {
     super(config.getClusterConfig(), VERSION, messagingService, unicastService, broadcastService);
-    config.getProfiles()
+    config
+        .getProfiles()
         .forEach(profile -> profile.getType().newProfile(profile).configure(config));
-    this.executorService = Executors.newScheduledThreadPool(
-        Math.max(Math.min(Runtime.getRuntime().availableProcessors() * 2, 8), 4),
-        Threads.namedThreads("atomix-primitive-%d", LOGGER));
+    this.executorService =
+        Executors.newScheduledThreadPool(
+            Math.max(Math.min(Runtime.getRuntime().availableProcessors() * 2, 8), 4),
+            Threads.namedThreads("atomix-primitive-%d", LOGGER));
     this.registry = registry;
-    this.config = new DefaultConfigService(config.getPrimitiveDefaults().values(),
-        config.getPrimitives().values());
-    this.serializationService = new CoreSerializationService(config.isTypeRegistrationRequired(),
-        config.isCompatibleSerialization());
-    this.partitions = buildPartitionService(config, getMembershipService(),
-        getCommunicationService(), registry);
+    this.config =
+        new DefaultConfigService(
+            config.getPrimitiveDefaults().values(), config.getPrimitives().values());
+    this.serializationService =
+        new CoreSerializationService(
+            config.isTypeRegistrationRequired(), config.isCompatibleSerialization());
+    this.partitions =
+        buildPartitionService(config, getMembershipService(), getCommunicationService(), registry);
     this.enableShutdownHook = config.isEnableShutdownHook();
   }
 
   /**
    * Returns a new Atomix configuration.
-   * <p>
-   * The configuration will be loaded from {@code atomix.conf}, {@code atomix.json}, or {@code
+   *
+   * <p>The configuration will be loaded from {@code atomix.conf}, {@code atomix.json}, or {@code
    * atomix.properties} if located on the classpath.
    *
    * @return a new Atomix configuration
@@ -216,8 +227,8 @@ public class Atomix extends AtomixCluster {
 
   /**
    * Returns a new Atomix configuration.
-   * <p>
-   * The configuration will be loaded from {@code atomix.conf}, {@code atomix.json}, or {@code
+   *
+   * <p>The configuration will be loaded from {@code atomix.conf}, {@code atomix.json}, or {@code
    * atomix.properties} if located on the classpath.
    *
    * @param classLoader the class loader
@@ -229,8 +240,8 @@ public class Atomix extends AtomixCluster {
 
   /**
    * Returns a new Atomix configuration.
-   * <p>
-   * The configuration will be loaded from {@code atomix.conf}, {@code atomix.json}, or {@code
+   *
+   * <p>The configuration will be loaded from {@code atomix.conf}, {@code atomix.json}, or {@code
    * atomix.properties} if located on the classpath.
    *
    * @param registry the Atomix registry
@@ -242,67 +253,74 @@ public class Atomix extends AtomixCluster {
 
   /**
    * Returns a new Atomix configuration from the given file.
-   * <p>
-   * The configuration will be loaded from the given file and will fall back to {@code atomix.conf},
-   * {@code atomix.json}, or {@code atomix.properties} if located on the classpath.
+   *
+   * <p>The configuration will be loaded from the given file and will fall back to {@code
+   * atomix.conf}, {@code atomix.json}, or {@code atomix.properties} if located on the classpath.
    *
    * @param files the file from which to return a new Atomix configuration
    * @return a new Atomix configuration from the given file
    */
   public static AtomixConfig config(final String... files) {
-    return config(Thread.currentThread().getContextClassLoader(),
+    return config(
+        Thread.currentThread().getContextClassLoader(),
         Stream.of(files).map(File::new).collect(Collectors.toList()));
   }
 
   /**
    * Returns a new Atomix configuration from the given file.
-   * <p>
-   * The configuration will be loaded from the given file and will fall back to {@code atomix.conf},
-   * {@code atomix.json}, or {@code atomix.properties} if located on the classpath.
+   *
+   * <p>The configuration will be loaded from the given file and will fall back to {@code
+   * atomix.conf}, {@code atomix.json}, or {@code atomix.properties} if located on the classpath.
    *
    * @param classLoader the class loader
    * @param files the file from which to return a new Atomix configuration
    * @return a new Atomix configuration from the given file
    */
   public static AtomixConfig config(final ClassLoader classLoader, final String... files) {
-    return config(classLoader, Stream.of(files).map(File::new).collect(Collectors.toList()),
+    return config(
+        classLoader,
+        Stream.of(files).map(File::new).collect(Collectors.toList()),
         AtomixRegistry.registry(classLoader));
   }
 
   /**
    * Returns a new Atomix configuration from the given file.
-   * <p>
-   * The configuration will be loaded from the given file and will fall back to {@code atomix.conf},
-   * {@code atomix.json}, or {@code atomix.properties} if located on the classpath.
+   *
+   * <p>The configuration will be loaded from the given file and will fall back to {@code
+   * atomix.conf}, {@code atomix.json}, or {@code atomix.properties} if located on the classpath.
    *
    * @param registry the Atomix registry
    * @param files the file from which to return a new Atomix configuration
    * @return a new Atomix configuration from the given file
    */
   public static AtomixConfig config(final AtomixRegistry registry, final String... files) {
-    return config(Thread.currentThread().getContextClassLoader(),
-        Stream.of(files).map(File::new).collect(Collectors.toList()), registry);
+    return config(
+        Thread.currentThread().getContextClassLoader(),
+        Stream.of(files).map(File::new).collect(Collectors.toList()),
+        registry);
   }
 
   /**
    * Returns a new Atomix configuration.
-   * <p>
-   * The configuration will be loaded from the given file and will fall back to {@code atomix.conf},
-   * {@code atomix.json}, or {@code atomix.properties} if located on the classpath.
+   *
+   * <p>The configuration will be loaded from the given file and will fall back to {@code
+   * atomix.conf}, {@code atomix.json}, or {@code atomix.properties} if located on the classpath.
    *
    * @param configFiles the Atomix configuration files
    * @return a new Atomix configuration
    */
   public static AtomixConfig config(final File... configFiles) {
-    return config(Thread.currentThread().getContextClassLoader(), Arrays.asList(configFiles),
+    return config(
+        Thread.currentThread().getContextClassLoader(),
+        Arrays.asList(configFiles),
         AtomixRegistry.registry());
   }
 
   /**
    * Returns a new Atomix configuration from the given file.
-   * <p>
-   * The configuration will be loaded from the given file and will fall back to {@code atomix.conf},
-   * {@code atomix.json}, or {@code atomix.properties} if located on the classpath.
+   *
+   * <p>The configuration will be loaded from the given file and will fall back to {@code
+   * atomix.conf}, {@code atomix.json}, or {@code atomix.properties} if located on the classpath.
    *
    * @param files the file from which to return a new Atomix configuration
    * @return a new Atomix configuration from the given file
@@ -313,9 +331,9 @@ public class Atomix extends AtomixCluster {
 
   /**
    * Returns a new Atomix configuration from the given file.
-   * <p>
-   * The configuration will be loaded from the given file and will fall back to {@code atomix.conf},
-   * {@code atomix.json}, or {@code atomix.properties} if located on the classpath.
+   *
+   * <p>The configuration will be loaded from the given file and will fall back to {@code
+   * atomix.conf}, {@code atomix.json}, or {@code atomix.properties} if located on the classpath.
    *
    * @param classLoader the class loader
    * @param files the file from which to return a new Atomix configuration
@@ -327,9 +345,9 @@ public class Atomix extends AtomixCluster {
 
   /**
    * Returns a new Atomix configuration from the given file.
-   * <p>
-   * The configuration will be loaded from the given file and will fall back to {@code atomix.conf},
-   * {@code atomix.json}, or {@code atomix.properties} if located on the classpath.
+   *
+   * <p>The configuration will be loaded from the given file and will fall back to {@code
+   * atomix.conf}, {@code atomix.json}, or {@code atomix.properties} if located on the classpath.
    *
    * @param registry the Atomix registry
    * @param files the file from which to return a new Atomix configuration
@@ -347,28 +365,30 @@ public class Atomix extends AtomixCluster {
    * @param registry the Atomix registry from which to map types
    * @return a new Atomix configuration from the given resource
    */
-  private static AtomixConfig config(final ClassLoader classLoader, final List<File> files,
-      final AtomixRegistry registry) {
-    final ConfigMapper mapper = new PolymorphicConfigMapper(
-        classLoader,
-        registry,
-        new PolymorphicTypeMapper("type", PartitionGroupConfig.class, PartitionGroup.Type.class),
-        new PolymorphicTypeMapper("type", PrimitiveConfig.class, PrimitiveType.class),
-        new PolymorphicTypeMapper(null, PrimitiveConfig.class, PrimitiveType.class),
-        new PolymorphicTypeMapper("type", PrimitiveProtocolConfig.class,
-            PrimitiveProtocol.Type.class),
-        new PolymorphicTypeMapper("type", ProfileConfig.class, Profile.Type.class),
-        new PolymorphicTypeMapper("type", NodeDiscoveryConfig.class,
-            NodeDiscoveryProvider.Type.class),
-        new PolymorphicTypeMapper("type", GroupMembershipProtocolConfig.class,
-            GroupMembershipProtocol.Type.class));
+  private static AtomixConfig config(
+      final ClassLoader classLoader, final List<File> files, final AtomixRegistry registry) {
+    final ConfigMapper mapper =
+        new PolymorphicConfigMapper(
+            classLoader,
+            registry,
+            new PolymorphicTypeMapper(
+                "type", PartitionGroupConfig.class, PartitionGroup.Type.class),
+            new PolymorphicTypeMapper("type", PrimitiveConfig.class, PrimitiveType.class),
+            new PolymorphicTypeMapper(null, PrimitiveConfig.class, PrimitiveType.class),
+            new PolymorphicTypeMapper(
+                "type", PrimitiveProtocolConfig.class, PrimitiveProtocol.Type.class),
+            new PolymorphicTypeMapper("type", ProfileConfig.class, Profile.Type.class),
+            new PolymorphicTypeMapper(
+                "type", NodeDiscoveryConfig.class, NodeDiscoveryProvider.Type.class),
+            new PolymorphicTypeMapper(
+                "type", GroupMembershipProtocolConfig.class, GroupMembershipProtocol.Type.class));
     return mapper.loadFiles(AtomixConfig.class, files, Lists.newArrayList(RESOURCES));
   }
 
   /**
    * Returns a new Atomix builder.
-   * <p>
-   * The builder will be initialized with the configuration in {@code atomix.conf}, {@code
+   *
+   * <p>The builder will be initialized with the configuration in {@code atomix.conf}, {@code
    * atomix.json}, or {@code atomix.properties} if located on the classpath.
    *
    * @return a new Atomix builder
@@ -379,8 +399,8 @@ public class Atomix extends AtomixCluster {
 
   /**
    * Returns a new Atomix builder.
-   * <p>
-   * The builder will be initialized with the configuration in {@code atomix.conf}, {@code
+   *
+   * <p>The builder will be initialized with the configuration in {@code atomix.conf}, {@code
    * atomix.json}, or {@code atomix.properties} if located on the classpath.
    *
    * @param classLoader the class loader
@@ -393,24 +413,24 @@ public class Atomix extends AtomixCluster {
 
   /**
    * Returns a new Atomix builder.
-   * <p>
-   * The builder will be initialized with the configuration in the given file and will fall back to
-   * {@code atomix.conf}, {@code atomix.json}, or {@code atomix.properties} if located on the
+   *
+   * <p>The builder will be initialized with the configuration in the given file and will fall back
+   * to {@code atomix.conf}, {@code atomix.json}, or {@code atomix.properties} if located on the
    * classpath.
    *
    * @param registry the AtomixRegistry
    * @return a new Atomix builder
    */
   public static AtomixBuilder builder(final AtomixRegistry registry) {
-    return new AtomixBuilder(config(Thread.currentThread().getContextClassLoader(), null, registry),
-        registry);
+    return new AtomixBuilder(
+        config(Thread.currentThread().getContextClassLoader(), null, registry), registry);
   }
 
   /**
    * Returns a new Atomix builder.
-   * <p>
-   * The builder will be initialized with the configuration in the given file and will fall back to
-   * {@code atomix.conf}, {@code atomix.json}, or {@code atomix.properties} if located on the
+   *
+   * <p>The builder will be initialized with the configuration in the given file and will fall back
+   * to {@code atomix.conf}, {@code atomix.json}, or {@code atomix.properties} if located on the
    * classpath.
    *
    * @param config the Atomix configuration
@@ -422,9 +442,9 @@ public class Atomix extends AtomixCluster {
 
   /**
    * Returns a new Atomix builder.
-   * <p>
-   * The builder will be initialized with the configuration in the given file and will fall back to
-   * {@code atomix.conf}, {@code atomix.json}, or {@code atomix.properties} if located on the
+   *
+   * <p>The builder will be initialized with the configuration in the given file and will fall back
+   * to {@code atomix.conf}, {@code atomix.json}, or {@code atomix.properties} if located on the
    * classpath.
    *
    * @param configFile the Atomix configuration file
@@ -439,9 +459,9 @@ public class Atomix extends AtomixCluster {
 
   /**
    * Returns a new Atomix builder.
-   * <p>
-   * The builder will be initialized with the configuration in the given file and will fall back to
-   * {@code atomix.conf}, {@code atomix.json}, or {@code atomix.properties} if located on the
+   *
+   * <p>The builder will be initialized with the configuration in the given file and will fall back
+   * to {@code atomix.conf}, {@code atomix.json}, or {@code atomix.properties} if located on the
    * classpath.
    *
    * @param configFile the Atomix configuration file
@@ -449,14 +469,18 @@ public class Atomix extends AtomixCluster {
    * @return a new Atomix builder
    */
   public static AtomixBuilder builder(final String configFile, final AtomixRegistry registry) {
-    return new AtomixBuilder(config(Thread.currentThread().getContextClassLoader(),
-        Collections.singletonList(new File(configFile)), registry), registry);
+    return new AtomixBuilder(
+        config(
+            Thread.currentThread().getContextClassLoader(),
+            Collections.singletonList(new File(configFile)),
+            registry),
+        registry);
   }
 
   /**
    * Returns a new Atomix builder.
-   * <p>
-   * The returned builder will be initialized with the provided configuration.
+   *
+   * <p>The returned builder will be initialized with the provided configuration.
    *
    * @param config the Atomix configuration
    * @return the Atomix builder
@@ -467,8 +491,8 @@ public class Atomix extends AtomixCluster {
 
   /**
    * Returns a new Atomix builder.
-   * <p>
-   * The returned builder will be initialized with the provided configuration.
+   *
+   * <p>The returned builder will be initialized with the provided configuration.
    *
    * @param config the Atomix configuration
    * @param classLoader the class loader with which to load the Atomix registry
@@ -480,8 +504,8 @@ public class Atomix extends AtomixCluster {
 
   /**
    * Returns a new Atomix builder.
-   * <p>
-   * The returned builder will be initialized with the provided configuration.
+   *
+   * <p>The returned builder will be initialized with the provided configuration.
    *
    * @param config the Atomix configuration
    * @param registry the Atomix registry
@@ -493,8 +517,8 @@ public class Atomix extends AtomixCluster {
 
   /**
    * Returns the Atomix registry service.
-   * <p>
-   * The registry contains references to all registered Atomix extensions.
+   *
+   * <p>The registry contains references to all registered Atomix extensions.
    *
    * @return the Atomix registry service
    */
@@ -513,8 +537,8 @@ public class Atomix extends AtomixCluster {
 
   /**
    * Returns the primitive configuration service.
-   * <p>
-   * The primitive configuration service provides all pre-defined named primitive configurations.
+   *
+   * <p>The primitive configuration service provides all pre-defined named primitive configurations.
    *
    * @return the primitive configuration service
    */
@@ -533,9 +557,9 @@ public class Atomix extends AtomixCluster {
 
   /**
    * Returns the partition service.
-   * <p>
-   * The partition service is responsible for managing the lifecycle of primitive partitions and can
-   * provide information about active partition groups and partitions in the cluster.
+   *
+   * <p>The partition service is responsible for managing the lifecycle of primitive partitions and
+   * can provide information about active partition groups and partitions in the cluster.
    *
    * @return the partition service
    */
@@ -543,38 +567,39 @@ public class Atomix extends AtomixCluster {
     return partitions;
   }
 
-  /**
-   * Checks that the instance is running.
-   */
+  /** Checks that the instance is running. */
   private void checkRunning() {
     checkState(isRunning(), "Atomix instance is not running");
   }
 
   /**
    * Starts the Atomix instance.
-   * <p>
-   * The returned future will be completed once this instance completes startup. Note that in order
-   * to complete startup, all partitions must be able to form. For Raft partitions, that requires
-   * that a majority of the nodes in each partition be started concurrently.
+   *
+   * <p>The returned future will be completed once this instance completes startup. Note that in
+   * order to complete startup, all partitions must be able to form. For Raft partitions, that
+   * requires that a majority of the nodes in each partition be started concurrently.
    *
    * @return a future to be completed once the instance has completed startup
    */
   @Override
   public synchronized CompletableFuture<Void> start() {
     if (closeFuture != null) {
-      return Futures.exceptionalFuture(new IllegalStateException("Atomix instance "
-          + (closeFuture.isDone() ? "shutdown" : "shutting down")));
+      return Futures.exceptionalFuture(
+          new IllegalStateException(
+              "Atomix instance " + (closeFuture.isDone() ? "shutdown" : "shutting down")));
     }
 
     LOGGER.info(BUILD);
-    return super.start().thenRun(() -> {
-      if (enableShutdownHook) {
-        if (shutdownHook == null) {
-          shutdownHook = new Thread(() -> super.stop().join());
-          Runtime.getRuntime().addShutdownHook(shutdownHook);
-        }
-      }
-    });
+    return super.start()
+        .thenRun(
+            () -> {
+              if (enableShutdownHook) {
+                if (shutdownHook == null) {
+                  shutdownHook = new Thread(() -> super.stop().join());
+                  Runtime.getRuntime().addShutdownHook(shutdownHook);
+                }
+              }
+            });
   }
 
   @Override
@@ -600,7 +625,8 @@ public class Atomix extends AtomixCluster {
   @Override
   @SuppressWarnings("unchecked")
   protected CompletableFuture<Void> stopServices() {
-    return partitions.stop()
+    return partitions
+        .stop()
         .exceptionally(e -> null)
         .thenComposeAsync(v -> super.stopServices(), threadContext);
   }
@@ -614,14 +640,10 @@ public class Atomix extends AtomixCluster {
 
   @Override
   public String toString() {
-    return toStringHelper(this)
-        .add("partitions", getPartitionService())
-        .toString();
+    return toStringHelper(this).add("partitions", getPartitionService()).toString();
   }
 
-  /**
-   * Builds the core partition group.
-   */
+  /** Builds the core partition group. */
   @SuppressWarnings("unchecked")
   private static ManagedPartitionGroup buildSystemPartitionGroup(final AtomixConfig config) {
     final PartitionGroupConfig<?> partitionGroupConfig = config.getManagementGroup();
@@ -631,9 +653,7 @@ public class Atomix extends AtomixCluster {
     return partitionGroupConfig.getType().newPartitionGroup(partitionGroupConfig);
   }
 
-  /**
-   * Builds a partition service.
-   */
+  /** Builds a partition service. */
   @SuppressWarnings("unchecked")
   private static ManagedPartitionService buildPartitionService(
       final AtomixConfig config,
@@ -641,7 +661,8 @@ public class Atomix extends AtomixCluster {
       final ClusterCommunicationService messagingService,
       final AtomixRegistry registry) {
     final List<ManagedPartitionGroup> partitionGroups = new ArrayList<>();
-    for (final PartitionGroupConfig<?> partitionGroupConfig : config.getPartitionGroups().values()) {
+    for (final PartitionGroupConfig<?> partitionGroupConfig :
+        config.getPartitionGroups().values()) {
       partitionGroups.add(partitionGroupConfig.getType().newPartitionGroup(partitionGroupConfig));
     }
 

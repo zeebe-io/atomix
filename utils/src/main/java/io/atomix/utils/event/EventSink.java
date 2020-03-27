@@ -15,9 +15,7 @@
  */
 package io.atomix.utils.event;
 
-/**
- * Abstraction of an event sink capable of processing the specified event types.
- */
+/** Abstraction of an event sink capable of processing the specified event types. */
 public interface EventSink<E extends Event> {
 
   /**
@@ -27,10 +25,6 @@ public interface EventSink<E extends Event> {
    */
   void process(E event);
 
-  /**
-   * Handles notification that event processing time limit has been exceeded.
-   */
-  default void onProcessLimit() {
-  }
-
+  /** Handles notification that event processing time limit has been exceeded. */
+  default void onProcessLimit() {}
 }

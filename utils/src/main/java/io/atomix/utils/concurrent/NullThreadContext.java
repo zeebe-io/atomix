@@ -17,17 +17,16 @@ package io.atomix.utils.concurrent;
 
 import java.time.Duration;
 
-/**
- * Null thread context.
- */
+/** Null thread context. */
 public class NullThreadContext implements ThreadContext {
   @Override
-  public Scheduled schedule(Duration delay, Runnable callback) {
+  public Scheduled schedule(final Duration delay, final Runnable callback) {
     return null;
   }
 
   @Override
-  public Scheduled schedule(Duration initialDelay, Duration interval, Runnable callback) {
+  public Scheduled schedule(
+      final Duration initialDelay, final Duration interval, final Runnable callback) {
     return null;
   }
 
@@ -37,22 +36,14 @@ public class NullThreadContext implements ThreadContext {
   }
 
   @Override
-  public void block() {
-
-  }
+  public void block() {}
 
   @Override
-  public void unblock() {
-
-  }
+  public void unblock() {}
 
   @Override
-  public void close() {
-
-  }
+  public void close() {}
 
   @Override
-  public void execute(Runnable command) {
-
-  }
+  public void execute(final Runnable command) {}
 }

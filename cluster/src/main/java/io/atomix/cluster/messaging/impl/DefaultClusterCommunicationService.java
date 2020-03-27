@@ -15,6 +15,8 @@
  */
 package io.atomix.cluster.messaging.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import io.atomix.cluster.ClusterMembershipService;
@@ -26,9 +28,6 @@ import io.atomix.cluster.messaging.MessagingService;
 import io.atomix.cluster.messaging.UnicastService;
 import io.atomix.utils.concurrent.Futures;
 import io.atomix.utils.net.Address;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.net.ConnectException;
 import java.time.Duration;
 import java.util.Map;
@@ -41,15 +40,12 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * Cluster communication service implementation.
- */
+/** Cluster communication service implementation. */
 public class DefaultClusterCommunicationService implements ManagedClusterCommunicationService {
 
-  private final Logger log = LoggerFactory.getLogger(getClass());
   private static final Exception CONNECT_EXCEPTION = new ConnectException();
 
   static {
@@ -59,13 +55,14 @@ public class DefaultClusterCommunicationService implements ManagedClusterCommuni
   protected final ClusterMembershipService membershipService;
   protected final MessagingService messagingService;
   protected final UnicastService unicastService;
+  private final Logger log = LoggerFactory.getLogger(getClass());
   private final Map<String, BiConsumer<Address, byte[]>> unicastConsumers = Maps.newConcurrentMap();
   private final AtomicBoolean started = new AtomicBoolean();
 
   public DefaultClusterCommunicationService(
-      ClusterMembershipService membershipService,
-      MessagingService messagingService,
-      UnicastService unicastService) {
+      final ClusterMembershipService membershipService,
+      final MessagingService messagingService,
+      final UnicastService unicastService) {
     this.membershipService = checkNotNull(membershipService, "clusterService cannot be null");
     this.messagingService = checkNotNull(messagingService, "messagingService cannot be null");
     this.unicastService = checkNotNull(unicastService, "unicastService cannot be null");
@@ -73,73 +70,159 @@ public class DefaultClusterCommunicationService implements ManagedClusterCommuni
 
   @Override
   public <M> void broadcast(
-      String subject,
-      M message,
-      Function<M, byte[]> encoder,
-      boolean reliable) {
-    multicast(subject, message, encoder, membershipService.getMembers()
-        .stream()
-        .filter(node -> !Objects.equal(node, membershipService.getLocalMember()))
-        .map(Member::id)
-        .collect(Collectors.toSet()),
+      final String subject,
+      final M message,
+      final Function<M, byte[]> encoder,
+      final boolean reliable) {
+    multicast(
+        subject,
+        message,
+        encoder,
+        membershipService.getMembers().stream()
+            .filter(node -> !Objects.equal(node, membershipService.getLocalMember()))
+            .map(Member::id)
+            .collect(Collectors.toSet()),
         reliable);
   }
 
   @Override
   public <M> void broadcastIncludeSelf(
-      String subject,
-      M message,
-      Function<M, byte[]> encoder,
-      boolean reliable) {
-    multicast(subject, message, encoder, membershipService.getMembers()
-        .stream()
-        .map(Member::id)
-        .collect(Collectors.toSet()),
+      final String subject,
+      final M message,
+      final Function<M, byte[]> encoder,
+      final boolean reliable) {
+    multicast(
+        subject,
+        message,
+        encoder,
+        membershipService.getMembers().stream().map(Member::id).collect(Collectors.toSet()),
         reliable);
   }
 
   @Override
   public <M> CompletableFuture<Void> unicast(
-      String subject,
-      M message,
-      Function<M, byte[]> encoder,
-      MemberId toMemberId,
-      boolean reliable) {
+      final String subject,
+      final M message,
+      final Function<M, byte[]> encoder,
+      final MemberId toMemberId,
+      final boolean reliable) {
     try {
       return doUnicast(subject, encoder.apply(message), toMemberId, reliable);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       return Futures.exceptionalFuture(e);
     }
   }
 
   @Override
   public <M> void multicast(
-      String subject,
-      M message,
-      Function<M, byte[]> encoder,
-      Set<MemberId> nodes,
-      boolean reliable) {
-    byte[] payload = encoder.apply(message);
+      final String subject,
+      final M message,
+      final Function<M, byte[]> encoder,
+      final Set<MemberId> nodes,
+      final boolean reliable) {
+    final byte[] payload = encoder.apply(message);
     nodes.forEach(memberId -> doUnicast(subject, payload, memberId, reliable));
   }
 
   @Override
   public <M, R> CompletableFuture<R> send(
-      String subject,
-      M message,
-      Function<M, byte[]> encoder,
-      Function<byte[], R> decoder,
-      MemberId toMemberId,
-      Duration timeout) {
+      final String subject,
+      final M message,
+      final Function<M, byte[]> encoder,
+      final Function<byte[], R> decoder,
+      final MemberId toMemberId,
+      final Duration timeout) {
     try {
-      return sendAndReceive(subject, encoder.apply(message), toMemberId, timeout).thenApply(decoder);
-    } catch (Exception e) {
+      return sendAndReceive(subject, encoder.apply(message), toMemberId, timeout)
+          .thenApply(decoder);
+    } catch (final Exception e) {
       return Futures.exceptionalFuture(e);
     }
   }
 
-  private CompletableFuture<Void> doUnicast(String subject, byte[] payload, MemberId toMemberId, boolean reliable) {
-    Member member = membershipService.getMember(toMemberId);
+  @Override
+  public <M, R> CompletableFuture<Void> subscribe(
+      final String subject,
+      final Function<byte[], M> decoder,
+      final Function<M, R> handler,
+      final Function<R, byte[]> encoder,
+      final Executor executor) {
+    messagingService.registerHandler(
+        subject,
+        new InternalMessageResponder<M, R>(
+            decoder,
+            encoder,
+            m -> {
+              final CompletableFuture<R> responseFuture = new CompletableFuture<>();
+              executor.execute(
+                  () -> {
+                    try {
+                      responseFuture.complete(handler.apply(m));
+                    } catch (final Exception e) {
+                      responseFuture.completeExceptionally(e);
+                    }
+                  });
+              return responseFuture;
+            }));
+    return CompletableFuture.completedFuture(null);
+  }
+
+  @Override
+  public <M, R> CompletableFuture<Void> subscribe(
+      final String subject,
+      final Function<byte[], M> decoder,
+      final Function<M, CompletableFuture<R>> handler,
+      final Function<R, byte[]> encoder) {
+    messagingService.registerHandler(
+        subject, new InternalMessageResponder<>(decoder, encoder, handler));
+    return CompletableFuture.completedFuture(null);
+  }
+
+  @Override
+  public <M> CompletableFuture<Void> subscribe(
+      final String subject,
+      final Function<byte[], M> decoder,
+      final Consumer<M> handler,
+      final Executor executor) {
+    messagingService.registerHandler(
+        subject, new InternalMessageConsumer<>(decoder, handler), executor);
+    final BiConsumer<Address, byte[]> unicastConsumer =
+        new InternalMessageConsumer<>(decoder, handler);
+    unicastConsumers.put(subject, unicastConsumer);
+    unicastService.addListener(subject, unicastConsumer, executor);
+    return CompletableFuture.completedFuture(null);
+  }
+
+  @Override
+  public <M> CompletableFuture<Void> subscribe(
+      final String subject,
+      final Function<byte[], M> decoder,
+      final BiConsumer<MemberId, M> handler,
+      final Executor executor) {
+    messagingService.registerHandler(
+        subject, new InternalMessageBiConsumer<>(decoder, handler), executor);
+    final BiConsumer<Address, byte[]> unicastConsumer =
+        new InternalMessageBiConsumer<>(decoder, handler);
+    unicastConsumers.put(subject, unicastConsumer);
+    unicastService.addListener(subject, unicastConsumer, executor);
+    return CompletableFuture.completedFuture(null);
+  }
+
+  @Override
+  public void unsubscribe(final String subject) {
+    messagingService.unregisterHandler(subject);
+    final BiConsumer<Address, byte[]> consumer = unicastConsumers.remove(subject);
+    if (consumer != null) {
+      unicastService.removeListener(subject, consumer);
+    }
+  }
+
+  private CompletableFuture<Void> doUnicast(
+      final String subject,
+      final byte[] payload,
+      final MemberId toMemberId,
+      final boolean reliable) {
+    final Member member = membershipService.getMember(toMemberId);
     if (member == null) {
       return Futures.exceptionalFuture(CONNECT_EXCEPTION);
     }
@@ -151,72 +234,16 @@ public class DefaultClusterCommunicationService implements ManagedClusterCommuni
     }
   }
 
-  private CompletableFuture<byte[]> sendAndReceive(String subject, byte[] payload, MemberId toMemberId, Duration timeout) {
-    Member member = membershipService.getMember(toMemberId);
+  private CompletableFuture<byte[]> sendAndReceive(
+      final String subject,
+      final byte[] payload,
+      final MemberId toMemberId,
+      final Duration timeout) {
+    final Member member = membershipService.getMember(toMemberId);
     if (member == null) {
       return Futures.exceptionalFuture(CONNECT_EXCEPTION);
     }
     return messagingService.sendAndReceive(member.address(), subject, payload, timeout);
-  }
-
-  @Override
-  public void unsubscribe(String subject) {
-    messagingService.unregisterHandler(subject);
-    BiConsumer<Address, byte[]> consumer = unicastConsumers.remove(subject);
-    if (consumer != null) {
-      unicastService.removeListener(subject, consumer);
-    }
-  }
-
-  @Override
-  public <M, R> CompletableFuture<Void> subscribe(String subject,
-                                                  Function<byte[], M> decoder,
-                                                  Function<M, R> handler,
-                                                  Function<R, byte[]> encoder,
-                                                  Executor executor) {
-    messagingService.registerHandler(subject,
-        new InternalMessageResponder<M, R>(decoder, encoder, m -> {
-          CompletableFuture<R> responseFuture = new CompletableFuture<>();
-          executor.execute(() -> {
-            try {
-              responseFuture.complete(handler.apply(m));
-            } catch (Exception e) {
-              responseFuture.completeExceptionally(e);
-            }
-          });
-          return responseFuture;
-        }));
-    return CompletableFuture.completedFuture(null);
-  }
-
-  @Override
-  public <M, R> CompletableFuture<Void> subscribe(String subject,
-                                                  Function<byte[], M> decoder,
-                                                  Function<M, CompletableFuture<R>> handler,
-                                                  Function<R, byte[]> encoder) {
-    messagingService.registerHandler(subject, new InternalMessageResponder<>(decoder, encoder, handler));
-    return CompletableFuture.completedFuture(null);
-  }
-
-  @Override
-  public <M> CompletableFuture<Void> subscribe(String subject,
-                                               Function<byte[], M> decoder,
-                                               Consumer<M> handler,
-                                               Executor executor) {
-    messagingService.registerHandler(subject, new InternalMessageConsumer<>(decoder, handler), executor);
-    BiConsumer<Address, byte[]> unicastConsumer = new InternalMessageConsumer<>(decoder, handler);
-    unicastConsumers.put(subject, unicastConsumer);
-    unicastService.addListener(subject, unicastConsumer, executor);
-    return CompletableFuture.completedFuture(null);
-  }
-
-  @Override
-  public <M> CompletableFuture<Void> subscribe(String subject, Function<byte[], M> decoder, BiConsumer<MemberId, M> handler, Executor executor) {
-    messagingService.registerHandler(subject, new InternalMessageBiConsumer<>(decoder, handler), executor);
-    BiConsumer<Address, byte[]> unicastConsumer = new InternalMessageBiConsumer<>(decoder, handler);
-    unicastConsumers.put(subject, unicastConsumer);
-    unicastService.addListener(subject, unicastConsumer, executor);
-    return CompletableFuture.completedFuture(null);
   }
 
   @Override
@@ -240,40 +267,24 @@ public class DefaultClusterCommunicationService implements ManagedClusterCommuni
     return CompletableFuture.completedFuture(null);
   }
 
-  private static class InternalMessageResponder<M, R> implements BiFunction<Address, byte[], CompletableFuture<byte[]>> {
+  private static class InternalMessageResponder<M, R>
+      implements BiFunction<Address, byte[], CompletableFuture<byte[]>> {
     private final Function<byte[], M> decoder;
     private final Function<R, byte[]> encoder;
     private final Function<M, CompletableFuture<R>> handler;
 
-    InternalMessageResponder(Function<byte[], M> decoder,
-                             Function<R, byte[]> encoder,
-                             Function<M, CompletableFuture<R>> handler) {
+    InternalMessageResponder(
+        final Function<byte[], M> decoder,
+        final Function<R, byte[]> encoder,
+        final Function<M, CompletableFuture<R>> handler) {
       this.decoder = decoder;
       this.encoder = encoder;
       this.handler = handler;
     }
 
     @Override
-    public CompletableFuture<byte[]> apply(Address sender, byte[] bytes) {
+    public CompletableFuture<byte[]> apply(final Address sender, final byte[] bytes) {
       return handler.apply(decoder.apply(bytes)).thenApply(encoder);
-    }
-  }
-
-  private class InternalMessageBiConsumer<M> implements BiConsumer<Address, byte[]> {
-    private final Function<byte[], M> decoder;
-    private final BiConsumer<MemberId, M> consumer;
-
-    InternalMessageBiConsumer(Function<byte[], M> decoder, BiConsumer<MemberId, M> consumer) {
-      this.decoder = decoder;
-      this.consumer = consumer;
-    }
-
-    @Override
-    public void accept(Address sender, byte[] bytes) {
-      Member member = membershipService.getMember(sender);
-      if (member != null) {
-        consumer.accept(member.id(), decoder.apply(bytes));
-      }
     }
   }
 
@@ -281,14 +292,33 @@ public class DefaultClusterCommunicationService implements ManagedClusterCommuni
     private final Function<byte[], M> decoder;
     private final Consumer<M> consumer;
 
-    InternalMessageConsumer(Function<byte[], M> decoder, Consumer<M> consumer) {
+    InternalMessageConsumer(final Function<byte[], M> decoder, final Consumer<M> consumer) {
       this.decoder = decoder;
       this.consumer = consumer;
     }
 
     @Override
-    public void accept(Address sender, byte[] bytes) {
+    public void accept(final Address sender, final byte[] bytes) {
       consumer.accept(decoder.apply(bytes));
+    }
+  }
+
+  private class InternalMessageBiConsumer<M> implements BiConsumer<Address, byte[]> {
+    private final Function<byte[], M> decoder;
+    private final BiConsumer<MemberId, M> consumer;
+
+    InternalMessageBiConsumer(
+        final Function<byte[], M> decoder, final BiConsumer<MemberId, M> consumer) {
+      this.decoder = decoder;
+      this.consumer = consumer;
+    }
+
+    @Override
+    public void accept(final Address sender, final byte[] bytes) {
+      final Member member = membershipService.getMember(sender);
+      if (member != null) {
+        consumer.accept(member.id(), decoder.apply(bytes));
+      }
     }
   }
 }

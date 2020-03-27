@@ -15,20 +15,19 @@
  */
 package io.atomix.utils.memory;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Mapped memory.
- * <p>
- * This is a special memory descriptor that handles management of {@link MappedByteBuffer} based memory. The
- * mapped memory descriptor simply points to the memory address of the underlying byte buffer. When memory is reallocated,
- * the parent {@link MappedMemoryAllocator} is used to create a new {@link MappedByteBuffer}
- * and free the existing buffer.
+ *
+ * <p>This is a special memory descriptor that handles management of {@link MappedByteBuffer} based
+ * memory. The mapped memory descriptor simply points to the memory address of the underlying byte
+ * buffer. When memory is reallocated, the parent {@link MappedMemoryAllocator} is used to create a
+ * new {@link MappedByteBuffer} and free the existing buffer.
  *
  * @author <a href="http://github.com/kuujo">Jordan Halterman</a>
  */
@@ -36,6 +35,15 @@ public class MappedMemory implements Memory {
   private static final long MAX_SIZE = Integer.MAX_VALUE - 5;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MappedMemory.class);
+  private final MappedByteBuffer buffer;
+  private final MappedMemoryAllocator allocator;
+  private final int size;
+
+  public MappedMemory(final MappedByteBuffer buffer, final MappedMemoryAllocator allocator) {
+    this.buffer = buffer;
+    this.allocator = allocator;
+    this.size = buffer.capacity();
+  }
 
   /**
    * Allocates memory mapped to a file on disk.
@@ -45,7 +53,7 @@ public class MappedMemory implements Memory {
    * @return The mapped memory.
    * @throws IllegalArgumentException If {@code count} is greater than {@link MappedMemory#MAX_SIZE}
    */
-  public static MappedMemory allocate(File file, int size) {
+  public static MappedMemory allocate(final File file, final int size) {
     return new MappedMemoryAllocator(file).allocate(size);
   }
 
@@ -58,26 +66,15 @@ public class MappedMemory implements Memory {
    * @return The mapped memory.
    * @throws IllegalArgumentException If {@code count} is greater than {@link MappedMemory#MAX_SIZE}
    */
-  public static MappedMemory allocate(File file, FileChannel.MapMode mode, int size) {
+  public static MappedMemory allocate(
+      final File file, final FileChannel.MapMode mode, final int size) {
     if (size > MAX_SIZE) {
       throw new IllegalArgumentException("size cannot be greater than " + MAX_SIZE);
     }
     return new MappedMemoryAllocator(file, mode).allocate(size);
   }
 
-  private final MappedByteBuffer buffer;
-  private final MappedMemoryAllocator allocator;
-  private final int size;
-
-  public MappedMemory(MappedByteBuffer buffer, MappedMemoryAllocator allocator) {
-    this.buffer = buffer;
-    this.allocator = allocator;
-    this.size = buffer.capacity();
-  }
-
-  /**
-   * Flushes the mapped buffer to disk.
-   */
+  /** Flushes the mapped buffer to disk. */
   public void flush() {
     buffer.force();
   }
@@ -91,7 +88,7 @@ public class MappedMemory implements Memory {
   public void free() {
     try {
       BufferCleaner.freeBuffer(buffer);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       if (LOGGER.isDebugEnabled()) {
         LOGGER.debug("Failed to unmap direct buffer", e);
       }

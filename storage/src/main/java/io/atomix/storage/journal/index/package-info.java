@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Provides classes and interfaces for efficiently managing journal indexes.
- */
+/** Provides classes and interfaces for efficiently managing journal indexes. */
 package io.atomix.storage.journal.index;

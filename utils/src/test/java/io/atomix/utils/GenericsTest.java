@@ -15,29 +15,26 @@
  */
 package io.atomix.utils;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 
-/**
- * Generics test.
- */
+import org.junit.Test;
+
+/** Generics test. */
 public class GenericsTest {
   @Test
   public void testGetInterfaceType() throws Exception {
-    assertEquals(String.class, Generics.getGenericInterfaceType(new ConcreteInterface(), GenericInterface.class, 0));
-    assertEquals(SomeClass.class, Generics.getGenericInterfaceType(new ConcreteInterface(), GenericInterface.class, 1));
+    assertEquals(
+        String.class,
+        Generics.getGenericInterfaceType(new ConcreteInterface(), GenericInterface.class, 0));
+    assertEquals(
+        SomeClass.class,
+        Generics.getGenericInterfaceType(new ConcreteInterface(), GenericInterface.class, 1));
   }
 
   @Test
   public void testGetClassType() throws Exception {
-    assertEquals(SomeClass.class, Generics.getGenericClassType(new ConcreteClass(), GenericClass.class, 0));
-  }
-
-  public interface GenericInterface<T1, T2> {
-    T1 type1();
-
-    T2 type2();
+    assertEquals(
+        SomeClass.class, Generics.getGenericClassType(new ConcreteClass(), GenericClass.class, 0));
   }
 
   public static class ConcreteInterface implements GenericInterface<String, SomeClass> {
@@ -52,6 +49,12 @@ public class GenericsTest {
     }
   }
 
+  public interface GenericInterface<T1, T2> {
+    T1 type1();
+
+    T2 type2();
+  }
+
   public abstract class GenericClass<T> {
     public abstract T type();
   }
@@ -63,6 +66,5 @@ public class GenericsTest {
     }
   }
 
-  public class SomeClass {
-  }
+  public class SomeClass {}
 }

@@ -16,18 +16,14 @@
 package io.atomix.core.profile;
 
 import com.google.common.collect.Sets;
-
 import java.io.File;
 import java.util.Set;
 
-/**
- * Consensus profile builder.
- */
+/** Consensus profile builder. */
 public class ConsensusProfileBuilder extends ProfileBuilder {
   private final ConsensusProfileConfig config = new ConsensusProfileConfig();
 
-  ConsensusProfileBuilder() {
-  }
+  ConsensusProfileBuilder() {}
 
   /**
    * Sets the consensus data file path.
@@ -35,7 +31,7 @@ public class ConsensusProfileBuilder extends ProfileBuilder {
    * @param dataPath the consensus data file path
    * @return the consensus profile builder
    */
-  public ConsensusProfileBuilder withDataPath(String dataPath) {
+  public ConsensusProfileBuilder withDataPath(final String dataPath) {
     config.setDataPath(dataPath);
     return this;
   }
@@ -46,7 +42,7 @@ public class ConsensusProfileBuilder extends ProfileBuilder {
    * @param dataPath the consensus data file path
    * @return the consensus profile builder
    */
-  public ConsensusProfileBuilder withDataPath(File dataPath) {
+  public ConsensusProfileBuilder withDataPath(final File dataPath) {
     config.setDataPath(dataPath.getPath());
     return this;
   }
@@ -57,7 +53,7 @@ public class ConsensusProfileBuilder extends ProfileBuilder {
    * @param managementGroup the management partition group name
    * @return the consensus profile builder
    */
-  public ConsensusProfileBuilder withManagementGroup(String managementGroup) {
+  public ConsensusProfileBuilder withManagementGroup(final String managementGroup) {
     config.setManagementGroup(managementGroup);
     return this;
   }
@@ -68,7 +64,7 @@ public class ConsensusProfileBuilder extends ProfileBuilder {
    * @param dataGroup the data partition group name
    * @return the consensus profile builder
    */
-  public ConsensusProfileBuilder withDataGroup(String dataGroup) {
+  public ConsensusProfileBuilder withDataGroup(final String dataGroup) {
     config.setDataGroup(dataGroup);
     return this;
   }
@@ -79,7 +75,7 @@ public class ConsensusProfileBuilder extends ProfileBuilder {
    * @param partitionSize the data partition size
    * @return the consensus profile builder
    */
-  public ConsensusProfileBuilder withPartitionSize(int partitionSize) {
+  public ConsensusProfileBuilder withPartitionSize(final int partitionSize) {
     config.setPartitionSize(partitionSize);
     return this;
   }
@@ -90,7 +86,7 @@ public class ConsensusProfileBuilder extends ProfileBuilder {
    * @param numPartitions the number of data partitions to configure
    * @return the consensus profile builder
    */
-  public ConsensusProfileBuilder withNumPartitions(int numPartitions) {
+  public ConsensusProfileBuilder withNumPartitions(final int numPartitions) {
     config.setPartitions(numPartitions);
     return this;
   }
@@ -101,7 +97,7 @@ public class ConsensusProfileBuilder extends ProfileBuilder {
    * @param members the consensus members
    * @return the profile builder
    */
-  public ConsensusProfileBuilder withMembers(String... members) {
+  public ConsensusProfileBuilder withMembers(final String... members) {
     return withMembers(Sets.newHashSet(members));
   }
 
@@ -111,7 +107,7 @@ public class ConsensusProfileBuilder extends ProfileBuilder {
    * @param members the consensus members
    * @return the profile builder
    */
-  public ConsensusProfileBuilder withMembers(Set<String> members) {
+  public ConsensusProfileBuilder withMembers(final Set<String> members) {
     config.setMembers(members);
     return this;
   }

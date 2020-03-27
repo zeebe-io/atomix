@@ -18,9 +18,7 @@ package io.atomix.utils.serializer;
 import com.esotericsoftware.kryo.Serializer;
 import io.atomix.utils.config.Config;
 
-/**
- * Namespace type configuration.
- */
+/** Namespace type configuration. */
 public class NamespaceTypeConfig implements Config {
   private Class<?> type;
   private Integer id;
@@ -41,7 +39,7 @@ public class NamespaceTypeConfig implements Config {
    * @param type the serializable type
    * @return the type configuration
    */
-  public NamespaceTypeConfig setType(Class<?> type) {
+  public NamespaceTypeConfig setType(final Class<?> type) {
     this.type = type;
     return this;
   }
@@ -61,7 +59,7 @@ public class NamespaceTypeConfig implements Config {
    * @param id the type identifier
    * @return the type configuration
    */
-  public NamespaceTypeConfig setId(Integer id) {
+  public NamespaceTypeConfig setId(final Integer id) {
     this.id = id;
     return this;
   }
@@ -81,7 +79,7 @@ public class NamespaceTypeConfig implements Config {
    * @param serializer the serializer class
    * @return the type configuration
    */
-  public NamespaceTypeConfig setSerializer(Class<? extends Serializer> serializer) {
+  public NamespaceTypeConfig setSerializer(final Class<? extends Serializer> serializer) {
     this.serializer = serializer;
     return this;
   }

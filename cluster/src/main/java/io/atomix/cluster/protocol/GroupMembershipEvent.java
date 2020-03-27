@@ -17,44 +17,16 @@ package io.atomix.cluster.protocol;
 
 import io.atomix.cluster.Member;
 import io.atomix.utils.event.AbstractEvent;
-
 import java.util.Objects;
 
-/**
- * Group membership protocol event.
- */
+/** Group membership protocol event. */
 public class GroupMembershipEvent extends AbstractEvent<GroupMembershipEvent.Type, Member> {
 
-  /**
-   * Group membership protocol event type.
-   */
-  public enum Type {
-    /**
-     * Indicates that a new member has been added.
-     */
-    MEMBER_ADDED,
-
-    /**
-     * Indicates that a member's metadata has changed.
-     */
-    METADATA_CHANGED,
-
-    /**
-     * Indicates that a member's reachability has changed.
-     */
-    REACHABILITY_CHANGED,
-
-    /**
-     * Indicates that a member has been removed.
-     */
-    MEMBER_REMOVED,
-  }
-
-  public GroupMembershipEvent(Type type, Member subject) {
+  public GroupMembershipEvent(final Type type, final Member subject) {
     super(type, subject);
   }
 
-  public GroupMembershipEvent(Type type, Member subject, long time) {
+  public GroupMembershipEvent(final Type type, final Member subject, final long time) {
     super(type, subject, time);
   }
 
@@ -73,11 +45,26 @@ public class GroupMembershipEvent extends AbstractEvent<GroupMembershipEvent.Typ
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof GroupMembershipEvent) {
-      GroupMembershipEvent that = (GroupMembershipEvent) object;
+      final GroupMembershipEvent that = (GroupMembershipEvent) object;
       return this.type() == that.type() && this.member().equals(that.member());
     }
     return false;
+  }
+
+  /** Group membership protocol event type. */
+  public enum Type {
+    /** Indicates that a new member has been added. */
+    MEMBER_ADDED,
+
+    /** Indicates that a member's metadata has changed. */
+    METADATA_CHANGED,
+
+    /** Indicates that a member's reachability has changed. */
+    REACHABILITY_CHANGED,
+
+    /** Indicates that a member has been removed. */
+    MEMBER_REMOVED,
   }
 }

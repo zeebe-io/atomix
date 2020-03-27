@@ -17,9 +17,7 @@ package io.atomix.cluster.discovery;
 
 import java.time.Duration;
 
-/**
- * DNS discovery builder.
- */
+/** DNS discovery builder. */
 public class DnsDiscoveryBuilder extends NodeDiscoveryBuilder {
   private final DnsDiscoveryConfig config = new DnsDiscoveryConfig();
 
@@ -29,7 +27,7 @@ public class DnsDiscoveryBuilder extends NodeDiscoveryBuilder {
    * @param service the DNS service name
    * @return the DNS discovery builder
    */
-  public DnsDiscoveryBuilder withService(String service) {
+  public DnsDiscoveryBuilder withService(final String service) {
     config.setService(service);
     return this;
   }
@@ -40,7 +38,7 @@ public class DnsDiscoveryBuilder extends NodeDiscoveryBuilder {
    * @param resolutionInterval the DNS resolution interval
    * @return the DNS configuration
    */
-  public DnsDiscoveryBuilder withResolutionInterval(Duration resolutionInterval) {
+  public DnsDiscoveryBuilder withResolutionInterval(final Duration resolutionInterval) {
     config.setResolutionInterval(resolutionInterval);
     return this;
   }

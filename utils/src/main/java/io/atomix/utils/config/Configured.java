@@ -15,9 +15,7 @@
  */
 package io.atomix.utils.config;
 
-/**
- * Interface for objects configured via a configuration object.
- */
+/** Interface for objects configured via a configuration object. */
 public interface Configured<T extends Config> {
 
   /**
@@ -26,5 +24,4 @@ public interface Configured<T extends Config> {
    * @return the object configuration
    */
   T config();
-
 }

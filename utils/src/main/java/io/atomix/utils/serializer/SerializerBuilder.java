@@ -17,20 +17,17 @@ package io.atomix.utils.serializer;
 
 import io.atomix.utils.Builder;
 
-/**
- * Serializer builder.
- */
+/** Serializer builder. */
 public class SerializerBuilder implements Builder<Serializer> {
   private final String name;
-  private final Namespace.Builder namespaceBuilder = Namespace.builder()
-      .register(Namespaces.BASIC)
-      .nextId(Namespaces.BEGIN_USER_CUSTOM_ID);
+  private final Namespace.Builder namespaceBuilder =
+      Namespace.builder().register(Namespaces.BASIC).nextId(Namespaces.BEGIN_USER_CUSTOM_ID);
 
   public SerializerBuilder() {
     this(null);
   }
 
-  public SerializerBuilder(String name) {
+  public SerializerBuilder(final String name) {
     this.name = name;
   }
 
@@ -46,10 +43,11 @@ public class SerializerBuilder implements Builder<Serializer> {
   /**
    * Sets whether serializable type registration is required for serializable types.
    *
-   * @param registrationRequired whether serializable type registration is required for serializable types
+   * @param registrationRequired whether serializable type registration is required for serializable
+   *     types
    * @return the serializer builder
    */
-  public SerializerBuilder withRegistrationRequired(boolean registrationRequired) {
+  public SerializerBuilder withRegistrationRequired(final boolean registrationRequired) {
     namespaceBuilder.setRegistrationRequired(registrationRequired);
     return this;
   }
@@ -69,7 +67,7 @@ public class SerializerBuilder implements Builder<Serializer> {
    * @param compatibleSerialization whether compatible serialization is enabled for user types
    * @return the serializer builder
    */
-  public SerializerBuilder withCompatibleSerialization(boolean compatibleSerialization) {
+  public SerializerBuilder withCompatibleSerialization(final boolean compatibleSerialization) {
     namespaceBuilder.setCompatible(compatibleSerialization);
     return this;
   }
@@ -80,7 +78,7 @@ public class SerializerBuilder implements Builder<Serializer> {
    * @param namespace the namespace to add
    * @return the serializer builder
    */
-  public SerializerBuilder withNamespace(Namespace namespace) {
+  public SerializerBuilder withNamespace(final Namespace namespace) {
     namespaceBuilder.register(namespace);
     return this;
   }
@@ -91,7 +89,7 @@ public class SerializerBuilder implements Builder<Serializer> {
    * @param types the types to register
    * @return the serializer builder
    */
-  public SerializerBuilder withTypes(Class<?>... types) {
+  public SerializerBuilder withTypes(final Class<?>... types) {
     namespaceBuilder.register(types);
     return this;
   }
@@ -102,7 +100,7 @@ public class SerializerBuilder implements Builder<Serializer> {
    * @param type the type to add
    * @return the serializer builder
    */
-  public SerializerBuilder addType(Class<?> type) {
+  public SerializerBuilder addType(final Class<?> type) {
     namespaceBuilder.register(type);
     return this;
   }
@@ -114,7 +112,8 @@ public class SerializerBuilder implements Builder<Serializer> {
    * @param types the serializable types
    * @return the serializer builder
    */
-  public SerializerBuilder addSerializer(com.esotericsoftware.kryo.Serializer serializer, Class<?>... types) {
+  public SerializerBuilder addSerializer(
+      final com.esotericsoftware.kryo.Serializer serializer, final Class<?>... types) {
     namespaceBuilder.register(serializer, types);
     return this;
   }

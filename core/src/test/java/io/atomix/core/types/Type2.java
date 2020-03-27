@@ -15,14 +15,12 @@
  */
 package io.atomix.core.types;
 
-/**
- * Serializable type for use in tests.
- */
+/** Serializable type for use in tests. */
 public class Type2 {
   private String value1;
   private int value2;
 
-  public Type2(String value1, int value2) {
+  public Type2(final String value1, final int value2) {
     this.value1 = value1;
     this.value2 = value2;
   }

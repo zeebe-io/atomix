@@ -18,9 +18,7 @@ package io.atomix.cluster;
 import io.atomix.utils.config.Config;
 import io.atomix.utils.net.Address;
 
-/**
- * Node configuration.
- */
+/** Node configuration. */
 public class NodeConfig implements Config {
   private NodeId id = NodeId.anonymous();
   private String host = "localhost";
@@ -41,7 +39,7 @@ public class NodeConfig implements Config {
    * @param id the node identifier
    * @return the node configuration
    */
-  public NodeConfig setId(String id) {
+  public NodeConfig setId(final String id) {
     return setId(id != null ? NodeId.from(id) : null);
   }
 
@@ -51,7 +49,7 @@ public class NodeConfig implements Config {
    * @param id the node identifier
    * @return the node configuration
    */
-  public NodeConfig setId(NodeId id) {
+  public NodeConfig setId(final NodeId id) {
     this.id = id != null ? id : NodeId.anonymous();
     return this;
   }
@@ -71,7 +69,7 @@ public class NodeConfig implements Config {
    * @param host the node hostname
    * @return the node configuration
    */
-  public NodeConfig setHost(String host) {
+  public NodeConfig setHost(final String host) {
     this.host = host;
     return this;
   }
@@ -91,7 +89,7 @@ public class NodeConfig implements Config {
    * @param port the node port
    * @return the node configuration
    */
-  public NodeConfig setPort(int port) {
+  public NodeConfig setPort(final int port) {
     this.port = port;
     return this;
   }
@@ -112,7 +110,7 @@ public class NodeConfig implements Config {
    * @return the node configuration
    */
   @Deprecated
-  public NodeConfig setAddress(String address) {
+  public NodeConfig setAddress(final String address) {
     return setAddress(Address.from(address));
   }
 
@@ -123,7 +121,7 @@ public class NodeConfig implements Config {
    * @return the node configuration
    */
   @Deprecated
-  public NodeConfig setAddress(Address address) {
+  public NodeConfig setAddress(final Address address) {
     this.host = address.host();
     this.port = address.port();
     return this;

@@ -15,11 +15,10 @@
  */
 package io.atomix.storage.journal;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.nio.ByteBuffer;
-
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
 /**
  * Segment descriptor test.
@@ -28,17 +27,16 @@ import static org.junit.Assert.assertEquals;
  */
 public class JournalSegmentDescriptorTest {
 
-  /**
-   * Tests the segment descriptor builder.
-   */
+  /** Tests the segment descriptor builder. */
   @Test
   public void testDescriptorBuilder() {
-    JournalSegmentDescriptor descriptor = JournalSegmentDescriptor.builder(ByteBuffer.allocate(JournalSegmentDescriptor.BYTES))
-        .withId(2)
-        .withIndex(1025)
-        .withMaxSegmentSize(1024 * 1024)
-        .withMaxEntries(2048)
-        .build();
+    final JournalSegmentDescriptor descriptor =
+        JournalSegmentDescriptor.builder(ByteBuffer.allocate(JournalSegmentDescriptor.BYTES))
+            .withId(2)
+            .withIndex(1025)
+            .withMaxSegmentSize(1024 * 1024)
+            .withMaxEntries(2048)
+            .build();
 
     assertEquals(2, descriptor.id());
     assertEquals(JournalSegmentDescriptor.VERSION, descriptor.version());
@@ -47,24 +45,23 @@ public class JournalSegmentDescriptorTest {
     assertEquals(2048, descriptor.maxEntries());
 
     assertEquals(0, descriptor.updated());
-    long time = System.currentTimeMillis();
+    final long time = System.currentTimeMillis();
     descriptor.update(time);
     assertEquals(time, descriptor.updated());
   }
 
-  /**
-   * Tests copying the segment descriptor.
-   */
+  /** Tests copying the segment descriptor. */
   @Test
   public void testDescriptorCopy() {
-    JournalSegmentDescriptor descriptor = JournalSegmentDescriptor.builder()
-        .withId(2)
-        .withIndex(1025)
-        .withMaxSegmentSize(1024 * 1024)
-        .withMaxEntries(2048)
-        .build();
+    JournalSegmentDescriptor descriptor =
+        JournalSegmentDescriptor.builder()
+            .withId(2)
+            .withIndex(1025)
+            .withMaxSegmentSize(1024 * 1024)
+            .withMaxEntries(2048)
+            .build();
 
-    long time = System.currentTimeMillis();
+    final long time = System.currentTimeMillis();
     descriptor.update(time);
 
     descriptor = descriptor.copyTo(ByteBuffer.allocate(JournalSegmentDescriptor.BYTES));

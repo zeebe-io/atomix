@@ -21,7 +21,7 @@ spec:
       effect: "NoSchedule"
   containers:
     - name: maven
-      image: maven:3.6.0-jdk-8
+      image: maven:3.6.3-jdk-11
       command: ["cat"]
       tty: true
       env:
@@ -59,7 +59,7 @@ spec:
     stage('Prepare') {
       steps {
         container('maven') {
-            sh 'mvn clean install -B -s settings.xml -DskipTests -Dmaven.test.skip -Dmaven.javadoc.skip -Ddockerfile.skip'
+            sh 'mvn clean install -B -s settings.xml -DskipTests -Dmaven.javadoc.skip -Ddockerfile.skip'
         }
       }
     }

@@ -18,14 +18,13 @@ package io.atomix.core.impl;
 import io.atomix.primitive.serialization.SerializationService;
 import io.atomix.utils.serializer.SerializerBuilder;
 
-/**
- * Core serialization service.
- */
+/** Core serialization service. */
 public class CoreSerializationService implements SerializationService {
   private final boolean registrationRequired;
   private final boolean compatibleSerialization;
 
-  public CoreSerializationService(boolean registrationRequired, boolean compatibleSerialization) {
+  public CoreSerializationService(
+      final boolean registrationRequired, final boolean compatibleSerialization) {
     this.registrationRequired = registrationRequired;
     this.compatibleSerialization = compatibleSerialization;
   }
@@ -38,7 +37,7 @@ public class CoreSerializationService implements SerializationService {
   }
 
   @Override
-  public SerializerBuilder newBuilder(String name) {
+  public SerializerBuilder newBuilder(final String name) {
     return new SerializerBuilder(name)
         .withRegistrationRequired(registrationRequired)
         .withCompatibleSerialization(compatibleSerialization);

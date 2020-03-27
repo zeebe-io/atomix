@@ -51,27 +51,31 @@ public class JournalSegment<E> implements AutoCloseable {
   private boolean open = true;
 
   public JournalSegment(
-      JournalSegmentFile file,
-      JournalSegmentDescriptor descriptor,
-      StorageLevel storageLevel,
-      int maxEntrySize,
-      Namespace namespace,
-      JournalIndex journalIndex) {
+      final JournalSegmentFile file,
+      final JournalSegmentDescriptor descriptor,
+      final StorageLevel storageLevel,
+      final int maxEntrySize,
+      final Namespace namespace,
+      final JournalIndex journalIndex) {
     this.file = file;
     this.descriptor = descriptor;
     this.storageLevel = storageLevel;
     this.maxEntrySize = maxEntrySize;
     this.index = journalIndex;
     this.namespace = namespace;
-    this.writer = new MappableJournalSegmentWriter<>(openChannel(file.file()), this, maxEntrySize,
-        index, namespace);
+    this.writer =
+        new MappableJournalSegmentWriter<>(
+            openChannel(file.file()), this, maxEntrySize, index, namespace);
   }
 
-  private FileChannel openChannel(File file) {
+  private FileChannel openChannel(final File file) {
     try {
-      return FileChannel.open(file.toPath(), StandardOpenOption.CREATE, StandardOpenOption.READ,
+      return FileChannel.open(
+          file.toPath(),
+          StandardOpenOption.CREATE,
+          StandardOpenOption.READ,
           StandardOpenOption.WRITE);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new StorageException(e);
     }
   }
@@ -157,37 +161,29 @@ public class JournalSegment<E> implements AutoCloseable {
     return writer.getNextIndex() - index();
   }
 
-  /**
-   * Acquires a reference to the log segment.
-   */
+  /** Acquires a reference to the log segment. */
   void acquire() {
     if (references.getAndIncrement() == 0 && open) {
       map();
     }
   }
 
-  /**
-   * Releases a reference to the log segment.
-   */
+  /** Releases a reference to the log segment. */
   void release() {
     if (references.decrementAndGet() == 0 && open) {
       unmap();
     }
   }
 
-  /**
-   * Maps the log segment into memory.
-   */
+  /** Maps the log segment into memory. */
   private void map() {
     if (storageLevel == StorageLevel.MAPPED) {
-      MappedByteBuffer buffer = writer.map();
+      final MappedByteBuffer buffer = writer.map();
       readers.forEach(reader -> reader.map(buffer));
     }
   }
 
-  /**
-   * Unmaps the log segment from memory.
-   */
+  /** Unmaps the log segment from memory. */
   private void unmap() {
     if (storageLevel == StorageLevel.MAPPED) {
       writer.unmap();
@@ -212,9 +208,10 @@ public class JournalSegment<E> implements AutoCloseable {
    */
   MappableJournalSegmentReader<E> createReader() {
     checkOpen();
-    MappableJournalSegmentReader<E> reader = new MappableJournalSegmentReader<>(
-        openChannel(file.file()), this, maxEntrySize, index, namespace);
-    MappedByteBuffer buffer = writer.buffer();
+    final MappableJournalSegmentReader<E> reader =
+        new MappableJournalSegmentReader<>(
+            openChannel(file.file()), this, maxEntrySize, index, namespace);
+    final MappedByteBuffer buffer = writer.buffer();
     if (buffer != null) {
       reader.map(buffer);
     }
@@ -227,13 +224,11 @@ public class JournalSegment<E> implements AutoCloseable {
    *
    * @param reader the closed segment reader
    */
-  void closeReader(MappableJournalSegmentReader<E> reader) {
+  void closeReader(final MappableJournalSegmentReader<E> reader) {
     readers.remove(reader);
   }
 
-  /**
-   * Checks whether the segment is open.
-   */
+  /** Checks whether the segment is open. */
   private void checkOpen() {
     checkState(open, "Segment not open");
   }
@@ -247,9 +242,7 @@ public class JournalSegment<E> implements AutoCloseable {
     return open;
   }
 
-  /**
-   * Closes the segment.
-   */
+  /** Closes the segment. */
   @Override
   public void close() {
     unmap();
@@ -258,17 +251,15 @@ public class JournalSegment<E> implements AutoCloseable {
     open = false;
   }
 
-  void compactIndex(long index) {
+  void compactIndex(final long index) {
     this.index.compact(index);
   }
 
-  /**
-   * Deletes the segment.
-   */
+  /** Deletes the segment. */
   public void delete() {
     try {
       Files.deleteIfExists(file.file().toPath());
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new StorageException(e);
     }
   }

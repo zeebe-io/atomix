@@ -19,59 +19,61 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-/**
- * Retry utilities.
- */
+/** Retry utilities. */
 public final class Retries {
+
+  private Retries() {}
 
   /**
    * Returns a function that retries execution on failure.
+   *
    * @param base base function
    * @param exceptionClass type of exception for which to retry
    * @param maxRetries max number of retries before giving up
-   * @param maxDelayBetweenRetries max delay between successive retries. The actual delay is randomly picked from
-   * the interval (0, maxDelayBetweenRetries]
+   * @param maxDelayBetweenRetries max delay between successive retries. The actual delay is
+   *     randomly picked from the interval (0, maxDelayBetweenRetries]
    * @return function
    * @param <U> type of function input
    * @param <V> type of function output
    */
-  public static <U, V> Function<U, V> retryable(Function<U, V> base,
-                                                Class<? extends Throwable> exceptionClass,
-                                                int maxRetries,
-                                                int maxDelayBetweenRetries) {
+  public static <U, V> Function<U, V> retryable(
+      final Function<U, V> base,
+      final Class<? extends Throwable> exceptionClass,
+      final int maxRetries,
+      final int maxDelayBetweenRetries) {
     return new RetryingFunction<>(base, exceptionClass, maxRetries, maxDelayBetweenRetries);
   }
 
   /**
    * Returns a Supplier that retries execution on failure.
+   *
    * @param base base supplier
    * @param exceptionClass type of exception for which to retry
    * @param maxRetries max number of retries before giving up
-   * @param maxDelayBetweenRetries max delay between successive retries. The actual delay is randomly picked from
-   * the interval (0, maxDelayBetweenRetries]
+   * @param maxDelayBetweenRetries max delay between successive retries. The actual delay is
+   *     randomly picked from the interval (0, maxDelayBetweenRetries]
    * @return supplier
    * @param <V> type of supplied result
    */
-  public static <V> Supplier<V> retryable(Supplier<V> base,
-                                          Class<? extends Throwable> exceptionClass,
-                                          int maxRetries,
-                                          int maxDelayBetweenRetries) {
-    return () -> new RetryingFunction<>(v -> base.get(),
-        exceptionClass,
-        maxRetries,
-        maxDelayBetweenRetries).apply(null);
+  public static <V> Supplier<V> retryable(
+      final Supplier<V> base,
+      final Class<? extends Throwable> exceptionClass,
+      final int maxRetries,
+      final int maxDelayBetweenRetries) {
+    return () ->
+        new RetryingFunction<>(v -> base.get(), exceptionClass, maxRetries, maxDelayBetweenRetries)
+            .apply(null);
   }
 
   /**
-   * Suspends the current thread for a random number of millis between 0 and
-   * the indicated limit.
+   * Suspends the current thread for a random number of millis between 0 and the indicated limit.
    *
    * @param ms max number of millis
    */
-  public static void randomDelay(int ms) {
+  public static void randomDelay(final int ms) {
     try {
       Thread.sleep(ThreadLocalRandom.current().nextInt(ms));
-    } catch (InterruptedException e) {
+    } catch (final InterruptedException e) {
       throw new RuntimeException("Interrupted", e);
     }
   }
@@ -79,18 +81,14 @@ public final class Retries {
   /**
    * Suspends the current thread for a specified number of millis and nanos.
    *
-   * @param ms    number of millis
+   * @param ms number of millis
    * @param nanos number of nanos
    */
-  public static void delay(int ms, int nanos) {
+  public static void delay(final int ms, final int nanos) {
     try {
       Thread.sleep(ms, nanos);
-    } catch (InterruptedException e) {
+    } catch (final InterruptedException e) {
       throw new RuntimeException("Interrupted", e);
     }
   }
-
-  private Retries() {
-  }
-
 }

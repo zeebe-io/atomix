@@ -17,20 +17,23 @@ package io.atomix.cluster.messaging;
 
 import java.io.File;
 
-/**
- * TLS configuration.
- */
+/** TLS configuration. */
 public class TlsConfig {
   private static final String CONFIG_DIR = "/conf";
   private static final String KEYSTORE_FILE_NAME = "atomix.jks";
   private static final File DEFAULT_KEYSTORE_FILE = new File(CONFIG_DIR, KEYSTORE_FILE_NAME);
   private static final String DEFAULT_KEYSTORE_PASSWORD = "changeit";
 
-  private boolean enabled = Boolean.parseBoolean(System.getProperty("io.atomix.enableNettyTLS", Boolean.toString(false)));
-  private String keyStore = System.getProperty("javax.net.ssl.keyStore", DEFAULT_KEYSTORE_FILE.toString());
-  private String trustStore = System.getProperty("javax.net.ssl.trustStore", DEFAULT_KEYSTORE_FILE.toString());
-  private String keyStorePassword = System.getProperty("javax.net.ssl.keyStorePassword", DEFAULT_KEYSTORE_PASSWORD);
-  private String trustStorePassword = System.getProperty("javax.net.ssl.trustStorePassword", DEFAULT_KEYSTORE_PASSWORD);
+  private boolean enabled =
+      Boolean.parseBoolean(System.getProperty("io.atomix.enableNettyTLS", Boolean.toString(false)));
+  private String keyStore =
+      System.getProperty("javax.net.ssl.keyStore", DEFAULT_KEYSTORE_FILE.toString());
+  private String trustStore =
+      System.getProperty("javax.net.ssl.trustStore", DEFAULT_KEYSTORE_FILE.toString());
+  private String keyStorePassword =
+      System.getProperty("javax.net.ssl.keyStorePassword", DEFAULT_KEYSTORE_PASSWORD);
+  private String trustStorePassword =
+      System.getProperty("javax.net.ssl.trustStorePassword", DEFAULT_KEYSTORE_PASSWORD);
 
   /**
    * Returns whether TLS is enabled.
@@ -47,7 +50,7 @@ public class TlsConfig {
    * @param enabled whether TLS is enabled
    * @return the TLS configuration
    */
-  public TlsConfig setEnabled(boolean enabled) {
+  public TlsConfig setEnabled(final boolean enabled) {
     this.enabled = enabled;
     return this;
   }
@@ -67,7 +70,7 @@ public class TlsConfig {
    * @param keyStore the key store path
    * @return the TLS configuration
    */
-  public TlsConfig setKeyStore(String keyStore) {
+  public TlsConfig setKeyStore(final String keyStore) {
     this.keyStore = keyStore;
     return this;
   }
@@ -87,7 +90,7 @@ public class TlsConfig {
    * @param trustStore the trust store path
    * @return the TLS configuration
    */
-  public TlsConfig setTrustStore(String trustStore) {
+  public TlsConfig setTrustStore(final String trustStore) {
     this.trustStore = trustStore;
     return this;
   }
@@ -107,7 +110,7 @@ public class TlsConfig {
    * @param keyStorePassword the key store password
    * @return the TLS configuration
    */
-  public TlsConfig setKeyStorePassword(String keyStorePassword) {
+  public TlsConfig setKeyStorePassword(final String keyStorePassword) {
     this.keyStorePassword = keyStorePassword;
     return this;
   }
@@ -127,7 +130,7 @@ public class TlsConfig {
    * @param trustStorePassword the trust store password
    * @return the TLS configuration
    */
-  public TlsConfig setTrustStorePassword(String trustStorePassword) {
+  public TlsConfig setTrustStorePassword(final String trustStorePassword) {
     this.trustStorePassword = trustStorePassword;
     return this;
   }

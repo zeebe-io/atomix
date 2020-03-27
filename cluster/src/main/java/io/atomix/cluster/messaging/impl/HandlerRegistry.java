@@ -19,19 +19,18 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 
-/**
- * Messaging handler registry.
- */
+/** Messaging handler registry. */
 final class HandlerRegistry {
-  private final Map<String, BiConsumer<ProtocolRequest, ServerConnection>> handlers = new ConcurrentHashMap<>();
+  private final Map<String, BiConsumer<ProtocolRequest, ServerConnection>> handlers =
+      new ConcurrentHashMap<>();
 
   /**
    * Registers a message type handler.
    *
-   * @param type    the message type
+   * @param type the message type
    * @param handler the message handler
    */
-  void register(String type, BiConsumer<ProtocolRequest, ServerConnection> handler) {
+  void register(final String type, final BiConsumer<ProtocolRequest, ServerConnection> handler) {
     handlers.put(type, handler);
   }
 
@@ -40,7 +39,7 @@ final class HandlerRegistry {
    *
    * @param type the message type
    */
-  void unregister(String type) {
+  void unregister(final String type) {
     handlers.remove(type);
   }
 
@@ -50,7 +49,7 @@ final class HandlerRegistry {
    * @param type the message type
    * @return the message handler or {@code null} if no handler of the given type is registered
    */
-  BiConsumer<ProtocolRequest, ServerConnection> get(String type) {
+  BiConsumer<ProtocolRequest, ServerConnection> get(final String type) {
     return handlers.get(type);
   }
 }

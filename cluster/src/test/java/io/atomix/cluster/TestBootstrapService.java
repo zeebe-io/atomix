@@ -19,15 +19,16 @@ import io.atomix.cluster.messaging.BroadcastService;
 import io.atomix.cluster.messaging.MessagingService;
 import io.atomix.cluster.messaging.UnicastService;
 
-/**
- * Test bootstrap service.
- */
+/** Test bootstrap service. */
 public class TestBootstrapService implements BootstrapService {
   private final MessagingService messagingService;
   private final UnicastService unicastService;
   private final BroadcastService broadcastService;
 
-  public TestBootstrapService(MessagingService messagingService, UnicastService unicastService, BroadcastService broadcastService) {
+  public TestBootstrapService(
+      final MessagingService messagingService,
+      final UnicastService unicastService,
+      final BroadcastService broadcastService) {
     this.messagingService = messagingService;
     this.unicastService = unicastService;
     this.broadcastService = broadcastService;

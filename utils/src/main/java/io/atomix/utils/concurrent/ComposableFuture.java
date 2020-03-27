@@ -28,7 +28,7 @@ import java.util.function.Consumer;
 public class ComposableFuture<T> extends CompletableFuture<T> implements BiConsumer<T, Throwable> {
 
   @Override
-  public void accept(T result, Throwable error) {
+  public void accept(final T result, final Throwable error) {
     if (error == null) {
       complete(result);
     } else {
@@ -42,12 +42,13 @@ public class ComposableFuture<T> extends CompletableFuture<T> implements BiConsu
    * @param consumer The consumer to call.
    * @return A new future.
    */
-  public CompletableFuture<T> except(Consumer<Throwable> consumer) {
-    return whenComplete((result, error) -> {
-      if (error != null) {
-        consumer.accept(error);
-      }
-    });
+  public CompletableFuture<T> except(final Consumer<Throwable> consumer) {
+    return whenComplete(
+        (result, error) -> {
+          if (error != null) {
+            consumer.accept(error);
+          }
+        });
   }
 
   /**
@@ -56,12 +57,13 @@ public class ComposableFuture<T> extends CompletableFuture<T> implements BiConsu
    * @param consumer The consumer to call.
    * @return A new future.
    */
-  public CompletableFuture<T> exceptAsync(Consumer<Throwable> consumer) {
-    return whenCompleteAsync((result, error) -> {
-      if (error != null) {
-        consumer.accept(error);
-      }
-    });
+  public CompletableFuture<T> exceptAsync(final Consumer<Throwable> consumer) {
+    return whenCompleteAsync(
+        (result, error) -> {
+          if (error != null) {
+            consumer.accept(error);
+          }
+        });
   }
 
   /**
@@ -71,12 +73,14 @@ public class ComposableFuture<T> extends CompletableFuture<T> implements BiConsu
    * @param executor The executor with which to call the consumer.
    * @return A new future.
    */
-  public CompletableFuture<T> exceptAsync(Consumer<Throwable> consumer, Executor executor) {
-    return whenCompleteAsync((result, error) -> {
-      if (error != null) {
-        consumer.accept(error);
-      }
-    }, executor);
+  public CompletableFuture<T> exceptAsync(
+      final Consumer<Throwable> consumer, final Executor executor) {
+    return whenCompleteAsync(
+        (result, error) -> {
+          if (error != null) {
+            consumer.accept(error);
+          }
+        },
+        executor);
   }
-
 }

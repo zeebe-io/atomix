@@ -17,11 +17,9 @@ package io.atomix.storage.journal;
 
 import io.atomix.storage.StorageLevel;
 
-/**
- * Memory journal test.
- */
+/** Memory journal test. */
 public class MemoryJournalTest extends AbstractJournalTest {
-  public MemoryJournalTest(int maxSegmentSize, int cacheSize) {
+  public MemoryJournalTest(final int maxSegmentSize, final int cacheSize) {
     super(maxSegmentSize, cacheSize);
   }
 

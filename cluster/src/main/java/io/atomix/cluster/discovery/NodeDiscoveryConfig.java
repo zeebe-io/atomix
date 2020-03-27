@@ -17,8 +17,5 @@ package io.atomix.cluster.discovery;
 
 import io.atomix.utils.config.TypedConfig;
 
-/**
- * Node discovery configuration.
- */
-public abstract class NodeDiscoveryConfig implements TypedConfig<NodeDiscoveryProvider.Type> {
-}
+/** Node discovery configuration. */
+public abstract class NodeDiscoveryConfig implements TypedConfig<NodeDiscoveryProvider.Type> {}

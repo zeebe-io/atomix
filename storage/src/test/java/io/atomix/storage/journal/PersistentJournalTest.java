@@ -15,22 +15,18 @@
  */
 package io.atomix.storage.journal;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-/**
- * Persistent journal test base.
- */
+import org.junit.Test;
+
+/** Persistent journal test base. */
 public abstract class PersistentJournalTest extends AbstractJournalTest {
-  protected PersistentJournalTest(int maxSegmentSize, int cacheSize) {
+  protected PersistentJournalTest(final int maxSegmentSize, final int cacheSize) {
     super(maxSegmentSize, cacheSize);
   }
 
-  /**
-   * Tests reading from a compacted journal.
-   */
+  /** Tests reading from a compacted journal. */
   @Test
   public void testCompactAndRecover() throws Exception {
     SegmentedJournal<TestEntry> journal = createJournal();
@@ -51,7 +47,7 @@ public abstract class PersistentJournalTest extends AbstractJournalTest {
     // Reopen the journal and create a reader.
     journal = createJournal();
     writer = journal.writer();
-    JournalReader<TestEntry> reader = journal.openReader(1, JournalReader.Mode.COMMITS);
+    final JournalReader<TestEntry> reader = journal.openReader(1, JournalReader.Mode.COMMITS);
     writer.append(ENTRY);
     writer.append(ENTRY);
     writer.commit(entriesPerSegment * 3);

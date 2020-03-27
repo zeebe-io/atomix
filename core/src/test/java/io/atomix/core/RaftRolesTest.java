@@ -7,10 +7,10 @@ import static org.junit.Assert.assertTrue;
 
 import io.atomix.primitive.partition.Partition;
 import io.atomix.primitive.partition.impl.DefaultPartitionService;
-import io.atomix.protocols.raft.RaftServer;
-import io.atomix.protocols.raft.RaftServer.Role;
-import io.atomix.protocols.raft.partition.RaftPartition;
-import io.atomix.protocols.raft.partition.RaftPartitionGroup;
+import io.atomix.raft.RaftServer;
+import io.atomix.raft.RaftServer.Role;
+import io.atomix.raft.partition.RaftPartition;
+import io.atomix.raft.partition.RaftPartitionGroup;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,8 +33,7 @@ import org.junit.Test;
 
 public final class RaftRolesTest extends AbstractAtomixTest {
 
-  @Rule
-  public AtomixRule atomixRule = new AtomixRule();
+  @Rule public AtomixRule atomixRule = new AtomixRule();
 
   private List<Atomix> instances;
 
@@ -45,12 +44,12 @@ public final class RaftRolesTest extends AbstractAtomixTest {
 
   @After
   public void teardownInstances() {
-    final List<CompletableFuture<Void>> futures = instances.stream().map(Atomix::stop)
-        .collect(Collectors.toList());
+    final List<CompletableFuture<Void>> futures =
+        instances.stream().map(Atomix::stop).collect(Collectors.toList());
     try {
       CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
           .get(30, TimeUnit.SECONDS);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       // Do nothing
     }
   }
@@ -61,11 +60,12 @@ public final class RaftRolesTest extends AbstractAtomixTest {
     final CompletableFuture<Void> roleChanged = new CompletableFuture<>();
 
     // when
-    final CompletableFuture<Atomix> joinFuture = startSingleNodeSinglePartitionWithPartitionConsumer(
-        partition -> {
-          final RaftPartition raftPartition = (RaftPartition) partition;
-          raftPartition.addRoleChangeListener(role -> roleChanged.complete(null));
-        });
+    final CompletableFuture<Atomix> joinFuture =
+        startSingleNodeSinglePartitionWithPartitionConsumer(
+            partition -> {
+              final RaftPartition raftPartition = (RaftPartition) partition;
+              raftPartition.addRoleChangeListener(role -> roleChanged.complete(null));
+            });
 
     // then
     joinFuture.join();
@@ -77,16 +77,18 @@ public final class RaftRolesTest extends AbstractAtomixTest {
     // given
     final CompletableFuture<Void> roleChanged = new CompletableFuture<>();
 
-    final CompletableFuture<Atomix> joinFuture = startSingleNodeSinglePartitionWithPartitionConsumer(
-        partition -> {
-          final RaftPartition raftPartition = (RaftPartition) partition;
-          raftPartition.addRoleChangeListener(role -> {
-            roleChanged.complete(null);
+    final CompletableFuture<Atomix> joinFuture =
+        startSingleNodeSinglePartitionWithPartitionConsumer(
+            partition -> {
+              final RaftPartition raftPartition = (RaftPartition) partition;
+              raftPartition.addRoleChangeListener(
+                  role -> {
+                    roleChanged.complete(null);
 
-            // when
-            throw new RuntimeException("expected");
-          });
-        });
+                    // when
+                    throw new RuntimeException("expected");
+                  });
+            });
 
     // then
     joinFuture.join();
@@ -100,20 +102,23 @@ public final class RaftRolesTest extends AbstractAtomixTest {
     final CountDownLatch followerLatch = new CountDownLatch(2);
     final List<Role> roles = new ArrayList<>();
 
-    startSingleNodeSinglePartitionWithPartitionConsumer(partition -> {
-      final RaftPartition raftPartition = (RaftPartition) partition;
-      raftPartition.addRoleChangeListener(role -> {
-        roles.add(role);
-        if (!roleChanged.isDone() && role == Role.LEADER) {
-          roleChanged.complete(null);
+    startSingleNodeSinglePartitionWithPartitionConsumer(
+            partition -> {
+              final RaftPartition raftPartition = (RaftPartition) partition;
+              raftPartition.addRoleChangeListener(
+                  role -> {
+                    roles.add(role);
+                    if (!roleChanged.isDone() && role == Role.LEADER) {
+                      roleChanged.complete(null);
 
-          // when
-          raftPartition.stepDown();
-        } else if (role == Role.FOLLOWER) {
-          followerLatch.countDown();
-        }
-      });
-    }).join();
+                      // when
+                      raftPartition.stepDown();
+                    } else if (role == Role.FOLLOWER) {
+                      followerLatch.countDown();
+                    }
+                  });
+            })
+        .join();
 
     // then
     roleChanged.get(60, TimeUnit.SECONDS);
@@ -142,68 +147,78 @@ public final class RaftRolesTest extends AbstractAtomixTest {
 
     final int firstNodeId = 1;
     final int expectedFirstNodeLeadingPartition = 1;
-    final CompletableFuture<Atomix> nodeOneFuture = startAtomixWithPartitionConsumer(firstNodeId, 3,
-        members,
-        partition -> {
-          final Map<Integer, RaftServer.Role> roleMap = nodeRoles.get(0);
-          final RaftPartition raftPartition = (RaftPartition) partition;
-          raftPartition.addRoleChangeListener((role) -> {
-            final Integer partitionId = partition.id().id();
-            roleMap.put(partitionId, role);
+    final CompletableFuture<Atomix> nodeOneFuture =
+        startAtomixWithPartitionConsumer(
+            firstNodeId,
+            3,
+            members,
+            partition -> {
+              final Map<Integer, RaftServer.Role> roleMap = nodeRoles.get(0);
+              final RaftPartition raftPartition = (RaftPartition) partition;
+              raftPartition.addRoleChangeListener(
+                  (role) -> {
+                    final Integer partitionId = partition.id().id();
+                    roleMap.put(partitionId, role);
 
-            if (role == Role.LEADER) {
-              if (partitionId == expectedFirstNodeLeadingPartition) {
-                raftPartition.stepDown();
-              } else {
-                latch.countDown();
-              }
-            }
-          });
-        });
+                    if (role == Role.LEADER) {
+                      if (partitionId == expectedFirstNodeLeadingPartition) {
+                        raftPartition.stepDown();
+                      } else {
+                        latch.countDown();
+                      }
+                    }
+                  });
+            });
 
     final int secondNodeId = 2;
     final int expectedSecondNodeLeadingPartition = 2;
-    final CompletableFuture<Atomix> nodeTwoFuture = startAtomixWithPartitionConsumer(secondNodeId,
-        3,
-        members,
-        partition -> {
-          final Map<Integer, RaftServer.Role> roleMap = nodeRoles.get(1);
-          final RaftPartition raftPartition = (RaftPartition) partition;
-          raftPartition.addRoleChangeListener((role) -> {
-            final Integer partitionId = partition.id().id();
-            roleMap.put(partitionId, role);
+    final CompletableFuture<Atomix> nodeTwoFuture =
+        startAtomixWithPartitionConsumer(
+            secondNodeId,
+            3,
+            members,
+            partition -> {
+              final Map<Integer, RaftServer.Role> roleMap = nodeRoles.get(1);
+              final RaftPartition raftPartition = (RaftPartition) partition;
+              raftPartition.addRoleChangeListener(
+                  (role) -> {
+                    final Integer partitionId = partition.id().id();
+                    roleMap.put(partitionId, role);
 
-            if (role == Role.LEADER) {
-              if (partitionId == expectedSecondNodeLeadingPartition) {
-                raftPartition.stepDown();
-              } else {
-                latch.countDown();
-              }
-            }
-          });
-        });
+                    if (role == Role.LEADER) {
+                      if (partitionId == expectedSecondNodeLeadingPartition) {
+                        raftPartition.stepDown();
+                      } else {
+                        latch.countDown();
+                      }
+                    }
+                  });
+            });
 
     final int thirdNodeId = 3;
     final int expectedThirdNodeLeadingPartition = 3;
-    final CompletableFuture<Atomix> nodeThreeFuture = startAtomixWithPartitionConsumer(thirdNodeId,
-        3,
-        members,
-        partition -> {
-          final Map<Integer, RaftServer.Role> roleMap = nodeRoles.get(2);
-          final RaftPartition raftPartition = (RaftPartition) partition;
-          raftPartition.addRoleChangeListener((role) -> {
-            final Integer partitionId = partition.id().id();
-            roleMap.put(partitionId, role);
+    final CompletableFuture<Atomix> nodeThreeFuture =
+        startAtomixWithPartitionConsumer(
+            thirdNodeId,
+            3,
+            members,
+            partition -> {
+              final Map<Integer, RaftServer.Role> roleMap = nodeRoles.get(2);
+              final RaftPartition raftPartition = (RaftPartition) partition;
+              raftPartition.addRoleChangeListener(
+                  (role) -> {
+                    final Integer partitionId = partition.id().id();
+                    roleMap.put(partitionId, role);
 
-            if (role == Role.LEADER) {
-              if (partitionId == expectedThirdNodeLeadingPartition) {
-                raftPartition.stepDown();
-              } else {
-                latch.countDown();
-              }
-            }
-          });
-        });
+                    if (role == Role.LEADER) {
+                      if (partitionId == expectedThirdNodeLeadingPartition) {
+                        raftPartition.stepDown();
+                      } else {
+                        latch.countDown();
+                      }
+                    }
+                  });
+            });
 
     // then
     CompletableFuture.allOf(nodeOneFuture, nodeTwoFuture, nodeThreeFuture).join();
@@ -214,13 +229,17 @@ public final class RaftRolesTest extends AbstractAtomixTest {
     assertEquals(Role.FOLLOWER, nodeRoles.get(1).get(2));
     assertEquals(Role.FOLLOWER, nodeRoles.get(2).get(3));
 
-    final List<Role> leaderRoles = nodeRoles.stream().flatMap(map -> map.values().stream())
-        .filter(r -> r == Role.LEADER)
-        .collect(Collectors.toList());
+    final List<Role> leaderRoles =
+        nodeRoles.stream()
+            .flatMap(map -> map.values().stream())
+            .filter(r -> r == Role.LEADER)
+            .collect(Collectors.toList());
 
-    final List<Role> followerRoles = nodeRoles.stream().flatMap(map -> map.values().stream())
-        .filter(r -> r == Role.FOLLOWER)
-        .collect(Collectors.toList());
+    final List<Role> followerRoles =
+        nodeRoles.stream()
+            .flatMap(map -> map.values().stream())
+            .filter(r -> r == Role.FOLLOWER)
+            .collect(Collectors.toList());
 
     assertEquals(3, leaderRoles.size());
     assertEquals(6, followerRoles.size());
@@ -243,22 +262,16 @@ public final class RaftRolesTest extends AbstractAtomixTest {
     final List<Integer> members = Arrays.asList(1, 2, 3);
 
     final int firstNodeId = 1;
-    final CompletableFuture<Atomix> nodeOneFuture = startAtomixAndCollectNodeRoles(firstNodeId,
-        members,
-        nodeRoles,
-        latch);
+    final CompletableFuture<Atomix> nodeOneFuture =
+        startAtomixAndCollectNodeRoles(firstNodeId, members, nodeRoles, latch);
 
     final int secondNodeId = 2;
-    final CompletableFuture<Atomix> nodeTwoFuture = startAtomixAndCollectNodeRoles(secondNodeId,
-        members,
-        nodeRoles,
-        latch);
+    final CompletableFuture<Atomix> nodeTwoFuture =
+        startAtomixAndCollectNodeRoles(secondNodeId, members, nodeRoles, latch);
 
     final int thirdNodeId = 3;
-    final CompletableFuture<Atomix> nodeThreeFuture = startAtomixAndCollectNodeRoles(thirdNodeId,
-        members,
-        nodeRoles,
-        latch);
+    final CompletableFuture<Atomix> nodeThreeFuture =
+        startAtomixAndCollectNodeRoles(thirdNodeId, members, nodeRoles, latch);
 
     // then
     CompletableFuture.allOf(nodeOneFuture, nodeTwoFuture, nodeThreeFuture).join();
@@ -300,21 +313,16 @@ public final class RaftRolesTest extends AbstractAtomixTest {
     final List<Integer> members = Arrays.asList(1, 2, 3);
 
     final int firstNodeId = 1;
-    final CompletableFuture<Atomix> nodeOneFuture = startAtomixAndCollectNodeRoles(firstNodeId,
-        members,
-        nodeRoles, latch);
+    final CompletableFuture<Atomix> nodeOneFuture =
+        startAtomixAndCollectNodeRoles(firstNodeId, members, nodeRoles, latch);
 
     final int secondNodeId = 2;
-    final CompletableFuture<Atomix> nodeTwoFuture = startAtomixAndCollectNodeRoles(secondNodeId,
-        members,
-        nodeRoles,
-        latch);
+    final CompletableFuture<Atomix> nodeTwoFuture =
+        startAtomixAndCollectNodeRoles(secondNodeId, members, nodeRoles, latch);
 
     final int thirdNodeId = 3;
-    final CompletableFuture<Atomix> nodeThreeFuture = startAtomixAndCollectNodeRoles(thirdNodeId,
-        members,
-        nodeRoles,
-        latch);
+    final CompletableFuture<Atomix> nodeThreeFuture =
+        startAtomixAndCollectNodeRoles(thirdNodeId, members, nodeRoles, latch);
 
     // then
     CompletableFuture.allOf(nodeOneFuture, nodeTwoFuture, nodeThreeFuture).join();
@@ -325,20 +333,19 @@ public final class RaftRolesTest extends AbstractAtomixTest {
     atomix.stop().join();
     nodeRoles.get(1).clear();
     final CountDownLatch newLatch = new CountDownLatch(1);
-    final CompletableFuture<Atomix> nodeTwoSecondFuture = startAtomixAndCollectNodeRoles(
-        secondNodeId,
-        members, nodeRoles, newLatch);
+    final CompletableFuture<Atomix> nodeTwoSecondFuture =
+        startAtomixAndCollectNodeRoles(secondNodeId, members, nodeRoles, newLatch);
 
     nodeTwoSecondFuture.join();
     newLatch.await(5_000, TimeUnit.MILLISECONDS);
 
     // then
-    final long nodeOneLeaderCount = nodeRoles.get(0).values().stream().filter(r -> r == Role.LEADER)
-        .count();
-    final long nodeTwoLeaderCount = nodeRoles.get(1).values().stream().filter(r -> r == Role.LEADER)
-        .count();
-    final long nodeThreeLeaderCount = nodeRoles.get(2).values().stream()
-        .filter(r -> r == Role.LEADER).count();
+    final long nodeOneLeaderCount =
+        nodeRoles.get(0).values().stream().filter(r -> r == Role.LEADER).count();
+    final long nodeTwoLeaderCount =
+        nodeRoles.get(1).values().stream().filter(r -> r == Role.LEADER).count();
+    final long nodeThreeLeaderCount =
+        nodeRoles.get(2).values().stream().filter(r -> r == Role.LEADER).count();
 
     assertTrue(nodeOneLeaderCount == 2 || nodeThreeLeaderCount == 2);
     assertEquals(0, nodeTwoLeaderCount);
@@ -350,26 +357,32 @@ public final class RaftRolesTest extends AbstractAtomixTest {
     assertEquals(expectedNodeTwoRoles, nodeRoles.get(1));
   }
 
-  private CompletableFuture<Atomix> startAtomixAndCollectNodeRoles(int nodeId,
-      List<Integer> members,
-      List<Map<Integer, Role>> nodeRoles, CountDownLatch latch) {
-    return startAtomixWithPartitionConsumer(nodeId, 3, members,
+  private CompletableFuture<Atomix> startAtomixAndCollectNodeRoles(
+      final int nodeId,
+      final List<Integer> members,
+      final List<Map<Integer, Role>> nodeRoles,
+      final CountDownLatch latch) {
+    return startAtomixWithPartitionConsumer(
+        nodeId,
+        3,
+        members,
         partition -> {
           final Map<Integer, RaftServer.Role> roleMap = nodeRoles.get(nodeId - 1);
           final RaftPartition raftPartition = (RaftPartition) partition;
-          raftPartition.addRoleChangeListener((role) -> {
-            roleMap.put(partition.id().id(), role);
-            if (roleMap.size() >= 3) {
-              latch.countDown();
-            }
-          });
+          raftPartition.addRoleChangeListener(
+              (role) -> {
+                roleMap.put(partition.id().id(), role);
+                if (roleMap.size() >= 3) {
+                  latch.countDown();
+                }
+              });
         });
   }
 
   private CompletableFuture<Atomix> startSingleNodeSinglePartitionWithPartitionConsumer(
       final Consumer<? super Partition> partitionConsumer) {
-    return startAtomixSinglePartitionWithPartitionConsumer(1, Collections.singletonList(1),
-        partitionConsumer);
+    return startAtomixSinglePartitionWithPartitionConsumer(
+        1, Collections.singletonList(1), partitionConsumer);
   }
 
   private CompletableFuture<Atomix> startAtomixSinglePartitionWithPartitionConsumer(
@@ -386,24 +399,27 @@ public final class RaftRolesTest extends AbstractAtomixTest {
       final List<Integer> nodeIds,
       final Consumer<? super Partition> partitionConsumer) {
 
-    final List<String> memberIds = nodeIds.stream().map(Object::toString)
-        .collect(Collectors.toList());
+    final List<String> memberIds =
+        nodeIds.stream().map(Object::toString).collect(Collectors.toList());
 
-    return startAtomix(nodeId, nodeIds,
+    return startAtomix(
+        nodeId,
+        nodeIds,
         builder -> {
-          final RaftPartitionGroup partitionGroup = RaftPartitionGroup.builder("system")
-              .withNumPartitions(partitionCount)
-              .withPartitionSize(memberIds.size())
-              .withMembers(memberIds)
-              .withDataDirectory(new File(new File(DATA_DIR, "log"), "" + nodeId))
-              .build();
+          final RaftPartitionGroup partitionGroup =
+              RaftPartitionGroup.builder("system")
+                  .withNumPartitions(partitionCount)
+                  .withPartitionSize(memberIds.size())
+                  .withMembers(memberIds)
+                  .withDataDirectory(new File(new File(DATA_DIR, "log"), "" + nodeId))
+                  .build();
 
           final Atomix atomix = builder.withManagementGroup(partitionGroup).build();
 
-          final DefaultPartitionService partitionService = (DefaultPartitionService) atomix
-              .getPartitionService();
-          final RaftPartitionGroup raftPartitionGroup = (RaftPartitionGroup) partitionService
-              .getSystemPartitionGroup();
+          final DefaultPartitionService partitionService =
+              (DefaultPartitionService) atomix.getPartitionService();
+          final RaftPartitionGroup raftPartitionGroup =
+              (RaftPartitionGroup) partitionService.getSystemPartitionGroup();
 
           // when
           raftPartitionGroup.getPartitions().forEach(partitionConsumer);
@@ -411,11 +427,12 @@ public final class RaftRolesTest extends AbstractAtomixTest {
         });
   }
 
-  private CompletableFuture<Atomix> startAtomix(int id, List<Integer> persistentIds,
-      Function<AtomixBuilder, Atomix> builderFunction) {
+  private CompletableFuture<Atomix> startAtomix(
+      final int id,
+      final List<Integer> persistentIds,
+      final Function<AtomixBuilder, Atomix> builderFunction) {
     final Atomix atomix = atomixRule.createAtomix(id, persistentIds, builderFunction);
     instances.add(atomix);
     return atomix.start().thenApply(v -> atomix);
   }
-
 }

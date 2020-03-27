@@ -15,15 +15,12 @@
  */
 package io.atomix.cluster;
 
-import io.atomix.utils.config.Config;
-
-import java.time.Duration;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Cluster membership configuration.
- */
+import io.atomix.utils.config.Config;
+import java.time.Duration;
+
+/** Cluster membership configuration. */
 public class MembershipConfig implements Config {
   private static final int DEFAULT_BROADCAST_INTERVAL = 100;
   private static final int DEFAULT_REACHABILITY_TIMEOUT = 10000;
@@ -48,7 +45,7 @@ public class MembershipConfig implements Config {
    * @param broadcastInterval the reachability broadcast interval
    * @return the membership configuration
    */
-  public MembershipConfig setBroadcastInterval(Duration broadcastInterval) {
+  public MembershipConfig setBroadcastInterval(final Duration broadcastInterval) {
     this.broadcastInterval = checkNotNull(broadcastInterval);
     return this;
   }
@@ -68,7 +65,7 @@ public class MembershipConfig implements Config {
    * @param reachabilityThreshold the reachability failure detection threshold
    * @return the membership configuration
    */
-  public MembershipConfig setReachabilityThreshold(int reachabilityThreshold) {
+  public MembershipConfig setReachabilityThreshold(final int reachabilityThreshold) {
     this.reachabilityThreshold = reachabilityThreshold;
     return this;
   }
@@ -88,7 +85,7 @@ public class MembershipConfig implements Config {
    * @param reachabilityTimeout the reachability failure timeout
    * @return the membership configuration
    */
-  public MembershipConfig setReachabilityTimeout(Duration reachabilityTimeout) {
+  public MembershipConfig setReachabilityTimeout(final Duration reachabilityTimeout) {
     this.reachabilityTimeout = checkNotNull(reachabilityTimeout);
     return this;
   }

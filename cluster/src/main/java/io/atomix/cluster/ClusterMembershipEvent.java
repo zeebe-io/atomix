@@ -17,58 +17,29 @@ package io.atomix.cluster;
 
 import com.google.common.base.MoreObjects;
 import io.atomix.utils.event.AbstractEvent;
-
 import java.util.Objects;
 
-/**
- * Describes cluster-related event.
- */
+/** Describes cluster-related event. */
 public class ClusterMembershipEvent extends AbstractEvent<ClusterMembershipEvent.Type, Member> {
 
   /**
-   * Type of cluster-related events.
-   */
-  public enum Type {
-    /**
-     * Indicates that a new member has been added.
-     */
-    MEMBER_ADDED,
-
-    /**
-     * Indicates that a member's metadata has changed.
-     */
-    METADATA_CHANGED,
-
-    /**
-     * Indicates that a member's reachability has changed.
-     */
-    REACHABILITY_CHANGED,
-
-    /**
-     * Indicates that a member has been removed.
-     */
-    MEMBER_REMOVED,
-  }
-
-  /**
-   * Creates an event of a given type and for the specified instance and the
-   * current time.
+   * Creates an event of a given type and for the specified instance and the current time.
    *
-   * @param type     cluster event type
+   * @param type cluster event type
    * @param instance cluster device subject
    */
-  public ClusterMembershipEvent(Type type, Member instance) {
+  public ClusterMembershipEvent(final Type type, final Member instance) {
     super(type, instance);
   }
 
   /**
    * Creates an event of a given type and for the specified device and time.
    *
-   * @param type     device event type
+   * @param type device event type
    * @param instance event device subject
-   * @param time     occurrence time
+   * @param time occurrence time
    */
-  public ClusterMembershipEvent(Type type, Member instance, long time) {
+  public ClusterMembershipEvent(final Type type, final Member instance, final long time) {
     super(type, instance, time);
   }
 
@@ -78,7 +49,7 @@ public class ClusterMembershipEvent extends AbstractEvent<ClusterMembershipEvent
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(final Object obj) {
     if (this == obj) {
       return true;
     }
@@ -100,4 +71,18 @@ public class ClusterMembershipEvent extends AbstractEvent<ClusterMembershipEvent
         .toString();
   }
 
+  /** Type of cluster-related events. */
+  public enum Type {
+    /** Indicates that a new member has been added. */
+    MEMBER_ADDED,
+
+    /** Indicates that a member's metadata has changed. */
+    METADATA_CHANGED,
+
+    /** Indicates that a member's reachability has changed. */
+    REACHABILITY_CHANGED,
+
+    /** Indicates that a member has been removed. */
+    MEMBER_REMOVED,
+  }
 }

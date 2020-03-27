@@ -45,20 +45,19 @@ public class JournalMetrics {
 
   private final String logName;
 
-  public JournalMetrics(String logName) {
+  public JournalMetrics(final String logName) {
     this.logName = logName;
   }
 
-  public void observeSegmentCreation(Runnable segmentCreation) {
+  public void observeSegmentCreation(final Runnable segmentCreation) {
     SEGMENT_CREATION_TIME.labels(logName).time(segmentCreation);
   }
 
-  public void observeSegmentFlush(Runnable segmentFlush) {
+  public void observeSegmentFlush(final Runnable segmentFlush) {
     SEGMENT_FLUSH_TIME.labels(logName).time(segmentFlush);
   }
 
-  public void observeSegmentTruncation(Runnable segmentTruncation) {
+  public void observeSegmentTruncation(final Runnable segmentTruncation) {
     SEGMENT_TRUNCATE_TIME.labels(logName).time(segmentTruncation);
   }
-
 }

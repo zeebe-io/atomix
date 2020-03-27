@@ -15,9 +15,7 @@
  */
 package io.atomix.utils;
 
-/**
- * Identifier interface for types.
- */
+/** Identifier interface for types. */
 public interface Type {
 
   /**
@@ -26,5 +24,4 @@ public interface Type {
    * @return the type name
    */
   String name();
-
 }

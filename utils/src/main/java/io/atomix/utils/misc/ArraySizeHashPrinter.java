@@ -18,14 +18,19 @@ package io.atomix.utils.misc;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
-
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
-/**
- * Helper to print Object[] length and hashCode.
- */
+/** Helper to print Object[] length and hashCode. */
 public final class ArraySizeHashPrinter {
+
+  private final Object[] array;
+  private final Class<?> type;
+
+  public ArraySizeHashPrinter(final Object[] array, final Class<?> type) {
+    this.array = array;
+    this.type = type;
+  }
 
   /**
    * Returns ByteArraySizeHashPrinter wrapping given short[].
@@ -33,7 +38,7 @@ public final class ArraySizeHashPrinter {
    * @param array arrays to wrap around
    * @return ObjectArraySizeHashPrinter
    */
-  public static ArraySizeHashPrinter of(byte[] array) {
+  public static ArraySizeHashPrinter of(final byte[] array) {
     return new ArraySizeHashPrinter(toObjectArray(array), byte[].class);
   }
 
@@ -43,7 +48,7 @@ public final class ArraySizeHashPrinter {
    * @param array arrays to wrap around
    * @return ObjectArraySizeHashPrinter
    */
-  public static ArraySizeHashPrinter of(short[] array) {
+  public static ArraySizeHashPrinter of(final short[] array) {
     return new ArraySizeHashPrinter(toObjectArray(array), short[].class);
   }
 
@@ -53,7 +58,7 @@ public final class ArraySizeHashPrinter {
    * @param array arrays to wrap around
    * @return ObjectArraySizeHashPrinter
    */
-  public static ArraySizeHashPrinter of(int[] array) {
+  public static ArraySizeHashPrinter of(final int[] array) {
     return new ArraySizeHashPrinter(toObjectArray(array), int[].class);
   }
 
@@ -63,7 +68,7 @@ public final class ArraySizeHashPrinter {
    * @param array arrays to wrap around
    * @return ObjectArraySizeHashPrinter
    */
-  public static ArraySizeHashPrinter of(long[] array) {
+  public static ArraySizeHashPrinter of(final long[] array) {
     return new ArraySizeHashPrinter(toObjectArray(array), long[].class);
   }
 
@@ -73,7 +78,7 @@ public final class ArraySizeHashPrinter {
    * @param array arrays to wrap around
    * @return ObjectArraySizeHashPrinter
    */
-  public static ArraySizeHashPrinter of(float[] array) {
+  public static ArraySizeHashPrinter of(final float[] array) {
     return new ArraySizeHashPrinter(toObjectArray(array), float[].class);
   }
 
@@ -83,7 +88,7 @@ public final class ArraySizeHashPrinter {
    * @param array arrays to wrap around
    * @return ObjectArraySizeHashPrinter
    */
-  public static ArraySizeHashPrinter of(double[] array) {
+  public static ArraySizeHashPrinter of(final double[] array) {
     return new ArraySizeHashPrinter(toObjectArray(array), double[].class);
   }
 
@@ -93,7 +98,7 @@ public final class ArraySizeHashPrinter {
    * @param array arrays to wrap around
    * @return ObjectArraySizeHashPrinter
    */
-  public static ArraySizeHashPrinter of(boolean[] array) {
+  public static ArraySizeHashPrinter of(final boolean[] array) {
     return new ArraySizeHashPrinter(toObjectArray(array), boolean[].class);
   }
 
@@ -103,39 +108,30 @@ public final class ArraySizeHashPrinter {
    * @param array arrays to wrap around
    * @return ObjectArraySizeHashPrinter
    */
-  public static ArraySizeHashPrinter of(Object[] array) {
+  public static ArraySizeHashPrinter of(final Object[] array) {
     return new ArraySizeHashPrinter(array, Object[].class);
   }
 
-  private static Object[] toObjectArray(Object val) {
+  private static Object[] toObjectArray(final Object val) {
     if (val == null) {
       return null;
     }
     if (val instanceof Object[]) {
       return (Object[]) val;
     }
-    int length = Array.getLength(val);
-    Object[] outputArray = new Object[length];
+    final int length = Array.getLength(val);
+    final Object[] outputArray = new Object[length];
     for (int i = 0; i < length; ++i) {
       outputArray[i] = Array.get(val, i);
     }
     return outputArray;
   }
 
-  private final Object[] array;
-  private final Class<?> type;
-
-  public ArraySizeHashPrinter(Object[] array, Class<?> type) {
-    this.array = array;
-    this.type = type;
-  }
-
   @Override
   public String toString() {
-    ToStringHelper helper = MoreObjects.toStringHelper(type);
+    final ToStringHelper helper = MoreObjects.toStringHelper(type);
     if (array != null) {
-      helper.add("length", array.length)
-          .add("hash", Arrays.hashCode(array));
+      helper.add("length", array.length).add("hash", Arrays.hashCode(array));
     } else {
       helper.addValue(array);
     }

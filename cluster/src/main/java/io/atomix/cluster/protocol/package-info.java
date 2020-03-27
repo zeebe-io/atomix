@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Provides interfaces and implementations for group membership protocols.
- */
+/** Provides interfaces and implementations for group membership protocols. */
 package io.atomix.cluster.protocol;

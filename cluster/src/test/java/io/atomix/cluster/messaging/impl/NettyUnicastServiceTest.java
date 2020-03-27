@@ -15,25 +15,22 @@
  */
 package io.atomix.cluster.messaging.impl;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import io.atomix.cluster.messaging.ManagedUnicastService;
 import io.atomix.cluster.messaging.MessagingConfig;
 import io.atomix.utils.net.Address;
+import java.io.IOException;
+import java.net.ServerSocket;
 import net.jodah.concurrentunit.ConcurrentTestCase;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 
-import java.io.IOException;
-import java.net.ServerSocket;
-
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.slf4j.LoggerFactory.getLogger;
-
-/**
- * Netty unicast service test.
- */
+/** Netty unicast service test. */
 public class NettyUnicastServiceTest extends ConcurrentTestCase {
   private static final Logger LOGGER = getLogger(NettyBroadcastServiceTest.class);
 
@@ -45,11 +42,13 @@ public class NettyUnicastServiceTest extends ConcurrentTestCase {
 
   @Test
   public void testUnicast() throws Exception {
-    service1.addListener("test", (address, payload) -> {
-      assertEquals(address2, address);
-      assertArrayEquals("Hello world!".getBytes(), payload);
-      resume();
-    });
+    service1.addListener(
+        "test",
+        (address, payload) -> {
+          assertEquals(address2, address);
+          assertArrayEquals("Hello world!".getBytes(), payload);
+          resume();
+        });
 
     service2.unicast(address1, "test", "Hello world!".getBytes());
     await(5000);
@@ -72,7 +71,7 @@ public class NettyUnicastServiceTest extends ConcurrentTestCase {
     if (service1 != null) {
       try {
         service1.stop().join();
-      } catch (Exception e) {
+      } catch (final Exception e) {
         LOGGER.warn("Failed stopping netty1", e);
       }
     }
@@ -80,20 +79,20 @@ public class NettyUnicastServiceTest extends ConcurrentTestCase {
     if (service2 != null) {
       try {
         service2.stop().join();
-      } catch (Exception e) {
+      } catch (final Exception e) {
         LOGGER.warn("Failed stopping netty2", e);
       }
     }
   }
 
-  private static int findAvailablePort(int defaultPort) {
+  private static int findAvailablePort(final int defaultPort) {
     try {
-      ServerSocket socket = new ServerSocket(0);
+      final ServerSocket socket = new ServerSocket(0);
       socket.setReuseAddress(true);
-      int port = socket.getLocalPort();
+      final int port = socket.getLocalPort();
       socket.close();
       return port;
-    } catch (IOException ex) {
+    } catch (final IOException ex) {
       return defaultPort;
     }
   }

@@ -15,11 +15,11 @@
  */
 package io.atomix.utils.misc;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Function;
-
-import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Utility class for checking matching values.
@@ -35,6 +35,18 @@ public final class Match<T> {
   private final boolean matchAny;
   private final T value;
   private final boolean negation;
+
+  private Match() {
+    matchAny = true;
+    negation = false;
+    value = null;
+  }
+
+  private Match(final T value, final boolean negation) {
+    matchAny = false;
+    this.value = value;
+    this.negation = negation;
+  }
 
   /**
    * Returns a Match that matches any value including null.
@@ -70,10 +82,10 @@ public final class Match<T> {
    * Returns a Match that only matches the specified value.
    *
    * @param value value to match
-   * @param <T>   match type
+   * @param <T> match type
    * @return new instance
    */
-  public static <T> Match<T> ifValue(T value) {
+  public static <T> Match<T> ifValue(final T value) {
     return new Match<>(value, false);
   }
 
@@ -81,33 +93,21 @@ public final class Match<T> {
    * Returns a Match that matches any value except the specified value.
    *
    * @param value value to not match
-   * @param <T>   match type
+   * @param <T> match type
    * @return new instance
    */
-  public static <T> Match<T> ifNotValue(T value) {
+  public static <T> Match<T> ifNotValue(final T value) {
     return new Match<>(value, true);
-  }
-
-  private Match() {
-    matchAny = true;
-    negation = false;
-    value = null;
-  }
-
-  private Match(T value, boolean negation) {
-    matchAny = false;
-    this.value = value;
-    this.negation = negation;
   }
 
   /**
    * Maps this instance to a Match of another type.
    *
    * @param mapper transformation function
-   * @param <V>    new match type
+   * @param <V> new match type
    * @return new instance
    */
-  public <V> Match<V> map(Function<T, V> mapper) {
+  public <V> Match<V> map(final Function<T, V> mapper) {
     if (matchAny) {
       return any();
     } else if (value == null) {
@@ -123,14 +123,14 @@ public final class Match<T> {
    * @param other other value
    * @return true if matches; false otherwise
    */
-  public boolean matches(T other) {
+  public boolean matches(final T other) {
     if (matchAny) {
       return true;
     } else if (other == null) {
       return negation ? value != null : value == null;
     } else {
       if (value instanceof byte[]) {
-        boolean equal = Arrays.equals((byte[]) value, (byte[]) other);
+        final boolean equal = Arrays.equals((byte[]) value, (byte[]) other);
         return negation ? !equal : equal;
       }
       return negation ? !Objects.equals(value, other) : Objects.equals(value, other);
@@ -143,11 +143,11 @@ public final class Match<T> {
   }
 
   @Override
-  public boolean equals(Object other) {
+  public boolean equals(final Object other) {
     if (!(other instanceof Match)) {
       return false;
     }
-    Match<T> that = (Match<T>) other;
+    final Match<T> that = (Match<T>) other;
     return this.matchAny == that.matchAny
         && Objects.equals(this.value, that.value)
         && this.negation == that.negation;

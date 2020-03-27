@@ -13,39 +13,18 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-
-  <parent>
-    <groupId>io.zeebe</groupId>
-    <artifactId>atomix-parent</artifactId>
-    <version>3.2.0-SNAPSHOT</version>
-  </parent>
-
-  <packaging>bundle</packaging>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <artifactId>atomix</artifactId>
-  <name>Atomix</name>
-
-  <dependencies>
-    <dependency>
-      <groupId>io.zeebe</groupId>
-      <artifactId>atomix-cluster</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.zeebe</groupId>
-      <artifactId>atomix-raft</artifactId>
-      <version>${project.version}</version>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>io.zeebe</groupId>
-      <artifactId>atomix-utils</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-  </dependencies>
 
   <build>
+    <plugins>
+      <plugin>
+        <artifactId>buildnumber-maven-plugin</artifactId>
+        <groupId>org.codehaus.mojo</groupId>
+      </plugin>
+    </plugins>
     <resources>
       <resource>
         <directory>src/main/resources</directory>
@@ -55,26 +34,57 @@
         <filtering>true</filtering>
       </resource>
     </resources>
-    <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>buildnumber-maven-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <extensions>true</extensions>
-        <configuration>
-          <instructions>
-            <Export-Package>
-              io.atomix.core.*
-            </Export-Package>
-            <Import-Package>
-              !sun.nio.ch,!sun.misc,*
-            </Import-Package>
-          </instructions>
-        </configuration>
-      </plugin>
-    </plugins>
   </build>
+
+  <dependencies>
+    <dependency>
+      <artifactId>atomix-cluster</artifactId>
+      <groupId>io.zeebe</groupId>
+    </dependency>
+    <dependency>
+      <artifactId>atomix-utils</artifactId>
+      <groupId>io.zeebe</groupId>
+    </dependency>
+
+    <dependency>
+      <artifactId>classgraph</artifactId>
+      <groupId>io.github.classgraph</groupId>
+    </dependency>
+    <dependency>
+      <artifactId>slf4j-api</artifactId>
+      <groupId>org.slf4j</groupId>
+    </dependency>
+    <dependency>
+      <artifactId>guava</artifactId>
+      <groupId>com.google.guava</groupId>
+    </dependency>
+    <dependency>
+      <artifactId>config</artifactId>
+      <groupId>com.typesafe</groupId>
+    </dependency>
+
+
+    <dependency>
+      <artifactId>hamcrest</artifactId>
+      <groupId>org.hamcrest</groupId>
+      <scope>test</scope>
+      <version>2.2</version>
+    </dependency>
+    <dependency>
+      <artifactId>junit</artifactId>
+      <groupId>junit</groupId>
+      <scope>test</scope>
+      <version>4.13</version>
+    </dependency>
+  </dependencies>
+  <modelVersion>4.0.0</modelVersion>
+  <name>Atomix</name>
+
+  <packaging>jar</packaging>
+
+  <parent>
+    <artifactId>atomix-parent</artifactId>
+    <groupId>io.zeebe</groupId>
+    <version>0.23.0-SNAPSHOT</version>
+  </parent>
 </project>

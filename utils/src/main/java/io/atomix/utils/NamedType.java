@@ -15,8 +15,5 @@
  */
 package io.atomix.utils;
 
-/**
- * Named type.
- */
-public interface NamedType extends Named, Type {
-}
+/** Named type. */
+public interface NamedType extends Named, Type {}
