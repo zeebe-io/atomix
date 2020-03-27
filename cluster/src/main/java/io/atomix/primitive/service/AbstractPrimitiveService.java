@@ -55,15 +55,11 @@ public abstract class AbstractPrimitiveService<C> implements PrimitiveService {
     this(primitiveType, null);
   }
 
-  protected AbstractPrimitiveService(final PrimitiveType primitiveType, final Class<C> clientInterface) {
+  protected AbstractPrimitiveService(
+      final PrimitiveType primitiveType, final Class<C> clientInterface) {
     this.primitiveType = primitiveType;
     this.clientInterface = clientInterface;
     this.serializer = Serializer.using(primitiveType.namespace());
-  }
-
-  @Override
-  public Serializer serializer() {
-    return serializer;
   }
 
   /**
@@ -109,8 +105,36 @@ public abstract class AbstractPrimitiveService<C> implements PrimitiveService {
   }
 
   @Override
+  public Serializer serializer() {
+    return serializer;
+  }
+
+  @Override
   public final byte[] apply(final Commit<byte[]> commit) {
     return executor.apply(commit);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public final void register(final Session session) {
+    sessions.put(session.sessionId(), new ClientSession<>(clientInterface, session));
+    onOpen(session);
+  }
+
+  @Override
+  public final void expire(final SessionId sessionId) {
+    final Session session = sessions.remove(sessionId);
+    if (session != null) {
+      onExpire(session);
+    }
+  }
+
+  @Override
+  public final void close(final SessionId sessionId) {
+    final Session session = sessions.remove(sessionId);
+    if (session != null) {
+      onClose(session);
+    }
   }
 
   /**
@@ -134,7 +158,8 @@ public abstract class AbstractPrimitiveService<C> implements PrimitiveService {
    * @param method the operation method
    * @param executor the service executor
    */
-  private void configure(final OperationId operationId, final Method method, final ServiceExecutor executor) {
+  private void configure(
+      final OperationId operationId, final Method method, final ServiceExecutor executor) {
     if (method.getReturnType() == Void.TYPE) {
       if (method.getParameterTypes().length == 0) {
         executor.register(
@@ -313,29 +338,6 @@ public abstract class AbstractPrimitiveService<C> implements PrimitiveService {
    */
   protected Collection<Session<C>> getSessions() {
     return sessions.values();
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public final void register(final Session session) {
-    sessions.put(session.sessionId(), new ClientSession<>(clientInterface, session));
-    onOpen(session);
-  }
-
-  @Override
-  public final void expire(final SessionId sessionId) {
-    final Session session = sessions.remove(sessionId);
-    if (session != null) {
-      onExpire(session);
-    }
-  }
-
-  @Override
-  public final void close(final SessionId sessionId) {
-    final Session session = sessions.remove(sessionId);
-    if (session != null) {
-      onClose(session);
-    }
   }
 
   /**

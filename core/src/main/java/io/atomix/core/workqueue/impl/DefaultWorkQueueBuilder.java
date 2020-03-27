@@ -26,7 +26,9 @@ import java.util.concurrent.CompletableFuture;
 /** Default work queue builder implementation. */
 public class DefaultWorkQueueBuilder<E> extends WorkQueueBuilder<E> {
   public DefaultWorkQueueBuilder(
-      final String name, final WorkQueueConfig config, final PrimitiveManagementService managementService) {
+      final String name,
+      final WorkQueueConfig config,
+      final PrimitiveManagementService managementService) {
     super(name, config, managementService);
   }
 

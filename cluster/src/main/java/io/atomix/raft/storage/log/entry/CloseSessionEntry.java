@@ -26,7 +26,11 @@ public class CloseSessionEntry extends SessionEntry {
   private final boolean delete;
 
   public CloseSessionEntry(
-      final long term, final long timestamp, final long session, final boolean expired, final boolean delete) {
+      final long term,
+      final long timestamp,
+      final long session,
+      final boolean expired,
+      final boolean delete) {
     super(term, timestamp, session);
     this.expired = expired;
     this.delete = delete;

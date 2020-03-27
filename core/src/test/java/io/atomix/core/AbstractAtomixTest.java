@@ -38,8 +38,8 @@ import org.junit.BeforeClass;
 
 /** Base Atomix test. */
 public abstract class AbstractAtomixTest {
-  private static final int BASE_PORT = 5000;
   protected static final File DATA_DIR = new File(System.getProperty("user.dir"), ".data");
+  private static final int BASE_PORT = 5000;
 
   @BeforeClass
   public static void setupAtomix() throws Exception {
@@ -85,19 +85,25 @@ public abstract class AbstractAtomixTest {
   }
 
   /** Creates an Atomix instance. */
-  protected static Atomix createAtomix(final int id, final List<Integer> bootstrapIds, final Profile... profiles) {
+  protected static Atomix createAtomix(
+      final int id, final List<Integer> bootstrapIds, final Profile... profiles) {
     return createAtomix(id, bootstrapIds, new Properties(), profiles);
   }
 
   /** Creates an Atomix instance. */
   protected static Atomix createAtomix(
-      final int id, final List<Integer> bootstrapIds, final Properties properties, final Profile... profiles) {
+      final int id,
+      final List<Integer> bootstrapIds,
+      final Properties properties,
+      final Profile... profiles) {
     return createAtomix(id, bootstrapIds, properties, b -> b.withProfiles(profiles).build());
   }
 
   /** Creates an Atomix instance. */
   protected static Atomix createAtomix(
-      final int id, final List<Integer> bootstrapIds, final Function<AtomixBuilder, Atomix> builderFunction) {
+      final int id,
+      final List<Integer> bootstrapIds,
+      final Function<AtomixBuilder, Atomix> builderFunction) {
     return createAtomix(id, bootstrapIds, new Properties(), builderFunction);
   }
 

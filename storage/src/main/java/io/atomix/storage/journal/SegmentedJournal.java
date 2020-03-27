@@ -46,20 +46,9 @@ import org.slf4j.LoggerFactory;
 /** Segmented journal. */
 public class SegmentedJournal<E> implements Journal<E> {
   private static final int DEFAULT_INDEX_DENSITY = 200;
+  private static final int SEGMENT_BUFFER_FACTOR = 3;
   private final JournalMetrics journalMetrics;
   private final Supplier<JournalIndex> journalIndexFactory;
-
-  /**
-   * Returns a new Raft log builder.
-   *
-   * @return A new Raft log builder.
-   */
-  public static <E> Builder<E> builder() {
-    return new Builder<>();
-  }
-
-  private static final int SEGMENT_BUFFER_FACTOR = 3;
-
   private final Logger log = LoggerFactory.getLogger(getClass());
   private final String name;
   private final StorageLevel storageLevel;
@@ -71,11 +60,9 @@ public class SegmentedJournal<E> implements Journal<E> {
   private final boolean flushOnCommit;
   private final SegmentedJournalWriter<E> writer;
   private volatile long commitIndex;
-
   private final NavigableMap<Long, JournalSegment<E>> segments = new ConcurrentSkipListMap<>();
   private final Collection<SegmentedJournalReader> readers = Sets.newConcurrentHashSet();
   private JournalSegment<E> currentSegment;
-
   private volatile boolean open = true;
 
   public SegmentedJournal(
@@ -103,6 +90,15 @@ public class SegmentedJournal<E> implements Journal<E> {
             : journalIndexFactory;
     open();
     this.writer = openWriter();
+  }
+
+  /**
+   * Returns a new Raft log builder.
+   *
+   * @return A new Raft log builder.
+   */
+  public static <E> Builder<E> builder() {
+    return new Builder<>();
   }
 
   public JournalMetrics getJournalMetrics() {
@@ -225,10 +221,29 @@ public class SegmentedJournal<E> implements Journal<E> {
    * @param mode The mode in which to read entries.
    * @return The Raft log reader.
    */
-  public SegmentedJournalReader<E> openReader(final long index, final SegmentedJournalReader.Mode mode) {
+  public SegmentedJournalReader<E> openReader(
+      final long index, final SegmentedJournalReader.Mode mode) {
     final SegmentedJournalReader<E> reader = new SegmentedJournalReader<>(this, index, mode);
     readers.add(reader);
     return reader;
+  }
+
+  @Override
+  public boolean isOpen() {
+    return open;
+  }
+
+  @Override
+  public void close() {
+    segments
+        .values()
+        .forEach(
+            segment -> {
+              log.debug("Closing segment: {}", segment);
+              segment.close();
+            });
+    currentSegment = null;
+    open = false;
   }
 
   /**
@@ -454,6 +469,7 @@ public class SegmentedJournal<E> implements Journal<E> {
         channel.close();
         raf.close();
       } catch (final IOException e) {
+        log.warn("Unexpected IOException on closing", e);
       }
     }
     final JournalSegment<E> segment = newSegment(new JournalSegmentFile(segmentFile), descriptor);
@@ -593,11 +609,6 @@ public class SegmentedJournal<E> implements Journal<E> {
     readers.remove(reader);
   }
 
-  @Override
-  public boolean isOpen() {
-    return open;
-  }
-
   /**
    * Returns a boolean indicating whether a segment can be removed from the journal prior to the
    * given index.
@@ -647,19 +658,6 @@ public class SegmentedJournal<E> implements Journal<E> {
     }
   }
 
-  @Override
-  public void close() {
-    segments
-        .values()
-        .forEach(
-            segment -> {
-              log.debug("Closing segment: {}", segment);
-              segment.close();
-            });
-    currentSegment = null;
-    open = false;
-  }
-
   /**
    * Returns whether {@code flushOnCommit} is enabled for the log.
    *
@@ -670,21 +668,21 @@ public class SegmentedJournal<E> implements Journal<E> {
   }
 
   /**
-   * Commits entries up to the given index.
-   *
-   * @param index The index up to which to commit entries.
-   */
-  void setCommitIndex(final long index) {
-    this.commitIndex = index;
-  }
-
-  /**
    * Returns the Raft log commit index.
    *
    * @return The Raft log commit index.
    */
   long getCommitIndex() {
     return commitIndex;
+  }
+
+  /**
+   * Commits entries up to the given index.
+   *
+   * @param index The index up to which to commit entries.
+   */
+  void setCommitIndex(final long index) {
+    this.commitIndex = index;
   }
 
   /** Raft log builder. */

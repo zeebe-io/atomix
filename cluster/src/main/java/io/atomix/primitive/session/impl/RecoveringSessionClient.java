@@ -81,6 +81,21 @@ public class RecoveringSessionClient implements SessionClient {
   }
 
   @Override
+  public String name() {
+    return name;
+  }
+
+  @Override
+  public PrimitiveType type() {
+    return primitiveType;
+  }
+
+  @Override
+  public PrimitiveState getState() {
+    return state;
+  }
+
+  @Override
   public SessionId sessionId() {
     final SessionClient proxy = this.session;
     return proxy != null ? proxy.sessionId() : DEFAULT_SESSION_ID;
@@ -92,23 +107,72 @@ public class RecoveringSessionClient implements SessionClient {
   }
 
   @Override
-  public String name() {
-    return name;
-  }
-
-  @Override
-  public PrimitiveType type() {
-    return primitiveType;
-  }
-
-  @Override
   public ThreadContext context() {
     return context;
   }
 
   @Override
-  public PrimitiveState getState() {
-    return state;
+  public CompletableFuture<byte[]> execute(final PrimitiveOperation operation) {
+    final SessionClient proxy = this.session;
+    if (proxy != null) {
+      return proxy.execute(operation);
+    } else {
+      return connectFuture.thenCompose(c -> c.execute(operation));
+    }
+  }
+
+  @Override
+  public synchronized void addEventListener(
+      final EventType eventType, final Consumer<PrimitiveEvent> consumer) {
+    eventListeners.put(eventType.canonicalize(), consumer);
+    final SessionClient proxy = this.session;
+    if (proxy != null) {
+      proxy.addEventListener(eventType, consumer);
+    }
+  }
+
+  @Override
+  public synchronized void removeEventListener(
+      final EventType eventType, final Consumer<PrimitiveEvent> consumer) {
+    eventListeners.remove(eventType.canonicalize(), consumer);
+    final SessionClient proxy = this.session;
+    if (proxy != null) {
+      proxy.removeEventListener(eventType, consumer);
+    }
+  }
+
+  @Override
+  public void addStateChangeListener(final Consumer<PrimitiveState> listener) {
+    stateChangeListeners.add(listener);
+  }
+
+  @Override
+  public void removeStateChangeListener(final Consumer<PrimitiveState> listener) {
+    stateChangeListeners.remove(listener);
+  }
+
+  @Override
+  public CompletableFuture<SessionClient> connect() {
+    if (connectFuture == null) {
+      synchronized (this) {
+        if (connectFuture == null) {
+          connected = true;
+          connectFuture = new OrderedFuture<>();
+          openProxy(connectFuture);
+        }
+      }
+    }
+    return connectFuture;
+  }
+
+  @Override
+  public CompletableFuture<Void> close() {
+    return close(SessionClient::close);
+  }
+
+  @Override
+  public CompletableFuture<Void> delete() {
+    return close(SessionClient::delete);
   }
 
   /**
@@ -137,16 +201,6 @@ public class RecoveringSessionClient implements SessionClient {
         }
       }
     }
-  }
-
-  @Override
-  public void addStateChangeListener(final Consumer<PrimitiveState> listener) {
-    stateChangeListeners.add(listener);
-  }
-
-  @Override
-  public void removeStateChangeListener(final Consumer<PrimitiveState> listener) {
-    stateChangeListeners.remove(listener);
   }
 
   /** Recovers the client. */
@@ -190,60 +244,6 @@ public class RecoveringSessionClient implements SessionClient {
                 recoverTask = context.schedule(Duration.ofSeconds(1), () -> openProxy(future));
               }
             });
-  }
-
-  @Override
-  public CompletableFuture<byte[]> execute(final PrimitiveOperation operation) {
-    final SessionClient proxy = this.session;
-    if (proxy != null) {
-      return proxy.execute(operation);
-    } else {
-      return connectFuture.thenCompose(c -> c.execute(operation));
-    }
-  }
-
-  @Override
-  public synchronized void addEventListener(
-      final EventType eventType, final Consumer<PrimitiveEvent> consumer) {
-    eventListeners.put(eventType.canonicalize(), consumer);
-    final SessionClient proxy = this.session;
-    if (proxy != null) {
-      proxy.addEventListener(eventType, consumer);
-    }
-  }
-
-  @Override
-  public synchronized void removeEventListener(
-      final EventType eventType, final Consumer<PrimitiveEvent> consumer) {
-    eventListeners.remove(eventType.canonicalize(), consumer);
-    final SessionClient proxy = this.session;
-    if (proxy != null) {
-      proxy.removeEventListener(eventType, consumer);
-    }
-  }
-
-  @Override
-  public CompletableFuture<SessionClient> connect() {
-    if (connectFuture == null) {
-      synchronized (this) {
-        if (connectFuture == null) {
-          connected = true;
-          connectFuture = new OrderedFuture<>();
-          openProxy(connectFuture);
-        }
-      }
-    }
-    return connectFuture;
-  }
-
-  @Override
-  public CompletableFuture<Void> close() {
-    return close(SessionClient::close);
-  }
-
-  @Override
-  public CompletableFuture<Void> delete() {
-    return close(SessionClient::delete);
   }
 
   private CompletableFuture<Void> close(

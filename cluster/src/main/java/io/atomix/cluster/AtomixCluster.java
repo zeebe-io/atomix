@@ -99,6 +99,61 @@ import org.slf4j.LoggerFactory;
  */
 public class AtomixCluster implements BootstrapService, Managed<Void> {
   private static final String[] DEFAULT_RESOURCES = new String[] {"cluster"};
+  private static final Logger LOGGER = LoggerFactory.getLogger(AtomixCluster.class);
+  protected final ManagedMessagingService messagingService;
+  protected final ManagedUnicastService unicastService;
+  protected final ManagedBroadcastService broadcastService;
+  protected final NodeDiscoveryProvider discoveryProvider;
+  protected final GroupMembershipProtocol membershipProtocol;
+  protected final ManagedClusterMembershipService membershipService;
+  protected final ManagedClusterCommunicationService communicationService;
+  protected final ManagedClusterEventService eventService;
+  protected volatile CompletableFuture<Void> openFuture;
+  protected volatile CompletableFuture<Void> closeFuture;
+  private final ThreadContext threadContext = new SingleThreadContext("atomix-cluster-%d");
+  private final AtomicBoolean started = new AtomicBoolean();
+
+  public AtomixCluster(final String configFile) {
+    this(
+        loadConfig(
+            new File(System.getProperty("atomix.root", System.getProperty("user.dir")), configFile),
+            Thread.currentThread().getContextClassLoader()),
+        null);
+  }
+
+  public AtomixCluster(final File configFile) {
+    this(loadConfig(configFile, Thread.currentThread().getContextClassLoader()), null);
+  }
+
+  public AtomixCluster(final ClusterConfig config, final Version version) {
+    this(
+        config,
+        version,
+        buildMessagingService(config),
+        buildUnicastService(config),
+        buildBroadcastService(config));
+  }
+
+  protected AtomixCluster(
+      final ClusterConfig config,
+      final Version version,
+      final ManagedMessagingService messagingService,
+      final ManagedUnicastService unicastService,
+      final ManagedBroadcastService broadcastService) {
+    this.messagingService =
+        messagingService != null ? messagingService : buildMessagingService(config);
+    this.unicastService = unicastService != null ? unicastService : buildUnicastService(config);
+    this.broadcastService =
+        broadcastService != null ? broadcastService : buildBroadcastService(config);
+    this.discoveryProvider = buildLocationProvider(config);
+    this.membershipProtocol = buildMembershipProtocol(config);
+    this.membershipService =
+        buildClusterMembershipService(config, this, discoveryProvider, membershipProtocol, version);
+    this.communicationService =
+        buildClusterMessagingService(
+            getMembershipService(), getMessagingService(), getUnicastService());
+    this.eventService = buildClusterEventService(getMembershipService(), getMessagingService());
+  }
 
   private static String[] withDefaultResources(final String config) {
     return Stream.concat(Stream.of(config), Stream.of(DEFAULT_RESOURCES)).toArray(String[]::new);
@@ -165,61 +220,19 @@ public class AtomixCluster implements BootstrapService, Managed<Void> {
     return new AtomixClusterBuilder(config);
   }
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(AtomixCluster.class);
-
-  protected final ManagedMessagingService messagingService;
-  protected final ManagedUnicastService unicastService;
-  protected final ManagedBroadcastService broadcastService;
-  protected final NodeDiscoveryProvider discoveryProvider;
-  protected final GroupMembershipProtocol membershipProtocol;
-  protected final ManagedClusterMembershipService membershipService;
-  protected final ManagedClusterCommunicationService communicationService;
-  protected final ManagedClusterEventService eventService;
-  protected volatile CompletableFuture<Void> openFuture;
-  protected volatile CompletableFuture<Void> closeFuture;
-  private final ThreadContext threadContext = new SingleThreadContext("atomix-cluster-%d");
-  private final AtomicBoolean started = new AtomicBoolean();
-
-  public AtomixCluster(final String configFile) {
-    this(
-        loadConfig(
-            new File(System.getProperty("atomix.root", System.getProperty("user.dir")), configFile),
-            Thread.currentThread().getContextClassLoader()),
-        null);
-  }
-
-  public AtomixCluster(final File configFile) {
-    this(loadConfig(configFile, Thread.currentThread().getContextClassLoader()), null);
-  }
-
-  public AtomixCluster(final ClusterConfig config, final Version version) {
-    this(
-        config,
-        version,
-        buildMessagingService(config),
-        buildUnicastService(config),
-        buildBroadcastService(config));
-  }
-
-  protected AtomixCluster(
-      final ClusterConfig config,
-      final Version version,
-      final ManagedMessagingService messagingService,
-      final ManagedUnicastService unicastService,
-      final ManagedBroadcastService broadcastService) {
-    this.messagingService =
-        messagingService != null ? messagingService : buildMessagingService(config);
-    this.unicastService = unicastService != null ? unicastService : buildUnicastService(config);
-    this.broadcastService =
-        broadcastService != null ? broadcastService : buildBroadcastService(config);
-    this.discoveryProvider = buildLocationProvider(config);
-    this.membershipProtocol = buildMembershipProtocol(config);
-    this.membershipService =
-        buildClusterMembershipService(config, this, discoveryProvider, membershipProtocol, version);
-    this.communicationService =
-        buildClusterMessagingService(
-            getMembershipService(), getMessagingService(), getUnicastService());
-    this.eventService = buildClusterEventService(getMembershipService(), getMessagingService());
+  /**
+   * Returns the cluster messaging service.
+   *
+   * <p>The messaging service is used for direct point-to-point messaging between nodes by {@link
+   * Address}. This is a low-level cluster communication API. For higher level messaging, use the
+   * {@link #getCommunicationService() communication service} or {@link #getEventService() event
+   * service}.
+   *
+   * @return the cluster messaging service
+   */
+  @Override
+  public MessagingService getMessagingService() {
+    return messagingService;
   }
 
   /**
@@ -248,21 +261,6 @@ public class AtomixCluster implements BootstrapService, Managed<Void> {
   @Override
   public BroadcastService getBroadcastService() {
     return broadcastService;
-  }
-
-  /**
-   * Returns the cluster messaging service.
-   *
-   * <p>The messaging service is used for direct point-to-point messaging between nodes by {@link
-   * Address}. This is a low-level cluster communication API. For higher level messaging, use the
-   * {@link #getCommunicationService() communication service} or {@link #getEventService() event
-   * service}.
-   *
-   * @return the cluster messaging service
-   */
-  @Override
-  public MessagingService getMessagingService() {
-    return messagingService;
   }
 
   /**
@@ -317,6 +315,21 @@ public class AtomixCluster implements BootstrapService, Managed<Void> {
     return openFuture;
   }
 
+  @Override
+  public boolean isRunning() {
+    return started.get();
+  }
+
+  @Override
+  public synchronized CompletableFuture<Void> stop() {
+    if (closeFuture != null) {
+      return closeFuture;
+    }
+
+    closeFuture = stopServices().thenComposeAsync(v -> completeShutdown(), threadContext);
+    return closeFuture;
+  }
+
   protected CompletableFuture<Void> startServices() {
     return messagingService
         .start()
@@ -331,21 +344,6 @@ public class AtomixCluster implements BootstrapService, Managed<Void> {
   protected CompletableFuture<Void> completeStartup() {
     started.set(true);
     return CompletableFuture.completedFuture(null);
-  }
-
-  @Override
-  public boolean isRunning() {
-    return started.get();
-  }
-
-  @Override
-  public synchronized CompletableFuture<Void> stop() {
-    if (closeFuture != null) {
-      return closeFuture;
-    }
-
-    closeFuture = stopServices().thenComposeAsync(v -> completeShutdown(), threadContext);
-    return closeFuture;
   }
 
   private Void logServiceStopError(final String serviceName, final Throwable throwable) {

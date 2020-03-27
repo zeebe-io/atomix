@@ -48,7 +48,9 @@ public class TestPrimitiveType implements PrimitiveType {
 
   @Override
   public PrimitiveBuilder newBuilder(
-      final String primitiveName, final PrimitiveConfig config, final PrimitiveManagementService managementService) {
+      final String primitiveName,
+      final PrimitiveConfig config,
+      final PrimitiveManagementService managementService) {
     throw new UnsupportedOperationException();
   }
 

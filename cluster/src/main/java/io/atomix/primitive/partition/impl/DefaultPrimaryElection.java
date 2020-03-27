@@ -54,7 +54,9 @@ public class DefaultPrimaryElection implements ManagedPrimaryElection {
   private final AtomicBoolean started = new AtomicBoolean();
 
   public DefaultPrimaryElection(
-      final PartitionId partitionId, final SessionClient proxy, final PrimaryElectionService service) {
+      final PartitionId partitionId,
+      final SessionClient proxy,
+      final PrimaryElectionService service) {
     this.partitionId = checkNotNull(partitionId);
     this.proxy = proxy;
     this.service = service;

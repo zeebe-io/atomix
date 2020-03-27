@@ -134,6 +134,14 @@ public abstract class DefaultSnapshot implements Snapshot {
   @Override
   public void delete() {}
 
+  @Override
+  public int compareTo(final Snapshot other) {
+    return Comparator.comparingLong(Snapshot::index)
+        .thenComparingLong(Snapshot::term)
+        .thenComparing(Snapshot::timestamp)
+        .compare(this, other);
+  }
+
   /**
    * Completes writing the snapshot to persist it and make it available for reads.
    *
@@ -158,14 +166,6 @@ public abstract class DefaultSnapshot implements Snapshot {
   @Override
   public void closeWriter(final SnapshotWriter writer) {
     this.writer = null;
-  }
-
-  @Override
-  public int compareTo(final Snapshot other) {
-    return Comparator.comparingLong(Snapshot::index)
-        .thenComparingLong(Snapshot::term)
-        .thenComparing(Snapshot::timestamp)
-        .compare(this, other);
   }
 
   /** Opens the given snapshot writer. */

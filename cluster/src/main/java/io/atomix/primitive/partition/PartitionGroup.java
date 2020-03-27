@@ -28,25 +28,6 @@ import java.util.List;
 /** Primitive partition group. */
 public interface PartitionGroup extends Configured<PartitionGroupConfig> {
 
-  /** Partition group type. */
-  interface Type<C extends PartitionGroupConfig<C>> extends ConfiguredType<C> {
-
-    /**
-     * Returns the partition group namespace.
-     *
-     * @return the partition group namespace
-     */
-    Namespace namespace();
-
-    /**
-     * Creates a new partition group instance.
-     *
-     * @param config the partition group configuration
-     * @return the partition group
-     */
-    ManagedPartitionGroup newPartitionGroup(C config);
-  }
-
   /**
    * Returns the partition group name.
    *
@@ -117,5 +98,24 @@ public interface PartitionGroup extends Configured<PartitionGroupConfig> {
     protected Builder(final C config) {
       this.config = config;
     }
+  }
+
+  /** Partition group type. */
+  interface Type<C extends PartitionGroupConfig<C>> extends ConfiguredType<C> {
+
+    /**
+     * Returns the partition group namespace.
+     *
+     * @return the partition group namespace
+     */
+    Namespace namespace();
+
+    /**
+     * Creates a new partition group instance.
+     *
+     * @param config the partition group configuration
+     * @return the partition group
+     */
+    ManagedPartitionGroup newPartitionGroup(C config);
   }
 }

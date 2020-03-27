@@ -54,7 +54,10 @@ public abstract class PrimitiveBuilder<
   protected final PrimitiveManagementService managementService;
 
   public PrimitiveBuilder(
-      final PrimitiveType type, final String name, final C config, final PrimitiveManagementService managementService) {
+      final PrimitiveType type,
+      final String name,
+      final C config,
+      final PrimitiveManagementService managementService) {
     this.type = checkNotNull(type, "type cannot be null");
     this.name = checkNotNull(name, "name cannot be null");
     this.config = checkNotNull(config, "config cannot be null");

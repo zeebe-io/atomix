@@ -22,16 +22,16 @@ import java.util.Collection;
 public class MemberGroupEvent
     extends AbstractEvent<MemberGroupEvent.Type, Collection<MemberGroup>> {
 
-  /** Member group event type. */
-  public enum Type {
-    GROUPS_CHANGED
-  }
-
   public MemberGroupEvent(final Type type, final Collection<MemberGroup> subject) {
     super(type, subject);
   }
 
   public MemberGroupEvent(final Type type, final Collection<MemberGroup> subject, final long time) {
     super(type, subject, time);
+  }
+
+  /** Member group event type. */
+  public enum Type {
+    GROUPS_CHANGED
   }
 }

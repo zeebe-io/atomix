@@ -104,7 +104,8 @@ public class DefaultServiceExecutorTest {
   }
 
   @SuppressWarnings("unchecked")
-  private <T> Commit<T> commit(final OperationId operation, final long index, final T value, final long timestamp) {
+  private <T> Commit<T> commit(
+      final OperationId operation, final long index, final T value, final long timestamp) {
     return new DefaultCommit<T>(index, operation, value, mock(Session.class), timestamp);
   }
 }

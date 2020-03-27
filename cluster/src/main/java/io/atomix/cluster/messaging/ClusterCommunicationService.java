@@ -86,7 +86,8 @@ public interface ClusterCommunicationService {
    * @param encoder function for encoding message to byte[]
    * @param <M> message type
    */
-  default <M> void broadcast(final String subject, final M message, final Function<M, byte[]> encoder) {
+  default <M> void broadcast(
+      final String subject, final M message, final Function<M, byte[]> encoder) {
     broadcast(subject, message, encoder, true);
   }
 
@@ -120,7 +121,8 @@ public interface ClusterCommunicationService {
    * @param reliable whether to perform a reliable (TCP) unicast
    * @param <M> message type
    */
-  default <M> void broadcastIncludeSelf(final String subject, final M message, final boolean reliable) {
+  default <M> void broadcastIncludeSelf(
+      final String subject, final M message, final boolean reliable) {
     broadcastIncludeSelf(subject, message, BASIC::encode, reliable);
   }
 
@@ -132,7 +134,8 @@ public interface ClusterCommunicationService {
    * @param encoder function for encoding message to byte[]
    * @param <M> message type
    */
-  default <M> void broadcastIncludeSelf(final String subject, final M message, final Function<M, byte[]> encoder) {
+  default <M> void broadcastIncludeSelf(
+      final String subject, final M message, final Function<M, byte[]> encoder) {
     broadcastIncludeSelf(subject, message, encoder, true);
   }
 
@@ -157,7 +160,8 @@ public interface ClusterCommunicationService {
    * @param <M> message type
    * @return future that is completed when the message is sent
    */
-  default <M> CompletableFuture<Void> unicast(final String subject, final M message, final MemberId toMemberId) {
+  default <M> CompletableFuture<Void> unicast(
+      final String subject, final M message, final MemberId toMemberId) {
     return unicast(subject, message, BASIC::encode, toMemberId, true);
   }
 
@@ -187,7 +191,10 @@ public interface ClusterCommunicationService {
    * @return future that is completed when the message is sent
    */
   default <M> CompletableFuture<Void> unicast(
-      final String subject, final M message, final Function<M, byte[]> encoder, final MemberId toMemberId) {
+      final String subject,
+      final M message,
+      final Function<M, byte[]> encoder,
+      final MemberId toMemberId) {
     return unicast(subject, message, encoder, toMemberId, true);
   }
 
@@ -230,7 +237,11 @@ public interface ClusterCommunicationService {
    * @param reliable whether to perform a reliable (TCP) unicast
    * @param <M> message type
    */
-  default <M> void multicast(final String subject, final M message, final Set<MemberId> memberIds, final boolean reliable) {
+  default <M> void multicast(
+      final String subject,
+      final M message,
+      final Set<MemberId> memberIds,
+      final boolean reliable) {
     multicast(subject, message, BASIC::encode, memberIds, reliable);
   }
 
@@ -244,7 +255,10 @@ public interface ClusterCommunicationService {
    * @param <M> message type
    */
   default <M> void multicast(
-      final String subject, final M message, final Function<M, byte[]> encoder, final Set<MemberId> memberIds) {
+      final String subject,
+      final M message,
+      final Function<M, byte[]> encoder,
+      final Set<MemberId> memberIds) {
     multicast(subject, message, encoder, memberIds, true);
   }
 
@@ -275,7 +289,8 @@ public interface ClusterCommunicationService {
    * @param <R> reply type
    * @return reply future
    */
-  default <M, R> CompletableFuture<R> send(final String subject, final M message, final MemberId toMemberId) {
+  default <M, R> CompletableFuture<R> send(
+      final String subject, final M message, final MemberId toMemberId) {
     return send(subject, message, BASIC::encode, BASIC::decode, toMemberId, null);
   }
 

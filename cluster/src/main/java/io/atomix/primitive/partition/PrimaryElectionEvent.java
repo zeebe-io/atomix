@@ -22,14 +22,10 @@ import io.atomix.utils.event.AbstractEvent;
 /** Primary election event. */
 public class PrimaryElectionEvent extends AbstractEvent<PrimaryElectionEvent.Type, PrimaryTerm> {
 
-  /** Returns the election event type. */
-  public enum Type {
-    CHANGED
-  }
-
   private final PartitionId partitionId;
 
-  public PrimaryElectionEvent(final Type type, final PartitionId partitionId, final PrimaryTerm subject) {
+  public PrimaryElectionEvent(
+      final Type type, final PartitionId partitionId, final PrimaryTerm subject) {
     super(type, subject);
     this.partitionId = partitionId;
   }
@@ -55,5 +51,10 @@ public class PrimaryElectionEvent extends AbstractEvent<PrimaryElectionEvent.Typ
   @Override
   public String toString() {
     return toStringHelper(this).add("partition", partitionId).add("term", term()).toString();
+  }
+
+  /** Returns the election event type. */
+  public enum Type {
+    CHANGED
   }
 }

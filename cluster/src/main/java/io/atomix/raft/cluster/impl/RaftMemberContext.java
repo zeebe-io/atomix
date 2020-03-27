@@ -234,12 +234,30 @@ public final class RaftMemberContext {
   }
 
   /**
+   * Sets the member configuration index.
+   *
+   * @param configIndex The member configuration index.
+   */
+  public void setConfigIndex(final long configIndex) {
+    this.configIndex = configIndex;
+  }
+
+  /**
    * Returns the member term.
    *
    * @return The member term.
    */
   public long getConfigTerm() {
     return term;
+  }
+
+  /**
+   * Sets the member term.
+   *
+   * @param term The member term.
+   */
+  public void setConfigTerm(final long term) {
+    this.term = term;
   }
 
   /**
@@ -270,6 +288,15 @@ public final class RaftMemberContext {
   }
 
   /**
+   * Sets the member heartbeat time.
+   *
+   * @param heartbeatTime The member heartbeat time.
+   */
+  public void setHeartbeatTime(final long heartbeatTime) {
+    this.heartbeatTime = Math.max(this.heartbeatTime, heartbeatTime);
+  }
+
+  /**
    * Returns the member log reader.
    *
    * @return The member log reader.
@@ -285,6 +312,16 @@ public final class RaftMemberContext {
    */
   public long getMatchIndex() {
     return matchIndex;
+  }
+
+  /**
+   * Sets the member's match index.
+   *
+   * @param matchIndex The member's match index.
+   */
+  public void setMatchIndex(final long matchIndex) {
+    checkArgument(matchIndex >= 0, "matchIndex must be positive");
+    this.matchIndex = matchIndex;
   }
 
   /**
@@ -306,76 +343,21 @@ public final class RaftMemberContext {
   }
 
   /**
-   * Returns the member's next expected snapshot chunk ID.
-   *
-   * @return The member's next expected chunk ID.
-   */
-  public ByteBuffer getNextSnapshotChunk() {
-    return nextSnapshotChunk;
-  }
-
-  /**
-   * Returns the member response time.
-   *
-   * @return The member response time.
-   */
-  public long getResponseTime() {
-    return responseTime;
-  }
-
-  /**
-   * Returns the member's current snapshot index.
-   *
-   * @return The member's current snapshot index.
-   */
-  public long getSnapshotIndex() {
-    return snapshotIndex;
-  }
-
-  /**
-   * Sets the member configuration index.
-   *
-   * @param configIndex The member configuration index.
-   */
-  public void setConfigIndex(final long configIndex) {
-    this.configIndex = configIndex;
-  }
-
-  /**
-   * Sets the member term.
-   *
-   * @param term The member term.
-   */
-  public void setConfigTerm(final long term) {
-    this.term = term;
-  }
-
-  /**
-   * Sets the member heartbeat time.
-   *
-   * @param heartbeatTime The member heartbeat time.
-   */
-  public void setHeartbeatTime(final long heartbeatTime) {
-    this.heartbeatTime = Math.max(this.heartbeatTime, heartbeatTime);
-  }
-
-  /**
-   * Sets the member's match index.
-   *
-   * @param matchIndex The member's match index.
-   */
-  public void setMatchIndex(final long matchIndex) {
-    checkArgument(matchIndex >= 0, "matchIndex must be positive");
-    this.matchIndex = matchIndex;
-  }
-
-  /**
    * Sets the member's next snapshot index.
    *
    * @param nextSnapshotIndex The member's next snapshot index.
    */
   public void setNextSnapshotIndex(final long nextSnapshotIndex) {
     this.nextSnapshotIndex = nextSnapshotIndex;
+  }
+
+  /**
+   * Returns the member's next expected snapshot chunk ID.
+   *
+   * @return The member's next expected chunk ID.
+   */
+  public ByteBuffer getNextSnapshotChunk() {
+    return nextSnapshotChunk;
   }
 
   /**
@@ -388,12 +370,30 @@ public final class RaftMemberContext {
   }
 
   /**
+   * Returns the member response time.
+   *
+   * @return The member response time.
+   */
+  public long getResponseTime() {
+    return responseTime;
+  }
+
+  /**
    * Sets the member response time.
    *
    * @param responseTime The member response time.
    */
   public void setResponseTime(final long responseTime) {
     this.responseTime = Math.max(this.responseTime, responseTime);
+  }
+
+  /**
+   * Returns the member's current snapshot index.
+   *
+   * @return The member's current snapshot index.
+   */
+  public long getSnapshotIndex() {
+    return snapshotIndex;
   }
 
   /**

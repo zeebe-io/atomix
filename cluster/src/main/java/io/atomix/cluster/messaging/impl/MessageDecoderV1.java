@@ -26,25 +26,10 @@ import java.util.List;
 /** Decoder for inbound messages. */
 class MessageDecoderV1 extends AbstractMessageDecoder {
 
-  /** V1 decoder state. */
-  enum DecoderState {
-    READ_TYPE,
-    READ_MESSAGE_ID,
-    READ_SENDER_IP,
-    READ_SENDER_PORT,
-    READ_SUBJECT_LENGTH,
-    READ_SUBJECT,
-    READ_STATUS,
-    READ_CONTENT_LENGTH,
-    READ_CONTENT
-  }
-
   private DecoderState currentState = DecoderState.READ_SENDER_IP;
-
   private InetAddress senderIp;
   private int senderPort;
   private Address senderAddress;
-
   private ProtocolMessage.Type type;
   private long messageId;
   private int contentLength;
@@ -53,7 +38,8 @@ class MessageDecoderV1 extends AbstractMessageDecoder {
 
   @Override
   @SuppressWarnings("squid:S128") // suppress switch fall through warning
-  protected void decode(final ChannelHandlerContext context, final ByteBuf buffer, final List<Object> out)
+  protected void decode(
+      final ChannelHandlerContext context, final ByteBuf buffer, final List<Object> out)
       throws Exception {
 
     switch (currentState) {
@@ -167,5 +153,18 @@ class MessageDecoderV1 extends AbstractMessageDecoder {
       default:
         checkState(false, "Must not be here");
     }
+  }
+
+  /** V1 decoder state. */
+  enum DecoderState {
+    READ_TYPE,
+    READ_MESSAGE_ID,
+    READ_SENDER_IP,
+    READ_SENDER_PORT,
+    READ_SUBJECT_LENGTH,
+    READ_SUBJECT,
+    READ_STATUS,
+    READ_CONTENT_LENGTH,
+    READ_CONTENT
   }
 }

@@ -73,7 +73,8 @@ public class ComposableFuture<T> extends CompletableFuture<T> implements BiConsu
    * @param executor The executor with which to call the consumer.
    * @return A new future.
    */
-  public CompletableFuture<T> exceptAsync(final Consumer<Throwable> consumer, final Executor executor) {
+  public CompletableFuture<T> exceptAsync(
+      final Consumer<Throwable> consumer, final Executor executor) {
     return whenCompleteAsync(
         (result, error) -> {
           if (error != null) {

@@ -110,17 +110,6 @@ public class TestSessionClient implements SessionClient {
     return future;
   }
 
-  /** Handles a primitive event. */
-  void accept(final PrimitiveEvent event) {
-    context.execute(
-        () -> {
-          final List<Consumer<PrimitiveEvent>> listeners = eventListeners.get(event.type());
-          if (listeners != null) {
-            listeners.forEach(l -> l.accept(event));
-          }
-        });
-  }
-
   @Override
   public synchronized void addEventListener(
       final EventType eventType, final Consumer<PrimitiveEvent> listener) {
@@ -151,13 +140,6 @@ public class TestSessionClient implements SessionClient {
   @Override
   public void removeStateChangeListener(final Consumer<PrimitiveState> listener) {
     stateChangeListeners.remove(listener);
-  }
-
-  private synchronized void changeState(final PrimitiveState state) {
-    if (this.state != state) {
-      this.state = state;
-      stateChangeListeners.forEach(l -> l.accept(state));
-    }
   }
 
   @Override
@@ -203,5 +185,23 @@ public class TestSessionClient implements SessionClient {
   @Override
   public CompletableFuture<Void> delete() {
     return close().thenCompose(v -> service.delete());
+  }
+
+  /** Handles a primitive event. */
+  void accept(final PrimitiveEvent event) {
+    context.execute(
+        () -> {
+          final List<Consumer<PrimitiveEvent>> listeners = eventListeners.get(event.type());
+          if (listeners != null) {
+            listeners.forEach(l -> l.accept(event));
+          }
+        });
+  }
+
+  private synchronized void changeState(final PrimitiveState state) {
+    if (this.state != state) {
+      this.state = state;
+      stateChangeListeners.forEach(l -> l.accept(state));
+    }
   }
 }

@@ -671,7 +671,8 @@ public class PassiveRole extends InactiveRole {
    * Checks the leader's term of the given AppendRequest, returning a boolean indicating whether to
    * continue handling the request.
    */
-  protected boolean checkTerm(final AppendRequest request, final CompletableFuture<AppendResponse> future) {
+  protected boolean checkTerm(
+      final AppendRequest request, final CompletableFuture<AppendResponse> future) {
     final RaftLogWriter writer = raft.getLogWriter();
     if (request.term() < raft.getTerm()) {
       log.debug(
@@ -777,7 +778,8 @@ public class PassiveRole extends InactiveRole {
   }
 
   /** Appends entries from the given AppendRequest. */
-  protected void appendEntries(final AppendRequest request, final CompletableFuture<AppendResponse> future) {
+  protected void appendEntries(
+      final AppendRequest request, final CompletableFuture<AppendResponse> future) {
     // Compute the last entry index from the previous log index and request entry count.
     final long lastEntryIndex = request.prevLogIndex() + request.entries().size();
 
@@ -947,7 +949,8 @@ public class PassiveRole extends InactiveRole {
    * @param future the append response future
    * @return the append response status
    */
-  protected boolean failAppend(final long lastLogIndex, final CompletableFuture<AppendResponse> future) {
+  protected boolean failAppend(
+      final long lastLogIndex, final CompletableFuture<AppendResponse> future) {
     return completeAppend(false, lastLogIndex, future);
   }
 
@@ -958,7 +961,8 @@ public class PassiveRole extends InactiveRole {
    * @param future the append response future
    * @return the append response status
    */
-  protected boolean succeedAppend(final long lastLogIndex, final CompletableFuture<AppendResponse> future) {
+  protected boolean succeedAppend(
+      final long lastLogIndex, final CompletableFuture<AppendResponse> future) {
     return completeAppend(true, lastLogIndex, future);
   }
 
@@ -971,7 +975,9 @@ public class PassiveRole extends InactiveRole {
    * @return the append response status
    */
   protected boolean completeAppend(
-      final boolean succeeded, final long lastLogIndex, final CompletableFuture<AppendResponse> future) {
+      final boolean succeeded,
+      final long lastLogIndex,
+      final CompletableFuture<AppendResponse> future) {
     future.complete(
         logResponse(
             AppendResponse.builder()

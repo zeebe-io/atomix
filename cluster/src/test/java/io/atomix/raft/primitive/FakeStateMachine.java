@@ -9,7 +9,9 @@ import java.time.Duration;
 public class FakeStateMachine extends RaftServiceManager {
 
   public FakeStateMachine(
-      final RaftContext context, final ThreadContext threadContext, final ThreadContextFactory threadContextFactory) {
+      final RaftContext context,
+      final ThreadContext threadContext,
+      final ThreadContextFactory threadContextFactory) {
     super(context, threadContext, threadContextFactory);
   }
 

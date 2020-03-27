@@ -181,27 +181,6 @@ public class DefaultRaftServer implements RaftServer {
     return closeFuture;
   }
 
-  private void leaveAfterOpenFinished() {
-    openFuture.whenComplete(
-        (openResult, openError) -> {
-          if (openError == null) {
-            cluster()
-                .leave()
-                .whenComplete(
-                    (leaveResult, leaveError) -> {
-                      shutdown()
-                          .whenComplete(
-                              (shutdownResult, shutdownError) -> {
-                                context.delete();
-                                closeFuture.complete(null);
-                              });
-                    });
-          } else {
-            closeFuture.complete(null);
-          }
-        });
-  }
-
   @Override
   public RaftContext getContext() {
     return context;
@@ -237,6 +216,27 @@ public class DefaultRaftServer implements RaftServer {
               future.complete(null);
             });
     return future;
+  }
+
+  private void leaveAfterOpenFinished() {
+    openFuture.whenComplete(
+        (openResult, openError) -> {
+          if (openError == null) {
+            cluster()
+                .leave()
+                .whenComplete(
+                    (leaveResult, leaveError) -> {
+                      shutdown()
+                          .whenComplete(
+                              (shutdownResult, shutdownError) -> {
+                                context.delete();
+                                closeFuture.complete(null);
+                              });
+                    });
+          } else {
+            closeFuture.complete(null);
+          }
+        });
   }
 
   /** Starts the server. */

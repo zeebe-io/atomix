@@ -130,7 +130,8 @@ public interface ClusterEventService {
    * @param <R> reply type
    * @return reply future
    */
-  default <M, R> CompletableFuture<R> send(final String topic, final M message, final Duration timeout) {
+  default <M, R> CompletableFuture<R> send(
+      final String topic, final M message, final Duration timeout) {
     return send(topic, message, BASIC::encode, BASIC::decode, timeout);
   }
 
@@ -146,7 +147,10 @@ public interface ClusterEventService {
    * @return reply future
    */
   default <M, R> CompletableFuture<R> send(
-      final String topic, final M message, final Function<M, byte[]> encoder, final Function<byte[], R> decoder) {
+      final String topic,
+      final M message,
+      final Function<M, byte[]> encoder,
+      final Function<byte[], R> decoder) {
     return send(topic, message, encoder, decoder, null);
   }
 

@@ -68,6 +68,19 @@ public abstract class AbstractSession<C> implements Session<C> {
     return memberId;
   }
 
+  @Override
+  public void publish(final EventType eventType, final Object event) {
+    publish(PrimitiveEvent.event(eventType, encode(event)));
+  }
+
+  @Override
+  public abstract void publish(PrimitiveEvent event);
+
+  @Override
+  public void accept(final Consumer event) {
+    throw new UnsupportedOperationException();
+  }
+
   /**
    * Encodes the given object using the configured {@link #serializer}.
    *
@@ -88,18 +101,5 @@ public abstract class AbstractSession<C> implements Session<C> {
    */
   protected <T> T decode(final byte[] bytes) {
     return bytes != null ? serializer.decode(bytes) : null;
-  }
-
-  @Override
-  public abstract void publish(PrimitiveEvent event);
-
-  @Override
-  public void publish(final EventType eventType, final Object event) {
-    publish(PrimitiveEvent.event(eventType, encode(event)));
-  }
-
-  @Override
-  public void accept(final Consumer event) {
-    throw new UnsupportedOperationException();
   }
 }

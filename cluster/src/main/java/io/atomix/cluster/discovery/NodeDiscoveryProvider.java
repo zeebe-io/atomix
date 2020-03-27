@@ -42,18 +42,6 @@ public interface NodeDiscoveryProvider
     extends ListenerService<NodeDiscoveryEvent, NodeDiscoveryEventListener>,
         Configured<NodeDiscoveryConfig> {
 
-  /** Membership provider type. */
-  interface Type<C extends NodeDiscoveryConfig> extends ConfiguredType<C> {
-
-    /**
-     * Creates a new instance of the provider.
-     *
-     * @param config the provider configuration
-     * @return the provider instance
-     */
-    NodeDiscoveryProvider newProvider(C config);
-  }
-
   /**
    * Returns the set of active nodes.
    *
@@ -77,4 +65,16 @@ public interface NodeDiscoveryProvider
    * @return a future to be completed once the leave is complete
    */
   CompletableFuture<Void> leave(Node localNode);
+
+  /** Membership provider type. */
+  interface Type<C extends NodeDiscoveryConfig> extends ConfiguredType<C> {
+
+    /**
+     * Creates a new instance of the provider.
+     *
+     * @param config the provider configuration
+     * @return the provider instance
+     */
+    NodeDiscoveryProvider newProvider(C config);
+  }
 }

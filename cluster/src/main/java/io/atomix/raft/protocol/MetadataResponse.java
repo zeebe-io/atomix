@@ -30,7 +30,8 @@ public class MetadataResponse extends AbstractRaftResponse {
 
   private final Set<SessionMetadata> sessions;
 
-  public MetadataResponse(final Status status, final RaftError error, final Set<SessionMetadata> sessions) {
+  public MetadataResponse(
+      final Status status, final RaftError error, final Set<SessionMetadata> sessions) {
     super(status, error);
     this.sessions = sessions;
   }

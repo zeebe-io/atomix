@@ -63,6 +63,13 @@ public class MemberConfig extends NodeConfig {
   }
 
   @Override
+  public MemberConfig setHost(final String host) {
+    super.setHost(host);
+    setHostId(host);
+    return this;
+  }
+
+  @Override
   public MemberConfig setPort(final int port) {
     super.setPort(port);
     return this;
@@ -157,13 +164,6 @@ public class MemberConfig extends NodeConfig {
    */
   public MemberConfig setHostId(final String hostId) {
     this.hostId = hostId;
-    return this;
-  }
-
-  @Override
-  public MemberConfig setHost(final String host) {
-    super.setHost(host);
-    setHostId(host);
     return this;
   }
 

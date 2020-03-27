@@ -20,15 +20,6 @@ import io.atomix.utils.event.AbstractEvent;
 /** Set protocol event. */
 public class SetDelegateEvent<E> extends AbstractEvent<SetDelegateEvent.Type, E> {
 
-  /** Set protocol event type. */
-  public enum Type {
-    /** Element added to set. */
-    ADD,
-
-    /** Element removed from the set. */
-    REMOVE,
-  }
-
   public SetDelegateEvent(final Type type, final E element) {
     super(type, element);
   }
@@ -44,5 +35,14 @@ public class SetDelegateEvent<E> extends AbstractEvent<SetDelegateEvent.Type, E>
    */
   public E element() {
     return subject();
+  }
+
+  /** Set protocol event type. */
+  public enum Type {
+    /** Element added to set. */
+    ADD,
+
+    /** Element removed from the set. */
+    REMOVE,
   }
 }

@@ -141,7 +141,7 @@ public class DefaultPartitionService implements ManagedPartitionService {
         .start()
         .thenCompose(
             v -> {
-              PartitionGroupMembership systemGroupMembership =
+              final PartitionGroupMembership systemGroupMembership =
                   groupMembershipService.getSystemMembership();
               if (systemGroupMembership != null) {
                 if (systemGroup == null) {
@@ -159,7 +159,7 @@ public class DefaultPartitionService implements ManagedPartitionService {
                     .start()
                     .thenCompose(
                         s -> {
-                          PartitionManagementService managementService =
+                          final PartitionManagementService managementService =
                               new DefaultPartitionManagementService(
                                   clusterMembershipService,
                                   communicationService,

@@ -24,6 +24,21 @@ import java.util.Objects;
 /** Atomix software version. */
 public final class Version implements Comparable<Version> {
 
+  private final int major;
+  private final int minor;
+  private final int patch;
+  private final String build;
+
+  private Version(final int major, final int minor, final int patch, final String build) {
+    checkArgument(major >= 0, "major version must be >= 0");
+    checkArgument(minor >= 0, "minor version must be >= 0");
+    checkArgument(patch >= 0, "patch version must be >= 0");
+    this.major = major;
+    this.minor = minor;
+    this.patch = patch;
+    this.build = Build.from(build).toString();
+  }
+
   /**
    * Returns a new version from the given version string.
    *
@@ -50,23 +65,9 @@ public final class Version implements Comparable<Version> {
    * @param build the build version number
    * @return the version object
    */
-  public static Version from(final int major, final int minor, final int patch, final String build) {
+  public static Version from(
+      final int major, final int minor, final int patch, final String build) {
     return new Version(major, minor, patch, build);
-  }
-
-  private final int major;
-  private final int minor;
-  private final int patch;
-  private final String build;
-
-  private Version(final int major, final int minor, final int patch, final String build) {
-    checkArgument(major >= 0, "major version must be >= 0");
-    checkArgument(minor >= 0, "minor version must be >= 0");
-    checkArgument(patch >= 0, "patch version must be >= 0");
-    this.major = major;
-    this.minor = minor;
-    this.patch = patch;
-    this.build = Build.from(build).toString();
   }
 
   /**
@@ -145,7 +146,15 @@ public final class Version implements Comparable<Version> {
   }
 
   /** Build version. */
-  private static class Build implements Comparable<Build> {
+  private static final class Build implements Comparable<Build> {
+
+    private final Type type;
+    private final int version;
+
+    private Build(final Type type, final int version) {
+      this.type = type;
+      this.version = version;
+    }
 
     /**
      * Creates a new build version from the given string.
@@ -174,14 +183,6 @@ public final class Version implements Comparable<Version> {
         }
       }
       throw new IllegalArgumentException(build + " is not a valid build version string");
-    }
-
-    private final Type type;
-    private final int version;
-
-    private Build(final Type type, final int version) {
-      this.type = type;
-      this.version = version;
     }
 
     @Override
@@ -228,7 +229,7 @@ public final class Version implements Comparable<Version> {
       String format(final int version) {
         if (name == null) {
           return null;
-        } else if (name.equals("snapshot")) {
+        } else if ("snapshot".equals(name)) {
           return "SNAPSHOT";
         } else {
           return String.format("%s%d", name, version);

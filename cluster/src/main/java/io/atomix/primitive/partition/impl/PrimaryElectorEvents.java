@@ -29,17 +29,6 @@ import io.atomix.utils.serializer.Namespaces;
 public enum PrimaryElectorEvents implements EventType {
   CHANGE("change");
 
-  private final String id;
-
-  PrimaryElectorEvents(final String id) {
-    this.id = id;
-  }
-
-  @Override
-  public String id() {
-    return id;
-  }
-
   public static final Namespace NAMESPACE =
       Namespace.builder()
           .nextId(Namespaces.BEGIN_USER_CUSTOM_ID + 50)
@@ -51,4 +40,14 @@ public enum PrimaryElectorEvents implements EventType {
           .register(MemberGroupId.class)
           .register(PartitionId.class)
           .build(PrimaryElectorEvents.class.getSimpleName());
+  private final String id;
+
+  PrimaryElectorEvents(final String id) {
+    this.id = id;
+  }
+
+  @Override
+  public String id() {
+    return id;
+  }
 }

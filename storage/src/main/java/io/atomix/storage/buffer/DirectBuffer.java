@@ -26,6 +26,11 @@ import io.atomix.utils.memory.Memory;
  */
 public class DirectBuffer extends ByteBufferBuffer {
 
+  protected DirectBuffer(
+      final DirectBytes bytes, final int offset, final int initialCapacity, final int maxCapacity) {
+    super(bytes, offset, initialCapacity, maxCapacity, null);
+  }
+
   /**
    * Allocates a direct buffer with an initial capacity of {@code 4096} and a maximum capacity of
    * {@link Long#MAX_VALUE}.
@@ -71,10 +76,6 @@ public class DirectBuffer extends ByteBufferBuffer {
         0,
         initialCapacity,
         maxCapacity);
-  }
-
-  protected DirectBuffer(final DirectBytes bytes, final int offset, final int initialCapacity, final int maxCapacity) {
-    super(bytes, offset, initialCapacity, maxCapacity, null);
   }
 
   @Override

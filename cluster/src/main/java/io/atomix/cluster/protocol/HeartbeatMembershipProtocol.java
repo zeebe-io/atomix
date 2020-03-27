@@ -59,43 +59,8 @@ public class HeartbeatMembershipProtocol
     implements GroupMembershipProtocol {
 
   public static final Type TYPE = new Type();
-
-  /**
-   * Creates a new bootstrap provider builder.
-   *
-   * @return a new bootstrap provider builder
-   */
-  public static HeartbeatMembershipProtocolBuilder builder() {
-    return new HeartbeatMembershipProtocolBuilder();
-  }
-
-  /** Bootstrap member location provider type. */
-  public static class Type
-      implements GroupMembershipProtocol.Type<HeartbeatMembershipProtocolConfig> {
-    private static final String NAME = "heartbeat";
-
-    @Override
-    public String name() {
-      return NAME;
-    }
-
-    @Override
-    public HeartbeatMembershipProtocolConfig newConfig() {
-      return new HeartbeatMembershipProtocolConfig();
-    }
-
-    @Override
-    public GroupMembershipProtocol newProtocol(final HeartbeatMembershipProtocolConfig config) {
-      return new HeartbeatMembershipProtocol(config);
-    }
-  }
-
   private static final Logger LOGGER = LoggerFactory.getLogger(HeartbeatMembershipProtocol.class);
-
-  private final HeartbeatMembershipProtocolConfig config;
-
   private static final String HEARTBEAT_MESSAGE = "atomix-cluster-membership";
-
   private static final Serializer SERIALIZER =
       Serializer.using(
           Namespace.builder()
@@ -105,26 +70,33 @@ public class HeartbeatMembershipProtocol
               .register(GossipMember.class)
               .register(new AddressSerializer(), Address.class)
               .build("ClusterMembershipService"));
-
+  private final HeartbeatMembershipProtocolConfig config;
   private volatile NodeDiscoveryService discoveryService;
   private volatile BootstrapService bootstrapService;
-
   private final AtomicBoolean started = new AtomicBoolean();
   private volatile GossipMember localMember;
   private volatile Properties localProperties = new Properties();
   private final Map<MemberId, GossipMember> members = Maps.newConcurrentMap();
   private final Map<MemberId, PhiAccrualFailureDetector> failureDetectors = Maps.newConcurrentMap();
-  private final NodeDiscoveryEventListener discoveryEventListener = this::handleDiscoveryEvent;
-
   private final ScheduledExecutorService heartbeatScheduler =
       Executors.newSingleThreadScheduledExecutor(
           namedThreads("atomix-cluster-heartbeat-sender", LOGGER));
+  private final NodeDiscoveryEventListener discoveryEventListener = this::handleDiscoveryEvent;
   private final ExecutorService eventExecutor =
       Executors.newSingleThreadExecutor(namedThreads("atomix-cluster-events", LOGGER));
   private ScheduledFuture<?> heartbeatFuture;
 
   public HeartbeatMembershipProtocol(final HeartbeatMembershipProtocolConfig config) {
     this.config = config;
+  }
+
+  /**
+   * Creates a new bootstrap provider builder.
+   *
+   * @return a new bootstrap provider builder
+   */
+  public static HeartbeatMembershipProtocolBuilder builder() {
+    return new HeartbeatMembershipProtocolBuilder();
   }
 
   @Override
@@ -140,6 +112,61 @@ public class HeartbeatMembershipProtocol
   @Override
   public Member getMember(final MemberId memberId) {
     return members.get(memberId);
+  }
+
+  @Override
+  public CompletableFuture<Void> join(
+      final BootstrapService bootstrap, final NodeDiscoveryService discovery, final Member member) {
+    if (started.compareAndSet(false, true)) {
+      this.bootstrapService = bootstrap;
+      this.discoveryService = discovery;
+      this.localMember =
+          new GossipMember(
+              member.id(),
+              member.address(),
+              member.zone(),
+              member.rack(),
+              member.host(),
+              member.properties(),
+              member.version(),
+              System.currentTimeMillis());
+      discoveryService.addListener(discoveryEventListener);
+
+      LOGGER.info("{} - Member activated: {}", localMember.id(), localMember);
+      localMember.setActive(true);
+      localMember.setReachable(true);
+      members.put(localMember.id(), localMember);
+      post(new GroupMembershipEvent(GroupMembershipEvent.Type.MEMBER_ADDED, localMember));
+
+      bootstrapService
+          .getMessagingService()
+          .registerHandler(HEARTBEAT_MESSAGE, this::handleHeartbeat, heartbeatScheduler);
+      heartbeatFuture =
+          heartbeatScheduler.scheduleAtFixedRate(
+              this::sendHeartbeats,
+              0,
+              config.getHeartbeatInterval().toMillis(),
+              TimeUnit.MILLISECONDS);
+      LOGGER.info("Started");
+    }
+    return CompletableFuture.completedFuture(null);
+  }
+
+  @Override
+  public CompletableFuture<Void> leave(final Member member) {
+    if (started.compareAndSet(true, false)) {
+      discoveryService.removeListener(discoveryEventListener);
+      heartbeatFuture.cancel(true);
+      heartbeatScheduler.shutdownNow();
+      eventExecutor.shutdownNow();
+      LOGGER.info("{} - Member deactivated: {}", localMember.id(), localMember);
+      localMember.setActive(false);
+      localMember.setReachable(false);
+      members.clear();
+      bootstrapService.getMessagingService().unregisterHandler(HEARTBEAT_MESSAGE);
+      LOGGER.info("Stopped");
+    }
+    return CompletableFuture.completedFuture(null);
   }
 
   @Override
@@ -219,41 +246,44 @@ public class HeartbeatMembershipProtocol
         .whenCompleteAsync(
             (response, error) -> {
               if (error == null) {
-                Collection<GossipMember> remoteMembers = SERIALIZER.decode(response);
-                for (GossipMember remoteMember : remoteMembers) {
-                  if (!remoteMember.id().equals(localMember.id())) {
-                    updateMember(remoteMember, remoteMember.id().equals(member.id()));
-                  }
-                }
+                updateMembers(member, response);
               } else {
-                LOGGER.debug(
-                    "{} - Sending heartbeat to {} failed", localMember.id(), member, error);
-                if (member.isReachable()) {
-                  member.setReachable(false);
-                  post(
-                      new GroupMembershipEvent(
-                          GroupMembershipEvent.Type.REACHABILITY_CHANGED, member));
-                }
-
-                PhiAccrualFailureDetector failureDetector =
-                    failureDetectors.computeIfAbsent(
-                        member.id(), n -> new PhiAccrualFailureDetector());
-                double phi = failureDetector.phi();
-                if (phi >= config.getPhiFailureThreshold()
-                    || (phi == 0.0
-                        && System.currentTimeMillis() - failureDetector.lastUpdated()
-                            > config.getFailureTimeout().toMillis())) {
-                  if (members.remove(member.id()) != null) {
-                    failureDetectors.remove(member.id());
-                    post(
-                        new GroupMembershipEvent(GroupMembershipEvent.Type.MEMBER_REMOVED, member));
-                  }
-                }
+                onHeartbeatFailure(member, error);
               }
             },
             heartbeatScheduler)
         .exceptionally(e -> null)
         .thenApply(v -> null);
+  }
+
+  private void onHeartbeatFailure(final GossipMember member, final Throwable error) {
+    LOGGER.debug("{} - Sending heartbeat to {} failed", localMember.id(), member, error);
+    if (member.isReachable()) {
+      member.setReachable(false);
+      post(new GroupMembershipEvent(GroupMembershipEvent.Type.REACHABILITY_CHANGED, member));
+    }
+
+    final PhiAccrualFailureDetector failureDetector =
+        failureDetectors.computeIfAbsent(member.id(), n -> new PhiAccrualFailureDetector());
+    final double phi = failureDetector.phi();
+    if (phi >= config.getPhiFailureThreshold()
+        || (phi == 0.0
+            && System.currentTimeMillis() - failureDetector.lastUpdated()
+                > config.getFailureTimeout().toMillis())) {
+      if (members.remove(member.id()) != null) {
+        failureDetectors.remove(member.id());
+        post(new GroupMembershipEvent(GroupMembershipEvent.Type.MEMBER_REMOVED, member));
+      }
+    }
+  }
+
+  private void updateMembers(final GossipMember member, final byte[] response) {
+    final Collection<GossipMember> remoteMembers = SERIALIZER.decode(response);
+    for (final GossipMember remoteMember : remoteMembers) {
+      if (!remoteMember.id().equals(localMember.id())) {
+        updateMember(remoteMember, remoteMember.id().equals(member.id()));
+      }
+    }
   }
 
   /** Handles a heartbeat message. */
@@ -315,59 +345,25 @@ public class HeartbeatMembershipProtocol
     }
   }
 
-  @Override
-  public CompletableFuture<Void> join(
-      final BootstrapService bootstrap, final NodeDiscoveryService discovery, final Member member) {
-    if (started.compareAndSet(false, true)) {
-      this.bootstrapService = bootstrap;
-      this.discoveryService = discovery;
-      this.localMember =
-          new GossipMember(
-              member.id(),
-              member.address(),
-              member.zone(),
-              member.rack(),
-              member.host(),
-              member.properties(),
-              member.version(),
-              System.currentTimeMillis());
-      discoveryService.addListener(discoveryEventListener);
+  /** Bootstrap member location provider type. */
+  public static class Type
+      implements GroupMembershipProtocol.Type<HeartbeatMembershipProtocolConfig> {
+    private static final String NAME = "heartbeat";
 
-      LOGGER.info("{} - Member activated: {}", localMember.id(), localMember);
-      localMember.setActive(true);
-      localMember.setReachable(true);
-      members.put(localMember.id(), localMember);
-      post(new GroupMembershipEvent(GroupMembershipEvent.Type.MEMBER_ADDED, localMember));
-
-      bootstrapService
-          .getMessagingService()
-          .registerHandler(HEARTBEAT_MESSAGE, this::handleHeartbeat, heartbeatScheduler);
-      heartbeatFuture =
-          heartbeatScheduler.scheduleAtFixedRate(
-              this::sendHeartbeats,
-              0,
-              config.getHeartbeatInterval().toMillis(),
-              TimeUnit.MILLISECONDS);
-      LOGGER.info("Started");
+    @Override
+    public String name() {
+      return NAME;
     }
-    return CompletableFuture.completedFuture(null);
-  }
 
-  @Override
-  public CompletableFuture<Void> leave(final Member member) {
-    if (started.compareAndSet(true, false)) {
-      discoveryService.removeListener(discoveryEventListener);
-      heartbeatFuture.cancel(true);
-      heartbeatScheduler.shutdownNow();
-      eventExecutor.shutdownNow();
-      LOGGER.info("{} - Member deactivated: {}", localMember.id(), localMember);
-      localMember.setActive(false);
-      localMember.setReachable(false);
-      members.clear();
-      bootstrapService.getMessagingService().unregisterHandler(HEARTBEAT_MESSAGE);
-      LOGGER.info("Stopped");
+    @Override
+    public HeartbeatMembershipProtocolConfig newConfig() {
+      return new HeartbeatMembershipProtocolConfig();
     }
-    return CompletableFuture.completedFuture(null);
+
+    @Override
+    public GroupMembershipProtocol newProtocol(final HeartbeatMembershipProtocolConfig config) {
+      return new HeartbeatMembershipProtocol(config);
+    }
   }
 
   /** Internal gossip based group member. */
@@ -399,13 +395,8 @@ public class HeartbeatMembershipProtocol
     }
 
     @Override
-    public Version version() {
-      return version;
-    }
-
-    @Override
-    public long timestamp() {
-      return timestamp;
+    public boolean isActive() {
+      return active;
     }
 
     /**
@@ -417,6 +408,21 @@ public class HeartbeatMembershipProtocol
       this.active = active;
     }
 
+    @Override
+    public boolean isReachable() {
+      return reachable;
+    }
+
+    @Override
+    public Version version() {
+      return version;
+    }
+
+    @Override
+    public long timestamp() {
+      return timestamp;
+    }
+
     /**
      * Sets whether this member is reachable.
      *
@@ -424,16 +430,6 @@ public class HeartbeatMembershipProtocol
      */
     void setReachable(final boolean reachable) {
       this.reachable = reachable;
-    }
-
-    @Override
-    public boolean isActive() {
-      return active;
-    }
-
-    @Override
-    public boolean isReachable() {
-      return reachable;
     }
 
     /**

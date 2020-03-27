@@ -80,60 +80,6 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
   }
 
   @Override
-  public void reset(final long index) {
-    long nextIndex = firstIndex;
-
-    // Clear the buffer indexes.
-    buffer.position(JournalSegmentDescriptor.BYTES);
-
-    // Record the current buffer position.
-    int position = buffer.position();
-
-    // Read the entry length.
-    buffer.mark();
-
-    try {
-      int length = buffer.getInt();
-
-      // If the length is non-zero, read the entry.
-      while (0 < length && length <= maxEntrySize && (index == 0 || nextIndex <= index)) {
-
-        // Read the checksum of the entry.
-        final long checksum = buffer.getInt() & 0xFFFFFFFFL;
-
-        // Compute the checksum for the entry bytes.
-        final CRC32 crc32 = new CRC32();
-        final ByteBuffer slice = buffer.slice();
-        slice.limit(length);
-        crc32.update(slice);
-
-        // If the stored checksum equals the computed checksum, return the entry.
-        if (checksum == crc32.getValue()) {
-          slice.rewind();
-          final E entry = namespace.deserialize(slice);
-          lastEntry = new Indexed<>(nextIndex, entry, length);
-          this.index.index(lastEntry, position);
-          nextIndex++;
-        } else {
-          break;
-        }
-
-        // Update the current position for indexing.
-        position = buffer.position() + length;
-        buffer.position(position);
-
-        buffer.mark();
-        length = buffer.getInt();
-      }
-
-      // Reset the buffer to the previous mark.
-      buffer.reset();
-    } catch (final BufferUnderflowException e) {
-      buffer.reset();
-    }
-  }
-
-  @Override
   public long getLastIndex() {
     return lastEntry != null ? lastEntry.index() : segment.index() - 1;
   }
@@ -150,41 +96,6 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
     } else {
       return firstIndex;
     }
-  }
-
-  /**
-   * Returns the size of the underlying buffer.
-   *
-   * @return The size of the underlying buffer.
-   */
-  public long size() {
-    return buffer.position() + JournalSegmentDescriptor.BYTES;
-  }
-
-  /**
-   * Returns a boolean indicating whether the segment is empty.
-   *
-   * @return Indicates whether the segment is empty.
-   */
-  public boolean isEmpty() {
-    return lastEntry == null;
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public void append(final Indexed<E> entry) {
-    final long nextIndex = getNextIndex();
-
-    // If the entry's index is greater than the next index in the segment, skip some entries.
-    if (entry.index() > nextIndex) {
-      throw new IndexOutOfBoundsException("Entry index is not sequential");
-    }
-
-    // If the entry's index is less than the next index, truncate the segment.
-    if (entry.index() < nextIndex) {
-      truncate(entry.index() - 1);
-    }
-    append(entry.entry());
   }
 
   @Override
@@ -241,7 +152,78 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
+  public void append(final Indexed<E> entry) {
+    final long nextIndex = getNextIndex();
+
+    // If the entry's index is greater than the next index in the segment, skip some entries.
+    if (entry.index() > nextIndex) {
+      throw new IndexOutOfBoundsException("Entry index is not sequential");
+    }
+
+    // If the entry's index is less than the next index, truncate the segment.
+    if (entry.index() < nextIndex) {
+      truncate(entry.index() - 1);
+    }
+    append(entry.entry());
+  }
+
+  @Override
   public void commit(final long index) {}
+
+  @Override
+  public void reset(final long index) {
+    long nextIndex = firstIndex;
+
+    // Clear the buffer indexes.
+    buffer.position(JournalSegmentDescriptor.BYTES);
+
+    // Record the current buffer position.
+    int position = buffer.position();
+
+    // Read the entry length.
+    buffer.mark();
+
+    try {
+      int length = buffer.getInt();
+
+      // If the length is non-zero, read the entry.
+      while (0 < length && length <= maxEntrySize && (index == 0 || nextIndex <= index)) {
+
+        // Read the checksum of the entry.
+        final long checksum = buffer.getInt() & 0xFFFFFFFFL;
+
+        // Compute the checksum for the entry bytes.
+        final CRC32 crc32 = new CRC32();
+        final ByteBuffer slice = buffer.slice();
+        slice.limit(length);
+        crc32.update(slice);
+
+        // If the stored checksum equals the computed checksum, return the entry.
+        if (checksum == crc32.getValue()) {
+          slice.rewind();
+          final E entry = namespace.deserialize(slice);
+          lastEntry = new Indexed<>(nextIndex, entry, length);
+          this.index.index(lastEntry, position);
+          nextIndex++;
+        } else {
+          break;
+        }
+
+        // Update the current position for indexing.
+        position = buffer.position() + length;
+        buffer.position(position);
+
+        buffer.mark();
+        length = buffer.getInt();
+      }
+
+      // Reset the buffer to the previous mark.
+      buffer.reset();
+    } catch (final BufferUnderflowException e) {
+      buffer.reset();
+    }
+  }
 
   @Override
   @SuppressWarnings("unchecked")
@@ -287,5 +269,23 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
     } catch (final IOException e) {
       throw new StorageException(e);
     }
+  }
+
+  /**
+   * Returns the size of the underlying buffer.
+   *
+   * @return The size of the underlying buffer.
+   */
+  public long size() {
+    return buffer.position() + JournalSegmentDescriptor.BYTES;
+  }
+
+  /**
+   * Returns a boolean indicating whether the segment is empty.
+   *
+   * @return Indicates whether the segment is empty.
+   */
+  public boolean isEmpty() {
+    return lastEntry == null;
   }
 }

@@ -14,20 +14,20 @@
   ~ limitations under the License.
   -->
 <configuration>
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
-            </pattern>
-        </encoder>
-    </appender>
+  <appender class="ch.qos.logback.core.ConsoleAppender" name="STDOUT">
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
+      </pattern>
+    </encoder>
+  </appender>
 
-    <logger name="io.atomix.protocols.backup" level="${root.logging.level:-INFO}" />
-    <logger name="io.atomix.raft" level="${root.logging.level:-INFO}" />
-    <logger name="io.atomix.protocols.log" level="${root.logging.level:-INFO}" />
-    <logger name="io.atomix.cluster.protocol" level="INFO" />
-    <logger name="io.atomix.messaging" level="INFO" />
+  <logger level="${root.logging.level:-INFO}" name="io.atomix.protocols.backup"/>
+  <logger level="${root.logging.level:-INFO}" name="io.atomix.raft"/>
+  <logger level="${root.logging.level:-INFO}" name="io.atomix.protocols.log"/>
+  <logger level="INFO" name="io.atomix.cluster.protocol"/>
+  <logger level="INFO" name="io.atomix.messaging"/>
 
-    <root level="${root.logging.level:-INFO}">
-        <appender-ref ref="STDOUT" />
-    </root>
+  <root level="${root.logging.level:-INFO}">
+    <appender-ref ref="STDOUT"/>
+  </root>
 </configuration>

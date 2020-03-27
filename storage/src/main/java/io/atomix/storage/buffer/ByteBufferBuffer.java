@@ -21,7 +21,8 @@ import io.atomix.utils.concurrent.ReferenceManager;
 public abstract class ByteBufferBuffer extends AbstractBuffer {
   protected final ByteBufferBytes bytes;
 
-  public ByteBufferBuffer(final ByteBufferBytes bytes, final ReferenceManager<Buffer> referenceManager) {
+  public ByteBufferBuffer(
+      final ByteBufferBytes bytes, final ReferenceManager<Buffer> referenceManager) {
     super(bytes, referenceManager);
     this.bytes = bytes;
   }

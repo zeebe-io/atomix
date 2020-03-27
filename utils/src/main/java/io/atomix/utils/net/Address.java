@@ -23,11 +23,22 @@ import java.util.Objects;
 /** Representation of a network address. */
 public final class Address {
   private static final int DEFAULT_PORT = 5679;
+  private final String host;
+  private final int port;
+  private transient volatile Type type;
+  private transient volatile InetAddress address;
 
-  /** Address type. */
-  public enum Type {
-    IPV4,
-    IPV6,
+  public Address(final String host, final int port) {
+    this(host, port, null);
+  }
+
+  public Address(final String host, final int port, final InetAddress address) {
+    this.host = host;
+    this.port = port;
+    this.address = address;
+    if (address != null) {
+      this.type = address instanceof Inet6Address ? Type.IPV6 : Type.IPV4;
+    }
   }
 
   /**
@@ -104,24 +115,6 @@ public final class Address {
       return InetAddress.getLocalHost(); // first NIC
     } catch (final Exception ignore) {
       return InetAddress.getByName(null);
-    }
-  }
-
-  private final String host;
-  private final int port;
-  private transient volatile Type type;
-  private transient volatile InetAddress address;
-
-  public Address(final String host, final int port) {
-    this(host, port, null);
-  }
-
-  public Address(final String host, final int port, final InetAddress address) {
-    this.host = host;
-    this.port = port;
-    this.address = address;
-    if (address != null) {
-      this.type = address instanceof Inet6Address ? Type.IPV6 : Type.IPV4;
     }
   }
 
@@ -204,17 +197,6 @@ public final class Address {
   }
 
   @Override
-  public String toString() {
-    final String host = host();
-    final int port = port();
-    if (host.matches("([0-9a-f]{1,4}:){7}([0-9a-f]){1,4}")) {
-      return String.format("[%s]:%d", host, port);
-    } else {
-      return String.format("%s:%d", host, port);
-    }
-  }
-
-  @Override
   public int hashCode() {
     return Objects.hash(host, port);
   }
@@ -232,5 +214,22 @@ public final class Address {
     }
     final Address that = (Address) obj;
     return this.host.equals(that.host) && this.port == that.port;
+  }
+
+  @Override
+  public String toString() {
+    final String host = host();
+    final int port = port();
+    if (host.matches("([0-9a-f]{1,4}:){7}([0-9a-f]){1,4}")) {
+      return String.format("[%s]:%d", host, port);
+    } else {
+      return String.format("%s:%d", host, port);
+    }
+  }
+
+  /** Address type. */
+  public enum Type {
+    IPV4,
+    IPV6,
   }
 }

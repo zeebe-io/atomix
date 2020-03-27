@@ -23,7 +23,8 @@ import java.util.concurrent.ScheduledExecutorService;
 final class LocalClientConnection extends AbstractClientConnection {
   private final LocalServerConnection serverConnection;
 
-  LocalClientConnection(final ScheduledExecutorService executorService, final HandlerRegistry handlers) {
+  LocalClientConnection(
+      final ScheduledExecutorService executorService, final HandlerRegistry handlers) {
     super(executorService);
     this.serverConnection = new LocalServerConnection(handlers, this);
   }
@@ -35,7 +36,8 @@ final class LocalClientConnection extends AbstractClientConnection {
   }
 
   @Override
-  public CompletableFuture<byte[]> sendAndReceive(final ProtocolRequest message, final Duration timeout) {
+  public CompletableFuture<byte[]> sendAndReceive(
+      final ProtocolRequest message, final Duration timeout) {
     final CompletableFuture<byte[]> future = new CompletableFuture<>();
     new Callback(message.id(), message.subject(), timeout, future);
     serverConnection.dispatch(message);

@@ -116,14 +116,7 @@ class ChannelPool {
                   channelPool.set(offset, null);
                 } else if (currentFuture == null) {
                   currentFuture = factory.apply(address);
-                  currentFuture.whenComplete(
-                      (c, e) -> {
-                        if (e == null) {
-                          LOGGER.debug("Connected to {}", channel.remoteAddress());
-                        } else {
-                          LOGGER.debug("Failed to connect to {}", channel.remoteAddress(), e);
-                        }
-                      });
+                  currentFuture.whenComplete(this::logConnection);
                   channelPool.set(offset, currentFuture);
                 }
               }
@@ -132,20 +125,12 @@ class ChannelPool {
                 getChannel(address, messageType)
                     .whenComplete(
                         (recursiveResult, recursiveError) -> {
-                          if (recursiveError == null) {
-                            future.complete(recursiveResult);
-                          } else {
-                            future.completeExceptionally(recursiveError);
-                          }
+                          completeFuture(future, recursiveResult, recursiveError);
                         });
               } else {
                 currentFuture.whenComplete(
                     (recursiveResult, recursiveError) -> {
-                      if (recursiveError == null) {
-                        future.complete(recursiveResult);
-                      } else {
-                        future.completeExceptionally(recursiveError);
-                      }
+                      completeFuture(future, recursiveResult, recursiveError);
                     });
               }
             } else {
@@ -156,5 +141,24 @@ class ChannelPool {
           }
         });
     return future;
+  }
+
+  private void completeFuture(
+      final CompletableFuture<Channel> future,
+      final Channel recursiveResult,
+      final Throwable recursiveError) {
+    if (recursiveError == null) {
+      future.complete(recursiveResult);
+    } else {
+      future.completeExceptionally(recursiveError);
+    }
+  }
+
+  private void logConnection(final Channel channel, final Throwable e) {
+    if (e == null) {
+      LOGGER.debug("Connected to {}", channel.remoteAddress());
+    } else {
+      LOGGER.debug("Failed to connect to {}", channel.remoteAddress(), e);
+    }
   }
 }

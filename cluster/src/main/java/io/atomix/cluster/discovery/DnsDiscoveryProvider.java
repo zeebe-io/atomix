@@ -47,45 +47,12 @@ public class DnsDiscoveryProvider
     implements NodeDiscoveryProvider {
 
   public static final Type TYPE = new Type();
-
-  /**
-   * Creates a new DNS provider builder.
-   *
-   * @return a new DNS provider builder
-   */
-  public static DnsDiscoveryBuilder builder() {
-    return new DnsDiscoveryBuilder();
-  }
-
-  /** DNS node discovery provider type. */
-  public static class Type implements NodeDiscoveryProvider.Type<DnsDiscoveryConfig> {
-    private static final String NAME = "dns";
-
-    @Override
-    public String name() {
-      return NAME;
-    }
-
-    @Override
-    public DnsDiscoveryConfig newConfig() {
-      return new DnsDiscoveryConfig();
-    }
-
-    @Override
-    public NodeDiscoveryProvider newProvider(final DnsDiscoveryConfig config) {
-      return new DnsDiscoveryProvider(config);
-    }
-  }
-
   private static final Logger LOGGER = LoggerFactory.getLogger(DnsDiscoveryProvider.class);
-
   private static final String[] ATTRIBUTES = new String[] {"SRV"};
   private static final String ATTRIBUTE_ID = "srv";
-
   private final ScheduledExecutorService resolverScheduler =
       Executors.newSingleThreadScheduledExecutor(
           namedThreads("atomix-cluster-dns-resolver", LOGGER));
-
   private final String service;
   private final Duration resolutionInterval;
   private final DnsDiscoveryConfig config;
@@ -102,6 +69,15 @@ public class DnsDiscoveryProvider
         checkNotNull(config.getResolutionInterval(), "resolutionInterval cannot be null");
   }
 
+  /**
+   * Creates a new DNS provider builder.
+   *
+   * @return a new DNS provider builder
+   */
+  public static DnsDiscoveryBuilder builder() {
+    return new DnsDiscoveryBuilder();
+  }
+
   @Override
   public DnsDiscoveryConfig config() {
     return config;
@@ -110,6 +86,21 @@ public class DnsDiscoveryProvider
   @Override
   public Set<Node> getNodes() {
     return ImmutableSet.copyOf(nodes.values());
+  }
+
+  @Override
+  public CompletableFuture<Void> join(final BootstrapService bootstrap, final Node localNode) {
+    LOGGER.info("Joined");
+    resolverScheduler.scheduleAtFixedRate(
+        this::resolveNodes, 0, resolutionInterval.toMillis(), TimeUnit.MILLISECONDS);
+    return CompletableFuture.completedFuture(null);
+  }
+
+  @Override
+  public CompletableFuture<Void> leave(final Node localNode) {
+    LOGGER.info("Left");
+    resolverScheduler.shutdownNow();
+    return CompletableFuture.completedFuture(null);
   }
 
   private void resolveNodes() {
@@ -155,18 +146,23 @@ public class DnsDiscoveryProvider
     }
   }
 
-  @Override
-  public CompletableFuture<Void> join(final BootstrapService bootstrap, final Node localNode) {
-    LOGGER.info("Joined");
-    resolverScheduler.scheduleAtFixedRate(
-        this::resolveNodes, 0, resolutionInterval.toMillis(), TimeUnit.MILLISECONDS);
-    return CompletableFuture.completedFuture(null);
-  }
+  /** DNS node discovery provider type. */
+  public static class Type implements NodeDiscoveryProvider.Type<DnsDiscoveryConfig> {
+    private static final String NAME = "dns";
 
-  @Override
-  public CompletableFuture<Void> leave(final Node localNode) {
-    LOGGER.info("Left");
-    resolverScheduler.shutdownNow();
-    return CompletableFuture.completedFuture(null);
+    @Override
+    public String name() {
+      return NAME;
+    }
+
+    @Override
+    public DnsDiscoveryConfig newConfig() {
+      return new DnsDiscoveryConfig();
+    }
+
+    @Override
+    public NodeDiscoveryProvider newProvider(final DnsDiscoveryConfig config) {
+      return new DnsDiscoveryProvider(config);
+    }
   }
 }

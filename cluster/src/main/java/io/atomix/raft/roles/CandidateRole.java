@@ -60,13 +60,13 @@ public final class CandidateRole extends ActiveRole {
   }
 
   @Override
-  public RaftServer.Role role() {
-    return RaftServer.Role.CANDIDATE;
+  public synchronized CompletableFuture<Void> stop() {
+    return super.stop().thenRun(this::cancelElection);
   }
 
   @Override
-  public synchronized CompletableFuture<Void> stop() {
-    return super.stop().thenRun(this::cancelElection);
+  public RaftServer.Role role() {
+    return RaftServer.Role.CANDIDATE;
   }
 
   /** Cancels the election. */
@@ -181,7 +181,10 @@ public final class CandidateRole extends ActiveRole {
   }
 
   private void sendVoteRequestToMember(
-      final AtomicBoolean complete, final Quorum quorum, final DefaultRaftMember member, final VoteRequest request) {
+      final AtomicBoolean complete,
+      final Quorum quorum,
+      final DefaultRaftMember member,
+      final VoteRequest request) {
     raft.getProtocol()
         .vote(member.memberId(), request)
         .whenCompleteAsync(

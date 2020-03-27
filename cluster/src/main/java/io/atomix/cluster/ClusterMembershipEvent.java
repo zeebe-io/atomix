@@ -22,21 +22,6 @@ import java.util.Objects;
 /** Describes cluster-related event. */
 public class ClusterMembershipEvent extends AbstractEvent<ClusterMembershipEvent.Type, Member> {
 
-  /** Type of cluster-related events. */
-  public enum Type {
-    /** Indicates that a new member has been added. */
-    MEMBER_ADDED,
-
-    /** Indicates that a member's metadata has changed. */
-    METADATA_CHANGED,
-
-    /** Indicates that a member's reachability has changed. */
-    REACHABILITY_CHANGED,
-
-    /** Indicates that a member has been removed. */
-    MEMBER_REMOVED,
-  }
-
   /**
    * Creates an event of a given type and for the specified instance and the current time.
    *
@@ -84,5 +69,20 @@ public class ClusterMembershipEvent extends AbstractEvent<ClusterMembershipEvent
         .add("subject", subject())
         .add("time", time())
         .toString();
+  }
+
+  /** Type of cluster-related events. */
+  public enum Type {
+    /** Indicates that a new member has been added. */
+    MEMBER_ADDED,
+
+    /** Indicates that a member's metadata has changed. */
+    METADATA_CHANGED,
+
+    /** Indicates that a member's reachability has changed. */
+    REACHABILITY_CHANGED,
+
+    /** Indicates that a member has been removed. */
+    MEMBER_REMOVED,
   }
 }

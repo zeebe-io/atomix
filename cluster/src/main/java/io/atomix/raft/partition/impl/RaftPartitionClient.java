@@ -72,7 +72,9 @@ public class RaftPartitionClient implements PartitionClient, Managed<RaftPartiti
 
   @Override
   public RaftSessionClient.Builder sessionBuilder(
-      final String primitiveName, final PrimitiveType primitiveType, final ServiceConfig serviceConfig) {
+      final String primitiveName,
+      final PrimitiveType primitiveType,
+      final ServiceConfig serviceConfig) {
     return client.sessionBuilder(primitiveName, primitiveType, serviceConfig);
   }
 

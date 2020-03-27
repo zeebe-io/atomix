@@ -56,7 +56,8 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
    *     is triggered
    * @param maxIdleMillis maximum number millis between items before processing is triggered
    */
-  protected AbstractAccumulator(final Timer timer, final int maxItems, final int maxBatchMillis, final int maxIdleMillis) {
+  protected AbstractAccumulator(
+      final Timer timer, final int maxItems, final int maxBatchMillis, final int maxIdleMillis) {
     this.timer = checkNotNull(timer, "Timer cannot be null");
 
     checkArgument(maxItems > 1, "Maximum number of items must be > 1");
@@ -106,6 +107,11 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
     }
   }
 
+  @Override
+  public boolean isReady() {
+    return true;
+  }
+
   /**
    * Reschedules the specified task, cancelling existing one if applicable.
    *
@@ -133,30 +139,11 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
    * @param taskRef task reference
    * @param newTask new task
    */
-  private void swapAndCancelTask(final AtomicReference<TimerTask> taskRef, final TimerTask newTask) {
+  private void swapAndCancelTask(
+      final AtomicReference<TimerTask> taskRef, final TimerTask newTask) {
     final TimerTask oldTask = taskRef.getAndSet(newTask);
     if (oldTask != null) {
       oldTask.cancel();
-    }
-  }
-
-  // Task for triggering processing of accumulated items
-  private class ProcessorTask extends TimerTask {
-    @Override
-    public void run() {
-      try {
-        if (isReady()) {
-
-          final List<T> batch = finalizeCurrentBatch();
-          if (!batch.isEmpty()) {
-            processItems(batch);
-          }
-        } else {
-          rescheduleTask(idleTask, maxIdleMillis);
-        }
-      } catch (final Exception e) {
-        log.warn("Unable to process batch due to", e);
-      }
     }
   }
 
@@ -177,11 +164,6 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
       cancelTask(idleTask);
     }
     return finalizedList;
-  }
-
-  @Override
-  public boolean isReady() {
-    return true;
   }
 
   /**
@@ -220,5 +202,25 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
    */
   public int maxIdleMillis() {
     return maxIdleMillis;
+  }
+
+  // Task for triggering processing of accumulated items
+  private class ProcessorTask extends TimerTask {
+    @Override
+    public void run() {
+      try {
+        if (isReady()) {
+
+          final List<T> batch = finalizeCurrentBatch();
+          if (!batch.isEmpty()) {
+            processItems(batch);
+          }
+        } else {
+          rescheduleTask(idleTask, maxIdleMillis);
+        }
+      } catch (final Exception e) {
+        log.warn("Unable to process batch due to", e);
+      }
+    }
   }
 }

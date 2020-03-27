@@ -30,18 +30,6 @@ public interface GroupMembershipProtocol
     extends ListenerService<GroupMembershipEvent, GroupMembershipEventListener>,
         Configured<GroupMembershipProtocolConfig> {
 
-  /** Group membership protocol type. */
-  interface Type<C extends GroupMembershipProtocolConfig> extends ConfiguredType<C> {
-
-    /**
-     * Creates a new instance of the protocol.
-     *
-     * @param config the protocol configuration
-     * @return the protocol instance
-     */
-    GroupMembershipProtocol newProtocol(C config);
-  }
-
   /**
    * Returns the set of current cluster members.
    *
@@ -75,4 +63,16 @@ public interface GroupMembershipProtocol
    * @return a future to be completed once the leave is complete
    */
   CompletableFuture<Void> leave(Member localMember);
+
+  /** Group membership protocol type. */
+  interface Type<C extends GroupMembershipProtocolConfig> extends ConfiguredType<C> {
+
+    /**
+     * Creates a new instance of the protocol.
+     *
+     * @param config the protocol configuration
+     * @return the protocol instance
+     */
+    GroupMembershipProtocol newProtocol(C config);
+  }
 }

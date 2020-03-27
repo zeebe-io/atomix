@@ -27,7 +27,8 @@ public class OpenSessionResponse extends AbstractRaftResponse {
   protected final long session;
   protected final long timeout;
 
-  public OpenSessionResponse(final Status status, final RaftError error, final long session, final long timeout) {
+  public OpenSessionResponse(
+      final Status status, final RaftError error, final long session, final long timeout) {
     super(status, error);
     this.session = session;
     this.timeout = timeout;

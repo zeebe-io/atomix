@@ -143,7 +143,8 @@ final class RaftSessionListener {
    *
    * @param listener the event listener callback
    */
-  public void removeEventListener(final EventType eventType, final Consumer<PrimitiveEvent> listener) {
+  public void removeEventListener(
+      final EventType eventType, final Consumer<PrimitiveEvent> listener) {
     executor.execute(
         () ->
             eventListeners

@@ -20,6 +20,10 @@ import java.util.UUID;
 /** Controller cluster identity. */
 public class MemberId extends NodeId {
 
+  public MemberId(final String id) {
+    super(id);
+  }
+
   /**
    * Creates a new cluster node identifier from the specified string.
    *
@@ -37,9 +41,5 @@ public class MemberId extends NodeId {
    */
   public static MemberId from(final String id) {
     return new MemberId(id);
-  }
-
-  public MemberId(final String id) {
-    super(id);
   }
 }

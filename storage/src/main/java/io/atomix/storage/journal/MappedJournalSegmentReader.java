@@ -82,35 +82,6 @@ class MappedJournalSegmentReader<E> implements JournalReader<E> {
   }
 
   @Override
-  public void reset(final long index) {
-    final long firstIndex = segment.index();
-    final long lastIndex = segment.lastIndex();
-
-    reset();
-
-    final Position position = this.index.lookup(index - 1);
-    if (position != null && position.index() >= firstIndex && position.index() <= lastIndex) {
-      currentEntry = new Indexed<>(position.index() - 1, null, 0);
-      buffer.position(position.position());
-
-      nextEntry = null;
-      readNext();
-    }
-
-    while (getNextIndex() < index && hasNext()) {
-      next();
-    }
-  }
-
-  @Override
-  public void reset() {
-    buffer.position(JournalSegmentDescriptor.BYTES);
-    currentEntry = null;
-    nextEntry = null;
-    readNext();
-  }
-
-  @Override
   public boolean hasNext() {
     // If the next entry is null, check whether a next entry exists.
     if (nextEntry == null) {
@@ -136,6 +107,40 @@ class MappedJournalSegmentReader<E> implements JournalReader<E> {
 
     // Return the current entry.
     return currentEntry;
+  }
+
+  @Override
+  public void reset() {
+    buffer.position(JournalSegmentDescriptor.BYTES);
+    currentEntry = null;
+    nextEntry = null;
+    readNext();
+  }
+
+  @Override
+  public void reset(final long index) {
+    final long firstIndex = segment.index();
+    final long lastIndex = segment.lastIndex();
+
+    reset();
+
+    final Position position = this.index.lookup(index - 1);
+    if (position != null && position.index() >= firstIndex && position.index() <= lastIndex) {
+      currentEntry = new Indexed<>(position.index() - 1, null, 0);
+      buffer.position(position.position());
+
+      nextEntry = null;
+      readNext();
+    }
+
+    while (getNextIndex() < index && hasNext()) {
+      next();
+    }
+  }
+
+  @Override
+  public void close() {
+    // Do nothing. The writer is responsible for cleaning the mapped buffer.
   }
 
   /** Reads the next entry in the segment. */
@@ -181,10 +186,5 @@ class MappedJournalSegmentReader<E> implements JournalReader<E> {
       buffer.reset();
       nextEntry = null;
     }
-  }
-
-  @Override
-  public void close() {
-    // Do nothing. The writer is responsible for cleaning the mapped buffer.
   }
 }

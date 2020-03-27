@@ -41,6 +41,11 @@ public class SessionIdGeneratorService extends AbstractPrimitiveService {
   }
 
   @Override
+  protected void configure(final ServiceExecutor executor) {
+    executor.register(SessionIdGeneratorOperations.NEXT, this::next);
+  }
+
+  @Override
   public void backup(final BackupOutput writer) {
     writer.writeLong(id);
   }
@@ -48,11 +53,6 @@ public class SessionIdGeneratorService extends AbstractPrimitiveService {
   @Override
   public void restore(final BackupInput reader) {
     id = reader.readLong();
-  }
-
-  @Override
-  protected void configure(final ServiceExecutor executor) {
-    executor.register(SessionIdGeneratorOperations.NEXT, this::next);
   }
 
   /**

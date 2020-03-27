@@ -256,19 +256,22 @@ public class PrimaryElectorServiceTest {
     assertEquals("node6", term.candidates().get(5).memberId().id());
   }
 
-  private PrimaryTerm enter(final String nodeId, final String groupId, final PrimaryElectorService elector) {
+  private PrimaryTerm enter(
+      final String nodeId, final String groupId, final PrimaryElectorService elector) {
     final PartitionId partId = new PartitionId("test", 1);
     final GroupMember member = createGroupMember(nodeId, groupId);
     final Session session = createSession(member);
     return elector.enter(createEnterOp(partId, member, session));
   }
 
-  Commit<Enter> createEnterOp(final PartitionId partition, final GroupMember member, final Session<?> session) {
+  Commit<Enter> createEnterOp(
+      final PartitionId partition, final GroupMember member, final Session<?> session) {
     final Enter enter = new Enter(partition, member);
     return new DefaultCommit<>(0, null, enter, session, System.currentTimeMillis());
   }
 
-  Commit<GetTerm> createGetTermOp(final PartitionId partition, final GroupMember member, final Session<?> session) {
+  Commit<GetTerm> createGetTermOp(
+      final PartitionId partition, final GroupMember member, final Session<?> session) {
     final GetTerm getTerm = new GetTerm(partition);
     return new DefaultCommit<>(0, null, getTerm, session, System.currentTimeMillis());
   }

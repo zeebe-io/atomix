@@ -36,7 +36,11 @@ public class QueryRequest extends OperationRequest {
 
   private final long index;
 
-  public QueryRequest(final long session, final long sequence, final PrimitiveOperation operation, final long index) {
+  public QueryRequest(
+      final long session,
+      final long sequence,
+      final PrimitiveOperation operation,
+      final long index) {
     super(session, sequence, operation);
     this.index = index;
   }

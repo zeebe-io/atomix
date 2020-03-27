@@ -53,7 +53,8 @@ public class MappedMemoryAllocator implements MemoryAllocator<MappedMemory> {
     this(createFile(file, mode), mode, offset);
   }
 
-  public MappedMemoryAllocator(final RandomAccessFile file, final FileChannel.MapMode mode, final long offset) {
+  public MappedMemoryAllocator(
+      final RandomAccessFile file, final FileChannel.MapMode mode, final long offset) {
     if (file == null) {
       throw new NullPointerException("file cannot be null");
     }

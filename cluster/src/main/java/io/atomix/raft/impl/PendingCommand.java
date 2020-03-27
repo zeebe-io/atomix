@@ -27,7 +27,8 @@ public final class PendingCommand {
   private final CommandRequest request;
   private final CompletableFuture<CommandResponse> future;
 
-  public PendingCommand(final CommandRequest request, final CompletableFuture<CommandResponse> future) {
+  public PendingCommand(
+      final CommandRequest request, final CompletableFuture<CommandResponse> future) {
     this.request = request;
     this.future = future;
   }

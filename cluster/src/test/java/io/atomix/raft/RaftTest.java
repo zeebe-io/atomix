@@ -1695,7 +1695,10 @@ public class RaftTest extends ConcurrentTestCase {
   }
 
   private void assertLastReadInitialEntry(
-      final Role role, final long term, final RaftServer server, final CountDownLatch transitionCompleted) {
+      final Role role,
+      final long term,
+      final RaftServer server,
+      final CountDownLatch transitionCompleted) {
     if (role == Role.LEADER) {
       final RaftLogReader raftLogReader = server.getContext().getLog().openReader(0, Mode.COMMITS);
       raftLogReader.reset(raftLogReader.getLastIndex());

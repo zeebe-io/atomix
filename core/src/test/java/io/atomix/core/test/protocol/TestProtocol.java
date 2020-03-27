@@ -40,38 +40,7 @@ import org.slf4j.LoggerFactory;
 /** Test primitive protocol. */
 public class TestProtocol implements ProxyProtocol {
   public static final Type TYPE = new Type();
-
-  /**
-   * Returns a new test protocol builder.
-   *
-   * @return a new test protocol builder
-   */
-  public static TestProtocolBuilder builder() {
-    return new TestProtocolBuilder(new TestProtocolConfig());
-  }
-
-  /** Multi-Raft protocol type. */
-  public static final class Type implements PrimitiveProtocol.Type<TestProtocolConfig> {
-    private static final String NAME = "multi-raft";
-
-    @Override
-    public String name() {
-      return NAME;
-    }
-
-    @Override
-    public TestProtocolConfig newConfig() {
-      return new TestProtocolConfig();
-    }
-
-    @Override
-    public PrimitiveProtocol newProtocol(final TestProtocolConfig config) {
-      return new TestProtocol(config);
-    }
-  }
-
   private static final Logger LOGGER = LoggerFactory.getLogger(TestProtocol.class);
-
   private final ScheduledExecutorService threadPool =
       Executors.newScheduledThreadPool(4, namedThreads("test-protocol-service-%d", LOGGER));
   private final TestProtocolConfig config;
@@ -81,6 +50,15 @@ public class TestProtocol implements ProxyProtocol {
   TestProtocol(final TestProtocolConfig config) {
     this.config = config;
     this.registry = new TestProtocolServiceRegistry(threadPool);
+  }
+
+  /**
+   * Returns a new test protocol builder.
+   *
+   * @return a new test protocol builder
+   */
+  public static TestProtocolBuilder builder() {
+    return new TestProtocolBuilder(new TestProtocolConfig());
   }
 
   @Override
@@ -104,7 +82,7 @@ public class TestProtocol implements ProxyProtocol {
         IntStream.range(0, config.getPartitions())
             .mapToObj(
                 partition -> {
-                  SessionId sessionId = SessionId.from(sessionIds.incrementAndGet());
+                  final SessionId sessionId = SessionId.from(sessionIds.incrementAndGet());
                   return new TestSessionClient(
                       primitiveName,
                       primitiveType,
@@ -125,5 +103,25 @@ public class TestProtocol implements ProxyProtocol {
   /** Closes the protocol. */
   public void close() {
     threadPool.shutdownNow();
+  }
+
+  /** Multi-Raft protocol type. */
+  public static final class Type implements PrimitiveProtocol.Type<TestProtocolConfig> {
+    private static final String NAME = "multi-raft";
+
+    @Override
+    public String name() {
+      return NAME;
+    }
+
+    @Override
+    public TestProtocolConfig newConfig() {
+      return new TestProtocolConfig();
+    }
+
+    @Override
+    public PrimitiveProtocol newProtocol(final TestProtocolConfig config) {
+      return new TestProtocol(config);
+    }
   }
 }

@@ -54,6 +54,31 @@ public class MulticastDiscoveryProvider
     implements NodeDiscoveryProvider {
 
   public static final Type TYPE = new Type();
+  private static final Logger LOGGER = LoggerFactory.getLogger(MulticastDiscoveryProvider.class);
+  private static final Serializer SERIALIZER =
+      Serializer.builder()
+          .addType(Node.class)
+          .addType(NodeId.class)
+          .addSerializer(new AddressSerializer(), Address.class)
+          .build();
+  private static final String DISCOVERY_SUBJECT = "atomix-discovery";
+  private final MulticastDiscoveryConfig config;
+  private volatile BootstrapService bootstrap;
+  private final ScheduledExecutorService broadcastScheduler =
+      Executors.newSingleThreadScheduledExecutor(namedThreads("atomix-cluster-broadcast", LOGGER));
+  private volatile ScheduledFuture<?> broadcastFuture;
+  private final Map<NodeId, Node> nodes = Maps.newConcurrentMap();
+  private final AtomicLongMap<NodeId> updateTimes = AtomicLongMap.create();
+  private final Consumer<byte[]> broadcastListener =
+      message -> broadcastScheduler.execute(() -> handleBroadcastMessage(message));
+
+  public MulticastDiscoveryProvider() {
+    this(new MulticastDiscoveryConfig());
+  }
+
+  public MulticastDiscoveryProvider(final MulticastDiscoveryConfig config) {
+    this.config = checkNotNull(config);
+  }
 
   /**
    * Returns a new multicast member location provider builder.
@@ -64,56 +89,6 @@ public class MulticastDiscoveryProvider
     return new MulticastDiscoveryBuilder();
   }
 
-  /** Broadcast member location provider type. */
-  public static class Type implements NodeDiscoveryProvider.Type<MulticastDiscoveryConfig> {
-    private static final String NAME = "multicast";
-
-    @Override
-    public String name() {
-      return NAME;
-    }
-
-    @Override
-    public MulticastDiscoveryConfig newConfig() {
-      return new MulticastDiscoveryConfig();
-    }
-
-    @Override
-    public NodeDiscoveryProvider newProvider(final MulticastDiscoveryConfig config) {
-      return new MulticastDiscoveryProvider(config);
-    }
-  }
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(MulticastDiscoveryProvider.class);
-  private static final Serializer SERIALIZER =
-      Serializer.builder()
-          .addType(Node.class)
-          .addType(NodeId.class)
-          .addSerializer(new AddressSerializer(), Address.class)
-          .build();
-
-  private static final String DISCOVERY_SUBJECT = "atomix-discovery";
-
-  private final MulticastDiscoveryConfig config;
-  private volatile BootstrapService bootstrap;
-
-  private final ScheduledExecutorService broadcastScheduler =
-      Executors.newSingleThreadScheduledExecutor(namedThreads("atomix-cluster-broadcast", LOGGER));
-  private volatile ScheduledFuture<?> broadcastFuture;
-  private final Consumer<byte[]> broadcastListener =
-      message -> broadcastScheduler.execute(() -> handleBroadcastMessage(message));
-
-  private final Map<NodeId, Node> nodes = Maps.newConcurrentMap();
-  private final AtomicLongMap<NodeId> updateTimes = AtomicLongMap.create();
-
-  public MulticastDiscoveryProvider() {
-    this(new MulticastDiscoveryConfig());
-  }
-
-  public MulticastDiscoveryProvider(final MulticastDiscoveryConfig config) {
-    this.config = checkNotNull(config);
-  }
-
   @Override
   public MulticastDiscoveryConfig config() {
     return config;
@@ -122,35 +97,6 @@ public class MulticastDiscoveryProvider
   @Override
   public Set<Node> getNodes() {
     return ImmutableSet.copyOf(nodes.values());
-  }
-
-  private void handleBroadcastMessage(final byte[] message) {
-    final Node node = SERIALIZER.decode(message);
-    final Node oldNode = nodes.put(node.id(), node);
-    if (oldNode != null && !oldNode.id().equals(node.id())) {
-      post(new NodeDiscoveryEvent(NodeDiscoveryEvent.Type.LEAVE, oldNode));
-      post(new NodeDiscoveryEvent(NodeDiscoveryEvent.Type.JOIN, node));
-    } else if (oldNode == null) {
-      post(new NodeDiscoveryEvent(NodeDiscoveryEvent.Type.JOIN, node));
-    }
-    updateTimes.put(node.id(), System.currentTimeMillis());
-  }
-
-  private void broadcastNode(final Node localNode) {
-    bootstrap.getBroadcastService().broadcast(DISCOVERY_SUBJECT, SERIALIZER.encode(localNode));
-    expireNodes();
-  }
-
-  private void expireNodes() {
-    final Iterator<Map.Entry<NodeId, Node>> iterator = nodes.entrySet().iterator();
-    while (iterator.hasNext()) {
-      final Map.Entry<NodeId, Node> entry = iterator.next();
-      if (System.currentTimeMillis() - updateTimes.get(entry.getKey())
-          > config.getFailureTimeout().toMillis()) {
-        iterator.remove();
-        post(new NodeDiscoveryEvent(NodeDiscoveryEvent.Type.LEAVE, entry.getValue()));
-      }
-    }
   }
 
   @Override
@@ -183,5 +129,54 @@ public class MulticastDiscoveryProvider
       LOGGER.info("Left");
     }
     return CompletableFuture.completedFuture(null);
+  }
+
+  private void handleBroadcastMessage(final byte[] message) {
+    final Node node = SERIALIZER.decode(message);
+    final Node oldNode = nodes.put(node.id(), node);
+    if (oldNode != null && !oldNode.id().equals(node.id())) {
+      post(new NodeDiscoveryEvent(NodeDiscoveryEvent.Type.LEAVE, oldNode));
+      post(new NodeDiscoveryEvent(NodeDiscoveryEvent.Type.JOIN, node));
+    } else if (oldNode == null) {
+      post(new NodeDiscoveryEvent(NodeDiscoveryEvent.Type.JOIN, node));
+    }
+    updateTimes.put(node.id(), System.currentTimeMillis());
+  }
+
+  private void broadcastNode(final Node localNode) {
+    bootstrap.getBroadcastService().broadcast(DISCOVERY_SUBJECT, SERIALIZER.encode(localNode));
+    expireNodes();
+  }
+
+  private void expireNodes() {
+    final Iterator<Map.Entry<NodeId, Node>> iterator = nodes.entrySet().iterator();
+    while (iterator.hasNext()) {
+      final Map.Entry<NodeId, Node> entry = iterator.next();
+      if (System.currentTimeMillis() - updateTimes.get(entry.getKey())
+          > config.getFailureTimeout().toMillis()) {
+        iterator.remove();
+        post(new NodeDiscoveryEvent(NodeDiscoveryEvent.Type.LEAVE, entry.getValue()));
+      }
+    }
+  }
+
+  /** Broadcast member location provider type. */
+  public static class Type implements NodeDiscoveryProvider.Type<MulticastDiscoveryConfig> {
+    private static final String NAME = "multicast";
+
+    @Override
+    public String name() {
+      return NAME;
+    }
+
+    @Override
+    public MulticastDiscoveryConfig newConfig() {
+      return new MulticastDiscoveryConfig();
+    }
+
+    @Override
+    public NodeDiscoveryProvider newProvider(final MulticastDiscoveryConfig config) {
+      return new MulticastDiscoveryProvider(config);
+    }
   }
 }

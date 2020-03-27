@@ -39,7 +39,9 @@ public class DefaultNodeDiscoveryService
   private final NodeDiscoveryEventListener discoveryEventListener = this::post;
 
   public DefaultNodeDiscoveryService(
-      final BootstrapService bootstrapService, final Node localNode, final NodeDiscoveryProvider provider) {
+      final BootstrapService bootstrapService,
+      final Node localNode,
+      final NodeDiscoveryProvider provider) {
     this.bootstrapService = bootstrapService;
     this.localNode = localNode;
     this.provider = provider;

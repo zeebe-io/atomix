@@ -23,14 +23,17 @@ final class LocalServerConnection extends AbstractServerConnection {
 
   private volatile LocalClientConnection clientConnection;
 
-  LocalServerConnection(final HandlerRegistry handlers, final LocalClientConnection clientConnection) {
+  LocalServerConnection(
+      final HandlerRegistry handlers, final LocalClientConnection clientConnection) {
     super(handlers);
     this.clientConnection = clientConnection;
   }
 
   @Override
   public void reply(
-      final ProtocolRequest message, final ProtocolReply.Status status, final Optional<byte[]> payload) {
+      final ProtocolRequest message,
+      final ProtocolReply.Status status,
+      final Optional<byte[]> payload) {
     final LocalClientConnection clientConnection = this.clientConnection;
     if (clientConnection != null) {
       clientConnection.dispatch(

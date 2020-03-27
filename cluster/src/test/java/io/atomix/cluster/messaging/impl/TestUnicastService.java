@@ -36,7 +36,8 @@ public class TestUnicastService implements ManagedUnicastService {
   private final AtomicBoolean started = new AtomicBoolean();
   private final Set<Address> partitions = Sets.newConcurrentHashSet();
 
-  public TestUnicastService(final Address address, final Map<Address, TestUnicastService> services) {
+  public TestUnicastService(
+      final Address address, final Map<Address, TestUnicastService> services) {
     this.address = address;
     this.services = services;
   }
@@ -93,7 +94,8 @@ public class TestUnicastService implements ManagedUnicastService {
   }
 
   @Override
-  public synchronized void removeListener(final String subject, final BiConsumer<Address, byte[]> listener) {
+  public synchronized void removeListener(
+      final String subject, final BiConsumer<Address, byte[]> listener) {
     final Map<BiConsumer<Address, byte[]>, Executor> listeners = this.listeners.get(subject);
     if (listeners != null) {
       listeners.remove(listener);

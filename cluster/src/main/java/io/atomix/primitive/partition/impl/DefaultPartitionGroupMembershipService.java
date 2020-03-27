@@ -78,10 +78,10 @@ public class DefaultPartitionGroupMembershipService
   private final Serializer serializer;
   private volatile PartitionGroupMembership systemGroup;
   private final Map<String, PartitionGroupMembership> groups = Maps.newConcurrentMap();
-  private final ClusterMembershipEventListener membershipEventListener =
-      this::handleMembershipChange;
   private final AtomicBoolean started = new AtomicBoolean();
   private volatile ThreadContext threadContext;
+  private final ClusterMembershipEventListener membershipEventListener =
+      this::handleMembershipChange;
 
   @SuppressWarnings("unchecked")
   public DefaultPartitionGroupMembershipService(
@@ -120,7 +120,8 @@ public class DefaultPartitionGroupMembershipService
             .register(PartitionGroupConfig.class)
             .register(MemberGroupStrategy.class);
 
-    final List<PartitionGroup.Type> groupTypes = Lists.newArrayList(groupTypeRegistry.getGroupTypes());
+    final List<PartitionGroup.Type> groupTypes =
+        Lists.newArrayList(groupTypeRegistry.getGroupTypes());
     groupTypes.sort(Comparator.comparing(PartitionGroup.Type::name));
     for (final PartitionGroup.Type groupType : groupTypes) {
       namespaceBuilder.register(groupType.namespace());
@@ -199,7 +200,8 @@ public class DefaultPartitionGroupMembershipService
    * Recursively bootstraps the service, retrying if necessary until a system partition group is
    * found.
    */
-  private CompletableFuture<Void> bootstrap(final int attempt, final CompletableFuture<Void> future) {
+  private CompletableFuture<Void> bootstrap(
+      final int attempt, final CompletableFuture<Void> future) {
     Futures.allOf(
             membershipService.getMembers().stream()
                 .filter(node -> !node.id().equals(membershipService.getLocalMember().id()))
@@ -240,7 +242,8 @@ public class DefaultPartitionGroupMembershipService
 
   /** Bootstraps the service from the given node. */
   @SuppressWarnings("unchecked")
-  private CompletableFuture<Void> bootstrap(final Member member, final CompletableFuture<Void> future) {
+  private CompletableFuture<Void> bootstrap(
+      final Member member, final CompletableFuture<Void> future) {
     LOGGER.debug(
         "{} - Bootstrapping from member {}", membershipService.getLocalMember().id(), member);
     messagingService

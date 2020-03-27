@@ -88,7 +88,8 @@ public class ContextualLogger extends DelegatingLogger {
   }
 
   @Override
-  public void trace(final Marker marker, final String format, final Object arg1, final Object arg2) {
+  public void trace(
+      final Marker marker, final String format, final Object arg1, final Object arg2) {
     if (isTraceEnabled()) {
       super.trace(marker, contextualize(format), arg1, arg2);
     }
@@ -158,7 +159,8 @@ public class ContextualLogger extends DelegatingLogger {
   }
 
   @Override
-  public void debug(final Marker marker, final String format, final Object arg1, final Object arg2) {
+  public void debug(
+      final Marker marker, final String format, final Object arg1, final Object arg2) {
     if (isDebugEnabled()) {
       super.debug(marker, contextualize(format), arg1, arg2);
     }
@@ -368,7 +370,8 @@ public class ContextualLogger extends DelegatingLogger {
   }
 
   @Override
-  public void error(final Marker marker, final String format, final Object arg1, final Object arg2) {
+  public void error(
+      final Marker marker, final String format, final Object arg1, final Object arg2) {
     if (isErrorEnabled()) {
       super.error(marker, contextualize(format), arg1, arg2);
     }

@@ -333,7 +333,8 @@ public class SwimProtocolTest extends ConcurrentTestCase {
     checkEvent(member, type, null);
   }
 
-  private void checkEvent(final Member member, final GroupMembershipEvent.Type type, final Member value)
+  private void checkEvent(
+      final Member member, final GroupMembershipEvent.Type type, final Member value)
       throws InterruptedException {
     final GroupMembershipEvent event = nextEvent(member);
     assertEquals(type, event.type());

@@ -170,6 +170,40 @@ public class LogProxySession<S> implements ProxySession<S> {
     return proxy.apply(operation);
   }
 
+  @Override
+  public void addStateChangeListener(final Consumer<PrimitiveState> listener) {
+    session.addStateChangeListener(listener);
+  }
+
+  @Override
+  public void removeStateChangeListener(final Consumer<PrimitiveState> listener) {
+    session.removeStateChangeListener(listener);
+  }
+
+  @Override
+  public CompletableFuture<ProxySession<S>> connect() {
+    if (connectFuture == null) {
+      synchronized (this) {
+        if (connectFuture == null) {
+          session.consumer().consume(1, this::consume);
+          service.init(context);
+          connectFuture = session.connect().thenApply(v -> this);
+        }
+      }
+    }
+    return connectFuture;
+  }
+
+  @Override
+  public CompletableFuture<Void> close() {
+    return session.close();
+  }
+
+  @Override
+  public CompletableFuture<Void> delete() {
+    return close();
+  }
+
   /**
    * Gets or creates a session.
    *
@@ -257,40 +291,6 @@ public class LogProxySession<S> implements ProxySession<S> {
     }
   }
 
-  @Override
-  public void addStateChangeListener(final Consumer<PrimitiveState> listener) {
-    session.addStateChangeListener(listener);
-  }
-
-  @Override
-  public void removeStateChangeListener(final Consumer<PrimitiveState> listener) {
-    session.removeStateChangeListener(listener);
-  }
-
-  @Override
-  public CompletableFuture<ProxySession<S>> connect() {
-    if (connectFuture == null) {
-      synchronized (this) {
-        if (connectFuture == null) {
-          session.consumer().consume(1, this::consume);
-          service.init(context);
-          connectFuture = session.connect().thenApply(v -> this);
-        }
-      }
-    }
-    return connectFuture;
-  }
-
-  @Override
-  public CompletableFuture<Void> close() {
-    return session.close();
-  }
-
-  @Override
-  public CompletableFuture<Void> delete() {
-    return close();
-  }
-
   /**
    * Encodes the given object using the configured {@link #userSerializer}.
    *
@@ -333,6 +333,25 @@ public class LogProxySession<S> implements ProxySession<S> {
    */
   private <T> T decodeInternal(final byte[] bytes) {
     return INTERNAL_SERIALIZER.decode(bytes);
+  }
+
+  /** Pending read operation. */
+  private static class PendingRead {
+    private final long index;
+    private final OperationId operationId;
+    private final byte[] bytes;
+    private final CompletableFuture future;
+
+    PendingRead(
+        final long index,
+        final OperationId operationId,
+        final byte[] bytes,
+        final CompletableFuture future) {
+      this.index = index;
+      this.operationId = operationId;
+      this.bytes = bytes;
+      this.future = future;
+    }
   }
 
   /** Log service context. */
@@ -469,7 +488,7 @@ public class LogProxySession<S> implements ProxySession<S> {
    *
    * <p>The invocation handler
    */
-  private class ServiceProxyHandler implements InvocationHandler {
+  private final class ServiceProxyHandler implements InvocationHandler {
     private final ThreadLocal<CompletableFuture> future = new ThreadLocal<>();
     private final Map<Method, OperationId> operations = new ConcurrentHashMap<>();
 
@@ -479,7 +498,8 @@ public class LogProxySession<S> implements ProxySession<S> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public Object invoke(final Object object, final Method method, final Object[] args) throws Throwable {
+    public Object invoke(final Object object, final Method method, final Object[] args)
+        throws Throwable {
       final OperationId operationId = operations.get(method);
       if (operationId != null) {
         final CompletableFuture future = new CompletableFuture();
@@ -534,21 +554,6 @@ public class LogProxySession<S> implements ProxySession<S> {
     @SuppressWarnings("unchecked")
     <T> CompletableFuture<T> getResultFuture() {
       return future.get();
-    }
-  }
-
-  /** Pending read operation. */
-  private static class PendingRead {
-    private final long index;
-    private final OperationId operationId;
-    private final byte[] bytes;
-    private final CompletableFuture future;
-
-    PendingRead(final long index, final OperationId operationId, final byte[] bytes, final CompletableFuture future) {
-      this.index = index;
-      this.operationId = operationId;
-      this.bytes = bytes;
-      this.future = future;
     }
   }
 }

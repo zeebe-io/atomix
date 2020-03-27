@@ -121,18 +121,35 @@ public class DefaultServiceExecutor implements ServiceExecutor {
     }
   }
 
-  /**
-   * Checks that the current operation is of the given type.
-   *
-   * @param type the operation type
-   * @param message the message to print if the current operation does not match the given type
-   */
-  private void checkOperation(final OperationType type, final String message) {
-    checkState(operationType == type, message);
+  @Override
+  public byte[] apply(final Commit<byte[]> commit) {
+    log.trace("Executing {}", commit);
+
+    this.operationType = commit.operation().type();
+    this.timestamp = commit.wallClockTime().unixTimestamp();
+
+    // Look up the registered callback for the operation.
+    final Function<Commit<byte[]>, byte[]> operation = operations.get(commit.operation().id());
+
+    if (operation == null) {
+      throw new IllegalStateException("Unknown state machine operation: " + commit.operation());
+    } else {
+      // Execute the operation. If the operation return value is a Future, await the result,
+      // otherwise immediately complete the execution future.
+      try {
+        return operation.apply(commit);
+      } catch (final Exception e) {
+        log.warn("State machine operation failed: {}", e.getMessage());
+        throw new PrimitiveException.ServiceException(e);
+      } finally {
+        runTasks();
+      }
+    }
   }
 
   @Override
-  public void handle(final OperationId operationId, final Function<Commit<byte[]>, byte[]> callback) {
+  public void handle(
+      final OperationId operationId, final Function<Commit<byte[]>, byte[]> callback) {
     checkNotNull(operationId, "operationId cannot be null");
     checkNotNull(callback, "callback cannot be null");
     operations.put(operationId.id(), callback);
@@ -159,36 +176,21 @@ public class DefaultServiceExecutor implements ServiceExecutor {
   }
 
   @Override
-  public <T, R> void register(final OperationId operationId, final Function<Commit<T>, R> callback) {
+  public <T, R> void register(
+      final OperationId operationId, final Function<Commit<T>, R> callback) {
     checkNotNull(operationId, "operationId cannot be null");
     checkNotNull(callback, "callback cannot be null");
     handle(operationId, commit -> encode(callback.apply(commit.map(this::decode))));
   }
 
-  @Override
-  public byte[] apply(final Commit<byte[]> commit) {
-    log.trace("Executing {}", commit);
-
-    this.operationType = commit.operation().type();
-    this.timestamp = commit.wallClockTime().unixTimestamp();
-
-    // Look up the registered callback for the operation.
-    final Function<Commit<byte[]>, byte[]> operation = operations.get(commit.operation().id());
-
-    if (operation == null) {
-      throw new IllegalStateException("Unknown state machine operation: " + commit.operation());
-    } else {
-      // Execute the operation. If the operation return value is a Future, await the result,
-      // otherwise immediately complete the execution future.
-      try {
-        return operation.apply(commit);
-      } catch (final Exception e) {
-        log.warn("State machine operation failed: {}", e.getMessage());
-        throw new PrimitiveException.ServiceException(e);
-      } finally {
-        runTasks();
-      }
-    }
+  /**
+   * Checks that the current operation is of the given type.
+   *
+   * @param type the operation type
+   * @param message the message to print if the current operation does not match the given type
+   */
+  private void checkOperation(final OperationType type, final String message) {
+    checkState(operationType == type, message);
   }
 
   /** Executes tasks after an operation. */
@@ -222,7 +224,8 @@ public class DefaultServiceExecutor implements ServiceExecutor {
   }
 
   @Override
-  public Scheduled schedule(final Duration initialDelay, final Duration interval, final Runnable callback) {
+  public Scheduled schedule(
+      final Duration initialDelay, final Duration interval, final Runnable callback) {
     checkOperation(
         OperationType.COMMAND, "callbacks can only be scheduled during command execution");
     checkArgument(!initialDelay.isNegative(), "initialDelay cannot be negative");
@@ -237,7 +240,7 @@ public class DefaultServiceExecutor implements ServiceExecutor {
   }
 
   /** Scheduled task. */
-  private class ScheduledTask implements Scheduled {
+  private final class ScheduledTask implements Scheduled {
     private final long interval;
     private final Runnable callback;
     private long time;

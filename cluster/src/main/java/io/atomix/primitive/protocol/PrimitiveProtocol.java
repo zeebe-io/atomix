@@ -20,6 +20,13 @@ import io.atomix.utils.ConfiguredType;
 /** Primitive protocol. */
 public interface PrimitiveProtocol {
 
+  /**
+   * Returns the protocol type.
+   *
+   * @return the protocol type
+   */
+  Type type();
+
   /** Distributed primitive protocol type. */
   interface Type<C extends PrimitiveProtocolConfig<C>>
       extends ConfiguredType<C>, Comparable<Type<C>> {
@@ -37,11 +44,4 @@ public interface PrimitiveProtocol {
       return name().compareTo(o.name());
     }
   }
-
-  /**
-   * Returns the protocol type.
-   *
-   * @return the protocol type
-   */
-  Type type();
 }

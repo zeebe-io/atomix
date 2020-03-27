@@ -58,7 +58,8 @@ public class BlockingWorkQueue<E> extends Synchronous<AsyncWorkQueue<E>> impleme
   }
 
   @Override
-  public void registerTaskProcessor(final Consumer<E> taskProcessor, final int parallelism, final Executor executor) {
+  public void registerTaskProcessor(
+      final Consumer<E> taskProcessor, final int parallelism, final Executor executor) {
     complete(asyncQueue.registerTaskProcessor(taskProcessor, parallelism, executor));
   }
 

@@ -78,7 +78,8 @@ public class AtomixConfigTest {
     assertEquals(12, membership.getReachabilityThreshold());
     assertEquals(Duration.ofSeconds(15), membership.getReachabilityTimeout());
 
-    final MulticastDiscoveryConfig discovery = (MulticastDiscoveryConfig) cluster.getDiscoveryConfig();
+    final MulticastDiscoveryConfig discovery =
+        (MulticastDiscoveryConfig) cluster.getDiscoveryConfig();
     assertEquals(MulticastDiscoveryProvider.TYPE, discovery.getType());
     assertEquals(Duration.ofSeconds(1), discovery.getBroadcastInterval());
     assertEquals(12, discovery.getFailureThreshold());
@@ -112,7 +113,8 @@ public class AtomixConfigTest {
     assertEquals("one", groupOne.getName());
     assertEquals(7, groupOne.getPartitions());
 
-    final ConsensusProfileConfig consensusProfile = (ConsensusProfileConfig) config.getProfiles().get(0);
+    final ConsensusProfileConfig consensusProfile =
+        (ConsensusProfileConfig) config.getProfiles().get(0);
     assertEquals(ConsensusProfile.TYPE, consensusProfile.getType());
     assertEquals("management", consensusProfile.getManagementGroup());
     assertEquals("consensus", consensusProfile.getDataGroup());

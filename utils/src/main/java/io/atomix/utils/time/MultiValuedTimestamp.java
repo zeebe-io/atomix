@@ -42,6 +42,13 @@ public class MultiValuedTimestamp<T extends Comparable<T>, U extends Comparable<
     this.value2 = Preconditions.checkNotNull(value2);
   }
 
+  // Default constructor for serialization
+  @SuppressWarnings("unused")
+  private MultiValuedTimestamp() {
+    this.value1 = null;
+    this.value2 = null;
+  }
+
   @Override
   public int compareTo(final Timestamp o) {
     Preconditions.checkArgument(
@@ -92,12 +99,5 @@ public class MultiValuedTimestamp<T extends Comparable<T>, U extends Comparable<
    */
   public U value2() {
     return value2;
-  }
-
-  // Default constructor for serialization
-  @SuppressWarnings("unused")
-  private MultiValuedTimestamp() {
-    this.value1 = null;
-    this.value2 = null;
   }
 }

@@ -54,6 +54,7 @@ public class SingleThreadContext extends AbstractThreadContext {
           try {
             executor.execute(() -> command.run());
           } catch (final RejectedExecutionException e) {
+            LOGGER.warn("Execution was rejected!", e);
           }
         }
       };
@@ -79,7 +80,8 @@ public class SingleThreadContext extends AbstractThreadContext {
    * @param nameFormat The context nameFormat which will be formatted with a thread number.
    * @param uncaughtExceptionObserver A consumer to observe exceptions thrown by submitted tasks
    */
-  public SingleThreadContext(final String nameFormat, final Consumer<Throwable> uncaughtExceptionObserver) {
+  public SingleThreadContext(
+      final String nameFormat, final Consumer<Throwable> uncaughtExceptionObserver) {
     this(namedThreads(nameFormat, LOGGER), uncaughtExceptionObserver);
   }
 
@@ -98,7 +100,8 @@ public class SingleThreadContext extends AbstractThreadContext {
    * @param factory The thread factory.
    * @param uncaughtExceptionObserver A consumer to observe exceptions thrown by submitted tasks.
    */
-  public SingleThreadContext(final ThreadFactory factory, final Consumer<Throwable> uncaughtExceptionObserver) {
+  public SingleThreadContext(
+      final ThreadFactory factory, final Consumer<Throwable> uncaughtExceptionObserver) {
     this(new ScheduledThreadPoolExecutor(1, factory), uncaughtExceptionObserver);
   }
 
@@ -110,7 +113,8 @@ public class SingleThreadContext extends AbstractThreadContext {
    * @param uncaughtExceptionObserver A consumer to observe exceptions thrown by submitted tasks.
    */
   protected SingleThreadContext(
-      final ScheduledExecutorService executor, final Consumer<Throwable> uncaughtExceptionObserver) {
+      final ScheduledExecutorService executor,
+      final Consumer<Throwable> uncaughtExceptionObserver) {
     this(getThread(executor), executor, uncaughtExceptionObserver);
   }
 
@@ -153,7 +157,8 @@ public class SingleThreadContext extends AbstractThreadContext {
   }
 
   @Override
-  public Scheduled schedule(final Duration delay, final Duration interval, final Runnable runnable) {
+  public Scheduled schedule(
+      final Duration delay, final Duration interval, final Runnable runnable) {
     final ScheduledFuture<?> future =
         executor.scheduleAtFixedRate(
             new WrappedRunnable(runnable),

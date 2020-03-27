@@ -49,29 +49,6 @@ public class SegmentedJournalWriter<E> implements JournalWriter<E> {
   }
 
   @Override
-  public void reset(final long index) {
-    if (index > currentSegment.index()) {
-      currentSegment.release();
-      currentSegment = journal.resetSegments(index);
-      currentSegment.acquire();
-      currentWriter = currentSegment.writer();
-    } else {
-      truncate(index - 1);
-    }
-    journal.resetHead(index);
-  }
-
-  @Override
-  public void commit(final long index) {
-    if (index > journal.getCommitIndex()) {
-      journal.setCommitIndex(index);
-      if (journal.isFlushOnCommit()) {
-        flush();
-      }
-    }
-  }
-
-  @Override
   public <T extends E> Indexed<T> append(final T entry) {
     try {
       return currentWriter.append(entry);
@@ -100,12 +77,27 @@ public class SegmentedJournalWriter<E> implements JournalWriter<E> {
     }
   }
 
-  private void createNewSegment() {
-    currentWriter.flush();
-    currentSegment.release();
-    currentSegment = journal.getNextSegment();
-    currentSegment.acquire();
-    currentWriter = currentSegment.writer();
+  @Override
+  public void commit(final long index) {
+    if (index > journal.getCommitIndex()) {
+      journal.setCommitIndex(index);
+      if (journal.isFlushOnCommit()) {
+        flush();
+      }
+    }
+  }
+
+  @Override
+  public void reset(final long index) {
+    if (index > currentSegment.index()) {
+      currentSegment.release();
+      currentSegment = journal.resetSegments(index);
+      currentSegment.acquire();
+      currentWriter = currentSegment.writer();
+    } else {
+      truncate(index - 1);
+    }
+    journal.resetHead(index);
   }
 
   @Override
@@ -141,5 +133,13 @@ public class SegmentedJournalWriter<E> implements JournalWriter<E> {
   @Override
   public void close() {
     currentWriter.close();
+  }
+
+  private void createNewSegment() {
+    currentWriter.flush();
+    currentSegment.release();
+    currentSegment = journal.getNextSegment();
+    currentSegment.acquire();
+    currentWriter = currentSegment.writer();
   }
 }

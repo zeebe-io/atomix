@@ -43,7 +43,10 @@ public class TestProtocolServiceRegistry {
    * @return the test service
    */
   public TestProtocolService getOrCreateService(
-      final PartitionId partitionId, final String name, final PrimitiveType type, final ServiceConfig config) {
+      final PartitionId partitionId,
+      final String name,
+      final PrimitiveType type,
+      final ServiceConfig config) {
     return partitions
         .computeIfAbsent(partitionId, id -> Maps.newConcurrentMap())
         .computeIfAbsent(

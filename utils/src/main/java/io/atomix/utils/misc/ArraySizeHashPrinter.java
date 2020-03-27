@@ -24,6 +24,14 @@ import java.util.Arrays;
 /** Helper to print Object[] length and hashCode. */
 public final class ArraySizeHashPrinter {
 
+  private final Object[] array;
+  private final Class<?> type;
+
+  public ArraySizeHashPrinter(final Object[] array, final Class<?> type) {
+    this.array = array;
+    this.type = type;
+  }
+
   /**
    * Returns ByteArraySizeHashPrinter wrapping given short[].
    *
@@ -117,14 +125,6 @@ public final class ArraySizeHashPrinter {
       outputArray[i] = Array.get(val, i);
     }
     return outputArray;
-  }
-
-  private final Object[] array;
-  private final Class<?> type;
-
-  public ArraySizeHashPrinter(final Object[] array, final Class<?> type) {
-    this.array = array;
-    this.type = type;
   }
 
   @Override

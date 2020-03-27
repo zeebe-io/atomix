@@ -52,7 +52,10 @@ public interface Scheduler {
    * @return the scheduled callback
    */
   default Scheduled schedule(
-      final long initialDelay, final long interval, final TimeUnit timeUnit, final Runnable callback) {
+      final long initialDelay,
+      final long interval,
+      final TimeUnit timeUnit,
+      final Runnable callback) {
     return schedule(
         Duration.ofMillis(timeUnit.toMillis(initialDelay)),
         Duration.ofMillis(timeUnit.toMillis(interval)),

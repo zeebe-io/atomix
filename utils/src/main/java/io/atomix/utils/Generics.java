@@ -19,7 +19,9 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
 /** Generics utility. */
-public class Generics {
+public final class Generics {
+
+  private Generics() {}
 
   /**
    * Returns the generic type at the given position for the given class.
@@ -29,7 +31,8 @@ public class Generics {
    * @param position the generic position
    * @return the generic type at the given position
    */
-  public static Type getGenericClassType(final Object instance, final Class<?> clazz, final int position) {
+  public static Type getGenericClassType(
+      final Object instance, final Class<?> clazz, final int position) {
     Class<?> type = instance.getClass();
     while (type != Object.class) {
       if (type.getGenericSuperclass() instanceof ParameterizedType) {
@@ -54,7 +57,8 @@ public class Generics {
    * @param position the generic position
    * @return the generic type at the given position
    */
-  public static Type getGenericInterfaceType(final Object instance, final Class<?> iface, final int position) {
+  public static Type getGenericInterfaceType(
+      final Object instance, final Class<?> iface, final int position) {
     Class<?> type = instance.getClass();
     while (type != Object.class) {
       for (final Type genericType : type.getGenericInterfaces()) {
@@ -69,6 +73,4 @@ public class Generics {
     }
     return null;
   }
-
-  private Generics() {}
 }

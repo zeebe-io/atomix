@@ -31,14 +31,6 @@ import java.util.Collections;
 /** Test Atomix instance. */
 public class TestAtomix extends Atomix {
 
-  private static AtomixConfig config(final MemberId memberId, final Address address) {
-    return new AtomixConfig()
-        .setClusterConfig(
-            new ClusterConfig()
-                .setNodeConfig(new MemberConfig().setId(memberId).setAddress(address)))
-        .setProfiles(Collections.singletonList(new ConsensusProfileConfig()));
-  }
-
   TestAtomix(
       final MemberId memberId,
       final Address address,
@@ -51,5 +43,13 @@ public class TestAtomix extends Atomix {
         messagingServiceFactory.newMessagingService(address),
         unicastServiceFactory.newUnicastService(address),
         broadcastServiceFactory.newBroadcastService());
+  }
+
+  private static AtomixConfig config(final MemberId memberId, final Address address) {
+    return new AtomixConfig()
+        .setClusterConfig(
+            new ClusterConfig()
+                .setNodeConfig(new MemberConfig().setId(memberId).setAddress(address)))
+        .setProfiles(Collections.singletonList(new ConsensusProfileConfig()));
   }
 }

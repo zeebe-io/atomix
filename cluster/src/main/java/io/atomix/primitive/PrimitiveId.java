@@ -22,6 +22,10 @@ import java.nio.charset.StandardCharsets;
 /** Snapshot identifier. */
 public class PrimitiveId extends AbstractIdentifier<Long> {
 
+  public PrimitiveId(final Long value) {
+    super(value);
+  }
+
   /**
    * Creates a snapshot ID from the given number.
    *
@@ -40,9 +44,5 @@ public class PrimitiveId extends AbstractIdentifier<Long> {
    */
   public static PrimitiveId from(final String id) {
     return from(Hashing.sha256().hashString(id, StandardCharsets.UTF_8).asLong());
-  }
-
-  public PrimitiveId(final Long value) {
-    super(value);
   }
 }

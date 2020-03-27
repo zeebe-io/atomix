@@ -20,12 +20,6 @@ import io.atomix.utils.event.AbstractEvent;
 /** Value protocol event. */
 public class ValueDelegateEvent<V> extends AbstractEvent<ValueDelegateEvent.Type, V> {
 
-  /** Value protocol event type. */
-  public enum Type {
-    /** Value updated event. */
-    UPDATE,
-  }
-
   public ValueDelegateEvent(final Type type, final V subject) {
     super(type, subject);
   }
@@ -41,5 +35,11 @@ public class ValueDelegateEvent<V> extends AbstractEvent<ValueDelegateEvent.Type
    */
   public V value() {
     return subject();
+  }
+
+  /** Value protocol event type. */
+  public enum Type {
+    /** Value updated event. */
+    UPDATE,
   }
 }

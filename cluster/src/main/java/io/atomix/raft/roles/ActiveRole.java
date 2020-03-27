@@ -66,6 +66,23 @@ public abstract class ActiveRole extends PassiveRole {
     return CompletableFuture.completedFuture(logResponse(handlePoll(request)));
   }
 
+  @Override
+  public CompletableFuture<VoteResponse> onVote(final VoteRequest request) {
+    raft.checkThread();
+    logRequest(request);
+
+    // If the request indicates a term that is greater than the current term then
+    // assign that term and leader to the current context.
+    final boolean transition = updateTermAndLeader(request.term(), null);
+
+    final CompletableFuture<VoteResponse> future =
+        CompletableFuture.completedFuture(logResponse(handleVote(request)));
+    if (transition) {
+      raft.transition(RaftServer.Role.FOLLOWER);
+    }
+    return future;
+  }
+
   /** Handles a poll request. */
   protected PollResponse handlePoll(final PollRequest request) {
     // If the request term is not as great as the current context term then don't
@@ -138,23 +155,6 @@ public abstract class ActiveRole extends PassiveRole {
     // than the local log's last index.
     log.info("Accepted {}: candidate's log is up-to-date", request);
     return true;
-  }
-
-  @Override
-  public CompletableFuture<VoteResponse> onVote(final VoteRequest request) {
-    raft.checkThread();
-    logRequest(request);
-
-    // If the request indicates a term that is greater than the current term then
-    // assign that term and leader to the current context.
-    final boolean transition = updateTermAndLeader(request.term(), null);
-
-    final CompletableFuture<VoteResponse> future =
-        CompletableFuture.completedFuture(logResponse(handleVote(request)));
-    if (transition) {
-      raft.transition(RaftServer.Role.FOLLOWER);
-    }
-    return future;
   }
 
   /** Handles a vote request. */

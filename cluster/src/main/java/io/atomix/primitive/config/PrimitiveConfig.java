@@ -93,6 +93,15 @@ public abstract class PrimitiveConfig<C extends PrimitiveConfig<C>>
   }
 
   /**
+   * Returns whether the primitive is read-only.
+   *
+   * @return whether the primitive is read-only
+   */
+  public boolean isReadOnly() {
+    return readOnly;
+  }
+
+  /**
    * Sets whether the primitive is read-only.
    *
    * @param readOnly whether the primitive is read-only
@@ -102,14 +111,5 @@ public abstract class PrimitiveConfig<C extends PrimitiveConfig<C>>
   public C setReadOnly(final boolean readOnly) {
     this.readOnly = readOnly;
     return (C) this;
-  }
-
-  /**
-   * Returns whether the primitive is read-only.
-   *
-   * @return whether the primitive is read-only
-   */
-  public boolean isReadOnly() {
-    return readOnly;
   }
 }

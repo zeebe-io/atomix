@@ -37,7 +37,8 @@ public class PollRequest extends AbstractRaftRequest {
   private final long lastLogIndex;
   private final long lastLogTerm;
 
-  public PollRequest(final long term, final String candidate, final long lastLogIndex, final long lastLogTerm) {
+  public PollRequest(
+      final long term, final String candidate, final long lastLogIndex, final long lastLogTerm) {
     this.term = term;
     this.candidate = candidate;
     this.lastLogIndex = lastLogIndex;

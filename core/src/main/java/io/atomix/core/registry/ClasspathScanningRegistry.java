@@ -37,22 +37,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Atomix registry that scans the classpath for registered objects. */
-public class ClasspathScanningRegistry implements AtomixRegistry {
-
-  /**
-   * Returns a new classpath scanning registry builder.
-   *
-   * @return a new classpath scanning registry builder
-   */
-  public static Builder builder() {
-    return new Builder();
-  }
+public final class ClasspathScanningRegistry implements AtomixRegistry {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ClasspathScanningRegistry.class);
-
   private static final Map<ClassLoader, Map<Class<? extends NamedType>, Map<String, NamedType>>>
       CACHE = Collections.synchronizedMap(new WeakHashMap<>());
-
   private final Map<Class<? extends NamedType>, Map<String, NamedType>> registrations =
       new ConcurrentHashMap<>();
 
@@ -61,7 +50,8 @@ public class ClasspathScanningRegistry implements AtomixRegistry {
   }
 
   @SuppressWarnings("unchecked")
-  private ClasspathScanningRegistry(final ClassLoader classLoader, final Set<String> whitelistPackages) {
+  private ClasspathScanningRegistry(
+      final ClassLoader classLoader, final Set<String> whitelistPackages) {
     final Map<Class<? extends NamedType>, Map<String, NamedType>> registrations =
         CACHE.computeIfAbsent(
             classLoader,
@@ -104,6 +94,15 @@ public class ClasspathScanningRegistry implements AtomixRegistry {
               }
             });
     this.registrations.putAll(registrations);
+  }
+
+  /**
+   * Returns a new classpath scanning registry builder.
+   *
+   * @return a new classpath scanning registry builder
+   */
+  public static Builder builder() {
+    return new Builder();
   }
 
   private Class<? extends NamedType> getClassType(Class<?> type) {
@@ -165,7 +164,7 @@ public class ClasspathScanningRegistry implements AtomixRegistry {
   }
 
   /** Classpath scanning registry builder. */
-  public static class Builder implements io.atomix.utils.Builder<AtomixRegistry> {
+  public static final class Builder implements io.atomix.utils.Builder<AtomixRegistry> {
     private ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     private Set<String> whitelistPackages = Sets.newHashSet();
 

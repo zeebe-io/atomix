@@ -316,7 +316,11 @@ public class RaftServiceContext implements ServiceContext {
    * @param eventIndex The session event index.
    */
   public boolean keepAlive(
-      final long index, final long timestamp, final RaftSession session, final long commandSequence, final long eventIndex) {
+      final long index,
+      final long timestamp,
+      final RaftSession session,
+      final long commandSequence,
+      final long eventIndex) {
     // If the service has been deleted, just return false to ignore the keep-alive.
     if (deleted) {
       return false;
@@ -407,7 +411,8 @@ public class RaftServiceContext implements ServiceContext {
    * @param session The session to unregister.
    * @param expired Whether the session was expired by the leader.
    */
-  public void closeSession(final long index, final long timestamp, RaftSession session, final boolean expired) {
+  public void closeSession(
+      final long index, final long timestamp, RaftSession session, final boolean expired) {
     log.debug("Closing session {}", session.sessionId());
 
     // Update the session's timestamp to prevent it from being expired.
@@ -497,7 +502,8 @@ public class RaftServiceContext implements ServiceContext {
   }
 
   /** Loads and returns a cached command result according to the sequence number. */
-  private OperationResult sequenceCommand(final long index, final long sequence, final RaftSession session) {
+  private OperationResult sequenceCommand(
+      final long index, final long sequence, final RaftSession session) {
     final OperationResult result = session.getResult(sequence);
     if (result == null) {
       log.debug("Missing command result at index {}", index);

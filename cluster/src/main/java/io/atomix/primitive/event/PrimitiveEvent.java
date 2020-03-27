@@ -24,6 +24,19 @@ import java.util.Objects;
 /** Raft event. */
 public class PrimitiveEvent {
 
+  private final EventType type;
+  private final byte[] value;
+
+  protected PrimitiveEvent() {
+    this.type = null;
+    this.value = null;
+  }
+
+  public PrimitiveEvent(final EventType type, final byte[] value) {
+    this.type = type;
+    this.value = value;
+  }
+
   /**
    * Creates a new primitive event.
    *
@@ -43,19 +56,6 @@ public class PrimitiveEvent {
    */
   public static PrimitiveEvent event(final EventType eventType, final byte[] value) {
     return new PrimitiveEvent(EventType.canonical(eventType), value);
-  }
-
-  private final EventType type;
-  private final byte[] value;
-
-  protected PrimitiveEvent() {
-    this.type = null;
-    this.value = null;
-  }
-
-  public PrimitiveEvent(final EventType type, final byte[] value) {
-    this.type = type;
-    this.value = value;
   }
 
   /**

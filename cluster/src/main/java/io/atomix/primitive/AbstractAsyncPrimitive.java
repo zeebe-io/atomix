@@ -52,15 +52,6 @@ public abstract class AbstractAsyncPrimitive<A extends AsyncPrimitive, S>
     return client.protocol();
   }
 
-  /**
-   * Returns the primitive proxy client.
-   *
-   * @return the primitive proxy client
-   */
-  protected ProxyClient<S> getProxyClient() {
-    return client;
-  }
-
   @Override
   public void addStateChangeListener(final Consumer<PrimitiveState> listener) {
     client.addStateChangeListener(listener);
@@ -69,6 +60,15 @@ public abstract class AbstractAsyncPrimitive<A extends AsyncPrimitive, S>
   @Override
   public void removeStateChangeListener(final Consumer<PrimitiveState> listener) {
     client.removeStateChangeListener(listener);
+  }
+
+  /**
+   * Returns the primitive proxy client.
+   *
+   * @return the primitive proxy client
+   */
+  protected ProxyClient<S> getProxyClient() {
+    return client;
   }
 
   /**

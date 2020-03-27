@@ -358,7 +358,10 @@ public final class RaftRolesTest extends AbstractAtomixTest {
   }
 
   private CompletableFuture<Atomix> startAtomixAndCollectNodeRoles(
-      final int nodeId, final List<Integer> members, final List<Map<Integer, Role>> nodeRoles, final CountDownLatch latch) {
+      final int nodeId,
+      final List<Integer> members,
+      final List<Map<Integer, Role>> nodeRoles,
+      final CountDownLatch latch) {
     return startAtomixWithPartitionConsumer(
         nodeId,
         3,
@@ -425,7 +428,9 @@ public final class RaftRolesTest extends AbstractAtomixTest {
   }
 
   private CompletableFuture<Atomix> startAtomix(
-      final int id, final List<Integer> persistentIds, final Function<AtomixBuilder, Atomix> builderFunction) {
+      final int id,
+      final List<Integer> persistentIds,
+      final Function<AtomixBuilder, Atomix> builderFunction) {
     final Atomix atomix = atomixRule.createAtomix(id, persistentIds, builderFunction);
     instances.add(atomix);
     return atomix.start().thenApply(v -> atomix);

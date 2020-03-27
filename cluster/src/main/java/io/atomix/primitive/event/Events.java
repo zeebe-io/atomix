@@ -22,6 +22,8 @@ import java.util.Map;
 /** Event utilities. */
 public final class Events {
 
+  private Events() {}
+
   /**
    * Returns the collection of events provided by the given service interface.
    *
@@ -101,6 +103,4 @@ public final class Events {
     }
     return events;
   }
-
-  private Events() {}
 }

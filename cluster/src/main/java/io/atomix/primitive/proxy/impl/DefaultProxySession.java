@@ -50,7 +50,8 @@ public class DefaultProxySession<S> implements ProxySession<S> {
   private volatile boolean closed;
 
   @SuppressWarnings("unchecked")
-  public DefaultProxySession(final SessionClient session, final Class<S> serviceType, final Serializer serializer) {
+  public DefaultProxySession(
+      final SessionClient session, final Class<S> serviceType, final Serializer serializer) {
     this.session = session;
     this.serializer = serializer;
     final ServiceProxyHandler serviceProxyHandler = new ServiceProxyHandler(serviceType);
@@ -221,7 +222,7 @@ public class DefaultProxySession<S> implements ProxySession<S> {
    *
    * <p>The invocation handler
    */
-  private class ServiceProxyHandler implements InvocationHandler {
+  private final class ServiceProxyHandler implements InvocationHandler {
     private final ThreadLocal<CompletableFuture> future = new ThreadLocal<>();
     private final Map<Method, OperationId> operations = new ConcurrentHashMap<>();
 
@@ -230,7 +231,8 @@ public class DefaultProxySession<S> implements ProxySession<S> {
     }
 
     @Override
-    public Object invoke(final Object object, final Method method, final Object[] args) throws Throwable {
+    public Object invoke(final Object object, final Method method, final Object[] args)
+        throws Throwable {
       final OperationId operationId = operations.get(method);
       if (operationId != null) {
         future.set(

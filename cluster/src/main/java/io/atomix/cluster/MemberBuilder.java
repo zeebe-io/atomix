@@ -39,17 +39,6 @@ public class MemberBuilder extends NodeBuilder {
     return this;
   }
 
-  /**
-   * Sets the member identifier.
-   *
-   * @param id the member identifier
-   * @return the member builder
-   */
-  public MemberBuilder withId(final MemberId id) {
-    config.setId(id);
-    return this;
-  }
-
   @Override
   public MemberBuilder withHost(final String host) {
     super.withHost(host);
@@ -113,6 +102,22 @@ public class MemberBuilder extends NodeBuilder {
    */
   public MemberBuilder withAddress(final Address address) {
     config.setAddress(address);
+    return this;
+  }
+
+  @Override
+  public Member build() {
+    return new Member(config);
+  }
+
+  /**
+   * Sets the member identifier.
+   *
+   * @param id the member identifier
+   * @return the member builder
+   */
+  public MemberBuilder withId(final MemberId id) {
+    config.setId(id);
     return this;
   }
 
@@ -198,10 +203,5 @@ public class MemberBuilder extends NodeBuilder {
   public MemberBuilder withProperty(final String key, final String value) {
     config.setProperty(key, value);
     return this;
-  }
-
-  @Override
-  public Member build() {
-    return new Member(config);
   }
 }

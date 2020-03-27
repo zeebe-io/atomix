@@ -87,8 +87,10 @@ import org.slf4j.LoggerFactory;
 
 /** Netty based MessagingService. */
 public class NettyMessagingService implements ManagedMessagingService {
+  protected boolean enableNettyTls;
+  protected TrustManagerFactory trustManager;
+  protected KeyManagerFactory keyManager;
   private final Logger log = LoggerFactory.getLogger(getClass());
-
   private final Address returnAddress;
   private final int preamble;
   private final MessagingConfig config;
@@ -99,7 +101,6 @@ public class NettyMessagingService implements ManagedMessagingService {
   private final Map<Channel, RemoteClientConnection> connections = Maps.newConcurrentMap();
   private final AtomicLong messageIdGenerator = new AtomicLong(0);
   private final ChannelPool channelPool;
-
   private EventLoopGroup serverGroup;
   private EventLoopGroup clientGroup;
   private Class<? extends ServerChannel> serverChannelClass;
@@ -107,17 +108,16 @@ public class NettyMessagingService implements ManagedMessagingService {
   private ScheduledExecutorService timeoutExecutor;
   private Channel serverChannel;
 
-  protected boolean enableNettyTls;
-
-  protected TrustManagerFactory trustManager;
-  protected KeyManagerFactory keyManager;
-
-  public NettyMessagingService(final String cluster, final Address address, final MessagingConfig config) {
+  public NettyMessagingService(
+      final String cluster, final Address address, final MessagingConfig config) {
     this(cluster, address, config, ProtocolVersion.latest());
   }
 
   NettyMessagingService(
-      final String cluster, final Address address, final MessagingConfig config, final ProtocolVersion protocolVersion) {
+      final String cluster,
+      final Address address,
+      final MessagingConfig config,
+      final ProtocolVersion protocolVersion) {
     this.preamble = cluster.hashCode();
     this.returnAddress = address;
     this.config = config;
@@ -128,6 +128,119 @@ public class NettyMessagingService implements ManagedMessagingService {
   @Override
   public Address address() {
     return returnAddress;
+  }
+
+  @Override
+  public CompletableFuture<Void> sendAsync(
+      final Address address, final String type, final byte[] payload, final boolean keepAlive) {
+    final long messageId = messageIdGenerator.incrementAndGet();
+    final ProtocolRequest message = new ProtocolRequest(messageId, returnAddress, type, payload);
+    return executeOnPooledConnection(
+        address, type, c -> c.sendAsync(message), MoreExecutors.directExecutor());
+  }
+
+  @Override
+  public CompletableFuture<byte[]> sendAndReceive(
+      final Address address, final String type, final byte[] payload, final boolean keepAlive) {
+    return sendAndReceive(address, type, payload, keepAlive, null, MoreExecutors.directExecutor());
+  }
+
+  @Override
+  public CompletableFuture<byte[]> sendAndReceive(
+      final Address address,
+      final String type,
+      final byte[] payload,
+      final boolean keepAlive,
+      final Executor executor) {
+    return sendAndReceive(address, type, payload, keepAlive, null, executor);
+  }
+
+  @Override
+  public CompletableFuture<byte[]> sendAndReceive(
+      final Address address,
+      final String type,
+      final byte[] payload,
+      final boolean keepAlive,
+      final Duration timeout) {
+    return sendAndReceive(
+        address, type, payload, keepAlive, timeout, MoreExecutors.directExecutor());
+  }
+
+  @Override
+  public CompletableFuture<byte[]> sendAndReceive(
+      final Address address,
+      final String type,
+      final byte[] payload,
+      final boolean keepAlive,
+      final Duration timeout,
+      final Executor executor) {
+    final long messageId = messageIdGenerator.incrementAndGet();
+    final ProtocolRequest message = new ProtocolRequest(messageId, returnAddress, type, payload);
+    if (keepAlive) {
+      return executeOnPooledConnection(
+          address, type, c -> c.sendAndReceive(message, timeout), executor);
+    } else {
+      return executeOnTransientConnection(
+          address, c -> c.sendAndReceive(message, timeout), executor);
+    }
+  }
+
+  @Override
+  public void registerHandler(
+      final String type, final BiConsumer<Address, byte[]> handler, final Executor executor) {
+    handlers.register(
+        type,
+        (message, connection) ->
+            executor.execute(() -> handler.accept(message.sender(), message.payload())));
+  }
+
+  @Override
+  public void registerHandler(
+      final String type,
+      final BiFunction<Address, byte[], byte[]> handler,
+      final Executor executor) {
+    handlers.register(
+        type,
+        (message, connection) ->
+            executor.execute(
+                () -> {
+                  byte[] responsePayload = null;
+                  ProtocolReply.Status status = ProtocolReply.Status.OK;
+                  try {
+                    responsePayload = handler.apply(message.sender(), message.payload());
+                  } catch (final Exception e) {
+                    log.warn("An error occurred in a message handler: {}", e);
+                    status = ProtocolReply.Status.ERROR_HANDLER_EXCEPTION;
+                  }
+                  connection.reply(message, status, Optional.ofNullable(responsePayload));
+                }));
+  }
+
+  @Override
+  public void registerHandler(
+      final String type, final BiFunction<Address, byte[], CompletableFuture<byte[]>> handler) {
+    handlers.register(
+        type,
+        (message, connection) -> {
+          handler
+              .apply(message.sender(), message.payload())
+              .whenComplete(
+                  (result, error) -> {
+                    final ProtocolReply.Status status;
+                    if (error == null) {
+                      status = ProtocolReply.Status.OK;
+                    } else {
+                      log.warn("An error occurred in a message handler: {}", error);
+                      status = ProtocolReply.Status.ERROR_HANDLER_EXCEPTION;
+                    }
+                    connection.reply(message, status, Optional.ofNullable(result));
+                  });
+        });
+  }
+
+  @Override
+  public void unregisterHandler(final String type) {
+    handlers.unregister(type);
   }
 
   @Override
@@ -155,6 +268,43 @@ public class NettyMessagingService implements ManagedMessagingService {
   @Override
   public boolean isRunning() {
     return started.get();
+  }
+
+  @Override
+  public CompletableFuture<Void> stop() {
+    if (started.compareAndSet(true, false)) {
+      return CompletableFuture.supplyAsync(
+          () -> {
+            boolean interrupted = false;
+            try {
+              try {
+                serverChannel.close().sync();
+              } catch (final InterruptedException e) {
+                interrupted = true;
+              }
+              final Future<?> serverShutdownFuture = serverGroup.shutdownGracefully();
+              final Future<?> clientShutdownFuture = clientGroup.shutdownGracefully();
+              try {
+                serverShutdownFuture.sync();
+              } catch (final InterruptedException e) {
+                interrupted = true;
+              }
+              try {
+                clientShutdownFuture.sync();
+              } catch (final InterruptedException e) {
+                interrupted = true;
+              }
+              timeoutExecutor.shutdown();
+            } finally {
+              log.info("Stopped");
+              if (interrupted) {
+                Thread.currentThread().interrupt();
+              }
+            }
+            return null;
+          });
+    }
+    return CompletableFuture.completedFuture(null);
   }
 
   private boolean loadKeyStores() {
@@ -250,53 +400,6 @@ public class NettyMessagingService implements ManagedMessagingService {
         new NioEventLoopGroup(0, namedThreads("netty-messaging-event-nio-server-%d", log));
     serverChannelClass = NioServerSocketChannel.class;
     clientChannelClass = NioSocketChannel.class;
-  }
-
-  @Override
-  public CompletableFuture<Void> sendAsync(
-      final Address address, final String type, final byte[] payload, final boolean keepAlive) {
-    final long messageId = messageIdGenerator.incrementAndGet();
-    final ProtocolRequest message = new ProtocolRequest(messageId, returnAddress, type, payload);
-    return executeOnPooledConnection(
-        address, type, c -> c.sendAsync(message), MoreExecutors.directExecutor());
-  }
-
-  @Override
-  public CompletableFuture<byte[]> sendAndReceive(
-      final Address address, final String type, final byte[] payload, final boolean keepAlive) {
-    return sendAndReceive(address, type, payload, keepAlive, null, MoreExecutors.directExecutor());
-  }
-
-  @Override
-  public CompletableFuture<byte[]> sendAndReceive(
-      final Address address, final String type, final byte[] payload, final boolean keepAlive, final Executor executor) {
-    return sendAndReceive(address, type, payload, keepAlive, null, executor);
-  }
-
-  @Override
-  public CompletableFuture<byte[]> sendAndReceive(
-      final Address address, final String type, final byte[] payload, final boolean keepAlive, final Duration timeout) {
-    return sendAndReceive(
-        address, type, payload, keepAlive, timeout, MoreExecutors.directExecutor());
-  }
-
-  @Override
-  public CompletableFuture<byte[]> sendAndReceive(
-      final Address address,
-      final String type,
-      final byte[] payload,
-      final boolean keepAlive,
-      final Duration timeout,
-      final Executor executor) {
-    final long messageId = messageIdGenerator.incrementAndGet();
-    final ProtocolRequest message = new ProtocolRequest(messageId, returnAddress, type, payload);
-    if (keepAlive) {
-      return executeOnPooledConnection(
-          address, type, c -> c.sendAndReceive(message, timeout), executor);
-    } else {
-      return executeOnTransientConnection(
-          address, c -> c.sendAndReceive(message, timeout), executor);
-    }
   }
 
   /**
@@ -451,61 +554,6 @@ public class NettyMessagingService implements ManagedMessagingService {
     return connection;
   }
 
-  @Override
-  public void registerHandler(final String type, final BiConsumer<Address, byte[]> handler, final Executor executor) {
-    handlers.register(
-        type,
-        (message, connection) ->
-            executor.execute(() -> handler.accept(message.sender(), message.payload())));
-  }
-
-  @Override
-  public void registerHandler(
-      final String type, final BiFunction<Address, byte[], byte[]> handler, final Executor executor) {
-    handlers.register(
-        type,
-        (message, connection) ->
-            executor.execute(
-                () -> {
-                  byte[] responsePayload = null;
-                  ProtocolReply.Status status = ProtocolReply.Status.OK;
-                  try {
-                    responsePayload = handler.apply(message.sender(), message.payload());
-                  } catch (final Exception e) {
-                    log.warn("An error occurred in a message handler: {}", e);
-                    status = ProtocolReply.Status.ERROR_HANDLER_EXCEPTION;
-                  }
-                  connection.reply(message, status, Optional.ofNullable(responsePayload));
-                }));
-  }
-
-  @Override
-  public void registerHandler(
-      final String type, final BiFunction<Address, byte[], CompletableFuture<byte[]>> handler) {
-    handlers.register(
-        type,
-        (message, connection) -> {
-          handler
-              .apply(message.sender(), message.payload())
-              .whenComplete(
-                  (result, error) -> {
-                    final ProtocolReply.Status status;
-                    if (error == null) {
-                      status = ProtocolReply.Status.OK;
-                    } else {
-                      log.warn("An error occurred in a message handler: {}", error);
-                      status = ProtocolReply.Status.ERROR_HANDLER_EXCEPTION;
-                    }
-                    connection.reply(message, status, Optional.ofNullable(result));
-                  });
-        });
-  }
-
-  @Override
-  public void unregisterHandler(final String type) {
-    handlers.unregister(type);
-  }
-
   /**
    * Opens a new Netty channel to the given address.
    *
@@ -655,43 +703,6 @@ public class NettyMessagingService implements ManagedMessagingService {
     }
   }
 
-  @Override
-  public CompletableFuture<Void> stop() {
-    if (started.compareAndSet(true, false)) {
-      return CompletableFuture.supplyAsync(
-          () -> {
-            boolean interrupted = false;
-            try {
-              try {
-                serverChannel.close().sync();
-              } catch (final InterruptedException e) {
-                interrupted = true;
-              }
-              final Future<?> serverShutdownFuture = serverGroup.shutdownGracefully();
-              final Future<?> clientShutdownFuture = clientGroup.shutdownGracefully();
-              try {
-                serverShutdownFuture.sync();
-              } catch (final InterruptedException e) {
-                interrupted = true;
-              }
-              try {
-                clientShutdownFuture.sync();
-              } catch (final InterruptedException e) {
-                interrupted = true;
-              }
-              timeoutExecutor.shutdown();
-            } finally {
-              log.info("Stopped");
-              if (interrupted) {
-                Thread.currentThread().interrupt();
-              }
-            }
-            return null;
-          });
-    }
-    return CompletableFuture.completedFuture(null);
-  }
-
   /** Channel initializer for TLS clients. */
   private class SslClientChannelInitializer extends ChannelInitializer<SocketChannel> {
     private final CompletableFuture<Channel> future;
@@ -716,7 +727,7 @@ public class NettyMessagingService implements ManagedMessagingService {
   }
 
   /** Channel initializer for TLS servers. */
-  private class SslServerChannelInitializer extends ChannelInitializer<SocketChannel> {
+  private final class SslServerChannelInitializer extends ChannelInitializer<SocketChannel> {
     private final SslContext sslContext;
 
     private SslServerChannelInitializer() throws SSLException {
@@ -804,7 +815,9 @@ public class NettyMessagingService implements ManagedMessagingService {
      * @param protocolVersion the protocol version to activate
      */
     void activateProtocolVersion(
-        final ChannelHandlerContext context, final Connection<M> connection, final ProtocolVersion protocolVersion) {
+        final ChannelHandlerContext context,
+        final Connection<M> connection,
+        final ProtocolVersion protocolVersion) {
       final MessagingProtocol protocol = protocolVersion.createProtocol(returnAddress);
       context.pipeline().remove(this);
       context.pipeline().addLast("encoder", protocol.newEncoder());
@@ -831,7 +844,8 @@ public class NettyMessagingService implements ManagedMessagingService {
     }
 
     @Override
-    public void channelRead(final ChannelHandlerContext context, final Object message) throws Exception {
+    public void channelRead(final ChannelHandlerContext context, final Object message)
+        throws Exception {
       // Read the protocol version from the server.
       readProtocolVersion(context, (ByteBuf) message)
           .ifPresent(
@@ -851,7 +865,8 @@ public class NettyMessagingService implements ManagedMessagingService {
     }
 
     @Override
-    public void exceptionCaught(final ChannelHandlerContext ctx, final Throwable cause) throws Exception {
+    public void exceptionCaught(final ChannelHandlerContext ctx, final Throwable cause)
+        throws Exception {
       future.completeExceptionally(cause);
     }
 
@@ -872,7 +887,8 @@ public class NettyMessagingService implements ManagedMessagingService {
   /** Server handshake handler. */
   private class ServerHandshakeHandlerAdapter extends HandshakeHandlerAdapter<ProtocolRequest> {
     @Override
-    public void channelRead(final ChannelHandlerContext context, final Object message) throws Exception {
+    public void channelRead(final ChannelHandlerContext context, final Object message)
+        throws Exception {
       // Read the protocol version from the client handshake. If the client's protocol version is
       // unknown
       // to the server, use the latest server protocol version.
@@ -914,13 +930,9 @@ public class NettyMessagingService implements ManagedMessagingService {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    protected void channelRead0(final ChannelHandlerContext ctx, final Object message) throws Exception {
-      try {
-        connection.dispatch((M) message);
-      } catch (final RejectedExecutionException e) {
-        log.warn("Unable to dispatch message due to {}", e.getMessage());
-      }
+    public void channelInactive(final ChannelHandlerContext context) throws Exception {
+      connection.close();
+      context.close();
     }
 
     @Override
@@ -931,14 +943,19 @@ public class NettyMessagingService implements ManagedMessagingService {
     }
 
     @Override
-    public void channelInactive(final ChannelHandlerContext context) throws Exception {
-      connection.close();
-      context.close();
+    public boolean acceptInboundMessage(final Object msg) {
+      return msg instanceof ProtocolMessage;
     }
 
     @Override
-    public boolean acceptInboundMessage(final Object msg) {
-      return msg instanceof ProtocolMessage;
+    @SuppressWarnings("unchecked")
+    protected void channelRead0(final ChannelHandlerContext ctx, final Object message)
+        throws Exception {
+      try {
+        connection.dispatch((M) message);
+      } catch (final RejectedExecutionException e) {
+        log.warn("Unable to dispatch message due to {}", e.getMessage());
+      }
     }
   }
 }

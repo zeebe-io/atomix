@@ -41,7 +41,11 @@ public class ConfigureRequest extends AbstractRaftRequest {
   private final Collection<RaftMember> members;
 
   public ConfigureRequest(
-      final long term, final String leader, final long index, final long timestamp, final Collection<RaftMember> members) {
+      final long term,
+      final String leader,
+      final long index,
+      final long timestamp,
+      final Collection<RaftMember> members) {
     this.term = term;
     this.leader = leader;
     this.index = index;

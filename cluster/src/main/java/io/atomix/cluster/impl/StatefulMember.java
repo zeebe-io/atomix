@@ -48,11 +48,6 @@ public class StatefulMember extends Member {
     timestamp.set(1);
   }
 
-  @Override
-  public Version version() {
-    return version;
-  }
-
   /**
    * Returns the member logical timestamp.
    *
@@ -76,6 +71,11 @@ public class StatefulMember extends Member {
     timestamp.incrementAndGet();
   }
 
+  @Override
+  public boolean isActive() {
+    return active;
+  }
+
   /**
    * Sets whether this member is an active member of the cluster.
    *
@@ -85,6 +85,16 @@ public class StatefulMember extends Member {
     this.active = active;
   }
 
+  @Override
+  public boolean isReachable() {
+    return reachable;
+  }
+
+  @Override
+  public Version version() {
+    return version;
+  }
+
   /**
    * Sets whether this member is reachable.
    *
@@ -92,15 +102,5 @@ public class StatefulMember extends Member {
    */
   void setReachable(final boolean reachable) {
     this.reachable = reachable;
-  }
-
-  @Override
-  public boolean isActive() {
-    return active;
-  }
-
-  @Override
-  public boolean isReachable() {
-    return reachable;
   }
 }

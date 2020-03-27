@@ -26,11 +26,13 @@ import org.slf4j.Logger;
 public class BlockingAwareThreadPoolContextFactory implements ThreadContextFactory {
   private final ScheduledExecutorService executor;
 
-  public BlockingAwareThreadPoolContextFactory(final String name, final int threadPoolSize, final Logger logger) {
+  public BlockingAwareThreadPoolContextFactory(
+      final String name, final int threadPoolSize, final Logger logger) {
     this(threadPoolSize, namedThreads(name, logger));
   }
 
-  public BlockingAwareThreadPoolContextFactory(final int threadPoolSize, final ThreadFactory threadFactory) {
+  public BlockingAwareThreadPoolContextFactory(
+      final int threadPoolSize, final ThreadFactory threadFactory) {
     this(Executors.newScheduledThreadPool(threadPoolSize, threadFactory));
   }
 

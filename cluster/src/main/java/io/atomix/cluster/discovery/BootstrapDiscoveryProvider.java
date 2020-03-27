@@ -50,38 +50,7 @@ public class BootstrapDiscoveryProvider
     implements NodeDiscoveryProvider {
 
   public static final Type TYPE = new Type();
-
-  /**
-   * Creates a new bootstrap provider builder.
-   *
-   * @return a new bootstrap provider builder
-   */
-  public static BootstrapDiscoveryBuilder builder() {
-    return new BootstrapDiscoveryBuilder();
-  }
-
-  /** Bootstrap member location provider type. */
-  public static class Type implements NodeDiscoveryProvider.Type<BootstrapDiscoveryConfig> {
-    private static final String NAME = "bootstrap";
-
-    @Override
-    public String name() {
-      return NAME;
-    }
-
-    @Override
-    public BootstrapDiscoveryConfig newConfig() {
-      return new BootstrapDiscoveryConfig();
-    }
-
-    @Override
-    public NodeDiscoveryProvider newProvider(final BootstrapDiscoveryConfig config) {
-      return new BootstrapDiscoveryProvider(config);
-    }
-  }
-
   private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapDiscoveryProvider.class);
-
   private final ImmutableSet<Node> bootstrapNodes;
   private final BootstrapDiscoveryConfig config;
 
@@ -104,6 +73,15 @@ public class BootstrapDiscoveryProvider
         ImmutableSet.copyOf(config.getNodes().stream().map(Node::new).collect(Collectors.toList()));
   }
 
+  /**
+   * Creates a new bootstrap provider builder.
+   *
+   * @return a new bootstrap provider builder
+   */
+  public static BootstrapDiscoveryBuilder builder() {
+    return new BootstrapDiscoveryBuilder();
+  }
+
   @Override
   public BootstrapDiscoveryConfig config() {
     return config;
@@ -124,5 +102,25 @@ public class BootstrapDiscoveryProvider
   public CompletableFuture<Void> leave(final Node localNode) {
     LOGGER.info("Left");
     return CompletableFuture.completedFuture(null);
+  }
+
+  /** Bootstrap member location provider type. */
+  public static class Type implements NodeDiscoveryProvider.Type<BootstrapDiscoveryConfig> {
+    private static final String NAME = "bootstrap";
+
+    @Override
+    public String name() {
+      return NAME;
+    }
+
+    @Override
+    public BootstrapDiscoveryConfig newConfig() {
+      return new BootstrapDiscoveryConfig();
+    }
+
+    @Override
+    public NodeDiscoveryProvider newProvider(final BootstrapDiscoveryConfig config) {
+      return new BootstrapDiscoveryProvider(config);
+    }
   }
 }

@@ -27,7 +27,8 @@ public class HeartbeatMembershipProtocolBuilder extends GroupMembershipProtocolB
    * @param heartbeatInterval the failure detection heartbeat interval
    * @return the location provider builder
    */
-  public HeartbeatMembershipProtocolBuilder withHeartbeatInterval(final Duration heartbeatInterval) {
+  public HeartbeatMembershipProtocolBuilder withHeartbeatInterval(
+      final Duration heartbeatInterval) {
     config.setHeartbeatInterval(heartbeatInterval);
     return this;
   }

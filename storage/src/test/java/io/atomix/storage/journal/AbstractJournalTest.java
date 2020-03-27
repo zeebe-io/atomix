@@ -49,15 +49,13 @@ import org.junit.runners.Parameterized;
 @RunWith(Parameterized.class)
 public abstract class AbstractJournalTest {
 
+  protected static final TestEntry ENTRY = new TestEntry(32);
   private static final Namespace NAMESPACE =
       Namespace.builder().register(TestEntry.class).register(byte[].class).build();
-
-  protected static final TestEntry ENTRY = new TestEntry(32);
   private static final Path PATH = Paths.get("target/test-logs/");
-
+  protected final int entriesPerSegment;
   private final int maxSegmentSize;
   private final int cacheSize;
-  protected final int entriesPerSegment;
 
   protected AbstractJournalTest(final int maxSegmentSize, final int cacheSize) {
     this.maxSegmentSize = maxSegmentSize;
@@ -392,8 +390,10 @@ public abstract class AbstractJournalTest {
   public void testReadAfterCompact() throws Exception {
     try (final SegmentedJournal<TestEntry> journal = createJournal()) {
       final JournalWriter<TestEntry> writer = journal.writer();
-      final JournalReader<TestEntry> uncommittedReader = journal.openReader(1, JournalReader.Mode.ALL);
-      final JournalReader<TestEntry> committedReader = journal.openReader(1, JournalReader.Mode.COMMITS);
+      final JournalReader<TestEntry> uncommittedReader =
+          journal.openReader(1, JournalReader.Mode.ALL);
+      final JournalReader<TestEntry> committedReader =
+          journal.openReader(1, JournalReader.Mode.COMMITS);
 
       for (int i = 1; i <= entriesPerSegment * 10; i++) {
         assertEquals(i, writer.append(ENTRY).index());

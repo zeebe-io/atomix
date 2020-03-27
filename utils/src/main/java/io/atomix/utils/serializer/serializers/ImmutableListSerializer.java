@@ -39,7 +39,8 @@ public class ImmutableListSerializer extends Serializer<ImmutableList<?>> {
   }
 
   @Override
-  public ImmutableList<?> read(final Kryo kryo, final Input input, final Class<ImmutableList<?>> type) {
+  public ImmutableList<?> read(
+      final Kryo kryo, final Input input, final Class<ImmutableList<?>> type) {
     final int size = input.readInt();
     switch (size) {
       case 0:

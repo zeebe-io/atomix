@@ -28,6 +28,11 @@ import java.nio.channels.FileChannel;
  */
 public class MappedBuffer extends ByteBufferBuffer {
 
+  protected MappedBuffer(
+      final MappedBytes bytes, final int offset, final int initialCapacity, final int maxCapacity) {
+    super(bytes, offset, initialCapacity, maxCapacity, null);
+  }
+
   /**
    * Allocates a dynamic capacity mapped buffer in {@link FileChannel.MapMode#READ_WRITE} mode with
    * an initial capacity of {@code 16MiB} and a maximum capacity of {@link Integer#MAX_VALUE}.
@@ -125,7 +130,8 @@ public class MappedBuffer extends ByteBufferBuffer {
    * @see #allocate(File, int, int)
    * @see #allocate(File, FileChannel.MapMode, int, int)
    */
-  public static MappedBuffer allocate(final File file, final FileChannel.MapMode mode, final int capacity) {
+  public static MappedBuffer allocate(
+      final File file, final FileChannel.MapMode mode, final int capacity) {
     return allocate(file, mode, capacity, capacity);
   }
 
@@ -154,7 +160,8 @@ public class MappedBuffer extends ByteBufferBuffer {
    * @see #allocate(File, FileChannel.MapMode, int)
    * @see #allocate(File, FileChannel.MapMode, int, int)
    */
-  public static MappedBuffer allocate(final File file, final int initialCapacity, final int maxCapacity) {
+  public static MappedBuffer allocate(
+      final File file, final int initialCapacity, final int maxCapacity) {
     return allocate(file, FileChannel.MapMode.READ_WRITE, initialCapacity, maxCapacity);
   }
 
@@ -185,17 +192,16 @@ public class MappedBuffer extends ByteBufferBuffer {
    * @see #allocate(File, int, int)
    */
   public static MappedBuffer allocate(
-      final File file, final FileChannel.MapMode mode, final int initialCapacity, final int maxCapacity) {
+      final File file,
+      final FileChannel.MapMode mode,
+      final int initialCapacity,
+      final int maxCapacity) {
     checkNotNull(file, "file cannot be null");
     checkNotNull(mode, "mode cannot be null");
     checkArgument(
         initialCapacity <= maxCapacity, "initial capacity cannot be greater than maximum capacity");
     return new MappedBuffer(
         MappedBytes.allocate(file, mode, initialCapacity), 0, initialCapacity, maxCapacity);
-  }
-
-  protected MappedBuffer(final MappedBytes bytes, final int offset, final int initialCapacity, final int maxCapacity) {
-    super(bytes, offset, initialCapacity, maxCapacity, null);
   }
 
   @Override

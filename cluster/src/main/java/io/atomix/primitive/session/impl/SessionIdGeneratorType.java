@@ -44,19 +44,21 @@ public class SessionIdGeneratorType implements PrimitiveType {
   }
 
   @Override
-  public PrimitiveService newService(final ServiceConfig config) {
-    return new SessionIdGeneratorService();
-  }
-
-  @Override
   public PrimitiveConfig newConfig() {
     throw new UnsupportedOperationException();
   }
 
   @Override
   public PrimitiveBuilder newBuilder(
-      final String name, final PrimitiveConfig config, final PrimitiveManagementService managementService) {
+      final String name,
+      final PrimitiveConfig config,
+      final PrimitiveManagementService managementService) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public PrimitiveService newService(final ServiceConfig config) {
+    return new SessionIdGeneratorService();
   }
 
   @Override

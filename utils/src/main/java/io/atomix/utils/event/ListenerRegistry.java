@@ -30,14 +30,12 @@ public class ListenerRegistry<E extends Event, L extends EventListener<E>>
     implements ListenerService<E, L>, EventSink<E> {
 
   private static final long LIMIT = 1_800; // ms
-
-  private final Logger log = LoggerFactory.getLogger(getClass());
-
-  private long lastStart;
-  private L lastListener;
-
   /** Set of listeners that have registered. */
   protected final Set<L> listeners = new CopyOnWriteArraySet<>();
+
+  private final Logger log = LoggerFactory.getLogger(getClass());
+  private long lastStart;
+  private L lastListener;
 
   @Override
   public void addListener(final L listener) {

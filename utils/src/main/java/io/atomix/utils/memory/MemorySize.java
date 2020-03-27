@@ -20,6 +20,12 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 /** Memory size. */
 public class MemorySize {
 
+  private final long bytes;
+
+  public MemorySize(final long bytes) {
+    this.bytes = bytes;
+  }
+
   /**
    * Creates a memory size from the given bytes.
    *
@@ -28,12 +34,6 @@ public class MemorySize {
    */
   public static MemorySize from(final long bytes) {
     return new MemorySize(bytes);
-  }
-
-  private final long bytes;
-
-  public MemorySize(final long bytes) {
-    this.bytes = bytes;
   }
 
   /**

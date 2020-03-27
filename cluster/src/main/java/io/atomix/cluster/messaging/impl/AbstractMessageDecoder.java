@@ -25,12 +25,9 @@ import org.slf4j.LoggerFactory;
 /** Decoder for inbound messages. */
 abstract class AbstractMessageDecoder extends ByteToMessageDecoder {
 
-  private final Logger log = LoggerFactory.getLogger(getClass());
-
-  private static final Escape ESCAPE = new Escape();
   static final byte[] EMPTY_PAYLOAD = new byte[0];
-
-  static class Escape extends RuntimeException {}
+  private static final Escape ESCAPE = new Escape();
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
   static int readInt(final ByteBuf buffer) {
     if (buffer.readableBytes() < 5) {
@@ -253,4 +250,6 @@ abstract class AbstractMessageDecoder extends ByteToMessageDecoder {
       context.close();
     }
   }
+
+  static class Escape extends RuntimeException {}
 }

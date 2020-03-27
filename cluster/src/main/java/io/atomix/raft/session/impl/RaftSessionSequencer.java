@@ -199,7 +199,8 @@ final class RaftSessionSequencer {
    * @param response The response to sequence.
    * @param callback The callback to sequence.
    */
-  public void sequenceResponse(final long sequence, final OperationResponse response, final Runnable callback) {
+  public void sequenceResponse(
+      final long sequence, final OperationResponse response, final Runnable callback) {
     // If the request sequence number is equal to the next response sequence number, attempt to
     // complete the response.
     if (sequence == responseSequence + 1) {

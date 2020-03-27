@@ -72,6 +72,14 @@ public final class FollowerRole extends ActiveRole {
   }
 
   @Override
+  public synchronized CompletableFuture<Void> stop() {
+    raft.getMembershipService().removeListener(clusterListener);
+    raft.getHeartbeatThread().execute(this::cancelHeartbeatTimer);
+
+    return super.stop();
+  }
+
+  @Override
   public RaftServer.Role role() {
     return RaftServer.Role.FOLLOWER;
   }
@@ -81,14 +89,6 @@ public final class FollowerRole extends ActiveRole {
     final CompletableFuture<InstallResponse> future = super.onInstall(request);
     resetHeartbeatTimeoutFromDifferentThread();
     return future;
-  }
-
-  @Override
-  public synchronized CompletableFuture<Void> stop() {
-    raft.getMembershipService().removeListener(clusterListener);
-    raft.getHeartbeatThread().execute(this::cancelHeartbeatTimer);
-
-    return super.stop();
   }
 
   /** Cancels the heartbeat timer. */

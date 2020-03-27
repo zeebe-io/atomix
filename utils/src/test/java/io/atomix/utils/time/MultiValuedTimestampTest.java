@@ -64,7 +64,8 @@ public class MultiValuedTimestampTest {
               noParamsCtor -> {
                 try {
                   noParamsCtor.setAccessible(true);
-                  final MultiValuedTimestamp stats = (MultiValuedTimestamp) noParamsCtor.newInstance();
+                  final MultiValuedTimestamp stats =
+                      (MultiValuedTimestamp) noParamsCtor.newInstance();
                   assertThat(stats, notNullValue());
                 } catch (final Exception e) {
                   Assert.fail("Exception instantiating no parameters constructor");

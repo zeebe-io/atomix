@@ -35,6 +35,15 @@ public class MappedMemory implements Memory {
   private static final long MAX_SIZE = Integer.MAX_VALUE - 5;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MappedMemory.class);
+  private final MappedByteBuffer buffer;
+  private final MappedMemoryAllocator allocator;
+  private final int size;
+
+  public MappedMemory(final MappedByteBuffer buffer, final MappedMemoryAllocator allocator) {
+    this.buffer = buffer;
+    this.allocator = allocator;
+    this.size = buffer.capacity();
+  }
 
   /**
    * Allocates memory mapped to a file on disk.
@@ -57,21 +66,12 @@ public class MappedMemory implements Memory {
    * @return The mapped memory.
    * @throws IllegalArgumentException If {@code count} is greater than {@link MappedMemory#MAX_SIZE}
    */
-  public static MappedMemory allocate(final File file, final FileChannel.MapMode mode, final int size) {
+  public static MappedMemory allocate(
+      final File file, final FileChannel.MapMode mode, final int size) {
     if (size > MAX_SIZE) {
       throw new IllegalArgumentException("size cannot be greater than " + MAX_SIZE);
     }
     return new MappedMemoryAllocator(file, mode).allocate(size);
-  }
-
-  private final MappedByteBuffer buffer;
-  private final MappedMemoryAllocator allocator;
-  private final int size;
-
-  public MappedMemory(final MappedByteBuffer buffer, final MappedMemoryAllocator allocator) {
-    this.buffer = buffer;
-    this.allocator = allocator;
-    this.size = buffer.capacity();
   }
 
   /** Flushes the mapped buffer to disk. */

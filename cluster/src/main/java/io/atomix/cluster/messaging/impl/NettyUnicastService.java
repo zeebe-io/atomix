@@ -102,7 +102,8 @@ public class NettyUnicastService implements ManagedUnicastService {
   }
 
   @Override
-  public synchronized void removeListener(final String subject, final BiConsumer<Address, byte[]> listener) {
+  public synchronized void removeListener(
+      final String subject, final BiConsumer<Address, byte[]> listener) {
     final Map<BiConsumer<Address, byte[]>, Executor> listeners = this.listeners.get(subject);
     if (listeners != null) {
       listeners.remove(listener);
@@ -120,7 +121,8 @@ public class NettyUnicastService implements ManagedUnicastService {
             .handler(
                 new SimpleChannelInboundHandler<DatagramPacket>() {
                   @Override
-                  protected void channelRead0(final ChannelHandlerContext context, final DatagramPacket packet)
+                  protected void channelRead0(
+                      final ChannelHandlerContext context, final DatagramPacket packet)
                       throws Exception {
                     final byte[] payload = new byte[packet.content().readInt()];
                     packet.content().readBytes(payload);
@@ -169,7 +171,10 @@ public class NettyUnicastService implements ManagedUnicastService {
    *     interfaces
    */
   private void bind(
-      final Bootstrap bootstrap, final Iterator<String> ifaces, final int port, final CompletableFuture<Void> future) {
+      final Bootstrap bootstrap,
+      final Iterator<String> ifaces,
+      final int port,
+      final CompletableFuture<Void> future) {
     if (ifaces.hasNext()) {
       final String iface = ifaces.next();
       bootstrap

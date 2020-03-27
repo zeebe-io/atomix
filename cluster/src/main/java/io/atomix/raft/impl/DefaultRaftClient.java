@@ -102,7 +102,9 @@ public class DefaultRaftClient implements RaftClient {
 
   @Override
   public RaftSessionClient.Builder sessionBuilder(
-      final String primitiveName, final PrimitiveType primitiveType, final ServiceConfig serviceConfig) {
+      final String primitiveName,
+      final PrimitiveType primitiveType,
+      final ServiceConfig serviceConfig) {
     return new RaftSessionClient.Builder() {
       @Override
       public SessionClient build() {

@@ -36,11 +36,12 @@ public class DefaultMemberGroupService
   private final AtomicBoolean started = new AtomicBoolean();
   private final ClusterMembershipService membershipService;
   private final MemberGroupProvider memberGroupProvider;
-  private final ClusterMembershipEventListener membershipEventListener = event -> recomputeGroups();
   private volatile Collection<MemberGroup> memberGroups;
+  private final ClusterMembershipEventListener membershipEventListener = event -> recomputeGroups();
 
   public DefaultMemberGroupService(
-      final ClusterMembershipService membershipService, final MemberGroupProvider memberGroupProvider) {
+      final ClusterMembershipService membershipService,
+      final MemberGroupProvider memberGroupProvider) {
     this.membershipService = membershipService;
     this.memberGroupProvider = memberGroupProvider;
   }

@@ -66,13 +66,12 @@ public class HashBasedPrimaryElection
   private final ClusterMembershipService clusterMembershipService;
   private final PartitionGroupMembershipService groupMembershipService;
   private final ClusterCommunicationService communicationService;
-  private final ClusterMembershipEventListener clusterMembershipEventListener =
-      this::handleClusterMembershipEvent;
   private final Map<MemberId, Integer> counters = Maps.newConcurrentMap();
   private final String subject;
   private final ScheduledFuture<?> broadcastFuture;
   private volatile PrimaryTerm currentTerm;
-
+  private final ClusterMembershipEventListener clusterMembershipEventListener =
+      this::handleClusterMembershipEvent;
   private final PartitionGroupMembershipEventListener groupMembershipEventListener =
       new PartitionGroupMembershipEventListener() {
         @Override

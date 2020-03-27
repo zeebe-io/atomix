@@ -22,6 +22,8 @@ import java.util.function.Supplier;
 /** Retry utilities. */
 public final class Retries {
 
+  private Retries() {}
+
   /**
    * Returns a function that retries execution on failure.
    *
@@ -89,6 +91,4 @@ public final class Retries {
       throw new RuntimeException("Interrupted", e);
     }
   }
-
-  private Retries() {}
 }

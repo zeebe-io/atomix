@@ -20,18 +20,6 @@ import io.atomix.utils.event.AbstractEvent;
 /** Map protocol event. */
 public class MapDelegateEvent<K, V> extends AbstractEvent<MapDelegateEvent.Type, K> {
 
-  /** Map protocol event type. */
-  public enum Type {
-    /** Entry added to map. */
-    INSERT,
-
-    /** Existing entry updated. */
-    UPDATE,
-
-    /** Entry removed from map. */
-    REMOVE
-  }
-
   private final V value;
 
   public MapDelegateEvent(final Type type, final K key, final V value) {
@@ -60,5 +48,17 @@ public class MapDelegateEvent<K, V> extends AbstractEvent<MapDelegateEvent.Type,
    */
   public V value() {
     return value;
+  }
+
+  /** Map protocol event type. */
+  public enum Type {
+    /** Entry added to map. */
+    INSERT,
+
+    /** Existing entry updated. */
+    UPDATE,
+
+    /** Entry removed from map. */
+    REMOVE
   }
 }

@@ -33,7 +33,8 @@ public class PollResponse extends AbstractRaftResponse {
   private final long term;
   private final boolean accepted;
 
-  public PollResponse(final Status status, final RaftError error, final long term, final boolean accepted) {
+  public PollResponse(
+      final Status status, final RaftError error, final long term, final boolean accepted) {
     super(status, error);
     this.term = term;
     this.accepted = accepted;

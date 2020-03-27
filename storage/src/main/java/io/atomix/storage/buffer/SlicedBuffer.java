@@ -26,7 +26,12 @@ package io.atomix.storage.buffer;
 public class SlicedBuffer extends AbstractBuffer {
   private final Buffer root;
 
-  public SlicedBuffer(final Buffer root, final Bytes bytes, final int offset, final int initialCapacity, final int maxCapacity) {
+  public SlicedBuffer(
+      final Buffer root,
+      final Bytes bytes,
+      final int offset,
+      final int initialCapacity,
+      final int maxCapacity) {
     super(bytes, offset, initialCapacity, maxCapacity, null);
     this.root = root;
     root.acquire();
@@ -42,15 +47,24 @@ public class SlicedBuffer extends AbstractBuffer {
   }
 
   @Override
-  public boolean isDirect() {
-    return root.isDirect();
+  public Buffer duplicate() {
+    return new SlicedBuffer(root, bytes, offset(), capacity(), maxCapacity());
   }
 
   @Override
-  protected void compact(final int from, final int to, final int length) {
-    if (root instanceof AbstractBuffer) {
-      ((AbstractBuffer) root).compact(from, to, length);
-    }
+  public Buffer acquire() {
+    root.acquire();
+    return this;
+  }
+
+  @Override
+  public boolean release() {
+    return root.release();
+  }
+
+  @Override
+  public boolean isDirect() {
+    return root.isDirect();
   }
 
   @Override
@@ -69,19 +83,10 @@ public class SlicedBuffer extends AbstractBuffer {
   }
 
   @Override
-  public Buffer duplicate() {
-    return new SlicedBuffer(root, bytes, offset(), capacity(), maxCapacity());
-  }
-
-  @Override
-  public Buffer acquire() {
-    root.acquire();
-    return this;
-  }
-
-  @Override
-  public boolean release() {
-    return root.release();
+  protected void compact(final int from, final int to, final int length) {
+    if (root instanceof AbstractBuffer) {
+      ((AbstractBuffer) root).compact(from, to, length);
+    }
   }
 
   @Override

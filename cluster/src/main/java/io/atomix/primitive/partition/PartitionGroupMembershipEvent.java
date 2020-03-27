@@ -21,16 +21,12 @@ import io.atomix.utils.event.AbstractEvent;
 public class PartitionGroupMembershipEvent
     extends AbstractEvent<PartitionGroupMembershipEvent.Type, PartitionGroupMembership> {
 
-  /** Partition group membership event type. */
-  public enum Type {
-    MEMBERS_CHANGED
-  }
-
   public PartitionGroupMembershipEvent(final Type type, final PartitionGroupMembership membership) {
     super(type, membership);
   }
 
-  public PartitionGroupMembershipEvent(final Type type, final PartitionGroupMembership membership, final long time) {
+  public PartitionGroupMembershipEvent(
+      final Type type, final PartitionGroupMembership membership, final long time) {
     super(type, membership, time);
   }
 
@@ -41,5 +37,10 @@ public class PartitionGroupMembershipEvent
    */
   public PartitionGroupMembership membership() {
     return subject();
+  }
+
+  /** Partition group membership event type. */
+  public enum Type {
+    MEMBERS_CHANGED
   }
 }

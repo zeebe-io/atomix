@@ -53,7 +53,8 @@ public final class AtomixRule extends ExternalResource {
   }
 
   /** Creates an Atomix instance. */
-  public AtomixBuilder buildAtomix(final int id, final List<Integer> memberIds, final Properties properties) {
+  public AtomixBuilder buildAtomix(
+      final int id, final List<Integer> memberIds, final Properties properties) {
     final Collection<Node> nodes =
         memberIds.stream()
             .map(
@@ -78,19 +79,25 @@ public final class AtomixRule extends ExternalResource {
   }
 
   /** Creates an Atomix instance. */
-  public Atomix createAtomix(final int id, final List<Integer> bootstrapIds, final Profile... profiles) {
+  public Atomix createAtomix(
+      final int id, final List<Integer> bootstrapIds, final Profile... profiles) {
     return createAtomix(id, bootstrapIds, new Properties(), profiles);
   }
 
   /** Creates an Atomix instance. */
   public Atomix createAtomix(
-      final int id, final List<Integer> bootstrapIds, final Properties properties, final Profile... profiles) {
+      final int id,
+      final List<Integer> bootstrapIds,
+      final Properties properties,
+      final Profile... profiles) {
     return createAtomix(id, bootstrapIds, properties, b -> b.withProfiles(profiles).build());
   }
 
   /** Creates an Atomix instance. */
   public Atomix createAtomix(
-      final int id, final List<Integer> bootstrapIds, final Function<AtomixBuilder, Atomix> builderFunction) {
+      final int id,
+      final List<Integer> bootstrapIds,
+      final Function<AtomixBuilder, Atomix> builderFunction) {
     return createAtomix(id, bootstrapIds, new Properties(), builderFunction);
   }
 

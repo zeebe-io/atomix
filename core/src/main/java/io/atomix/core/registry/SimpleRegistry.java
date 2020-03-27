@@ -28,7 +28,13 @@ import java.util.Collections;
 import java.util.Map;
 
 /** Static Atomix registry. */
-public class SimpleRegistry implements AtomixRegistry {
+public final class SimpleRegistry implements AtomixRegistry {
+
+  private final Map<Class<?>, Map<String, NamedType>> registrations;
+
+  private SimpleRegistry(final Map<Class<?>, Map<String, NamedType>> registrations) {
+    this.registrations = registrations;
+  }
 
   /**
    * Returns a new static registry builder.
@@ -37,12 +43,6 @@ public class SimpleRegistry implements AtomixRegistry {
    */
   public static Builder builder() {
     return new Builder();
-  }
-
-  private final Map<Class<?>, Map<String, NamedType>> registrations;
-
-  private SimpleRegistry(final Map<Class<?>, Map<String, NamedType>> registrations) {
-    this.registrations = registrations;
   }
 
   @Override
@@ -82,7 +82,8 @@ public class SimpleRegistry implements AtomixRegistry {
      * @param discoveryProviderType the discovery provider type to add
      * @return the registry builder
      */
-    public Builder addDiscoveryProviderType(final NodeDiscoveryProvider.Type discoveryProviderType) {
+    public Builder addDiscoveryProviderType(
+        final NodeDiscoveryProvider.Type discoveryProviderType) {
       registrations
           .computeIfAbsent(NodeDiscoveryProvider.Type.class, t -> Maps.newHashMap())
           .put(discoveryProviderType.name(), discoveryProviderType);

@@ -1,19 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
-  <servers>
-    <server>
-      <id>camunda-nexus</id>
-      <username>${env.NEXUS_USR}</username>
-      <password>${env.NEXUS_PSW}</password>
-    </server>
-    <server>
-      <id>central</id>
-      <username>${env.MAVEN_CENTRAL_USR}</username>
-      <password>${env.MAVEN_CENTRAL_PSW}</password>
-    </server>
-  </servers>
+<settings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+  xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
   <mirrors>
     <mirror>
       <id>camunda-nexus</id>
@@ -26,4 +14,16 @@
       <url>http://repository-ci-camunda-cloud.nexus:8081/content/groups/internal/</url>
     </mirror>
   </mirrors>
+  <servers>
+    <server>
+      <id>camunda-nexus</id>
+      <password>${env.NEXUS_PSW}</password>
+      <username>${env.NEXUS_USR}</username>
+    </server>
+    <server>
+      <id>central</id>
+      <password>${env.MAVEN_CENTRAL_PSW}</password>
+      <username>${env.MAVEN_CENTRAL_USR}</username>
+    </server>
+  </servers>
 </settings>

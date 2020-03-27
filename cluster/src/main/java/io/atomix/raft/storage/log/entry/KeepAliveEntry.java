@@ -28,7 +28,11 @@ public class KeepAliveEntry extends TimestampedEntry {
   private final long[] eventIndexes;
 
   public KeepAliveEntry(
-      final long term, final long timestamp, final long[] sessionIds, final long[] commandSequences, final long[] eventIndexes) {
+      final long term,
+      final long timestamp,
+      final long[] sessionIds,
+      final long[] commandSequences,
+      final long[] eventIndexes) {
     super(term, timestamp);
     this.sessionIds = sessionIds;
     this.commandSequences = commandSequences;

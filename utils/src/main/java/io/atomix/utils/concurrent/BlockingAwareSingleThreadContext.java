@@ -24,11 +24,13 @@ import java.util.concurrent.ThreadFactory;
 public class BlockingAwareSingleThreadContext extends SingleThreadContext {
   private final Executor threadPoolExecutor;
 
-  public BlockingAwareSingleThreadContext(final String nameFormat, final Executor threadPoolExecutor) {
+  public BlockingAwareSingleThreadContext(
+      final String nameFormat, final Executor threadPoolExecutor) {
     this(namedThreads(nameFormat, LOGGER), threadPoolExecutor);
   }
 
-  public BlockingAwareSingleThreadContext(final ThreadFactory factory, final Executor threadPoolExecutor) {
+  public BlockingAwareSingleThreadContext(
+      final ThreadFactory factory, final Executor threadPoolExecutor) {
     super(factory);
     this.threadPoolExecutor = threadPoolExecutor;
   }

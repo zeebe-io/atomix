@@ -33,7 +33,11 @@ public abstract class RaftException extends RuntimeException {
     this.type = type;
   }
 
-  protected RaftException(final RaftError.Type type, final Throwable cause, final String message, final Object... args) {
+  protected RaftException(
+      final RaftError.Type type,
+      final Throwable cause,
+      final String message,
+      final Object... args) {
     super(String.format(message, args), cause);
     if (type == null) {
       throw new NullPointerException("type cannot be null");

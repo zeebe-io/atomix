@@ -37,12 +37,6 @@ public class GenericsTest {
         SomeClass.class, Generics.getGenericClassType(new ConcreteClass(), GenericClass.class, 0));
   }
 
-  public interface GenericInterface<T1, T2> {
-    T1 type1();
-
-    T2 type2();
-  }
-
   public static class ConcreteInterface implements GenericInterface<String, SomeClass> {
     @Override
     public String type1() {
@@ -53,6 +47,12 @@ public class GenericsTest {
     public SomeClass type2() {
       return null;
     }
+  }
+
+  public interface GenericInterface<T1, T2> {
+    T1 type1();
+
+    T2 type2();
   }
 
   public abstract class GenericClass<T> {

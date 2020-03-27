@@ -38,21 +38,6 @@ public class DelegatingSessionClient implements SessionClient {
   }
 
   @Override
-  public SessionId sessionId() {
-    return session.sessionId();
-  }
-
-  @Override
-  public PartitionId partitionId() {
-    return session.partitionId();
-  }
-
-  @Override
-  public ThreadContext context() {
-    return session.context();
-  }
-
-  @Override
   public String name() {
     return session.name();
   }
@@ -68,13 +53,18 @@ public class DelegatingSessionClient implements SessionClient {
   }
 
   @Override
-  public void addStateChangeListener(final Consumer<PrimitiveState> listener) {
-    session.addStateChangeListener(listener);
+  public SessionId sessionId() {
+    return session.sessionId();
   }
 
   @Override
-  public void removeStateChangeListener(final Consumer<PrimitiveState> listener) {
-    session.removeStateChangeListener(listener);
+  public PartitionId partitionId() {
+    return session.partitionId();
+  }
+
+  @Override
+  public ThreadContext context() {
+    return session.context();
   }
 
   @Override
@@ -88,8 +78,19 @@ public class DelegatingSessionClient implements SessionClient {
   }
 
   @Override
-  public void removeEventListener(final EventType eventType, final Consumer<PrimitiveEvent> listener) {
+  public void removeEventListener(
+      final EventType eventType, final Consumer<PrimitiveEvent> listener) {
     session.removeEventListener(eventType, listener);
+  }
+
+  @Override
+  public void addStateChangeListener(final Consumer<PrimitiveState> listener) {
+    session.addStateChangeListener(listener);
+  }
+
+  @Override
+  public void removeStateChangeListener(final Consumer<PrimitiveState> listener) {
+    session.removeStateChangeListener(listener);
   }
 
   @Override

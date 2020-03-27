@@ -21,6 +21,10 @@ import java.nio.ByteBuffer;
 public class HeapBytes extends ByteBufferBytes {
   public static final byte[] EMPTY = new byte[0];
 
+  protected HeapBytes(final ByteBuffer buffer) {
+    super(buffer);
+  }
+
   /**
    * Allocates a new heap byte array.
    *
@@ -48,10 +52,6 @@ public class HeapBytes extends ByteBufferBytes {
    */
   public static HeapBytes wrap(final byte[] bytes) {
     return new HeapBytes(ByteBuffer.wrap(bytes));
-  }
-
-  protected HeapBytes(final ByteBuffer buffer) {
-    super(buffer);
   }
 
   @Override

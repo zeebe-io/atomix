@@ -37,6 +37,17 @@ public enum PrimaryElectorOperations implements OperationId {
   ENTER(OperationType.COMMAND),
   GET_TERM(OperationType.QUERY);
 
+  public static final Namespace NAMESPACE =
+      Namespace.builder()
+          .register(Namespaces.BASIC)
+          .nextId(Namespaces.BEGIN_USER_CUSTOM_ID)
+          .register(Enter.class)
+          .register(GetTerm.class)
+          .register(GroupMember.class)
+          .register(MemberId.class)
+          .register(MemberGroupId.class)
+          .register(PartitionId.class)
+          .build(PrimaryElectorOperations.class.getSimpleName());
   private final OperationType type;
 
   PrimaryElectorOperations(final OperationType type) {
@@ -52,18 +63,6 @@ public enum PrimaryElectorOperations implements OperationId {
   public OperationType type() {
     return type;
   }
-
-  public static final Namespace NAMESPACE =
-      Namespace.builder()
-          .register(Namespaces.BASIC)
-          .nextId(Namespaces.BEGIN_USER_CUSTOM_ID)
-          .register(Enter.class)
-          .register(GetTerm.class)
-          .register(GroupMember.class)
-          .register(MemberId.class)
-          .register(MemberGroupId.class)
-          .register(PartitionId.class)
-          .build(PrimaryElectorOperations.class.getSimpleName());
 
   /** Abstract election query. */
   @SuppressWarnings("serial")

@@ -37,7 +37,8 @@ import java.util.Objects;
  */
 public class CommandRequest extends OperationRequest {
 
-  public CommandRequest(final long session, final long sequence, final PrimitiveOperation operation) {
+  public CommandRequest(
+      final long session, final long sequence, final PrimitiveOperation operation) {
     super(session, sequence, operation);
   }
 

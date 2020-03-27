@@ -182,7 +182,8 @@ public class TestProtocolService {
    * @param operation the operation to execute
    * @return a future to be completed with the operation result
    */
-  public CompletableFuture<byte[]> execute(final SessionId sessionId, final PrimitiveOperation operation) {
+  public CompletableFuture<byte[]> execute(
+      final SessionId sessionId, final PrimitiveOperation operation) {
     final CompletableFuture<byte[]> future = new CompletableFuture<>();
     context.execute(
         () -> {

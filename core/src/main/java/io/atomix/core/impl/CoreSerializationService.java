@@ -23,7 +23,8 @@ public class CoreSerializationService implements SerializationService {
   private final boolean registrationRequired;
   private final boolean compatibleSerialization;
 
-  public CoreSerializationService(final boolean registrationRequired, final boolean compatibleSerialization) {
+  public CoreSerializationService(
+      final boolean registrationRequired, final boolean compatibleSerialization) {
     this.registrationRequired = registrationRequired;
     this.compatibleSerialization = compatibleSerialization;
   }

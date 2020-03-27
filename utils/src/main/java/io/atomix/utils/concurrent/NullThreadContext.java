@@ -25,7 +25,8 @@ public class NullThreadContext implements ThreadContext {
   }
 
   @Override
-  public Scheduled schedule(final Duration initialDelay, final Duration interval, final Runnable callback) {
+  public Scheduled schedule(
+      final Duration initialDelay, final Duration interval, final Runnable callback) {
     return null;
   }
 

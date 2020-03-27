@@ -42,13 +42,13 @@ public class TestProtocolSession<C> extends AbstractSession<C> {
     this.context = context;
   }
 
-  void setState(final State state) {
-    this.state = state;
-  }
-
   @Override
   public State getState() {
     return state;
+  }
+
+  void setState(final State state) {
+    this.state = state;
   }
 
   @Override

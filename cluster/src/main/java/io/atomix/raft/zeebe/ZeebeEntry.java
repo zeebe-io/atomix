@@ -37,7 +37,11 @@ public class ZeebeEntry extends TimestampedEntry {
   private final ByteBuffer data;
 
   public ZeebeEntry(
-      final long term, final long timestamp, final long lowestPosition, final long highestPosition, final ByteBuffer data) {
+      final long term,
+      final long timestamp,
+      final long lowestPosition,
+      final long highestPosition,
+      final ByteBuffer data) {
     super(term, timestamp);
     this.lowestPosition = lowestPosition;
     this.highestPosition = highestPosition;

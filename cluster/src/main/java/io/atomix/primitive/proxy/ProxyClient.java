@@ -163,7 +163,8 @@ public interface ProxyClient<S> {
    *     preceded it.
    * @throws NullPointerException if {@code operation} is null
    */
-  default CompletableFuture<Void> acceptOn(final PartitionId partitionId, final Consumer<S> operation) {
+  default CompletableFuture<Void> acceptOn(
+      final PartitionId partitionId, final Consumer<S> operation) {
     return getPartition(partitionId).accept(operation);
   }
 
@@ -178,7 +179,8 @@ public interface ProxyClient<S> {
    *     preceded it.
    * @throws NullPointerException if {@code operation} is null
    */
-  default <R> CompletableFuture<R> applyOn(final PartitionId partitionId, final Function<S, R> operation) {
+  default <R> CompletableFuture<R> applyOn(
+      final PartitionId partitionId, final Function<S, R> operation) {
     return getPartition(partitionId).apply(operation);
   }
 

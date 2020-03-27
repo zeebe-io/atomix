@@ -54,60 +54,6 @@ import org.slf4j.LoggerFactory;
 /** Netty broadcast service. */
 public class NettyBroadcastService implements ManagedBroadcastService {
 
-  /**
-   * Returns a new broadcast service builder.
-   *
-   * @return a new broadcast service builder
-   */
-  public static Builder builder() {
-    return new Builder();
-  }
-
-  /** Netty broadcast service builder. */
-  public static class Builder implements BroadcastService.Builder {
-    private Address localAddress;
-    private Address groupAddress;
-    private boolean enabled = true;
-
-    /**
-     * Sets the local address.
-     *
-     * @param address the local address
-     * @return the broadcast service builder
-     */
-    public Builder withLocalAddress(final Address address) {
-      this.localAddress = checkNotNull(address);
-      return this;
-    }
-
-    /**
-     * Sets the group address.
-     *
-     * @param address the group address
-     * @return the broadcast service builder
-     */
-    public Builder withGroupAddress(final Address address) {
-      this.groupAddress = checkNotNull(address);
-      return this;
-    }
-
-    /**
-     * Sets whether the service is enabled.
-     *
-     * @param enabled whether the service is enabled
-     * @return the broadcast service builder
-     */
-    public Builder withEnabled(final boolean enabled) {
-      this.enabled = enabled;
-      return this;
-    }
-
-    @Override
-    public ManagedBroadcastService build() {
-      return new NettyBroadcastService(localAddress, groupAddress, enabled);
-    }
-  }
-
   private static final Serializer SERIALIZER =
       Serializer.using(
           Namespace.builder()
@@ -115,9 +61,7 @@ public class NettyBroadcastService implements ManagedBroadcastService {
               .nextId(Namespaces.BEGIN_USER_CUSTOM_ID)
               .register(Message.class)
               .build());
-
   private final Logger log = LoggerFactory.getLogger(getClass());
-
   private final boolean enabled;
   private final InetSocketAddress localAddress;
   private final InetSocketAddress groupAddress;
@@ -125,11 +69,11 @@ public class NettyBroadcastService implements ManagedBroadcastService {
   private EventLoopGroup group;
   private Channel serverChannel;
   private DatagramChannel clientChannel;
-
   private final Map<String, Set<Consumer<byte[]>>> listeners = Maps.newConcurrentMap();
   private final AtomicBoolean started = new AtomicBoolean();
 
-  public NettyBroadcastService(final Address localAddress, final Address groupAddress, final boolean enabled) {
+  public NettyBroadcastService(
+      final Address localAddress, final Address groupAddress, final boolean enabled) {
     this.enabled = enabled;
     // intentionally using the multicast port for localAddress
     this.localAddress = new InetSocketAddress(localAddress.host(), groupAddress.port());
@@ -139,6 +83,15 @@ public class NettyBroadcastService implements ManagedBroadcastService {
     } catch (final SocketException e) {
       throw new AtomixRuntimeException(e);
     }
+  }
+
+  /**
+   * Returns a new broadcast service builder.
+   *
+   * @return a new broadcast service builder
+   */
+  public static Builder builder() {
+    return new Builder();
   }
 
   @Override
@@ -176,7 +129,8 @@ public class NettyBroadcastService implements ManagedBroadcastService {
             .handler(
                 new SimpleChannelInboundHandler<Object>() {
                   @Override
-                  public void channelRead0(final ChannelHandlerContext ctx, final Object msg) throws Exception {
+                  public void channelRead0(final ChannelHandlerContext ctx, final Object msg)
+                      throws Exception {
                     // Nothing will be sent.
                   }
                 })
@@ -207,7 +161,8 @@ public class NettyBroadcastService implements ManagedBroadcastService {
             .handler(
                 new SimpleChannelInboundHandler<DatagramPacket>() {
                   @Override
-                  protected void channelRead0(final ChannelHandlerContext context, final DatagramPacket packet)
+                  protected void channelRead0(
+                      final ChannelHandlerContext context, final DatagramPacket packet)
                       throws Exception {
                     final byte[] payload = new byte[packet.content().readInt()];
                     packet.content().readBytes(payload);
@@ -301,6 +256,51 @@ public class NettyBroadcastService implements ManagedBroadcastService {
     }
     started.set(false);
     return CompletableFuture.completedFuture(null);
+  }
+
+  /** Netty broadcast service builder. */
+  public static class Builder implements BroadcastService.Builder {
+    private Address localAddress;
+    private Address groupAddress;
+    private boolean enabled = true;
+
+    /**
+     * Sets the local address.
+     *
+     * @param address the local address
+     * @return the broadcast service builder
+     */
+    public Builder withLocalAddress(final Address address) {
+      this.localAddress = checkNotNull(address);
+      return this;
+    }
+
+    /**
+     * Sets the group address.
+     *
+     * @param address the group address
+     * @return the broadcast service builder
+     */
+    public Builder withGroupAddress(final Address address) {
+      this.groupAddress = checkNotNull(address);
+      return this;
+    }
+
+    /**
+     * Sets whether the service is enabled.
+     *
+     * @param enabled whether the service is enabled
+     * @return the broadcast service builder
+     */
+    public Builder withEnabled(final boolean enabled) {
+      this.enabled = enabled;
+      return this;
+    }
+
+    @Override
+    public ManagedBroadcastService build() {
+      return new NettyBroadcastService(localAddress, groupAddress, enabled);
+    }
   }
 
   /** Internal broadcast service message. */

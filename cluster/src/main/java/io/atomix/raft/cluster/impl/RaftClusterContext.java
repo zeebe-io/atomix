@@ -130,17 +130,6 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
     return getRemoteMember(id);
   }
 
-  /**
-   * Returns a member by ID.
-   *
-   * @param id The member ID.
-   * @return The member.
-   */
-  public DefaultRaftMember getRemoteMember(final MemberId id) {
-    final RaftMemberContext member = membersMap.get(id);
-    return member != null ? member.getMember() : null;
-  }
-
   @Override
   public CompletableFuture<Void> bootstrap(final Collection<MemberId> cluster) {
     if (joinFuture != null) {
@@ -314,6 +303,17 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
   }
 
   /**
+   * Returns a member by ID.
+   *
+   * @param id The member ID.
+   * @return The member.
+   */
+  public DefaultRaftMember getRemoteMember(final MemberId id) {
+    final RaftMemberContext member = membersMap.get(id);
+    return member != null ? member.getMember() : null;
+  }
+
+  /**
    * Returns a member state by ID.
    *
    * @param id The member ID.
@@ -329,7 +329,8 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
    * @param comparator A comparator with which to sort the members list.
    * @return The sorted members list.
    */
-  public List<RaftMemberContext> getActiveMemberStates(final Comparator<RaftMemberContext> comparator) {
+  public List<RaftMemberContext> getActiveMemberStates(
+      final Comparator<RaftMemberContext> comparator) {
     final List<RaftMemberContext> activeMembers = new ArrayList<>(getActiveMemberStates());
     activeMembers.sort(comparator);
     return activeMembers;
@@ -361,7 +362,8 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
    * @param comparator A comparator with which to sort the members list.
    * @return The sorted members list.
    */
-  public List<RaftMemberContext> getPassiveMemberStates(final Comparator<RaftMemberContext> comparator) {
+  public List<RaftMemberContext> getPassiveMemberStates(
+      final Comparator<RaftMemberContext> comparator) {
     final List<RaftMemberContext> passiveMembers = new ArrayList<>(getPassiveMemberStates());
     passiveMembers.sort(comparator);
     return passiveMembers;

@@ -20,6 +20,10 @@ import java.nio.ByteBuffer;
 /** {@link ByteBuffer} based direct bytes. */
 public class DirectBytes extends ByteBufferBytes {
 
+  protected DirectBytes(final ByteBuffer buffer) {
+    super(buffer);
+  }
+
   /**
    * Allocates a new direct byte array.
    *
@@ -34,10 +38,6 @@ public class DirectBytes extends ByteBufferBytes {
           "size cannot for DirectBytes cannot be greater than " + MAX_SIZE);
     }
     return new DirectBytes(ByteBuffer.allocateDirect((int) size));
-  }
-
-  protected DirectBytes(final ByteBuffer buffer) {
-    super(buffer);
   }
 
   @Override

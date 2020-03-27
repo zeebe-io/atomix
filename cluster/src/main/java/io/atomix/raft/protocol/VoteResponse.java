@@ -33,7 +33,8 @@ public class VoteResponse extends AbstractRaftResponse {
   private final long term;
   private final boolean voted;
 
-  public VoteResponse(final Status status, final RaftError error, final long term, final boolean voted) {
+  public VoteResponse(
+      final Status status, final RaftError error, final long term, final boolean voted) {
     super(status, error);
     this.term = term;
     this.voted = voted;

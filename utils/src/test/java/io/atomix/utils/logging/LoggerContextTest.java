@@ -23,7 +23,8 @@ import org.junit.Test;
 public class LoggerContextTest {
   @Test
   public void testLoggerContext() throws Exception {
-    final LoggerContext context = LoggerContext.builder("test").addValue(1).add("foo", "bar").build();
+    final LoggerContext context =
+        LoggerContext.builder("test").addValue(1).add("foo", "bar").build();
     assertEquals("test{1}{foo=bar}", context.toString());
   }
 }

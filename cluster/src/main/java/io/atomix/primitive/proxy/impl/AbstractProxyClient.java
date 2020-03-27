@@ -35,6 +35,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import org.slf4j.LoggerFactory;
 
 /** Default primitive proxy. */
 public abstract class AbstractProxyClient<S> implements ProxyClient<S> {
@@ -122,21 +123,22 @@ public abstract class AbstractProxyClient<S> implements ProxyClient<S> {
   }
 
   @Override
-  public CompletableFuture<Void> delete() {
-    return Futures.allOf(
-            partitions.values().stream().map(ProxySession::delete).collect(Collectors.toList()))
-        .thenApply(v -> null);
-  }
-
-  @Override
   public CompletableFuture<Void> close() {
     return Futures.allOf(
             partitions.values().stream().map(ProxySession::close).collect(Collectors.toList()))
         .thenApply(v -> null);
   }
 
+  @Override
+  public CompletableFuture<Void> delete() {
+    return Futures.allOf(
+            partitions.values().stream().map(ProxySession::delete).collect(Collectors.toList()))
+        .thenApply(v -> null);
+  }
+
   /** Handles a partition proxy state change. */
-  private synchronized void onStateChange(final PartitionId partitionId, final PrimitiveState state) {
+  private synchronized void onStateChange(
+      final PartitionId partitionId, final PrimitiveState state) {
     states.put(partitionId, state);
     switch (state) {
       case CONNECTED:
@@ -158,6 +160,10 @@ public abstract class AbstractProxyClient<S> implements ProxyClient<S> {
           this.state = PrimitiveState.CLOSED;
           stateChangeListeners.forEach(l -> l.accept(PrimitiveState.CLOSED));
         }
+        break;
+      default:
+        LoggerFactory.getLogger(AbstractProxyClient.class)
+            .warn("No handled state change {}", state);
         break;
     }
   }

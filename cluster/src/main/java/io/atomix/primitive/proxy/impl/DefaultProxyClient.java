@@ -46,7 +46,9 @@ public class DefaultProxyClient<S> extends AbstractProxyClient<S> {
   }
 
   private static <S> Collection<ProxySession<S>> createSessions(
-      final PrimitiveType primitiveType, final Class<S> serviceType, final Collection<SessionClient> partitions) {
+      final PrimitiveType primitiveType,
+      final Class<S> serviceType,
+      final Collection<SessionClient> partitions) {
     final Serializer serializer = Serializer.using(primitiveType.namespace());
     return partitions.stream()
         .map(partition -> new DefaultProxySession<>(partition, serviceType, serializer))

@@ -31,6 +31,20 @@ import org.slf4j.LoggerFactory;
 public class MappedBytes extends ByteBufferBytes {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MappedBytes.class);
+  private final File file;
+  private final RandomAccessFile randomAccessFile;
+  private final FileChannel.MapMode mode;
+
+  protected MappedBytes(
+      final File file,
+      final RandomAccessFile randomAccessFile,
+      final MappedByteBuffer buffer,
+      final FileChannel.MapMode mode) {
+    super(buffer);
+    this.file = file;
+    this.randomAccessFile = randomAccessFile;
+    this.mode = mode;
+  }
 
   /**
    * Allocates a mapped buffer in {@link FileChannel.MapMode#READ_WRITE} mode.
@@ -67,23 +81,9 @@ public class MappedBytes extends ByteBufferBytes {
    * @throws IllegalArgumentException If {@code count} is greater than {@link Integer#MAX_VALUE}
    * @see #allocate(File, int)
    */
-  public static MappedBytes allocate(final File file, final FileChannel.MapMode mode, final int size) {
+  public static MappedBytes allocate(
+      final File file, final FileChannel.MapMode mode, final int size) {
     return FileBytes.allocate(file, size).map(0, size, mode);
-  }
-
-  private final File file;
-  private final RandomAccessFile randomAccessFile;
-  private final FileChannel.MapMode mode;
-
-  protected MappedBytes(
-      final File file,
-      final RandomAccessFile randomAccessFile,
-      final MappedByteBuffer buffer,
-      final FileChannel.MapMode mode) {
-    super(buffer);
-    this.file = file;
-    this.randomAccessFile = randomAccessFile;
-    this.mode = mode;
   }
 
   @Override

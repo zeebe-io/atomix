@@ -26,6 +26,14 @@ import io.atomix.utils.memory.Memory;
  */
 public class HeapBuffer extends ByteBufferBuffer {
 
+  private final HeapBytes bytes;
+
+  protected HeapBuffer(
+      final HeapBytes bytes, final int offset, final int initialCapacity, final int maxCapacity) {
+    super(bytes, offset, initialCapacity, maxCapacity, null);
+    this.bytes = bytes;
+  }
+
   /**
    * Allocates a direct buffer with an initial capacity of {@code 4096} and a maximum capacity of
    * {@link Long#MAX_VALUE}.
@@ -84,13 +92,6 @@ public class HeapBuffer extends ByteBufferBuffer {
    */
   public static HeapBuffer wrap(final byte[] bytes) {
     return new HeapBuffer(HeapBytes.wrap(bytes), 0, bytes.length, bytes.length);
-  }
-
-  private final HeapBytes bytes;
-
-  protected HeapBuffer(final HeapBytes bytes, final int offset, final int initialCapacity, final int maxCapacity) {
-    super(bytes, offset, initialCapacity, maxCapacity, null);
-    this.bytes = bytes;
   }
 
   @Override

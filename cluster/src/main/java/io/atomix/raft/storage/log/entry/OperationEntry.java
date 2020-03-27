@@ -36,7 +36,11 @@ public abstract class OperationEntry extends SessionEntry {
   protected final PrimitiveOperation operation;
 
   public OperationEntry(
-      final long term, final long timestamp, final long session, final long sequence, final PrimitiveOperation operation) {
+      final long term,
+      final long timestamp,
+      final long session,
+      final long sequence,
+      final PrimitiveOperation operation) {
     super(term, timestamp, session);
     this.sequence = sequence;
     this.operation = operation;

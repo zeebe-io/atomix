@@ -22,6 +22,20 @@ import java.util.UUID;
 /** Node identifier. */
 public class NodeId extends AbstractIdentifier<String> implements Comparable<NodeId> {
 
+  /** Constructor for serialization. */
+  private NodeId() {
+    this("");
+  }
+
+  /**
+   * Creates a new cluster node identifier from the specified string.
+   *
+   * @param id string identifier
+   */
+  public NodeId(final String id) {
+    super(id);
+  }
+
   /**
    * Creates a new cluster node identifier from the specified string.
    *
@@ -39,20 +53,6 @@ public class NodeId extends AbstractIdentifier<String> implements Comparable<Nod
    */
   public static NodeId from(final String id) {
     return new NodeId(id);
-  }
-
-  /** Constructor for serialization. */
-  private NodeId() {
-    this("");
-  }
-
-  /**
-   * Creates a new cluster node identifier from the specified string.
-   *
-   * @param id string identifier
-   */
-  public NodeId(final String id) {
-    super(id);
   }
 
   @Override

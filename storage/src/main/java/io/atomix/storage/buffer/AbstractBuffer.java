@@ -40,6 +40,7 @@ public abstract class AbstractBuffer implements Buffer {
   static final int MAX_SIZE = Integer.MAX_VALUE - 5;
 
   protected final Bytes bytes;
+  protected final ReferenceManager<Buffer> referenceManager;
   private int offset;
   private int initialCapacity;
   private int capacity;
@@ -48,7 +49,6 @@ public abstract class AbstractBuffer implements Buffer {
   private int limit = -1;
   private int mark = -1;
   private final AtomicInteger references = new AtomicInteger();
-  protected final ReferenceManager<Buffer> referenceManager;
   private SwappedBuffer swap;
 
   protected AbstractBuffer(final Bytes bytes, final ReferenceManager<Buffer> referenceManager) {
@@ -114,11 +114,6 @@ public abstract class AbstractBuffer implements Buffer {
   }
 
   @Override
-  public Bytes bytes() {
-    return bytes;
-  }
-
-  @Override
   public ByteOrder order() {
     return bytes.order();
   }
@@ -144,13 +139,13 @@ public abstract class AbstractBuffer implements Buffer {
   }
 
   @Override
-  public boolean isFile() {
-    return bytes.isFile();
+  public boolean isReadOnly() {
+    return false;
   }
 
   @Override
-  public boolean isReadOnly() {
-    return false;
+  public boolean isFile() {
+    return bytes.isFile();
   }
 
   @Override
@@ -159,38 +154,6 @@ public abstract class AbstractBuffer implements Buffer {
         .reset(offset, capacity, maxCapacity)
         .position(position)
         .limit(limit);
-  }
-
-  @Override
-  public Buffer compact() {
-    compact(offset(position), offset, (limit != -1 ? limit : capacity) - offset(position));
-    return clear();
-  }
-
-  /** Compacts the given bytes. */
-  protected abstract void compact(int from, int to, int length);
-
-  @Override
-  public Buffer slice() {
-    int maxCapacity = this.maxCapacity - position;
-    int capacity =
-        Math.min(Math.min(initialCapacity, maxCapacity), bytes.size() - offset(position));
-    if (limit != -1) {
-      capacity = maxCapacity = limit - position;
-    }
-    return new SlicedBuffer(this, bytes, offset(position), capacity, maxCapacity);
-  }
-
-  @Override
-  public Buffer slice(final int length) {
-    checkSlice(position, length);
-    return new SlicedBuffer(this, bytes, offset(position), length, length);
-  }
-
-  @Override
-  public Buffer slice(final int offset, final int length) {
-    checkSlice(offset, length);
-    return new SlicedBuffer(this, bytes, offset(offset), length, length);
   }
 
   @Override
@@ -225,11 +188,6 @@ public abstract class AbstractBuffer implements Buffer {
   }
 
   @Override
-  public int position() {
-    return position;
-  }
-
-  @Override
   public Buffer position(final int position) {
     if (limit != -1 && position > limit) {
       throw new IllegalArgumentException("position cannot be greater than limit");
@@ -241,11 +199,6 @@ public abstract class AbstractBuffer implements Buffer {
     }
     this.position = position;
     return this;
-  }
-
-  /** Returns the real offset of the given relative offset. */
-  private int offset(final int offset) {
-    return this.offset + offset;
   }
 
   @Override
@@ -279,6 +232,118 @@ public abstract class AbstractBuffer implements Buffer {
   }
 
   @Override
+  public Buffer skip(final int length) {
+    if (length > remaining()) {
+      throw new IndexOutOfBoundsException(
+          "length cannot be greater than remaining bytes in the buffer");
+    }
+    position += length;
+    return this;
+  }
+
+  @Override
+  public Buffer read(final Bytes bytes) {
+    this.bytes.read(checkRead(bytes.size()), bytes, 0, bytes.size());
+    return this;
+  }
+
+  @Override
+  public Buffer read(final byte[] bytes) {
+    this.bytes.read(checkRead(bytes.length), bytes, 0, bytes.length);
+    return this;
+  }
+
+  @Override
+  public Buffer read(final Bytes bytes, final int offset, final int length) {
+    this.bytes.read(checkRead(length), bytes, offset, length);
+    return this;
+  }
+
+  @Override
+  public Buffer read(final byte[] bytes, final int offset, final int length) {
+    this.bytes.read(checkRead(length), bytes, offset, length);
+    return this;
+  }
+
+  @Override
+  public Buffer read(final Buffer buffer) {
+    final int length = Math.min(buffer.remaining(), remaining());
+    read(buffer.bytes(), buffer.offset() + buffer.position(), length);
+    buffer.position(buffer.position() + length);
+    return this;
+  }
+
+  @Override
+  public int readByte() {
+    return bytes.readByte(checkRead(BYTE));
+  }
+
+  @Override
+  public int readUnsignedByte() {
+    return bytes.readUnsignedByte(checkRead(BYTE));
+  }
+
+  @Override
+  public char readChar() {
+    return bytes.readChar(checkRead(Bytes.CHARACTER));
+  }
+
+  @Override
+  public short readShort() {
+    return bytes.readShort(checkRead(SHORT));
+  }
+
+  @Override
+  public int readUnsignedShort() {
+    return bytes.readUnsignedShort(checkRead(SHORT));
+  }
+
+  @Override
+  public int readInt() {
+    return bytes.readInt(checkRead(Bytes.INTEGER));
+  }
+
+  @Override
+  public long readUnsignedInt() {
+    return bytes.readUnsignedInt(checkRead(Bytes.INTEGER));
+  }
+
+  @Override
+  public long readLong() {
+    return bytes.readLong(checkRead(Bytes.LONG));
+  }
+
+  @Override
+  public float readFloat() {
+    return bytes.readFloat(checkRead(Bytes.FLOAT));
+  }
+
+  @Override
+  public double readDouble() {
+    return bytes.readDouble(checkRead(Bytes.DOUBLE));
+  }
+
+  @Override
+  public boolean readBoolean() {
+    return bytes.readBoolean(checkRead(BYTE));
+  }
+
+  @Override
+  public String readUTF8() {
+    return readString(StandardCharsets.UTF_8);
+  }
+
+  @Override
+  public void close() {
+    references.set(0);
+    if (referenceManager != null) {
+      referenceManager.release(this);
+    } else {
+      bytes.close();
+    }
+  }
+
+  @Override
   public Buffer flip() {
     limit = position;
     position = 0;
@@ -293,13 +358,6 @@ public abstract class AbstractBuffer implements Buffer {
   }
 
   @Override
-  public Buffer rewind() {
-    position = 0;
-    mark = -1;
-    return this;
-  }
-
-  @Override
   public Buffer reset() {
     if (mark == -1) {
       throw new InvalidMarkException();
@@ -309,12 +367,9 @@ public abstract class AbstractBuffer implements Buffer {
   }
 
   @Override
-  public Buffer skip(final int length) {
-    if (length > remaining()) {
-      throw new IndexOutOfBoundsException(
-          "length cannot be greater than remaining bytes in the buffer");
-    }
-    position += length;
+  public Buffer rewind() {
+    position = 0;
+    mark = -1;
     return this;
   }
 
@@ -324,6 +379,362 @@ public abstract class AbstractBuffer implements Buffer {
     limit = -1;
     mark = -1;
     return this;
+  }
+
+  @Override
+  public Buffer compact() {
+    compact(offset(position), offset, (limit != -1 ? limit : capacity) - offset(position));
+    return clear();
+  }
+
+  @Override
+  public Bytes bytes() {
+    return bytes;
+  }
+
+  @Override
+  public Buffer slice() {
+    int maxCapacity = this.maxCapacity - position;
+    int capacity =
+        Math.min(Math.min(initialCapacity, maxCapacity), bytes.size() - offset(position));
+    if (limit != -1) {
+      maxCapacity = limit - position;
+      capacity = maxCapacity;
+    }
+    return new SlicedBuffer(this, bytes, offset(position), capacity, maxCapacity);
+  }
+
+  @Override
+  public Buffer slice(final int length) {
+    checkSlice(position, length);
+    return new SlicedBuffer(this, bytes, offset(position), length, length);
+  }
+
+  @Override
+  public Buffer slice(final int offset, final int length) {
+    checkSlice(offset, length);
+    return new SlicedBuffer(this, bytes, offset(offset), length, length);
+  }
+
+  @Override
+  public Buffer read(
+      final int srcOffset, final Bytes bytes, final int dstOffset, final int length) {
+    this.bytes.read(checkRead(srcOffset, length), bytes, dstOffset, length);
+    return this;
+  }
+
+  @Override
+  public Buffer read(
+      final int srcOffset, final byte[] bytes, final int dstOffset, final int length) {
+    this.bytes.read(checkRead(srcOffset, length), bytes, dstOffset, length);
+    return this;
+  }
+
+  @Override
+  public int readByte(final int offset) {
+    return bytes.readByte(checkRead(offset, BYTE));
+  }
+
+  @Override
+  public int readUnsignedByte(final int offset) {
+    return bytes.readUnsignedByte(checkRead(offset, BYTE));
+  }
+
+  @Override
+  public char readChar(final int offset) {
+    return bytes.readChar(checkRead(offset, Bytes.CHARACTER));
+  }
+
+  @Override
+  public short readShort(final int offset) {
+    return bytes.readShort(checkRead(offset, SHORT));
+  }
+
+  @Override
+  public int readUnsignedShort(final int offset) {
+    return bytes.readUnsignedShort(checkRead(offset, SHORT));
+  }
+
+  @Override
+  public int readInt(final int offset) {
+    return bytes.readInt(checkRead(offset, Bytes.INTEGER));
+  }
+
+  @Override
+  public long readUnsignedInt(final int offset) {
+    return bytes.readUnsignedInt(checkRead(offset, Bytes.INTEGER));
+  }
+
+  @Override
+  public long readLong(final int offset) {
+    return bytes.readLong(checkRead(offset, Bytes.LONG));
+  }
+
+  @Override
+  public float readFloat(final int offset) {
+    return bytes.readFloat(checkRead(offset, Bytes.FLOAT));
+  }
+
+  @Override
+  public double readDouble(final int offset) {
+    return bytes.readDouble(checkRead(offset, Bytes.DOUBLE));
+  }
+
+  @Override
+  public boolean readBoolean(final int offset) {
+    return bytes.readBoolean(checkRead(offset, BYTE));
+  }
+
+  @Override
+  public String readUTF8(final int offset) {
+    return readString(offset, StandardCharsets.UTF_8);
+  }
+
+  @Override
+  public Buffer write(final Bytes bytes) {
+    this.bytes.write(checkWrite(bytes.size()), bytes, 0, bytes.size());
+    return this;
+  }
+
+  @Override
+  public Buffer write(final byte[] bytes) {
+    this.bytes.write(checkWrite(bytes.length), bytes, 0, bytes.length);
+    return this;
+  }
+
+  @Override
+  public Buffer write(final ByteBuffer src) {
+    final int length = src.remaining();
+    this.bytes.write(checkWrite(length), src, src.position(), length);
+    return this;
+  }
+
+  @Override
+  public Buffer write(final Bytes bytes, final int offset, final int length) {
+    this.bytes.write(checkWrite(length), bytes, offset, length);
+    return this;
+  }
+
+  @Override
+  public Buffer write(final byte[] bytes, final int offset, final int length) {
+    this.bytes.write(checkWrite(length), bytes, offset, length);
+    return this;
+  }
+
+  @Override
+  public Buffer write(final Buffer buffer) {
+    final int length = Math.min(buffer.remaining(), remaining());
+    write(buffer.bytes(), buffer.offset() + buffer.position(), length);
+    buffer.position(buffer.position() + length);
+    return this;
+  }
+
+  @Override
+  public Buffer writeByte(final int b) {
+    bytes.writeByte(checkWrite(BYTE), b);
+    return this;
+  }
+
+  @Override
+  public Buffer writeUnsignedByte(final int b) {
+    bytes.writeUnsignedByte(checkWrite(BYTE), b);
+    return this;
+  }
+
+  @Override
+  public Buffer writeChar(final char c) {
+    bytes.writeChar(checkWrite(Bytes.CHARACTER), c);
+    return this;
+  }
+
+  @Override
+  public Buffer writeShort(final short s) {
+    bytes.writeShort(checkWrite(SHORT), s);
+    return this;
+  }
+
+  @Override
+  public Buffer writeUnsignedShort(final int s) {
+    bytes.writeUnsignedShort(checkWrite(SHORT), s);
+    return this;
+  }
+
+  @Override
+  public Buffer writeInt(final int i) {
+    bytes.writeInt(checkWrite(Bytes.INTEGER), i);
+    return this;
+  }
+
+  @Override
+  public Buffer writeUnsignedInt(final long i) {
+    bytes.writeUnsignedInt(checkWrite(Bytes.INTEGER), i);
+    return this;
+  }
+
+  @Override
+  public Buffer writeLong(final long l) {
+    bytes.writeLong(checkWrite(Bytes.LONG), l);
+    return this;
+  }
+
+  @Override
+  public Buffer writeFloat(final float f) {
+    bytes.writeFloat(checkWrite(Bytes.FLOAT), f);
+    return this;
+  }
+
+  @Override
+  public Buffer writeDouble(final double d) {
+    bytes.writeDouble(checkWrite(Bytes.DOUBLE), d);
+    return this;
+  }
+
+  @Override
+  public Buffer writeBoolean(final boolean b) {
+    bytes.writeBoolean(checkWrite(BYTE), b);
+    return this;
+  }
+
+  @Override
+  public Buffer writeUTF8(final String s) {
+    return writeString(s, StandardCharsets.UTF_8);
+  }
+
+  @Override
+  public Buffer write(final int offset, final Bytes bytes, final int srcOffset, final int length) {
+    this.bytes.write(checkWrite(offset, length), bytes, srcOffset, length);
+    return this;
+  }
+
+  @Override
+  public Buffer write(final int offset, final byte[] bytes, final int srcOffset, final int length) {
+    this.bytes.write(checkWrite(offset, length), bytes, srcOffset, length);
+    return this;
+  }
+
+  @Override
+  public Buffer write(
+      final int offset, final ByteBuffer src, final int srcOffset, final int length) {
+    this.bytes.write(checkWrite(offset, length), src, srcOffset, length);
+    return this;
+  }
+
+  @Override
+  public Buffer writeByte(final int offset, final int b) {
+    bytes.writeByte(checkWrite(offset, BYTE), b);
+    return this;
+  }
+
+  @Override
+  public Buffer writeUnsignedByte(final int offset, final int b) {
+    bytes.writeUnsignedByte(checkWrite(offset, BYTE), b);
+    return this;
+  }
+
+  @Override
+  public Buffer writeChar(final int offset, final char c) {
+    bytes.writeChar(checkWrite(offset, Bytes.CHARACTER), c);
+    return this;
+  }
+
+  @Override
+  public Buffer writeShort(final int offset, final short s) {
+    bytes.writeShort(checkWrite(offset, SHORT), s);
+    return this;
+  }
+
+  @Override
+  public Buffer writeUnsignedShort(final int offset, final int s) {
+    bytes.writeUnsignedShort(checkWrite(offset, SHORT), s);
+    return this;
+  }
+
+  @Override
+  public Buffer writeInt(final int offset, final int i) {
+    bytes.writeInt(checkWrite(offset, Bytes.INTEGER), i);
+    return this;
+  }
+
+  @Override
+  public Buffer writeUnsignedInt(final int offset, final long i) {
+    bytes.writeUnsignedInt(checkWrite(offset, Bytes.INTEGER), i);
+    return this;
+  }
+
+  @Override
+  public Buffer writeLong(final int offset, final long l) {
+    bytes.writeLong(checkWrite(offset, Bytes.LONG), l);
+    return this;
+  }
+
+  @Override
+  public Buffer writeFloat(final int offset, final float f) {
+    bytes.writeFloat(checkWrite(offset, Bytes.FLOAT), f);
+    return this;
+  }
+
+  @Override
+  public Buffer writeDouble(final int offset, final double d) {
+    bytes.writeDouble(checkWrite(offset, Bytes.DOUBLE), d);
+    return this;
+  }
+
+  @Override
+  public Buffer writeBoolean(final int offset, final boolean b) {
+    bytes.writeBoolean(checkWrite(offset, BYTE), b);
+    return this;
+  }
+
+  @Override
+  public Buffer writeUTF8(final int offset, final String s) {
+    return writeString(offset, s, StandardCharsets.UTF_8);
+  }
+
+  /** Compacts the given bytes. */
+  protected abstract void compact(int from, int to, int length);
+
+  @Override
+  public int position() {
+    return position;
+  }
+
+  @Override
+  public Buffer read(final ByteBuffer buffer) {
+    this.bytes.read(checkRead(buffer.remaining()), buffer, buffer.position(), buffer.remaining());
+    return this;
+  }
+
+  @Override
+  public int readMedium() {
+    return bytes.readMedium(checkRead(3));
+  }
+
+  @Override
+  public int readUnsignedMedium() {
+    return bytes.readUnsignedMedium(checkRead(3));
+  }
+
+  @Override
+  public String readString() {
+    return readString(Charset.defaultCharset());
+  }
+
+  @Override
+  public String readString(final Charset charset) {
+    if (readBoolean(position)) {
+      final byte[] bytes = new byte[readUnsignedShort(position + BOOLEAN)];
+      read(position + BOOLEAN + SHORT, bytes, 0, bytes.length);
+      this.position += BOOLEAN + SHORT + bytes.length;
+      return new String(bytes, charset);
+    } else {
+      this.position += BOOLEAN;
+    }
+    return null;
+  }
+
+  /** Returns the real offset of the given relative offset. */
+  private int offset(final int offset) {
+    return this.offset + offset;
   }
 
   /** Checks that the offset is within the bounds of the buffer. */
@@ -374,11 +785,7 @@ public abstract class AbstractBuffer implements Buffer {
     if (limit == -1) {
       if (offset + length > capacity) {
         if (capacity < maxCapacity) {
-          if (this.offset + offset + length <= bytes.size()) {
-            capacity = bytes.size() - this.offset;
-          } else {
-            capacity(calculateCapacity(offset + length));
-          }
+          calculateCapacity(offset, length);
         } else {
           throw new BufferUnderflowException();
         }
@@ -389,6 +796,14 @@ public abstract class AbstractBuffer implements Buffer {
       }
     }
     return offset(offset);
+  }
+
+  private void calculateCapacity(final int offset, final int length) {
+    if (this.offset + offset + length <= bytes.size()) {
+      capacity = bytes.size() - this.offset;
+    } else {
+      capacity(calculateCapacity(offset + length));
+    }
   }
 
   /** Checks bounds for a write of the given length. */
@@ -448,368 +863,8 @@ public abstract class AbstractBuffer implements Buffer {
   }
 
   @Override
-  public Buffer read(final Buffer buffer) {
-    final int length = Math.min(buffer.remaining(), remaining());
-    read(buffer.bytes(), buffer.offset() + buffer.position(), length);
-    buffer.position(buffer.position() + length);
-    return this;
-  }
-
-  @Override
-  public Buffer read(final ByteBuffer buffer) {
-    this.bytes.read(checkRead(buffer.remaining()), buffer, buffer.position(), buffer.remaining());
-    return this;
-  }
-
-  @Override
-  public Buffer read(final Bytes bytes) {
-    this.bytes.read(checkRead(bytes.size()), bytes, 0, bytes.size());
-    return this;
-  }
-
-  @Override
-  public Buffer read(final Bytes bytes, final int offset, final int length) {
-    this.bytes.read(checkRead(length), bytes, offset, length);
-    return this;
-  }
-
-  @Override
-  public Buffer read(final int srcOffset, final Bytes bytes, final int dstOffset, final int length) {
-    this.bytes.read(checkRead(srcOffset, length), bytes, dstOffset, length);
-    return this;
-  }
-
-  @Override
-  public Buffer read(final byte[] bytes) {
-    this.bytes.read(checkRead(bytes.length), bytes, 0, bytes.length);
-    return this;
-  }
-
-  @Override
-  public Buffer read(final byte[] bytes, final int offset, final int length) {
-    this.bytes.read(checkRead(length), bytes, offset, length);
-    return this;
-  }
-
-  @Override
-  public Buffer read(final int srcOffset, final byte[] bytes, final int dstOffset, final int length) {
-    this.bytes.read(checkRead(srcOffset, length), bytes, dstOffset, length);
-    return this;
-  }
-
-  @Override
-  public Buffer read(
-      final int offset, final ByteBuffer dst, final int dstOffset, final int length) {
-    this.bytes.read(checkRead(offset, length), dst, dstOffset, length);
-    return this;
-  }
-
-  @Override
-  public int readByte() {
-    return bytes.readByte(checkRead(BYTE));
-  }
-
-  @Override
-  public int readByte(final int offset) {
-    return bytes.readByte(checkRead(offset, BYTE));
-  }
-
-  @Override
-  public int readUnsignedByte() {
-    return bytes.readUnsignedByte(checkRead(BYTE));
-  }
-
-  @Override
-  public int readUnsignedByte(final int offset) {
-    return bytes.readUnsignedByte(checkRead(offset, BYTE));
-  }
-
-  @Override
-  public char readChar() {
-    return bytes.readChar(checkRead(Bytes.CHARACTER));
-  }
-
-  @Override
-  public char readChar(final int offset) {
-    return bytes.readChar(checkRead(offset, Bytes.CHARACTER));
-  }
-
-  @Override
-  public short readShort() {
-    return bytes.readShort(checkRead(SHORT));
-  }
-
-  @Override
-  public short readShort(final int offset) {
-    return bytes.readShort(checkRead(offset, SHORT));
-  }
-
-  @Override
-  public int readUnsignedShort() {
-    return bytes.readUnsignedShort(checkRead(SHORT));
-  }
-
-  @Override
-  public int readUnsignedShort(final int offset) {
-    return bytes.readUnsignedShort(checkRead(offset, SHORT));
-  }
-
-  @Override
-  public int readMedium() {
-    return bytes.readMedium(checkRead(3));
-  }
-
-  @Override
-  public int readMedium(final int offset) {
-    return bytes.readMedium(checkRead(offset, 3));
-  }
-
-  @Override
-  public int readUnsignedMedium() {
-    return bytes.readUnsignedMedium(checkRead(3));
-  }
-
-  @Override
-  public int readUnsignedMedium(final int offset) {
-    return bytes.readUnsignedMedium(checkRead(offset, 3));
-  }
-
-  @Override
-  public int readInt() {
-    return bytes.readInt(checkRead(Bytes.INTEGER));
-  }
-
-  @Override
-  public int readInt(final int offset) {
-    return bytes.readInt(checkRead(offset, Bytes.INTEGER));
-  }
-
-  @Override
-  public long readUnsignedInt() {
-    return bytes.readUnsignedInt(checkRead(Bytes.INTEGER));
-  }
-
-  @Override
-  public long readUnsignedInt(final int offset) {
-    return bytes.readUnsignedInt(checkRead(offset, Bytes.INTEGER));
-  }
-
-  @Override
-  public long readLong() {
-    return bytes.readLong(checkRead(Bytes.LONG));
-  }
-
-  @Override
-  public long readLong(final int offset) {
-    return bytes.readLong(checkRead(offset, Bytes.LONG));
-  }
-
-  @Override
-  public float readFloat() {
-    return bytes.readFloat(checkRead(Bytes.FLOAT));
-  }
-
-  @Override
-  public float readFloat(final int offset) {
-    return bytes.readFloat(checkRead(offset, Bytes.FLOAT));
-  }
-
-  @Override
-  public double readDouble() {
-    return bytes.readDouble(checkRead(Bytes.DOUBLE));
-  }
-
-  @Override
-  public double readDouble(final int offset) {
-    return bytes.readDouble(checkRead(offset, Bytes.DOUBLE));
-  }
-
-  @Override
-  public boolean readBoolean() {
-    return bytes.readBoolean(checkRead(BYTE));
-  }
-
-  @Override
-  public boolean readBoolean(final int offset) {
-    return bytes.readBoolean(checkRead(offset, BYTE));
-  }
-
-  @Override
-  public String readString(final Charset charset) {
-    if (readBoolean(position)) {
-      final byte[] bytes = new byte[readUnsignedShort(position + BOOLEAN)];
-      read(position + BOOLEAN + SHORT, bytes, 0, bytes.length);
-      this.position += BOOLEAN + SHORT + bytes.length;
-      return new String(bytes, charset);
-    } else {
-      this.position += BOOLEAN;
-    }
-    return null;
-  }
-
-  @Override
-  public String readString(final int offset, final Charset charset) {
-    if (readBoolean(offset)) {
-      final byte[] bytes = new byte[readUnsignedShort(offset + BOOLEAN)];
-      read(offset + BOOLEAN + SHORT, bytes, 0, bytes.length);
-      return new String(bytes, charset);
-    }
-    return null;
-  }
-
-  @Override
-  public String readString() {
-    return readString(Charset.defaultCharset());
-  }
-
-  @Override
-  public String readString(final int offset) {
-    return readString(offset, Charset.defaultCharset());
-  }
-
-  @Override
-  public String readUTF8() {
-    return readString(StandardCharsets.UTF_8);
-  }
-
-  @Override
-  public String readUTF8(final int offset) {
-    return readString(offset, StandardCharsets.UTF_8);
-  }
-
-  @Override
-  public Buffer write(final Buffer buffer) {
-    final int length = Math.min(buffer.remaining(), remaining());
-    write(buffer.bytes(), buffer.offset() + buffer.position(), length);
-    buffer.position(buffer.position() + length);
-    return this;
-  }
-
-  @Override
-  public Buffer write(final Bytes bytes) {
-    this.bytes.write(checkWrite(bytes.size()), bytes, 0, bytes.size());
-    return this;
-  }
-
-  @Override
-  public Buffer write(final Bytes bytes, final int offset, final int length) {
-    this.bytes.write(checkWrite(length), bytes, offset, length);
-    return this;
-  }
-
-  @Override
-  public Buffer write(final int offset, final Bytes bytes, final int srcOffset, final int length) {
-    this.bytes.write(checkWrite(offset, length), bytes, srcOffset, length);
-    return this;
-  }
-
-  @Override
-  public Buffer write(final byte[] bytes) {
-    this.bytes.write(checkWrite(bytes.length), bytes, 0, bytes.length);
-    return this;
-  }
-
-  @Override
-  public Buffer write(final ByteBuffer src) {
-    final int length = src.remaining();
-    this.bytes.write(checkWrite(length), src, src.position(), length);
-    return this;
-  }
-
-  @Override
-  public Buffer write(
-      final int offset, final ByteBuffer src, final int srcOffset, final int length) {
-    this.bytes.write(checkWrite(offset, length), src, srcOffset, length);
-    return this;
-  }
-
-  @Override
-  public Buffer write(final byte[] bytes, final int offset, final int length) {
-    this.bytes.write(checkWrite(length), bytes, offset, length);
-    return this;
-  }
-
-  @Override
-  public Buffer write(final int offset, final byte[] bytes, final int srcOffset, final int length) {
-    this.bytes.write(checkWrite(offset, length), bytes, srcOffset, length);
-    return this;
-  }
-
-  @Override
-  public Buffer writeByte(final int b) {
-    bytes.writeByte(checkWrite(BYTE), b);
-    return this;
-  }
-
-  @Override
-  public Buffer writeByte(final int offset, final int b) {
-    bytes.writeByte(checkWrite(offset, BYTE), b);
-    return this;
-  }
-
-  @Override
-  public Buffer writeUnsignedByte(final int b) {
-    bytes.writeUnsignedByte(checkWrite(BYTE), b);
-    return this;
-  }
-
-  @Override
-  public Buffer writeUnsignedByte(final int offset, final int b) {
-    bytes.writeUnsignedByte(checkWrite(offset, BYTE), b);
-    return this;
-  }
-
-  @Override
-  public Buffer writeChar(final char c) {
-    bytes.writeChar(checkWrite(Bytes.CHARACTER), c);
-    return this;
-  }
-
-  @Override
-  public Buffer writeChar(final int offset, final char c) {
-    bytes.writeChar(checkWrite(offset, Bytes.CHARACTER), c);
-    return this;
-  }
-
-  @Override
-  public Buffer writeShort(final short s) {
-    bytes.writeShort(checkWrite(SHORT), s);
-    return this;
-  }
-
-  @Override
-  public Buffer writeShort(final int offset, final short s) {
-    bytes.writeShort(checkWrite(offset, SHORT), s);
-    return this;
-  }
-
-  @Override
-  public Buffer writeUnsignedShort(final int s) {
-    bytes.writeUnsignedShort(checkWrite(SHORT), s);
-    return this;
-  }
-
-  @Override
-  public Buffer writeUnsignedShort(final int offset, final int s) {
-    bytes.writeUnsignedShort(checkWrite(offset, SHORT), s);
-    return this;
-  }
-
-  @Override
-  public Buffer writeMedium(final int m) {
-    bytes.writeMedium(checkWrite(3), m);
-    return this;
-  }
-
-  @Override
   public Buffer writeMedium(final int offset, final int m) {
     bytes.writeMedium(checkWrite(offset, 3), m);
-    return this;
-  }
-
-  @Override
-  public Buffer writeUnsignedMedium(final int m) {
-    bytes.writeUnsignedMedium(checkWrite(3), m);
     return this;
   }
 
@@ -820,87 +875,8 @@ public abstract class AbstractBuffer implements Buffer {
   }
 
   @Override
-  public Buffer writeInt(final int i) {
-    bytes.writeInt(checkWrite(Bytes.INTEGER), i);
-    return this;
-  }
-
-  @Override
-  public Buffer writeInt(final int offset, final int i) {
-    bytes.writeInt(checkWrite(offset, Bytes.INTEGER), i);
-    return this;
-  }
-
-  @Override
-  public Buffer writeUnsignedInt(final long i) {
-    bytes.writeUnsignedInt(checkWrite(Bytes.INTEGER), i);
-    return this;
-  }
-
-  @Override
-  public Buffer writeUnsignedInt(final int offset, final long i) {
-    bytes.writeUnsignedInt(checkWrite(offset, Bytes.INTEGER), i);
-    return this;
-  }
-
-  @Override
-  public Buffer writeLong(final long l) {
-    bytes.writeLong(checkWrite(Bytes.LONG), l);
-    return this;
-  }
-
-  @Override
-  public Buffer writeLong(final int offset, final long l) {
-    bytes.writeLong(checkWrite(offset, Bytes.LONG), l);
-    return this;
-  }
-
-  @Override
-  public Buffer writeFloat(final float f) {
-    bytes.writeFloat(checkWrite(Bytes.FLOAT), f);
-    return this;
-  }
-
-  @Override
-  public Buffer writeFloat(final int offset, final float f) {
-    bytes.writeFloat(checkWrite(offset, Bytes.FLOAT), f);
-    return this;
-  }
-
-  @Override
-  public Buffer writeDouble(final double d) {
-    bytes.writeDouble(checkWrite(Bytes.DOUBLE), d);
-    return this;
-  }
-
-  @Override
-  public Buffer writeDouble(final int offset, final double d) {
-    bytes.writeDouble(checkWrite(offset, Bytes.DOUBLE), d);
-    return this;
-  }
-
-  @Override
-  public Buffer writeBoolean(final boolean b) {
-    bytes.writeBoolean(checkWrite(BYTE), b);
-    return this;
-  }
-
-  @Override
-  public Buffer writeBoolean(final int offset, final boolean b) {
-    bytes.writeBoolean(checkWrite(offset, BYTE), b);
-    return this;
-  }
-
-  @Override
-  public Buffer writeString(final String s, final Charset charset) {
-    if (s == null) {
-      return writeBoolean(checkWrite(BOOLEAN), Boolean.FALSE);
-    } else {
-      final byte[] bytes = s.getBytes(charset);
-      checkWrite(position, BOOLEAN + SHORT + bytes.length);
-      writeBoolean(Boolean.TRUE).writeUnsignedShort(bytes.length).write(bytes, 0, bytes.length);
-      return this;
-    }
+  public Buffer writeString(final int offset, final String s) {
+    return writeString(offset, s, Charset.defaultCharset());
   }
 
   @Override
@@ -918,38 +894,69 @@ public abstract class AbstractBuffer implements Buffer {
   }
 
   @Override
-  public Buffer writeString(final String s) {
-    return writeString(s, Charset.defaultCharset());
-  }
-
-  @Override
-  public Buffer writeString(final int offset, final String s) {
-    return writeString(offset, s, Charset.defaultCharset());
-  }
-
-  @Override
-  public Buffer writeUTF8(final String s) {
-    return writeString(s, StandardCharsets.UTF_8);
-  }
-
-  @Override
-  public Buffer writeUTF8(final int offset, final String s) {
-    return writeString(offset, s, StandardCharsets.UTF_8);
-  }
-
-  @Override
   public Buffer flush() {
     bytes.flush();
     return this;
   }
 
   @Override
-  public void close() {
-    references.set(0);
-    if (referenceManager != null) {
-      referenceManager.release(this);
+  public Buffer read(
+      final int offset, final ByteBuffer dst, final int dstOffset, final int length) {
+    this.bytes.read(checkRead(offset, length), dst, dstOffset, length);
+    return this;
+  }
+
+  @Override
+  public int readMedium(final int offset) {
+    return bytes.readMedium(checkRead(offset, 3));
+  }
+
+  @Override
+  public int readUnsignedMedium(final int offset) {
+    return bytes.readUnsignedMedium(checkRead(offset, 3));
+  }
+
+  @Override
+  public String readString(final int offset) {
+    return readString(offset, Charset.defaultCharset());
+  }
+
+  @Override
+  public String readString(final int offset, final Charset charset) {
+    if (readBoolean(offset)) {
+      final byte[] bytes = new byte[readUnsignedShort(offset + BOOLEAN)];
+      read(offset + BOOLEAN + SHORT, bytes, 0, bytes.length);
+      return new String(bytes, charset);
+    }
+    return null;
+  }
+
+  @Override
+  public Buffer writeMedium(final int m) {
+    bytes.writeMedium(checkWrite(3), m);
+    return this;
+  }
+
+  @Override
+  public Buffer writeUnsignedMedium(final int m) {
+    bytes.writeUnsignedMedium(checkWrite(3), m);
+    return this;
+  }
+
+  @Override
+  public Buffer writeString(final String s) {
+    return writeString(s, Charset.defaultCharset());
+  }
+
+  @Override
+  public Buffer writeString(final String s, final Charset charset) {
+    if (s == null) {
+      return writeBoolean(checkWrite(BOOLEAN), Boolean.FALSE);
     } else {
-      bytes.close();
+      final byte[] bytes = s.getBytes(charset);
+      checkWrite(position, BOOLEAN + SHORT + bytes.length);
+      writeBoolean(Boolean.TRUE).writeUnsignedShort(bytes.length).write(bytes, 0, bytes.length);
+      return this;
     }
   }
 }

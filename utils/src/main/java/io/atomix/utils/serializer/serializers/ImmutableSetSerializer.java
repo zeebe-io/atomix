@@ -39,7 +39,8 @@ public class ImmutableSetSerializer extends Serializer<ImmutableSet<?>> {
   }
 
   @Override
-  public ImmutableSet<?> read(final Kryo kryo, final Input input, final Class<ImmutableSet<?>> type) {
+  public ImmutableSet<?> read(
+      final Kryo kryo, final Input input, final Class<ImmutableSet<?>> type) {
     final int size = input.readInt();
     switch (size) {
       case 0:

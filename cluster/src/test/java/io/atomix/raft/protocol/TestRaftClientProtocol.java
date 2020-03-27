@@ -58,15 +58,6 @@ public class TestRaftClientProtocol extends TestRaftProtocol implements RaftClie
         getServer(memberId).thenCompose(protocol -> protocol.openSession(request)));
   }
 
-  private CompletableFuture<TestRaftServerProtocol> getServer(final MemberId memberId) {
-    final TestRaftServerProtocol server = server(memberId);
-    if (server != null) {
-      return Futures.completedFuture(server);
-    } else {
-      return Futures.exceptionalFuture(new ConnectException());
-    }
-  }
-
   @Override
   public CompletableFuture<CloseSessionResponse> closeSession(
       final MemberId memberId, final CloseSessionRequest request) {
@@ -82,17 +73,20 @@ public class TestRaftClientProtocol extends TestRaftProtocol implements RaftClie
   }
 
   @Override
-  public CompletableFuture<QueryResponse> query(final MemberId memberId, final QueryRequest request) {
+  public CompletableFuture<QueryResponse> query(
+      final MemberId memberId, final QueryRequest request) {
     return scheduleTimeout(getServer(memberId).thenCompose(protocol -> protocol.query(request)));
   }
 
   @Override
-  public CompletableFuture<CommandResponse> command(final MemberId memberId, final CommandRequest request) {
+  public CompletableFuture<CommandResponse> command(
+      final MemberId memberId, final CommandRequest request) {
     return scheduleTimeout(getServer(memberId).thenCompose(protocol -> protocol.command(request)));
   }
 
   @Override
-  public CompletableFuture<MetadataResponse> metadata(final MemberId memberId, final MetadataRequest request) {
+  public CompletableFuture<MetadataResponse> metadata(
+      final MemberId memberId, final MetadataRequest request) {
     return scheduleTimeout(getServer(memberId).thenCompose(protocol -> protocol.metadata(request)));
   }
 
@@ -128,6 +122,15 @@ public class TestRaftClientProtocol extends TestRaftProtocol implements RaftClie
   @Override
   public void unregisterPublishListener(final SessionId sessionId) {
     publishListeners.remove(sessionId.id());
+  }
+
+  private CompletableFuture<TestRaftServerProtocol> getServer(final MemberId memberId) {
+    final TestRaftServerProtocol server = server(memberId);
+    if (server != null) {
+      return Futures.completedFuture(server);
+    } else {
+      return Futures.exceptionalFuture(new ConnectException());
+    }
   }
 
   void publish(final PublishRequest request) {

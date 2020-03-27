@@ -80,7 +80,8 @@ public final class Futures {
    * @param executor The executor on which to complete the future.
    * @return The completed future.
    */
-  public static <T> CompletableFuture<T> completedFutureAsync(final T result, final Executor executor) {
+  public static <T> CompletableFuture<T> completedFutureAsync(
+      final T result, final Executor executor) {
     final CompletableFuture<T> future = new CompletableFuture<>();
     executor.execute(() -> future.complete(result));
     return future;
@@ -105,7 +106,8 @@ public final class Futures {
    * @param executor The executor on which to complete the future.
    * @return The exceptionally completed future.
    */
-  public static <T> CompletableFuture<T> exceptionalFutureAsync(final Throwable t, final Executor executor) {
+  public static <T> CompletableFuture<T> exceptionalFutureAsync(
+      final Throwable t, final Executor executor) {
     final CompletableFuture<T> future = new CompletableFuture<>();
     executor.execute(
         () -> {
@@ -215,7 +217,9 @@ public final class Futures {
    *     complete
    */
   public static <T> CompletableFuture<T> allOf(
-      final List<CompletableFuture<T>> futures, final BinaryOperator<T> reducer, final T emptyValue) {
+      final List<CompletableFuture<T>> futures,
+      final BinaryOperator<T> reducer,
+      final T emptyValue) {
     return allOf(futures)
         .thenApply(resultList -> resultList.stream().reduce(reducer).orElse(emptyValue));
   }

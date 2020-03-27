@@ -22,6 +22,8 @@ import java.util.Map;
 /** Operation utilities. */
 public final class Operations {
 
+  private Operations() {}
+
   /**
    * Returns the collection of operations provided by the given service interface.
    *
@@ -132,6 +134,4 @@ public final class Operations {
     }
     return null;
   }
-
-  private Operations() {}
 }

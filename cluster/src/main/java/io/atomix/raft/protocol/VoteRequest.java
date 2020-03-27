@@ -37,7 +37,8 @@ public class VoteRequest extends AbstractRaftRequest {
   private final long lastLogIndex;
   private final long lastLogTerm;
 
-  public VoteRequest(final long term, final String candidate, final long lastLogIndex, final long lastLogTerm) {
+  public VoteRequest(
+      final long term, final String candidate, final long lastLogIndex, final long lastLogTerm) {
     this.term = term;
     this.candidate = candidate;
     this.lastLogIndex = lastLogIndex;

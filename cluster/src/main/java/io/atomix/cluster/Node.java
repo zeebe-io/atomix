@@ -25,15 +25,6 @@ import java.util.Objects;
 /** Represents a node. */
 public class Node implements Configured<NodeConfig> {
 
-  /**
-   * Returns a new member builder with no ID.
-   *
-   * @return the member builder
-   */
-  public static NodeBuilder builder() {
-    return new NodeBuilder(new NodeConfig());
-  }
-
   private final NodeId id;
   private final Address address;
 
@@ -45,6 +36,15 @@ public class Node implements Configured<NodeConfig> {
   protected Node(final NodeId id, final Address address) {
     this.id = checkNotNull(id, "id cannot be null");
     this.address = checkNotNull(address, "address cannot be null");
+  }
+
+  /**
+   * Returns a new member builder with no ID.
+   *
+   * @return the member builder
+   */
+  public static NodeBuilder builder() {
+    return new NodeBuilder(new NodeConfig());
   }
 
   /**

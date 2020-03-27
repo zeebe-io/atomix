@@ -101,6 +101,15 @@ public final class RaftSessionState {
   }
 
   /**
+   * Sets the last command request sequence number.
+   *
+   * @param commandRequest The last command request sequence number.
+   */
+  public void setCommandRequest(final long commandRequest) {
+    this.commandRequest = commandRequest;
+  }
+
+  /**
    * Returns the last command sequence number for which a response has been received.
    *
    * @return The last command sequence number for which a response has been received.
@@ -110,12 +119,30 @@ public final class RaftSessionState {
   }
 
   /**
+   * Sets the last command sequence number for which a response has been received.
+   *
+   * @param commandResponse The last command sequence number for which a response has been received.
+   */
+  public void setCommandResponse(final long commandResponse) {
+    this.commandResponse = commandResponse;
+  }
+
+  /**
    * Returns the highest index for which an event has been received in sequence.
    *
    * @return The highest index for which an event has been received in sequence.
    */
   public long getEventIndex() {
     return eventIndex;
+  }
+
+  /**
+   * Sets the highest index for which an event has been received in sequence.
+   *
+   * @param eventIndex The highest index for which an event has been received in sequence.
+   */
+  public void setEventIndex(final long eventIndex) {
+    this.eventIndex = eventIndex;
   }
 
   /**
@@ -146,6 +173,15 @@ public final class RaftSessionState {
   }
 
   /**
+   * Sets the highest index for which a response has been received.
+   *
+   * @param responseIndex The highest index for which a command or query response has been received.
+   */
+  public void setResponseIndex(final long responseIndex) {
+    this.responseIndex = Math.max(this.responseIndex, responseIndex);
+  }
+
+  /**
    * Returns the client session ID.
    *
    * @return The client session ID.
@@ -170,42 +206,6 @@ public final class RaftSessionState {
    */
   public PrimitiveState getState() {
     return state;
-  }
-
-  /**
-   * Sets the last command request sequence number.
-   *
-   * @param commandRequest The last command request sequence number.
-   */
-  public void setCommandRequest(final long commandRequest) {
-    this.commandRequest = commandRequest;
-  }
-
-  /**
-   * Sets the last command sequence number for which a response has been received.
-   *
-   * @param commandResponse The last command sequence number for which a response has been received.
-   */
-  public void setCommandResponse(final long commandResponse) {
-    this.commandResponse = commandResponse;
-  }
-
-  /**
-   * Sets the highest index for which an event has been received in sequence.
-   *
-   * @param eventIndex The highest index for which an event has been received in sequence.
-   */
-  public void setEventIndex(final long eventIndex) {
-    this.eventIndex = eventIndex;
-  }
-
-  /**
-   * Sets the highest index for which a response has been received.
-   *
-   * @param responseIndex The highest index for which a command or query response has been received.
-   */
-  public void setResponseIndex(final long responseIndex) {
-    this.responseIndex = Math.max(this.responseIndex, responseIndex);
   }
 
   /**

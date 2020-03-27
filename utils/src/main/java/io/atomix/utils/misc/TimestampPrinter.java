@@ -23,6 +23,14 @@ import java.time.format.DateTimeFormatter;
 /** Timestamp printer. */
 public class TimestampPrinter {
 
+  private static final DateTimeFormatter FORMATTER =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss,SSS");
+  private final long timestamp;
+
+  public TimestampPrinter(final long timestamp) {
+    this.timestamp = timestamp;
+  }
+
   /**
    * Returns a new timestamp printer.
    *
@@ -31,15 +39,6 @@ public class TimestampPrinter {
    */
   public static TimestampPrinter of(final long timestamp) {
     return new TimestampPrinter(timestamp);
-  }
-
-  private static final DateTimeFormatter FORMATTER =
-      DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss,SSS");
-
-  private final long timestamp;
-
-  public TimestampPrinter(final long timestamp) {
-    this.timestamp = timestamp;
   }
 
   @Override

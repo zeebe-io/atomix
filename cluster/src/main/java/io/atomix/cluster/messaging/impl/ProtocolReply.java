@@ -21,6 +21,31 @@ import io.atomix.utils.misc.ArraySizeHashPrinter;
 /** Internal reply message. */
 public final class ProtocolReply extends ProtocolMessage {
 
+  private final Status status;
+
+  public ProtocolReply(final long id, final byte[] payload, final Status status) {
+    super(id, payload);
+    this.status = status;
+  }
+
+  @Override
+  public Type type() {
+    return Type.REPLY;
+  }
+
+  public Status status() {
+    return status;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("id", id())
+        .add("status", status())
+        .add("payload", ArraySizeHashPrinter.of(payload()))
+        .toString();
+  }
+
   /** Message status. */
   public enum Status {
 
@@ -73,30 +98,5 @@ public final class ProtocolReply extends ProtocolMessage {
           throw new IllegalArgumentException("Unknown status ID " + id);
       }
     }
-  }
-
-  private final Status status;
-
-  public ProtocolReply(final long id, final byte[] payload, final Status status) {
-    super(id, payload);
-    this.status = status;
-  }
-
-  @Override
-  public Type type() {
-    return Type.REPLY;
-  }
-
-  public Status status() {
-    return status;
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("id", id())
-        .add("status", status())
-        .add("payload", ArraySizeHashPrinter.of(payload()))
-        .toString();
   }
 }

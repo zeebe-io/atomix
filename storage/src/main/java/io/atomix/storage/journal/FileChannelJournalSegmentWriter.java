@@ -72,6 +72,102 @@ class FileChannelJournalSegmentWriter<E> implements JournalWriter<E> {
   }
 
   @Override
+  public long getLastIndex() {
+    return lastEntry != null ? lastEntry.index() : segment.index() - 1;
+  }
+
+  @Override
+  public Indexed<E> getLastEntry() {
+    return lastEntry;
+  }
+
+  @Override
+  public long getNextIndex() {
+    if (lastEntry != null) {
+      return lastEntry.index() + 1;
+    } else {
+      return firstIndex;
+    }
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public <T extends E> Indexed<T> append(final T entry) {
+    // Store the entry index.
+    final long index = getNextIndex();
+
+    try {
+      // Serialize the entry.
+      memory.clear();
+      memory.position(Integer.BYTES + Integer.BYTES);
+      try {
+        namespace.serialize(entry, memory);
+      } catch (final KryoException e) {
+        throw new StorageException.TooLarge(
+            "Entry size exceeds maximum allowed bytes (" + maxEntrySize + ")");
+      }
+      memory.flip();
+
+      final int length = memory.limit() - (Integer.BYTES + Integer.BYTES);
+
+      // Ensure there's enough space left in the buffer to store the entry.
+      final long position = channel.position();
+      if (segment.descriptor().maxSegmentSize() - position
+          < length + Integer.BYTES + Integer.BYTES) {
+        throw new BufferOverflowException();
+      }
+
+      // If the entry length exceeds the maximum entry size then throw an exception.
+      if (length > maxEntrySize) {
+        throw new StorageException.TooLarge(
+            "Entry size " + length + " exceeds maximum allowed bytes (" + maxEntrySize + ")");
+      }
+
+      // Compute the checksum for the entry.
+      final Checksum crc32 = new CRC32();
+      crc32.update(
+          memory.array(),
+          Integer.BYTES + Integer.BYTES,
+          memory.limit() - (Integer.BYTES + Integer.BYTES));
+      final long checksum = crc32.getValue();
+
+      // Create a single byte[] in memory for the entire entry and write it as a batch to the
+      // underlying buffer.
+      memory.putInt(0, length);
+      memory.putInt(Integer.BYTES, (int) checksum);
+      channel.write(memory);
+
+      // Update the last entry with the correct index/term/length.
+      final Indexed<E> indexedEntry = new Indexed<>(index, entry, length);
+      this.lastEntry = indexedEntry;
+      this.index.index(lastEntry, (int) position);
+      return (Indexed<T>) indexedEntry;
+    } catch (final IOException e) {
+      throw new StorageException(e);
+    }
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public void append(final Indexed<E> entry) {
+    final long nextIndex = getNextIndex();
+
+    // If the entry's index is greater than the next index in the segment, skip some entries.
+    if (entry.index() > nextIndex) {
+      throw new IndexOutOfBoundsException("Entry index is not sequential");
+    }
+
+    // If the entry's index is less than the next index, truncate the segment.
+    if (entry.index() < nextIndex) {
+      truncate(entry.index() - 1);
+    }
+    append(entry.entry());
+  }
+
+  @Override
+  public void commit(final long index) {}
+
+  @Override
   public void reset(final long index) {
     long nextIndex = firstIndex;
 
@@ -148,22 +244,52 @@ class FileChannelJournalSegmentWriter<E> implements JournalWriter<E> {
   }
 
   @Override
-  public long getLastIndex() {
-    return lastEntry != null ? lastEntry.index() : segment.index() - 1;
-  }
-
-  @Override
-  public Indexed<E> getLastEntry() {
-    return lastEntry;
-  }
-
-  @Override
-  public long getNextIndex() {
-    if (lastEntry != null) {
-      return lastEntry.index() + 1;
-    } else {
-      return firstIndex;
+  @SuppressWarnings("unchecked")
+  public void truncate(final long index) {
+    // If the index is greater than or equal to the last index, skip the truncate.
+    if (index >= getLastIndex()) {
+      return;
     }
+
+    // Reset the last entry.
+    lastEntry = null;
+
+    try {
+      // Truncate the index.
+      this.index.truncate(index);
+
+      if (index < segment.index()) {
+        channel.position(JournalSegmentDescriptor.BYTES);
+        channel.write(zero());
+        channel.position(JournalSegmentDescriptor.BYTES);
+      } else {
+        // Reset the writer to the given index.
+        reset(index);
+
+        // Zero entries after the given index.
+        final long position = channel.position();
+        channel.write(zero());
+        channel.position(position);
+      }
+    } catch (final IOException e) {
+      throw new StorageException(e);
+    }
+  }
+
+  @Override
+  public void flush() {
+    try {
+      if (channel.isOpen()) {
+        channel.force(true);
+      }
+    } catch (final IOException e) {
+      throw new StorageException(e);
+    }
+  }
+
+  @Override
+  public void close() {
+    flush();
   }
 
   /**
@@ -203,116 +329,6 @@ class FileChannelJournalSegmentWriter<E> implements JournalWriter<E> {
     return firstIndex;
   }
 
-  @Override
-  @SuppressWarnings("unchecked")
-  public void append(final Indexed<E> entry) {
-    final long nextIndex = getNextIndex();
-
-    // If the entry's index is greater than the next index in the segment, skip some entries.
-    if (entry.index() > nextIndex) {
-      throw new IndexOutOfBoundsException("Entry index is not sequential");
-    }
-
-    // If the entry's index is less than the next index, truncate the segment.
-    if (entry.index() < nextIndex) {
-      truncate(entry.index() - 1);
-    }
-    append(entry.entry());
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public <T extends E> Indexed<T> append(final T entry) {
-    // Store the entry index.
-    final long index = getNextIndex();
-
-    try {
-      // Serialize the entry.
-      memory.clear();
-      memory.position(Integer.BYTES + Integer.BYTES);
-      try {
-        namespace.serialize(entry, memory);
-      } catch (final KryoException e) {
-        throw new StorageException.TooLarge(
-            "Entry size exceeds maximum allowed bytes (" + maxEntrySize + ")");
-      }
-      memory.flip();
-
-      final int length = memory.limit() - (Integer.BYTES + Integer.BYTES);
-
-      // Ensure there's enough space left in the buffer to store the entry.
-      final long position = channel.position();
-      if (segment.descriptor().maxSegmentSize() - position
-          < length + Integer.BYTES + Integer.BYTES) {
-        throw new BufferOverflowException();
-      }
-
-      // If the entry length exceeds the maximum entry size then throw an exception.
-      if (length > maxEntrySize) {
-        throw new StorageException.TooLarge(
-            "Entry size " + length + " exceeds maximum allowed bytes (" + maxEntrySize + ")");
-      }
-
-      // Compute the checksum for the entry.
-      final Checksum crc32 = new CRC32();
-      crc32.update(
-          memory.array(),
-          Integer.BYTES + Integer.BYTES,
-          memory.limit() - (Integer.BYTES + Integer.BYTES));
-      final long checksum = crc32.getValue();
-
-      // Create a single byte[] in memory for the entire entry and write it as a batch to the
-      // underlying buffer.
-      memory.putInt(0, length);
-      memory.putInt(Integer.BYTES, (int) checksum);
-      channel.write(memory);
-
-      // Update the last entry with the correct index/term/length.
-      final Indexed<E> indexedEntry = new Indexed<>(index, entry, length);
-      this.lastEntry = indexedEntry;
-      this.index.index(lastEntry, (int) position);
-      return (Indexed<T>) indexedEntry;
-    } catch (final IOException e) {
-      throw new StorageException(e);
-    }
-  }
-
-  @Override
-  public void commit(final long index) {}
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public void truncate(final long index) {
-    // If the index is greater than or equal to the last index, skip the truncate.
-    if (index >= getLastIndex()) {
-      return;
-    }
-
-    // Reset the last entry.
-    lastEntry = null;
-
-    try {
-      // Truncate the index.
-      this.index.truncate(index);
-
-      if (index < segment.index()) {
-        channel.position(JournalSegmentDescriptor.BYTES);
-        channel.write(zero());
-        channel.position(JournalSegmentDescriptor.BYTES);
-      } else {
-        // Reset the writer to the given index.
-        reset(index);
-
-        // Zero entries after the given index.
-        final long position = channel.position();
-        channel.write(zero());
-        channel.position(position);
-      }
-    } catch (final IOException e) {
-      throw new StorageException(e);
-    }
-  }
-
   /** Returns a zeroed out byte buffer. */
   private ByteBuffer zero() {
     memory.clear();
@@ -320,21 +336,5 @@ class FileChannelJournalSegmentWriter<E> implements JournalWriter<E> {
       memory.put(i, (byte) 0);
     }
     return memory;
-  }
-
-  @Override
-  public void flush() {
-    try {
-      if (channel.isOpen()) {
-        channel.force(true);
-      }
-    } catch (final IOException e) {
-      throw new StorageException(e);
-    }
-  }
-
-  @Override
-  public void close() {
-    flush();
   }
 }

@@ -30,6 +30,11 @@ public final class JournalSegmentFile {
   private static final String EXTENSION = "log";
   private final File file;
 
+  /** @throws IllegalArgumentException if {@code file} is not a valid segment file */
+  JournalSegmentFile(final File file) {
+    this.file = file;
+  }
+
   /**
    * Returns a boolean value indicating whether the given file appears to be a parsable segment
    * file.
@@ -75,11 +80,6 @@ public final class JournalSegmentFile {
   static File createSegmentFile(final String name, final File directory, final long id) {
     return new File(
         directory, String.format("%s-%d.log", checkNotNull(name, "name cannot be null"), id));
-  }
-
-  /** @throws IllegalArgumentException if {@code file} is not a valid segment file */
-  JournalSegmentFile(final File file) {
-    this.file = file;
   }
 
   /**

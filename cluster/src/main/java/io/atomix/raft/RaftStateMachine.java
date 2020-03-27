@@ -78,19 +78,19 @@ public interface RaftStateMachine extends AutoCloseable {
   void close();
 
   /**
+   * Returns the current compactable index.
+   *
+   * @return the current compactable index
+   */
+  long getCompactableIndex();
+
+  /**
    * Updates the compactable position; by default does nothing as the default behaviour is to use
    * the last applied index and term.
    *
    * @param index index up to which the log can be compacted
    */
   default void setCompactableIndex(final long index) {}
-
-  /**
-   * Returns the current compactable index.
-   *
-   * @return the current compactable index
-   */
-  long getCompactableIndex();
 
   /**
    * Returns the term of the entry with the current compactable index.

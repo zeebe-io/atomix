@@ -26,6 +26,41 @@ import java.util.Properties;
 /** Represents a node as a member in a cluster. */
 public class Member extends Node {
 
+  private final MemberId id;
+  private final String zone;
+  private final String rack;
+  private final String host;
+  private final Properties properties;
+
+  public Member(final MemberConfig config) {
+    super(config);
+    this.id = config.getId();
+    this.zone = config.getZoneId();
+    this.rack = config.getRackId();
+    this.host = config.getHostId();
+    this.properties = new Properties();
+    properties.putAll(config.getProperties());
+  }
+
+  protected Member(final MemberId id, final Address address) {
+    this(id, address, null, null, null, new Properties());
+  }
+
+  protected Member(
+      final MemberId id,
+      final Address address,
+      final String zone,
+      final String rack,
+      final String host,
+      final Properties properties) {
+    super(id, address);
+    this.id = checkNotNull(id, "id cannot be null");
+    this.zone = zone;
+    this.rack = rack;
+    this.host = host;
+    this.properties = properties;
+  }
+
   /**
    * Returns a new member builder with no ID.
    *
@@ -99,39 +134,52 @@ public class Member extends Node {
     return builder(memberId).withAddress(address).build();
   }
 
-  private final MemberId id;
-  private final String zone;
-  private final String rack;
-  private final String host;
-  private final Properties properties;
-
-  public Member(final MemberConfig config) {
-    super(config);
-    this.id = config.getId();
-    this.zone = config.getZoneId();
-    this.rack = config.getRackId();
-    this.host = config.getHostId();
-    this.properties = new Properties();
-    properties.putAll(config.getProperties());
-  }
-
-  protected Member(final MemberId id, final Address address) {
-    this(id, address, null, null, null, new Properties());
-  }
-
-  protected Member(
-      final MemberId id, final Address address, final String zone, final String rack, final String host, final Properties properties) {
-    super(id, address);
-    this.id = checkNotNull(id, "id cannot be null");
-    this.zone = zone;
-    this.rack = rack;
-    this.host = host;
-    this.properties = properties;
-  }
-
   @Override
   public MemberId id() {
     return id;
+  }
+
+  @Override
+  public MemberConfig config() {
+    return new MemberConfig()
+        .setId(id())
+        .setAddress(address())
+        .setZoneId(zone())
+        .setRackId(rack())
+        .setHostId(host())
+        .setProperties(properties());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(id(), address(), zone(), rack(), host(), properties());
+  }
+
+  @Override
+  public boolean equals(final Object object) {
+    if (object instanceof Member) {
+      final Member member = (Member) object;
+      return member.id().equals(id())
+          && member.address().equals(address())
+          && Objects.equals(member.zone(), zone())
+          && Objects.equals(member.rack(), rack())
+          && Objects.equals(member.host(), host())
+          && Objects.equals(member.properties(), properties());
+    }
+    return false;
+  }
+
+  @Override
+  public String toString() {
+    return toStringHelper(Member.class)
+        .add("id", id())
+        .add("address", address())
+        .add("zone", zone())
+        .add("rack", rack())
+        .add("host", host())
+        .add("properties", properties())
+        .omitNullValues()
+        .toString();
   }
 
   /**
@@ -204,48 +252,5 @@ public class Member extends Node {
    */
   public long timestamp() {
     return 0;
-  }
-
-  @Override
-  public MemberConfig config() {
-    return new MemberConfig()
-        .setId(id())
-        .setAddress(address())
-        .setZoneId(zone())
-        .setRackId(rack())
-        .setHostId(host())
-        .setProperties(properties());
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(id(), address(), zone(), rack(), host(), properties());
-  }
-
-  @Override
-  public boolean equals(final Object object) {
-    if (object instanceof Member) {
-      final Member member = (Member) object;
-      return member.id().equals(id())
-          && member.address().equals(address())
-          && Objects.equals(member.zone(), zone())
-          && Objects.equals(member.rack(), rack())
-          && Objects.equals(member.host(), host())
-          && Objects.equals(member.properties(), properties());
-    }
-    return false;
-  }
-
-  @Override
-  public String toString() {
-    return toStringHelper(Member.class)
-        .add("id", id())
-        .add("address", address())
-        .add("zone", zone())
-        .add("rack", rack())
-        .add("host", host())
-        .add("properties", properties())
-        .omitNullValues()
-        .toString();
   }
 }

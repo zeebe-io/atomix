@@ -24,6 +24,8 @@ public final class WorkQueueStats {
   private long totalInProgress;
   private long totalCompleted;
 
+  private WorkQueueStats() {}
+
   /**
    * Returns a {@code WorkQueueStats} builder.
    *
@@ -31,32 +33,6 @@ public final class WorkQueueStats {
    */
   public static Builder builder() {
     return new Builder();
-  }
-
-  private WorkQueueStats() {}
-
-  public static class Builder {
-
-    WorkQueueStats workQueueStats = new WorkQueueStats();
-
-    public Builder withTotalPending(final long value) {
-      workQueueStats.totalPending = value;
-      return this;
-    }
-
-    public Builder withTotalInProgress(final long value) {
-      workQueueStats.totalInProgress = value;
-      return this;
-    }
-
-    public Builder withTotalCompleted(final long value) {
-      workQueueStats.totalCompleted = value;
-      return this;
-    }
-
-    public WorkQueueStats build() {
-      return workQueueStats;
-    }
   }
 
   /**
@@ -93,5 +69,29 @@ public final class WorkQueueStats {
         .add("totalInProgress", totalInProgress)
         .add("totalCompleted", totalCompleted)
         .toString();
+  }
+
+  public static class Builder {
+
+    WorkQueueStats workQueueStats = new WorkQueueStats();
+
+    public Builder withTotalPending(final long value) {
+      workQueueStats.totalPending = value;
+      return this;
+    }
+
+    public Builder withTotalInProgress(final long value) {
+      workQueueStats.totalInProgress = value;
+      return this;
+    }
+
+    public Builder withTotalCompleted(final long value) {
+      workQueueStats.totalCompleted = value;
+      return this;
+    }
+
+    public WorkQueueStats build() {
+      return workQueueStats;
+    }
   }
 }

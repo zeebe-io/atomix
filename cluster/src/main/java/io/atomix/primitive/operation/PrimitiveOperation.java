@@ -24,6 +24,19 @@ import java.util.Objects;
 /** Base type for Raft state operations. */
 public class PrimitiveOperation {
 
+  protected final OperationId id;
+  protected final byte[] value;
+
+  protected PrimitiveOperation() {
+    this.id = null;
+    this.value = null;
+  }
+
+  public PrimitiveOperation(final OperationId id, final byte[] value) {
+    this.id = id;
+    this.value = value;
+  }
+
   /**
    * Creates a new primitive operation with a simplified identifier and a null value.
    *
@@ -43,19 +56,6 @@ public class PrimitiveOperation {
    */
   public static PrimitiveOperation operation(final OperationId id, final byte[] value) {
     return new PrimitiveOperation(OperationId.simplify(id), value);
-  }
-
-  protected final OperationId id;
-  protected final byte[] value;
-
-  protected PrimitiveOperation() {
-    this.id = null;
-    this.value = null;
-  }
-
-  public PrimitiveOperation(final OperationId id, final byte[] value) {
-    this.id = id;
-    this.value = value;
   }
 
   /**

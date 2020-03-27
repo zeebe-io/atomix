@@ -34,7 +34,8 @@ public abstract class OperationRequest extends SessionRequest {
   protected final long sequence;
   protected final PrimitiveOperation operation;
 
-  protected OperationRequest(final long session, final long sequence, final PrimitiveOperation operation) {
+  protected OperationRequest(
+      final long session, final long sequence, final PrimitiveOperation operation) {
     super(session);
     this.sequence = sequence;
     this.operation = operation;

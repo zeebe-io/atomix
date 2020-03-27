@@ -57,7 +57,8 @@ public class PhiAccrualFailureDetector {
    * @param phiFactor the phi factor
    * @param windowSize the phi accrual window size
    */
-  public PhiAccrualFailureDetector(final int minSamples, final double phiFactor, final int windowSize) {
+  public PhiAccrualFailureDetector(
+      final int minSamples, final double phiFactor, final int windowSize) {
     this.minSamples = minSamples;
     this.phiFactor = phiFactor;
     this.history = new History(windowSize);
@@ -114,16 +115,17 @@ public class PhiAccrualFailureDetector {
    * @param currentTime the current time
    * @return phi
    */
-  private double computePhi(final DescriptiveStatistics samples, final long lastHeartbeat, final long currentTime) {
+  private double computePhi(
+      final DescriptiveStatistics samples, final long lastHeartbeat, final long currentTime) {
     final long size = samples.getN();
     final long t = currentTime - lastHeartbeat;
     return (size > 0) ? phiFactor * t / samples.getMean() : 100;
   }
 
   /** Stores the history of heartbeats for a node. */
-  private static class History {
-    private final DescriptiveStatistics samples;
+  private static final class History {
     long lastHeartbeatTime = System.currentTimeMillis();
+    private final DescriptiveStatistics samples;
 
     private History(final int windowSize) {
       this.samples = new DescriptiveStatistics(windowSize);

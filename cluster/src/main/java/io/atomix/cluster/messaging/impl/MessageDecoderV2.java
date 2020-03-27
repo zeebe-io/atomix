@@ -25,27 +25,11 @@ import java.util.List;
 /** Protocol version 2 message decoder. */
 class MessageDecoderV2 extends AbstractMessageDecoder {
 
-  /** V2 decoder state. */
-  enum DecoderState {
-    READ_TYPE,
-    READ_MESSAGE_ID,
-    READ_SENDER_HOST_LENGTH,
-    READ_SENDER_HOST,
-    READ_SENDER_PORT,
-    READ_SUBJECT_LENGTH,
-    READ_SUBJECT,
-    READ_STATUS,
-    READ_CONTENT_LENGTH,
-    READ_CONTENT
-  }
-
   private DecoderState currentState = DecoderState.READ_SENDER_HOST_LENGTH;
-
   private int senderHostLength;
   private String senderHost;
   private int senderPort;
   private Address senderAddress;
-
   private ProtocolMessage.Type type;
   private long messageId;
   private int contentLength;
@@ -53,8 +37,9 @@ class MessageDecoderV2 extends AbstractMessageDecoder {
   private int subjectLength;
 
   @Override
-  @SuppressWarnings("squid:S128") // suppress switch fall through warning
-  protected void decode(final ChannelHandlerContext context, final ByteBuf buffer, final List<Object> out)
+  @SuppressWarnings({"squid:S128"}) // suppress switch fall through warning
+  protected void decode(
+      final ChannelHandlerContext context, final ByteBuf buffer, final List<Object> out)
       throws Exception {
 
     switch (currentState) {
@@ -165,5 +150,19 @@ class MessageDecoderV2 extends AbstractMessageDecoder {
       default:
         checkState(false, "Must not be here");
     }
+  }
+
+  /** V2 decoder state. */
+  enum DecoderState {
+    READ_TYPE,
+    READ_MESSAGE_ID,
+    READ_SENDER_HOST_LENGTH,
+    READ_SENDER_HOST,
+    READ_SENDER_PORT,
+    READ_SUBJECT_LENGTH,
+    READ_SUBJECT,
+    READ_STATUS,
+    READ_CONTENT_LENGTH,
+    READ_CONTENT
   }
 }

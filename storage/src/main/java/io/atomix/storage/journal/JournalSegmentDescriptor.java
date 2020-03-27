@@ -78,6 +78,25 @@ public final class JournalSegmentDescriptor {
   private static final int MAX_SIZE_POSITION = INDEX_POSITION + INDEX_LENGTH; // 20
   private static final int MAX_ENTRIES_POSITION = MAX_SIZE_POSITION + MAX_SIZE_LENGTH; // 24
   private static final int UPDATED_POSITION = MAX_ENTRIES_POSITION + MAX_ENTRIES_LENGTH; // 28
+  private final ByteBuffer buffer;
+  private final int version;
+  private final long id;
+  private final long index;
+  private final int maxSegmentSize;
+  private final int maxEntries;
+  private volatile long updated;
+  private final boolean locked;
+  /** @throws NullPointerException if {@code buffer} is null */
+  public JournalSegmentDescriptor(final ByteBuffer buffer) {
+    this.buffer = buffer;
+    this.version = buffer.getInt();
+    this.id = buffer.getLong();
+    this.index = buffer.getLong();
+    this.maxSegmentSize = buffer.getInt();
+    this.maxEntries = buffer.getInt();
+    this.updated = buffer.getLong();
+    this.locked = buffer.get() == 1;
+  }
 
   /**
    * Returns a descriptor builder.
@@ -99,27 +118,6 @@ public final class JournalSegmentDescriptor {
    */
   public static Builder builder(final ByteBuffer buffer) {
     return new Builder(buffer);
-  }
-
-  private final ByteBuffer buffer;
-  private final int version;
-  private final long id;
-  private final long index;
-  private final int maxSegmentSize;
-  private final int maxEntries;
-  private volatile long updated;
-  private volatile boolean locked;
-
-  /** @throws NullPointerException if {@code buffer} is null */
-  public JournalSegmentDescriptor(final ByteBuffer buffer) {
-    this.buffer = buffer;
-    this.version = buffer.getInt();
-    this.id = buffer.getLong();
-    this.index = buffer.getLong();
-    this.maxSegmentSize = buffer.getInt();
-    this.maxEntries = buffer.getInt();
-    this.updated = buffer.getLong();
-    this.locked = buffer.get() == 1;
   }
 
   /**
@@ -219,7 +217,7 @@ public final class JournalSegmentDescriptor {
   }
 
   /** Segment descriptor builder. */
-  public static class Builder {
+  public static final class Builder {
     private final ByteBuffer buffer;
 
     private Builder(final ByteBuffer buffer) {

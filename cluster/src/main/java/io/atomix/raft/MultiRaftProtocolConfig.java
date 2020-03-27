@@ -45,83 +45,6 @@ public class MultiRaftProtocolConfig extends PrimitiveProtocolConfig<MultiRaftPr
   }
 
   /**
-   * Returns the partition group.
-   *
-   * @return the partition group
-   */
-  public String getGroup() {
-    return group;
-  }
-
-  /**
-   * Returns the maximum allowed number of retries.
-   *
-   * @return the maximum allowed number of retries
-   */
-  public int getMaxRetries() {
-    return maxRetries;
-  }
-
-  /**
-   * Returns the maximum session timeout.
-   *
-   * @return the maximum session timeout
-   */
-  public Duration getMaxTimeout() {
-    return maxTimeout;
-  }
-
-  /**
-   * Returns the minimum session timeout.
-   *
-   * @return the minimum session timeout
-   */
-  public Duration getMinTimeout() {
-    return minTimeout;
-  }
-
-  /**
-   * Returns the protocol partitioner.
-   *
-   * @return the protocol partitioner
-   */
-  public Partitioner<String> getPartitioner() {
-    return partitioner;
-  }
-
-  /**
-   * Returns the read consistency level.
-   *
-   * @return the read consistency level
-   */
-  public ReadConsistency getReadConsistency() {
-    return readConsistency;
-  }
-
-  /**
-   * Returns the client recovery strategy.
-   *
-   * @return the client recovery strategy
-   */
-  public Recovery getRecoveryStrategy() {
-    return recoveryStrategy;
-  }
-
-  /**
-   * Returns the retry delay.
-   *
-   * @return the retry delay
-   */
-  public Duration getRetryDelay() {
-    return retryDelay;
-  }
-
-  @Override
-  public PrimitiveProtocol.Type getType() {
-    return MultiRaftProtocol.TYPE;
-  }
-
-  /**
    * Sets the client communication strategy.
    *
    * @param communicationStrategy the client communication strategy
@@ -131,6 +54,15 @@ public class MultiRaftProtocolConfig extends PrimitiveProtocolConfig<MultiRaftPr
       final CommunicationStrategy communicationStrategy) {
     this.communicationStrategy = communicationStrategy;
     return this;
+  }
+
+  /**
+   * Returns the partition group.
+   *
+   * @return the partition group
+   */
+  public String getGroup() {
+    return group;
   }
 
   /**
@@ -145,6 +77,15 @@ public class MultiRaftProtocolConfig extends PrimitiveProtocolConfig<MultiRaftPr
   }
 
   /**
+   * Returns the maximum allowed number of retries.
+   *
+   * @return the maximum allowed number of retries
+   */
+  public int getMaxRetries() {
+    return maxRetries;
+  }
+
+  /**
    * Sets the maximum allowed number of retries.
    *
    * @param maxRetries the maximum allowed number of retries
@@ -153,6 +94,15 @@ public class MultiRaftProtocolConfig extends PrimitiveProtocolConfig<MultiRaftPr
   public MultiRaftProtocolConfig setMaxRetries(final int maxRetries) {
     this.maxRetries = maxRetries;
     return this;
+  }
+
+  /**
+   * Returns the maximum session timeout.
+   *
+   * @return the maximum session timeout
+   */
+  public Duration getMaxTimeout() {
+    return maxTimeout;
   }
 
   /**
@@ -167,6 +117,15 @@ public class MultiRaftProtocolConfig extends PrimitiveProtocolConfig<MultiRaftPr
   }
 
   /**
+   * Returns the minimum session timeout.
+   *
+   * @return the minimum session timeout
+   */
+  public Duration getMinTimeout() {
+    return minTimeout;
+  }
+
+  /**
    * Sets the minimum session timeout.
    *
    * @param minTimeout the minimum session timeout
@@ -175,6 +134,15 @@ public class MultiRaftProtocolConfig extends PrimitiveProtocolConfig<MultiRaftPr
   public MultiRaftProtocolConfig setMinTimeout(final Duration minTimeout) {
     this.minTimeout = minTimeout;
     return this;
+  }
+
+  /**
+   * Returns the protocol partitioner.
+   *
+   * @return the protocol partitioner
+   */
+  public Partitioner<String> getPartitioner() {
+    return partitioner;
   }
 
   /**
@@ -189,6 +157,15 @@ public class MultiRaftProtocolConfig extends PrimitiveProtocolConfig<MultiRaftPr
   }
 
   /**
+   * Returns the read consistency level.
+   *
+   * @return the read consistency level
+   */
+  public ReadConsistency getReadConsistency() {
+    return readConsistency;
+  }
+
+  /**
    * Sets the read consistency level.
    *
    * @param readConsistency the read consistency level
@@ -197,6 +174,15 @@ public class MultiRaftProtocolConfig extends PrimitiveProtocolConfig<MultiRaftPr
   public MultiRaftProtocolConfig setReadConsistency(final ReadConsistency readConsistency) {
     this.readConsistency = readConsistency;
     return this;
+  }
+
+  /**
+   * Returns the client recovery strategy.
+   *
+   * @return the client recovery strategy
+   */
+  public Recovery getRecoveryStrategy() {
+    return recoveryStrategy;
   }
 
   /**
@@ -211,13 +197,12 @@ public class MultiRaftProtocolConfig extends PrimitiveProtocolConfig<MultiRaftPr
   }
 
   /**
-   * Sets the retry delay.
+   * Returns the retry delay.
    *
-   * @param retryDelayMillis the retry delay in milliseconds
-   * @return the protocol configuration
+   * @return the retry delay
    */
-  public MultiRaftProtocolConfig setRetryDelayMillis(final long retryDelayMillis) {
-    return setRetryDelay(Duration.ofMillis(retryDelayMillis));
+  public Duration getRetryDelay() {
+    return retryDelay;
   }
 
   /**
@@ -229,5 +214,20 @@ public class MultiRaftProtocolConfig extends PrimitiveProtocolConfig<MultiRaftPr
   public MultiRaftProtocolConfig setRetryDelay(final Duration retryDelay) {
     this.retryDelay = retryDelay;
     return this;
+  }
+
+  @Override
+  public PrimitiveProtocol.Type getType() {
+    return MultiRaftProtocol.TYPE;
+  }
+
+  /**
+   * Sets the retry delay.
+   *
+   * @param retryDelayMillis the retry delay in milliseconds
+   * @return the protocol configuration
+   */
+  public MultiRaftProtocolConfig setRetryDelayMillis(final long retryDelayMillis) {
+    return setRetryDelay(Duration.ofMillis(retryDelayMillis));
   }
 }

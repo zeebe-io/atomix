@@ -265,15 +265,6 @@ public class RaftSession extends AbstractSession {
   }
 
   /**
-   * Sets the current request sequence number.
-   *
-   * @param requestSequence the current request sequence number
-   */
-  public void setRequestSequence(final long requestSequence) {
-    this.requestSequence.accumulate(requestSequence);
-  }
-
-  /**
    * Clears command results up to the given sequence number.
    *
    * <p>Command output is removed from memory up to the given sequence number. Additionally, since
@@ -344,28 +335,6 @@ public class RaftSession extends AbstractSession {
     setLastApplied(index);
   }
 
-  /**
-   * Sets the session index.
-   *
-   * @param index The session index.
-   */
-  public void setLastApplied(final long index) {
-    // Query callbacks for this session are added to the indexQueries map to be executed once the
-    // required index
-    // for the query is reached. For each increment of the index, trigger query callbacks that are
-    // dependent
-    // on the specific index.
-    for (long i = lastApplied + 1; i <= index; i++) {
-      lastApplied = i;
-      final List<Runnable> queries = this.indexQueries.remove(lastApplied);
-      if (queries != null) {
-        for (final Runnable query : queries) {
-          query.run();
-        }
-      }
-    }
-  }
-
   /** Sends an event to the session. */
   private void sendEvents(final EventHolder event) {
     // Only send events to the client if this server is the leader.
@@ -393,18 +362,6 @@ public class RaftSession extends AbstractSession {
         sessionId(),
         request -> resendEvents(request.index()),
         server.getServiceManager().executor());
-  }
-
-  /**
-   * Updates the session state.
-   *
-   * @param state The session state.
-   */
-  private void setState(final State state) {
-    if (this.state != state) {
-      this.state = state;
-      log.debug("State changed: {}", state);
-    }
   }
 
   /**
@@ -477,80 +434,6 @@ public class RaftSession extends AbstractSession {
   }
 
   /**
-   * Returns the collection of pending commands.
-   *
-   * @return the collection of pending commands
-   */
-  public Collection<PendingCommand> getCommands() {
-    return pendingCommands.values();
-  }
-
-  /**
-   * Returns the session event index.
-   *
-   * @return The session event index.
-   */
-  public long getEventIndex() {
-    return eventIndex;
-  }
-
-  /**
-   * Returns the session index.
-   *
-   * @return The session index.
-   */
-  public long getLastApplied() {
-    return lastApplied;
-  }
-
-  /**
-   * Returns the index of the highest event acked for the session.
-   *
-   * @return The index of the highest event acked for the session.
-   */
-  public long getLastCompleted() {
-    // If there are any queued events, return the index prior to the first event in the queue.
-    final EventHolder event = events.peek();
-    if (event != null && event.eventIndex > completeIndex) {
-      return event.eventIndex - 1;
-    }
-    // If no events are queued, return the highest index applied to the session.
-    return lastApplied;
-  }
-
-  /**
-   * Returns the session update timestamp.
-   *
-   * @return The session update timestamp.
-   */
-  public long getLastUpdated() {
-    return lastUpdated;
-  }
-
-  /**
-   * Returns the session request number.
-   *
-   * @return The session request number.
-   */
-  public long getRequestSequence() {
-    return requestSequence.get();
-  }
-
-  /**
-   * Returns the state machine context associated with the session.
-   *
-   * @return The state machine context associated with the session.
-   */
-  public RaftServiceContext getService() {
-    return context;
-  }
-
-  @Override
-  public State getState() {
-    return state;
-  }
-
-  /**
    * Sets the session operation sequence number.
    *
    * @param sequence The session operation sequence number.
@@ -570,12 +453,76 @@ public class RaftSession extends AbstractSession {
   }
 
   /**
+   * Returns the collection of pending commands.
+   *
+   * @return the collection of pending commands
+   */
+  public Collection<PendingCommand> getCommands() {
+    return pendingCommands.values();
+  }
+
+  /**
+   * Returns the session event index.
+   *
+   * @return The session event index.
+   */
+  public long getEventIndex() {
+    return eventIndex;
+  }
+
+  /**
    * Sets the session event index.
    *
    * @param eventIndex the session event index
    */
   public void setEventIndex(final long eventIndex) {
     this.eventIndex = eventIndex;
+  }
+
+  /**
+   * Returns the session index.
+   *
+   * @return The session index.
+   */
+  public long getLastApplied() {
+    return lastApplied;
+  }
+
+  /**
+   * Sets the session index.
+   *
+   * @param index The session index.
+   */
+  public void setLastApplied(final long index) {
+    // Query callbacks for this session are added to the indexQueries map to be executed once the
+    // required index
+    // for the query is reached. For each increment of the index, trigger query callbacks that are
+    // dependent
+    // on the specific index.
+    for (long i = lastApplied + 1; i <= index; i++) {
+      lastApplied = i;
+      final List<Runnable> queries = this.indexQueries.remove(lastApplied);
+      if (queries != null) {
+        for (final Runnable query : queries) {
+          query.run();
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns the index of the highest event acked for the session.
+   *
+   * @return The index of the highest event acked for the session.
+   */
+  public long getLastCompleted() {
+    // If there are any queued events, return the index prior to the first event in the queue.
+    final EventHolder event = events.peek();
+    if (event != null && event.eventIndex > completeIndex) {
+      return event.eventIndex - 1;
+    }
+    // If no events are queued, return the highest index applied to the session.
+    return lastApplied;
   }
 
   /**
@@ -588,12 +535,65 @@ public class RaftSession extends AbstractSession {
   }
 
   /**
+   * Returns the session update timestamp.
+   *
+   * @return The session update timestamp.
+   */
+  public long getLastUpdated() {
+    return lastUpdated;
+  }
+
+  /**
    * Updates the session timestamp.
    *
    * @param lastUpdated The session timestamp.
    */
   public void setLastUpdated(final long lastUpdated) {
     this.lastUpdated = Math.max(this.lastUpdated, lastUpdated);
+  }
+
+  /**
+   * Returns the session request number.
+   *
+   * @return The session request number.
+   */
+  public long getRequestSequence() {
+    return requestSequence.get();
+  }
+
+  /**
+   * Sets the current request sequence number.
+   *
+   * @param requestSequence the current request sequence number
+   */
+  public void setRequestSequence(final long requestSequence) {
+    this.requestSequence.accumulate(requestSequence);
+  }
+
+  /**
+   * Returns the state machine context associated with the session.
+   *
+   * @return The state machine context associated with the session.
+   */
+  public RaftServiceContext getService() {
+    return context;
+  }
+
+  @Override
+  public State getState() {
+    return state;
+  }
+
+  /**
+   * Updates the session state.
+   *
+   * @param state The session state.
+   */
+  private void setState(final State state) {
+    if (this.state != state) {
+      this.state = state;
+      log.debug("State changed: {}", state);
+    }
   }
 
   /** Event holder. */

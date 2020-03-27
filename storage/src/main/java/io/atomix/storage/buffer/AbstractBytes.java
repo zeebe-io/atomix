@@ -71,16 +71,6 @@ public abstract class AbstractBytes implements Bytes {
   }
 
   @Override
-  public boolean isDirect() {
-    return false;
-  }
-
-  @Override
-  public boolean isFile() {
-    return false;
-  }
-
-  @Override
   public ByteOrder order() {
     return ByteOrder.BIG_ENDIAN;
   }
@@ -101,8 +91,18 @@ public abstract class AbstractBytes implements Bytes {
   }
 
   @Override
-  public boolean readBoolean(final int offset) {
-    return readByte(offset) == 1;
+  public boolean isDirect() {
+    return false;
+  }
+
+  @Override
+  public boolean isFile() {
+    return false;
+  }
+
+  @Override
+  public void close() {
+    open = false;
   }
 
   @Override
@@ -135,6 +135,11 @@ public abstract class AbstractBytes implements Bytes {
   }
 
   @Override
+  public boolean readBoolean(final int offset) {
+    return readByte(offset) == 1;
+  }
+
+  @Override
   public String readString(final int offset) {
     return readString(offset, Charset.defaultCharset());
   }
@@ -152,11 +157,6 @@ public abstract class AbstractBytes implements Bytes {
   @Override
   public String readUTF8(final int offset) {
     return readString(offset, StandardCharsets.UTF_8);
-  }
-
-  @Override
-  public Bytes writeBoolean(final int offset, final boolean b) {
-    return writeByte(offset, b ? 1 : 0);
   }
 
   @Override
@@ -188,6 +188,11 @@ public abstract class AbstractBytes implements Bytes {
   }
 
   @Override
+  public Bytes writeBoolean(final int offset, final boolean b) {
+    return writeByte(offset, b ? 1 : 0);
+  }
+
+  @Override
   public Bytes writeString(final int offset, final String s) {
     return writeString(offset, s, Charset.defaultCharset());
   }
@@ -212,10 +217,5 @@ public abstract class AbstractBytes implements Bytes {
   @Override
   public Bytes flush() {
     return this;
-  }
-
-  @Override
-  public void close() {
-    open = false;
   }
 }

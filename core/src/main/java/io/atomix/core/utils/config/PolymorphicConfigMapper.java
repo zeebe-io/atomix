@@ -42,12 +42,16 @@ public class PolymorphicConfigMapper extends ConfigMapper {
   }
 
   public PolymorphicConfigMapper(
-      final ClassLoader classLoader, final AtomixRegistry registry, final PolymorphicTypeMapper... mappers) {
+      final ClassLoader classLoader,
+      final AtomixRegistry registry,
+      final PolymorphicTypeMapper... mappers) {
     this(classLoader, registry, Arrays.asList(mappers));
   }
 
   public PolymorphicConfigMapper(
-      final ClassLoader classLoader, final AtomixRegistry registry, final Collection<PolymorphicTypeMapper> mappers) {
+      final ClassLoader classLoader,
+      final AtomixRegistry registry,
+      final Collection<PolymorphicTypeMapper> mappers) {
     super(classLoader);
     this.registry = checkNotNull(registry);
     this.polymorphicTypes = mappers;

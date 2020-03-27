@@ -33,7 +33,8 @@ public class BlockingAwareSingleThreadContextFactory implements ThreadContextFac
     this(threadPoolSize, namedThreads(nameFormat, logger));
   }
 
-  public BlockingAwareSingleThreadContextFactory(final int threadPoolSize, final ThreadFactory threadFactory) {
+  public BlockingAwareSingleThreadContextFactory(
+      final int threadPoolSize, final ThreadFactory threadFactory) {
     this(threadFactory, Executors.newScheduledThreadPool(threadPoolSize, threadFactory));
   }
 

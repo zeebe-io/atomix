@@ -21,15 +21,6 @@ import io.atomix.utils.event.AbstractEvent;
 /** Node discovery event. */
 public class NodeDiscoveryEvent extends AbstractEvent<NodeDiscoveryEvent.Type, Node> {
 
-  /** Node discovery event type. */
-  public enum Type {
-    /** Indicates that the node joined the cluster. */
-    JOIN,
-
-    /** Indicates that the node left the cluster. */
-    LEAVE,
-  }
-
   public NodeDiscoveryEvent(final Type type, final Node subject) {
     super(type, subject);
   }
@@ -45,5 +36,14 @@ public class NodeDiscoveryEvent extends AbstractEvent<NodeDiscoveryEvent.Type, N
    */
   public Node node() {
     return subject();
+  }
+
+  /** Node discovery event type. */
+  public enum Type {
+    /** Indicates that the node joined the cluster. */
+    JOIN,
+
+    /** Indicates that the node left the cluster. */
+    LEAVE,
   }
 }

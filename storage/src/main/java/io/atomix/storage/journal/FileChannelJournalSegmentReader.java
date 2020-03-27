@@ -92,6 +92,47 @@ class FileChannelJournalSegmentReader<E> implements JournalReader<E> {
   }
 
   @Override
+  public boolean hasNext() {
+    // If the next entry is null, check whether a next entry exists.
+    if (nextEntry == null) {
+      readNext();
+    }
+    return nextEntry != null;
+  }
+
+  @Override
+  public Indexed<E> next() {
+    if (!hasNext()) {
+      throw new NoSuchElementException();
+    }
+
+    // Set the current entry to the next entry.
+    currentEntry = nextEntry;
+
+    // Reset the next entry to null.
+    nextEntry = null;
+
+    // Read the next entry in the segment.
+    readNext();
+
+    // Return the current entry.
+    return currentEntry;
+  }
+
+  @Override
+  public void reset() {
+    try {
+      channel.position(JournalSegmentDescriptor.BYTES);
+    } catch (final IOException e) {
+      throw new StorageException(e);
+    }
+    memory.clear().limit(0);
+    currentEntry = null;
+    nextEntry = null;
+    readNext();
+  }
+
+  @Override
   public void reset(final long index) {
     final long firstIndex = segment.index();
     final long lastIndex = segment.lastIndex();
@@ -119,44 +160,8 @@ class FileChannelJournalSegmentReader<E> implements JournalReader<E> {
   }
 
   @Override
-  public void reset() {
-    try {
-      channel.position(JournalSegmentDescriptor.BYTES);
-    } catch (final IOException e) {
-      throw new StorageException(e);
-    }
-    memory.clear().limit(0);
-    currentEntry = null;
-    nextEntry = null;
-    readNext();
-  }
-
-  @Override
-  public boolean hasNext() {
-    // If the next entry is null, check whether a next entry exists.
-    if (nextEntry == null) {
-      readNext();
-    }
-    return nextEntry != null;
-  }
-
-  @Override
-  public Indexed<E> next() {
-    if (!hasNext()) {
-      throw new NoSuchElementException();
-    }
-
-    // Set the current entry to the next entry.
-    currentEntry = nextEntry;
-
-    // Reset the next entry to null.
-    nextEntry = null;
-
-    // Read the next entry in the segment.
-    readNext();
-
-    // Return the current entry.
-    return currentEntry;
+  public void close() {
+    // Do nothing. The parent reader manages the channel.
   }
 
   /** Reads the next entry in the segment. */
@@ -215,10 +220,5 @@ class FileChannelJournalSegmentReader<E> implements JournalReader<E> {
     } catch (final IOException e) {
       throw new StorageException(e);
     }
-  }
-
-  @Override
-  public void close() {
-    // Do nothing. The parent reader manages the channel.
   }
 }

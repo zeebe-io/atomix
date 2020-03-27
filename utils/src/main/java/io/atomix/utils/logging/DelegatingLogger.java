@@ -79,7 +79,8 @@ public class DelegatingLogger implements Logger {
   }
 
   @Override
-  public void trace(final Marker marker, final String format, final Object arg1, final Object arg2) {
+  public void trace(
+      final Marker marker, final String format, final Object arg1, final Object arg2) {
     delegate.trace(marker, format, arg1, arg2);
   }
 
@@ -139,7 +140,8 @@ public class DelegatingLogger implements Logger {
   }
 
   @Override
-  public void debug(final Marker marker, final String format, final Object arg1, final Object arg2) {
+  public void debug(
+      final Marker marker, final String format, final Object arg1, final Object arg2) {
     delegate.debug(marker, format, arg1, arg2);
   }
 
@@ -319,7 +321,8 @@ public class DelegatingLogger implements Logger {
   }
 
   @Override
-  public void error(final Marker marker, final String format, final Object arg1, final Object arg2) {
+  public void error(
+      final Marker marker, final String format, final Object arg1, final Object arg2) {
     delegate.error(marker, format, arg1, arg2);
   }
 

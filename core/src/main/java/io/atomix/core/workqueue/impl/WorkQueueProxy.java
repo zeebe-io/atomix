@@ -53,7 +53,8 @@ public class WorkQueueProxy extends AbstractAsyncPrimitive<AsyncWorkQueue<byte[]
   private final Timer timer = new Timer("atomix-work-queue-completer");
   private final AtomicBoolean isRegistered = new AtomicBoolean(false);
 
-  public WorkQueueProxy(final ProxyClient<WorkQueueService> proxy, final PrimitiveRegistry registry) {
+  public WorkQueueProxy(
+      final ProxyClient<WorkQueueService> proxy, final PrimitiveRegistry registry) {
     super(proxy, registry);
     executor =
         newSingleThreadExecutor(namedThreads("atomix-work-queue-" + proxy.name() + "-%d", log));
@@ -62,13 +63,6 @@ public class WorkQueueProxy extends AbstractAsyncPrimitive<AsyncWorkQueue<byte[]
   @Override
   public void taskAvailable() {
     resumeWork();
-  }
-
-  @Override
-  public CompletableFuture<Void> delete() {
-    executor.shutdown();
-    timer.cancel();
-    return super.delete();
   }
 
   @Override
@@ -153,13 +147,21 @@ public class WorkQueueProxy extends AbstractAsyncPrimitive<AsyncWorkQueue<byte[]
   }
 
   @Override
+  public CompletableFuture<Void> delete() {
+    executor.shutdown();
+    timer.cancel();
+    return super.delete();
+  }
+
+  @Override
   public WorkQueue<byte[]> sync(final Duration operationTimeout) {
     return new BlockingWorkQueue<>(this, operationTimeout.toMillis());
   }
 
   // TaskId accumulator for paced triggering of task completion calls.
   private class CompletedTaskAccumulator extends AbstractAccumulator<String> {
-    CompletedTaskAccumulator(final Timer timer, final int maxTasksToBatch, final int maxBatchMillis) {
+    CompletedTaskAccumulator(
+        final Timer timer, final int maxTasksToBatch, final int maxBatchMillis) {
       super(timer, maxTasksToBatch, maxBatchMillis, Integer.MAX_VALUE);
     }
 

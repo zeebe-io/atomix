@@ -52,6 +52,13 @@ public interface Profile extends Configured<ProfileConfig> {
     return new ClientProfile();
   }
 
+  /**
+   * Configures the Atomix instance.
+   *
+   * @param config the Atomix configuration
+   */
+  void configure(AtomixConfig config);
+
   /** Profile type. */
   interface Type<C extends ProfileConfig> extends ConfiguredType<C> {
 
@@ -63,11 +70,4 @@ public interface Profile extends Configured<ProfileConfig> {
      */
     Profile newProfile(C config);
   }
-
-  /**
-   * Configures the Atomix instance.
-   *
-   * @param config the Atomix configuration
-   */
-  void configure(AtomixConfig config);
 }

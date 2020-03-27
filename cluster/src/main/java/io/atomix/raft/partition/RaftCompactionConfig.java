@@ -36,12 +36,34 @@ public class RaftCompactionConfig {
   }
 
   /**
+   * Sets the free disk buffer.
+   *
+   * @param freeDiskBuffer the free disk buffer
+   * @return the compaction configuration
+   */
+  public RaftCompactionConfig setFreeDiskBuffer(final double freeDiskBuffer) {
+    this.freeDiskBuffer = freeDiskBuffer;
+    return this;
+  }
+
+  /**
    * Returns the free memory buffer.
    *
    * @return the free memory buffer
    */
   public double getFreeMemoryBuffer() {
     return freeMemoryBuffer;
+  }
+
+  /**
+   * Sets the free memory buffer.
+   *
+   * @param freeMemoryBuffer the free memory buffer
+   * @return the compaction configuration
+   */
+  public RaftCompactionConfig setFreeMemoryBuffer(final double freeMemoryBuffer) {
+    this.freeMemoryBuffer = freeMemoryBuffer;
+    return this;
   }
 
   /**
@@ -61,28 +83,6 @@ public class RaftCompactionConfig {
    */
   public RaftCompactionConfig setDynamic(final boolean dynamic) {
     this.dynamic = dynamic;
-    return this;
-  }
-
-  /**
-   * Sets the free disk buffer.
-   *
-   * @param freeDiskBuffer the free disk buffer
-   * @return the compaction configuration
-   */
-  public RaftCompactionConfig setFreeDiskBuffer(final double freeDiskBuffer) {
-    this.freeDiskBuffer = freeDiskBuffer;
-    return this;
-  }
-
-  /**
-   * Sets the free memory buffer.
-   *
-   * @param freeMemoryBuffer the free memory buffer
-   * @return the compaction configuration
-   */
-  public RaftCompactionConfig setFreeMemoryBuffer(final double freeMemoryBuffer) {
-    this.freeMemoryBuffer = freeMemoryBuffer;
     return this;
   }
 }

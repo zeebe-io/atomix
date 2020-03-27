@@ -133,7 +133,11 @@ abstract class AbstractClientConnection implements ClientConnection {
     private final ScheduledFuture<?> scheduledFuture;
     private final CompletableFuture<byte[]> replyFuture;
 
-    Callback(final long id, final String type, final Duration timeout, final CompletableFuture<byte[]> future) {
+    Callback(
+        final long id,
+        final String type,
+        final Duration timeout,
+        final CompletableFuture<byte[]> future) {
       this.id = id;
       this.type = type;
       this.timeout = getTimeoutMillis(type, timeout);

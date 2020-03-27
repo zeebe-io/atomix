@@ -53,6 +53,7 @@ public abstract class FileTesting {
             }
           });
     } catch (final Exception ignore) {
+      // should not happen
     }
   }
 }

@@ -40,50 +40,6 @@ public interface RaftResponse extends RaftMessage {
    */
   RaftError error();
 
-  /** Response status. */
-  enum Status {
-
-    /** Indicates a successful response status. */
-    OK(1),
-
-    /** Indicates a response containing an error. */
-    ERROR(0);
-
-    private final byte id;
-
-    Status(final int id) {
-      this.id = (byte) id;
-    }
-
-    /**
-     * Returns the status for the given identifier.
-     *
-     * @param id The status identifier.
-     * @return The status for the given identifier.
-     * @throws IllegalArgumentException if {@code id} is not 0 or 1
-     */
-    public static Status forId(final int id) {
-      switch (id) {
-        case 1:
-          return OK;
-        case 0:
-          return ERROR;
-        default:
-          break;
-      }
-      throw new IllegalArgumentException("invalid status identifier: " + id);
-    }
-
-    /**
-     * Returns the status identifier.
-     *
-     * @return The status identifier.
-     */
-    public byte id() {
-      return id;
-    }
-  }
-
   /**
    * Response builder.
    *
@@ -132,6 +88,50 @@ public interface RaftResponse extends RaftMessage {
      */
     default T withError(final RaftError.Type type, final String message) {
       return withError(new RaftError(type, message));
+    }
+  }
+
+  /** Response status. */
+  enum Status {
+
+    /** Indicates a successful response status. */
+    OK(1),
+
+    /** Indicates a response containing an error. */
+    ERROR(0);
+
+    private final byte id;
+
+    Status(final int id) {
+      this.id = (byte) id;
+    }
+
+    /**
+     * Returns the status for the given identifier.
+     *
+     * @param id The status identifier.
+     * @return The status for the given identifier.
+     * @throws IllegalArgumentException if {@code id} is not 0 or 1
+     */
+    public static Status forId(final int id) {
+      switch (id) {
+        case 1:
+          return OK;
+        case 0:
+          return ERROR;
+        default:
+          break;
+      }
+      throw new IllegalArgumentException("invalid status identifier: " + id);
+    }
+
+    /**
+     * Returns the status identifier.
+     *
+     * @return The status identifier.
+     */
+    public byte id() {
+      return id;
     }
   }
 }

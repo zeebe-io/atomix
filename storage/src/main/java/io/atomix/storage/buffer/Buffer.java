@@ -253,6 +253,300 @@ public interface Buffer
   boolean hasRemaining();
 
   /**
+   * Advances the buffer's {@code position} {@code length} bytes.
+   *
+   * @param length The number of bytes to advance this buffer's {@code position}.
+   * @return This buffer.
+   * @throws IndexOutOfBoundsException If {@code length} is greater than {@link Buffer#remaining()}
+   */
+  @Override
+  Buffer skip(int length);
+
+  /**
+   * Reads bytes into the given byte array.
+   *
+   * <p>Bytes will be read starting at the current buffer position until either the byte array
+   * {@code length} or the {@link Buffer#limit()} has been reached. If {@link Buffer#remaining()} is
+   * less than the {@code length} of the given byte array, a {@link
+   * java.nio.BufferUnderflowException} will be thrown.
+   *
+   * @param bytes The byte array into which to read bytes.
+   * @return The buffer.
+   * @throws java.nio.BufferUnderflowException If the given byte array's {@code length} is greater
+   *     than {@link Buffer#remaining()}
+   * @see Buffer#read(Bytes, int, int)
+   * @see Buffer#read(int, Bytes, int, int)
+   */
+  @Override
+  Buffer read(Bytes bytes);
+
+  /**
+   * Reads bytes into the given byte array.
+   *
+   * <p>Bytes will be read starting at the current buffer position until either the byte array
+   * {@code length} or the {@link Buffer#limit()} has been reached. If {@link Buffer#remaining()} is
+   * less than the {@code length} of the given byte array, a {@link
+   * java.nio.BufferUnderflowException} will be thrown.
+   *
+   * @param bytes The byte array into which to read bytes.
+   * @return The buffer.
+   * @throws java.nio.BufferUnderflowException If the given byte array's {@code length} is greater
+   *     than {@link Buffer#remaining()}
+   * @see Buffer#read(byte[], int, int)
+   * @see Buffer#read(int, byte[], int, int)
+   */
+  @Override
+  Buffer read(byte[] bytes);
+
+  /**
+   * Reads bytes into the given byte array starting at the current position.
+   *
+   * <p>Bytes will be read from the current position up to the given length. If the provided {@code
+   * length} is greater than {@link Buffer#remaining()} then a {@link
+   * java.nio.BufferUnderflowException} will be thrown. If the {@code offset} is out of bounds of
+   * the buffer then an {@link IndexOutOfBoundsException} will be thrown.
+   *
+   * @param bytes The byte array into which to read bytes.
+   * @param dstOffset The offset at which to write bytes into the given buffer
+   * @return The buffer.
+   * @throws java.nio.BufferUnderflowException If {@code length} is greater than {@link
+   *     Buffer#remaining()}
+   * @throws IndexOutOfBoundsException If the given offset is out of the bounds of the buffer. Note
+   *     that bounds are determined by the buffer's {@link Buffer#limit()} rather than capacity.
+   * @see Buffer#read(Bytes)
+   * @see Buffer#read(int, Bytes, int, int)
+   */
+  @Override
+  Buffer read(Bytes bytes, int dstOffset, int length);
+
+  /**
+   * Reads bytes into the given byte array starting at current position up to the given length.
+   *
+   * <p>Bytes will be read from the current position up to the given length. If the provided {@code
+   * length} is greater than {@link Buffer#remaining()} then a {@link
+   * java.nio.BufferUnderflowException} will be thrown. If the {@code offset} is out of bounds of
+   * the buffer then an {@link IndexOutOfBoundsException} will be thrown.
+   *
+   * @param bytes The byte array into which to read bytes.
+   * @param offset The offset at which to write bytes into the given buffer
+   * @return The buffer.
+   * @throws java.nio.BufferUnderflowException If {@code length} is greater than {@link
+   *     Buffer#remaining()}
+   * @throws IndexOutOfBoundsException If the given offset is out of the bounds of the buffer. Note
+   *     that bounds are determined by the buffer's {@link Buffer#limit()} rather than capacity.
+   * @see Buffer#read(byte[])
+   * @see Buffer#read(int, byte[], int, int)
+   */
+  @Override
+  Buffer read(byte[] bytes, int offset, int length);
+
+  /**
+   * Reads bytes into the given buffer.
+   *
+   * <p>Bytes will be read starting at the current buffer position until either {@link
+   * Buffer#limit()} has been reached. If {@link Buffer#remaining()} is less than the {@link
+   * Buffer#remaining()} of the given buffer, a {@link java.nio.BufferUnderflowException} will be
+   * thrown.
+   *
+   * @param buffer The buffer into which to read bytes.
+   * @return The buffer.
+   * @throws java.nio.BufferUnderflowException If the given {@link Buffer#remaining()} is greater
+   *     than this buffer's {@link Buffer#remaining()}
+   */
+  @Override
+  Buffer read(Buffer buffer);
+
+  /**
+   * Reads a byte from the buffer at the current position.
+   *
+   * <p>When the byte is read from the buffer, the buffer's {@code position} will be advanced by
+   * {@link Bytes#BYTE}. If there are no bytes remaining in the buffer then a {@link
+   * java.nio.BufferUnderflowException} will be thrown.
+   *
+   * @return The read byte.
+   * @throws java.nio.BufferUnderflowException If {@link Buffer#remaining()} is less than {@link
+   *     Bytes#BYTE}
+   * @see Buffer#readByte(int)
+   */
+  @Override
+  int readByte();
+
+  /**
+   * Reads an unsigned byte from the buffer at the current position.
+   *
+   * <p>When the byte is read from the buffer, the buffer's {@code position} will be advanced by
+   * {@link Bytes#BYTE}. If there are no bytes remaining in the buffer then a {@link
+   * java.nio.BufferUnderflowException} will be thrown.
+   *
+   * @return The read byte.
+   * @throws java.nio.BufferUnderflowException If {@link Buffer#remaining()} is less than {@link
+   *     Bytes#BYTE}
+   * @see Buffer#readUnsignedByte(int)
+   */
+  @Override
+  int readUnsignedByte();
+
+  /**
+   * Reads a 16-bit character from the buffer at the current position.
+   *
+   * <p>When the character is read from the buffer, the buffer's {@code position} will be advanced
+   * by {@link Bytes#CHARACTER}. If there are less than {@link Bytes#CHARACTER} bytes remaining in
+   * the buffer then a {@link java.nio.BufferUnderflowException} will be thrown.
+   *
+   * @return The read character.
+   * @throws java.nio.BufferUnderflowException If {@link Buffer#remaining()} is less than {@link
+   *     Bytes#CHARACTER}
+   * @see Buffer#readChar(int)
+   */
+  @Override
+  char readChar();
+
+  /**
+   * Reads a 16-bit signed integer from the buffer at the current position.
+   *
+   * <p>When the short is read from the buffer, the buffer's {@code position} will be advanced by
+   * {@link Bytes#SHORT}. If there are less than {@link Bytes#SHORT} bytes remaining in the buffer
+   * then a {@link java.nio.BufferUnderflowException} will be thrown.
+   *
+   * @return The read short.
+   * @throws java.nio.BufferUnderflowException If {@link Buffer#remaining()} is less than {@link
+   *     Bytes#SHORT}
+   * @see Buffer#readShort(int)
+   */
+  @Override
+  short readShort();
+
+  /**
+   * Reads a 16-bit unsigned integer from the buffer at the current position.
+   *
+   * <p>When the short is read from the buffer, the buffer's {@code position} will be advanced by
+   * {@link Bytes#SHORT}. If there are less than {@link Bytes#SHORT} bytes remaining in the buffer
+   * then a {@link java.nio.BufferUnderflowException} will be thrown.
+   *
+   * @return The read short.
+   * @throws java.nio.BufferUnderflowException If {@link Buffer#remaining()} is less than {@link
+   *     Bytes#SHORT}
+   * @see Buffer#readUnsignedShort(int)
+   */
+  @Override
+  int readUnsignedShort();
+
+  /**
+   * Reads a 32-bit signed integer from the buffer at the current position.
+   *
+   * <p>When the integer is read from the buffer, the buffer's {@code position} will be advanced by
+   * {@link Bytes#INTEGER}. If there are less than {@link Bytes#INTEGER} bytes remaining in the
+   * buffer then a {@link java.nio.BufferUnderflowException} will be thrown.
+   *
+   * @return The read integer.
+   * @throws java.nio.BufferUnderflowException If {@link Buffer#remaining()} is less than {@link
+   *     Bytes#INTEGER}
+   * @see Buffer#readInt(int)
+   */
+  @Override
+  int readInt();
+
+  /**
+   * Reads a 32-bit unsigned integer from the buffer at the current position.
+   *
+   * <p>When the integer is read from the buffer, the buffer's {@code position} will be advanced by
+   * {@link Bytes#INTEGER}. If there are less than {@link Bytes#INTEGER} bytes remaining in the
+   * buffer then a {@link java.nio.BufferUnderflowException} will be thrown.
+   *
+   * @return The read integer.
+   * @throws java.nio.BufferUnderflowException If {@link Buffer#remaining()} is less than {@link
+   *     Bytes#INTEGER}
+   * @see Buffer#readUnsignedInt(int)
+   */
+  @Override
+  long readUnsignedInt();
+
+  /**
+   * Reads a 64-bit signed integer from the buffer at the current position.
+   *
+   * <p>When the long is read from the buffer, the buffer's {@code position} will be advanced by
+   * {@link Bytes#LONG}. If there are less than {@link Bytes#LONG} bytes remaining in the buffer
+   * then a {@link java.nio.BufferUnderflowException} will be thrown.
+   *
+   * @return The read long.
+   * @throws java.nio.BufferUnderflowException If {@link Buffer#remaining()} is less than {@link
+   *     Bytes#LONG}
+   * @see Buffer#readLong(int)
+   */
+  @Override
+  long readLong();
+
+  /**
+   * Reads a single-precision 32-bit floating point number from the buffer at the current position.
+   *
+   * <p>When the float is read from the buffer, the buffer's {@code position} will be advanced by
+   * {@link Bytes#FLOAT}. If there are less than {@link Bytes#FLOAT} bytes remaining in the buffer
+   * then a {@link java.nio.BufferUnderflowException} will be thrown.
+   *
+   * @return The read float.
+   * @throws java.nio.BufferUnderflowException If {@link Buffer#remaining()} is less than {@link
+   *     Bytes#FLOAT}
+   * @see Buffer#readFloat(int)
+   */
+  @Override
+  float readFloat();
+
+  /**
+   * Reads a double-precision 64-bit floating point number from the buffer at the current position.
+   *
+   * <p>When the double is read from the buffer, the buffer's {@code position} will be advanced by
+   * {@link Bytes#DOUBLE}. If there are less than {@link Bytes#DOUBLE} bytes remaining in the buffer
+   * then a {@link java.nio.BufferUnderflowException} will be thrown.
+   *
+   * @return The read double.
+   * @throws java.nio.BufferUnderflowException If {@link Buffer#remaining()} is less than {@link
+   *     Bytes#DOUBLE}
+   * @see Buffer#readDouble(int)
+   */
+  @Override
+  double readDouble();
+
+  /**
+   * Reads a 1 byte boolean from the buffer at the current position.
+   *
+   * <p>When the boolean is read from the buffer, the buffer's {@code position} will be advanced by
+   * {@code 1}. If there are no bytes remaining in the buffer then a {@link
+   * java.nio.BufferUnderflowException} will be thrown.
+   *
+   * @return The read boolean.
+   * @throws java.nio.BufferUnderflowException If {@link Buffer#remaining()} is less than {@code 1}
+   * @see Buffer#readBoolean(int)
+   */
+  @Override
+  boolean readBoolean();
+
+  /**
+   * Reads a UTF-8 string from the buffer at the current position.
+   *
+   * <p>When the string is read from the buffer, the buffer's {@code position} will be advanced by 2
+   * bytes plus the byte length of the string. If there are no bytes remaining in the buffer then a
+   * {@link java.nio.BufferUnderflowException} will be thrown.
+   *
+   * @return The read string.
+   * @throws java.nio.BufferUnderflowException If {@link Buffer#remaining()} is less than {@code 1}
+   * @see Buffer#readUTF8(int)
+   */
+  @Override
+  String readUTF8();
+
+  /**
+   * Closes the buffer.
+   *
+   * <p>This method effectively acts as an alias to {@link Buffer#release()} and allows buffers to
+   * be used as resources in try-with-resources statements. When the buffer is closed the internal
+   * reference counter defined by {@link ReferenceCounted} will be decremented. However, if
+   * references to the buffer still exist then those references will be allowed to continue to
+   * operate on the buffer until all references have been released.
+   */
+  @Override
+  void close();
+
+  /**
    * Flips the buffer.
    *
    * <p>The limit is set to the current position and then the position is set to zero. If the mark
@@ -303,16 +597,6 @@ public interface Buffer
    * @return This buffer.
    */
   Buffer rewind();
-
-  /**
-   * Advances the buffer's {@code position} {@code length} bytes.
-   *
-   * @param length The number of bytes to advance this buffer's {@code position}.
-   * @return This buffer.
-   * @throws IndexOutOfBoundsException If {@code length} is greater than {@link Buffer#remaining()}
-   */
-  @Override
-  Buffer skip(int length);
 
   /**
    * Clears the buffer.
@@ -415,79 +699,6 @@ public interface Buffer
   Buffer slice(int offset, int length);
 
   /**
-   * Reads bytes into the given buffer.
-   *
-   * <p>Bytes will be read starting at the current buffer position until either {@link
-   * Buffer#limit()} has been reached. If {@link Buffer#remaining()} is less than the {@link
-   * Buffer#remaining()} of the given buffer, a {@link java.nio.BufferUnderflowException} will be
-   * thrown.
-   *
-   * @param buffer The buffer into which to read bytes.
-   * @return The buffer.
-   * @throws java.nio.BufferUnderflowException If the given {@link Buffer#remaining()} is greater
-   *     than this buffer's {@link Buffer#remaining()}
-   */
-  @Override
-  Buffer read(Buffer buffer);
-
-  /**
-   * Reads bytes into the given byte array.
-   *
-   * <p>Bytes will be read starting at the current buffer position until either the byte array
-   * {@code length} or the {@link Buffer#limit()} has been reached. If {@link Buffer#remaining()} is
-   * less than the {@code length} of the given byte array, a {@link
-   * java.nio.BufferUnderflowException} will be thrown.
-   *
-   * @param bytes The byte array into which to read bytes.
-   * @return The buffer.
-   * @throws java.nio.BufferUnderflowException If the given byte array's {@code length} is greater
-   *     than {@link Buffer#remaining()}
-   * @see Buffer#read(Bytes, int, int)
-   * @see Buffer#read(int, Bytes, int, int)
-   */
-  @Override
-  Buffer read(Bytes bytes);
-
-  /**
-   * Reads bytes into the given byte array.
-   *
-   * <p>Bytes will be read starting at the current buffer position until either the byte array
-   * {@code length} or the {@link Buffer#limit()} has been reached. If {@link Buffer#remaining()} is
-   * less than the {@code length} of the given byte array, a {@link
-   * java.nio.BufferUnderflowException} will be thrown.
-   *
-   * @param bytes The byte array into which to read bytes.
-   * @return The buffer.
-   * @throws java.nio.BufferUnderflowException If the given byte array's {@code length} is greater
-   *     than {@link Buffer#remaining()}
-   * @see Buffer#read(byte[], int, int)
-   * @see Buffer#read(int, byte[], int, int)
-   */
-  @Override
-  Buffer read(byte[] bytes);
-
-  /**
-   * Reads bytes into the given byte array starting at the current position.
-   *
-   * <p>Bytes will be read from the current position up to the given length. If the provided {@code
-   * length} is greater than {@link Buffer#remaining()} then a {@link
-   * java.nio.BufferUnderflowException} will be thrown. If the {@code offset} is out of bounds of
-   * the buffer then an {@link IndexOutOfBoundsException} will be thrown.
-   *
-   * @param bytes The byte array into which to read bytes.
-   * @param dstOffset The offset at which to write bytes into the given buffer
-   * @return The buffer.
-   * @throws java.nio.BufferUnderflowException If {@code length} is greater than {@link
-   *     Buffer#remaining()}
-   * @throws IndexOutOfBoundsException If the given offset is out of the bounds of the buffer. Note
-   *     that bounds are determined by the buffer's {@link Buffer#limit()} rather than capacity.
-   * @see Buffer#read(Bytes)
-   * @see Buffer#read(int, Bytes, int, int)
-   */
-  @Override
-  Buffer read(Bytes bytes, int dstOffset, int length);
-
-  /**
    * Reads bytes into the given byte array starting at the given offset up to the given length.
    *
    * <p>Bytes will be read from the given starting offset up to the given length. If the provided
@@ -508,27 +719,6 @@ public interface Buffer
    */
   @Override
   Buffer read(int srcOffset, Bytes bytes, int dstOffset, int length);
-
-  /**
-   * Reads bytes into the given byte array starting at current position up to the given length.
-   *
-   * <p>Bytes will be read from the current position up to the given length. If the provided {@code
-   * length} is greater than {@link Buffer#remaining()} then a {@link
-   * java.nio.BufferUnderflowException} will be thrown. If the {@code offset} is out of bounds of
-   * the buffer then an {@link IndexOutOfBoundsException} will be thrown.
-   *
-   * @param bytes The byte array into which to read bytes.
-   * @param offset The offset at which to write bytes into the given buffer
-   * @return The buffer.
-   * @throws java.nio.BufferUnderflowException If {@code length} is greater than {@link
-   *     Buffer#remaining()}
-   * @throws IndexOutOfBoundsException If the given offset is out of the bounds of the buffer. Note
-   *     that bounds are determined by the buffer's {@link Buffer#limit()} rather than capacity.
-   * @see Buffer#read(byte[])
-   * @see Buffer#read(int, byte[], int, int)
-   */
-  @Override
-  Buffer read(byte[] bytes, int offset, int length);
 
   /**
    * Reads bytes into the given byte array starting at the given offset up to the given length.
@@ -553,21 +743,6 @@ public interface Buffer
   Buffer read(int srcOffset, byte[] bytes, int dstOffset, int length);
 
   /**
-   * Reads a byte from the buffer at the current position.
-   *
-   * <p>When the byte is read from the buffer, the buffer's {@code position} will be advanced by
-   * {@link Bytes#BYTE}. If there are no bytes remaining in the buffer then a {@link
-   * java.nio.BufferUnderflowException} will be thrown.
-   *
-   * @return The read byte.
-   * @throws java.nio.BufferUnderflowException If {@link Buffer#remaining()} is less than {@link
-   *     Bytes#BYTE}
-   * @see Buffer#readByte(int)
-   */
-  @Override
-  int readByte();
-
-  /**
    * Reads a byte from the buffer at the given offset.
    *
    * <p>The byte will be read from the given offset. If the given index is out of the bounds of the
@@ -581,21 +756,6 @@ public interface Buffer
    */
   @Override
   int readByte(int offset);
-
-  /**
-   * Reads an unsigned byte from the buffer at the current position.
-   *
-   * <p>When the byte is read from the buffer, the buffer's {@code position} will be advanced by
-   * {@link Bytes#BYTE}. If there are no bytes remaining in the buffer then a {@link
-   * java.nio.BufferUnderflowException} will be thrown.
-   *
-   * @return The read byte.
-   * @throws java.nio.BufferUnderflowException If {@link Buffer#remaining()} is less than {@link
-   *     Bytes#BYTE}
-   * @see Buffer#readUnsignedByte(int)
-   */
-  @Override
-  int readUnsignedByte();
 
   /**
    * Reads an unsigned byte from the buffer at the given offset.
@@ -613,21 +773,6 @@ public interface Buffer
   int readUnsignedByte(int offset);
 
   /**
-   * Reads a 16-bit character from the buffer at the current position.
-   *
-   * <p>When the character is read from the buffer, the buffer's {@code position} will be advanced
-   * by {@link Bytes#CHARACTER}. If there are less than {@link Bytes#CHARACTER} bytes remaining in
-   * the buffer then a {@link java.nio.BufferUnderflowException} will be thrown.
-   *
-   * @return The read character.
-   * @throws java.nio.BufferUnderflowException If {@link Buffer#remaining()} is less than {@link
-   *     Bytes#CHARACTER}
-   * @see Buffer#readChar(int)
-   */
-  @Override
-  char readChar();
-
-  /**
    * Reads a 16-bit character from the buffer at the given offset.
    *
    * <p>The character will be read from the given offset. If the given index is out of the bounds of
@@ -641,21 +786,6 @@ public interface Buffer
    */
   @Override
   char readChar(int offset);
-
-  /**
-   * Reads a 16-bit signed integer from the buffer at the current position.
-   *
-   * <p>When the short is read from the buffer, the buffer's {@code position} will be advanced by
-   * {@link Bytes#SHORT}. If there are less than {@link Bytes#SHORT} bytes remaining in the buffer
-   * then a {@link java.nio.BufferUnderflowException} will be thrown.
-   *
-   * @return The read short.
-   * @throws java.nio.BufferUnderflowException If {@link Buffer#remaining()} is less than {@link
-   *     Bytes#SHORT}
-   * @see Buffer#readShort(int)
-   */
-  @Override
-  short readShort();
 
   /**
    * Reads a 16-bit signed integer from the buffer at the given offset.
@@ -673,21 +803,6 @@ public interface Buffer
   short readShort(int offset);
 
   /**
-   * Reads a 16-bit unsigned integer from the buffer at the current position.
-   *
-   * <p>When the short is read from the buffer, the buffer's {@code position} will be advanced by
-   * {@link Bytes#SHORT}. If there are less than {@link Bytes#SHORT} bytes remaining in the buffer
-   * then a {@link java.nio.BufferUnderflowException} will be thrown.
-   *
-   * @return The read short.
-   * @throws java.nio.BufferUnderflowException If {@link Buffer#remaining()} is less than {@link
-   *     Bytes#SHORT}
-   * @see Buffer#readUnsignedShort(int)
-   */
-  @Override
-  int readUnsignedShort();
-
-  /**
    * Reads a 16-bit unsigned integer from the buffer at the given offset.
    *
    * <p>The short will be read from the given offset. If the given index is out of the bounds of the
@@ -701,21 +816,6 @@ public interface Buffer
    */
   @Override
   int readUnsignedShort(int offset);
-
-  /**
-   * Reads a 32-bit signed integer from the buffer at the current position.
-   *
-   * <p>When the integer is read from the buffer, the buffer's {@code position} will be advanced by
-   * {@link Bytes#INTEGER}. If there are less than {@link Bytes#INTEGER} bytes remaining in the
-   * buffer then a {@link java.nio.BufferUnderflowException} will be thrown.
-   *
-   * @return The read integer.
-   * @throws java.nio.BufferUnderflowException If {@link Buffer#remaining()} is less than {@link
-   *     Bytes#INTEGER}
-   * @see Buffer#readInt(int)
-   */
-  @Override
-  int readInt();
 
   /**
    * Reads a 32-bit signed integer from the buffer at the given offset.
@@ -733,21 +833,6 @@ public interface Buffer
   int readInt(int offset);
 
   /**
-   * Reads a 32-bit unsigned integer from the buffer at the current position.
-   *
-   * <p>When the integer is read from the buffer, the buffer's {@code position} will be advanced by
-   * {@link Bytes#INTEGER}. If there are less than {@link Bytes#INTEGER} bytes remaining in the
-   * buffer then a {@link java.nio.BufferUnderflowException} will be thrown.
-   *
-   * @return The read integer.
-   * @throws java.nio.BufferUnderflowException If {@link Buffer#remaining()} is less than {@link
-   *     Bytes#INTEGER}
-   * @see Buffer#readUnsignedInt(int)
-   */
-  @Override
-  long readUnsignedInt();
-
-  /**
    * Reads a 32-bit unsigned integer from the buffer at the given offset.
    *
    * <p>The integer will be read from the given offset. If the given index is out of the bounds of
@@ -761,21 +846,6 @@ public interface Buffer
    */
   @Override
   long readUnsignedInt(int offset);
-
-  /**
-   * Reads a 64-bit signed integer from the buffer at the current position.
-   *
-   * <p>When the long is read from the buffer, the buffer's {@code position} will be advanced by
-   * {@link Bytes#LONG}. If there are less than {@link Bytes#LONG} bytes remaining in the buffer
-   * then a {@link java.nio.BufferUnderflowException} will be thrown.
-   *
-   * @return The read long.
-   * @throws java.nio.BufferUnderflowException If {@link Buffer#remaining()} is less than {@link
-   *     Bytes#LONG}
-   * @see Buffer#readLong(int)
-   */
-  @Override
-  long readLong();
 
   /**
    * Reads a 64-bit signed integer from the buffer at the given offset.
@@ -793,21 +863,6 @@ public interface Buffer
   long readLong(int offset);
 
   /**
-   * Reads a single-precision 32-bit floating point number from the buffer at the current position.
-   *
-   * <p>When the float is read from the buffer, the buffer's {@code position} will be advanced by
-   * {@link Bytes#FLOAT}. If there are less than {@link Bytes#FLOAT} bytes remaining in the buffer
-   * then a {@link java.nio.BufferUnderflowException} will be thrown.
-   *
-   * @return The read float.
-   * @throws java.nio.BufferUnderflowException If {@link Buffer#remaining()} is less than {@link
-   *     Bytes#FLOAT}
-   * @see Buffer#readFloat(int)
-   */
-  @Override
-  float readFloat();
-
-  /**
    * Reads a single-precision 32-bit floating point number from the buffer at the given offset.
    *
    * <p>The float will be read from the given offset. If the given index is out of the bounds of the
@@ -821,21 +876,6 @@ public interface Buffer
    */
   @Override
   float readFloat(int offset);
-
-  /**
-   * Reads a double-precision 64-bit floating point number from the buffer at the current position.
-   *
-   * <p>When the double is read from the buffer, the buffer's {@code position} will be advanced by
-   * {@link Bytes#DOUBLE}. If there are less than {@link Bytes#DOUBLE} bytes remaining in the buffer
-   * then a {@link java.nio.BufferUnderflowException} will be thrown.
-   *
-   * @return The read double.
-   * @throws java.nio.BufferUnderflowException If {@link Buffer#remaining()} is less than {@link
-   *     Bytes#DOUBLE}
-   * @see Buffer#readDouble(int)
-   */
-  @Override
-  double readDouble();
 
   /**
    * Reads a double-precision 64-bit floating point number from the buffer at the given offset.
@@ -853,20 +893,6 @@ public interface Buffer
   double readDouble(int offset);
 
   /**
-   * Reads a 1 byte boolean from the buffer at the current position.
-   *
-   * <p>When the boolean is read from the buffer, the buffer's {@code position} will be advanced by
-   * {@code 1}. If there are no bytes remaining in the buffer then a {@link
-   * java.nio.BufferUnderflowException} will be thrown.
-   *
-   * @return The read boolean.
-   * @throws java.nio.BufferUnderflowException If {@link Buffer#remaining()} is less than {@code 1}
-   * @see Buffer#readBoolean(int)
-   */
-  @Override
-  boolean readBoolean();
-
-  /**
    * Reads a 1 byte boolean from the buffer at the given offset.
    *
    * <p>The boolean will be read from the given offset. If the given index is out of the bounds of
@@ -882,20 +908,6 @@ public interface Buffer
   boolean readBoolean(int offset);
 
   /**
-   * Reads a UTF-8 string from the buffer at the current position.
-   *
-   * <p>When the string is read from the buffer, the buffer's {@code position} will be advanced by 2
-   * bytes plus the byte length of the string. If there are no bytes remaining in the buffer then a
-   * {@link java.nio.BufferUnderflowException} will be thrown.
-   *
-   * @return The read string.
-   * @throws java.nio.BufferUnderflowException If {@link Buffer#remaining()} is less than {@code 1}
-   * @see Buffer#readUTF8(int)
-   */
-  @Override
-  String readUTF8();
-
-  /**
    * Reads a UTF-8 string from the buffer at the given offset.
    *
    * <p>The string will be read from the given offset. If the given index is out of the bounds of
@@ -909,21 +921,6 @@ public interface Buffer
    */
   @Override
   String readUTF8(int offset);
-
-  /**
-   * Writes a buffer to the buffer.
-   *
-   * <p>When the buffer is written to the buffer, the buffer's {@code position} will be advanced by
-   * the number of bytes in the provided buffer. If the provided {@link Buffer#remaining()} exceeds
-   * {@link Buffer#remaining()} then an {@link java.nio.BufferOverflowException} will be thrown.
-   *
-   * @param buffer The buffer to write.
-   * @return The written buffer.
-   * @throws java.nio.BufferOverflowException If the given buffer's {@link Buffer#remaining()} bytes
-   *     exceeds this buffer's remaining bytes.
-   */
-  @Override
-  Buffer write(Buffer buffer);
 
   /**
    * Writes an array of bytes to the buffer.
@@ -976,28 +973,6 @@ public interface Buffer
   Buffer write(ByteBuffer bytes);
 
   /**
-   * Writes the {@code length} bytes from the {@code src}, starting at {@code srcOffset} into this
-   * buffer.
-   *
-   * <p>The bytes will be written starting at the given offset up to the given length. If the
-   * remaining bytes in the buffer is larger than the provided {@code length} then only {@code
-   * length} bytes will be read from the array. If the provided {@code length} is greater than
-   * {@link Buffer#limit()} minus {@code offset} then a {@link java.nio.BufferOverflowException}
-   * will be thrown.
-   *
-   * @param offset The offset at which to start writing the bytes.
-   * @param src The source buffer to write.
-   * @param srcOffset The offset at which to begin reading bytes from the source.
-   * @param length The number of bytes from the provided byte array to write to the buffer.
-   * @return The written buffer.
-   * @throws java.nio.BufferOverflowException If there are not enough bytes remaining in the buffer.
-   * @throws IndexOutOfBoundsException If the given offset is out of the bounds of the buffer.
-   * @see Buffer#write(ByteBuffer)
-   */
-  @Override
-  Buffer write(int offset, ByteBuffer src, int srcOffset, int length);
-
-  /**
    * Writes an array of bytes to the buffer.
    *
    * <p>The bytes will be written starting at the current position up to the given length. If the
@@ -1016,6 +991,231 @@ public interface Buffer
    */
   @Override
   Buffer write(Bytes bytes, int offset, int length);
+
+  /**
+   * Writes an array of bytes to the buffer.
+   *
+   * <p>The bytes will be written starting at the current position up to the given length. If the
+   * length of the byte array is larger than the provided {@code length} then only {@code length}
+   * bytes will be read from the array. If the provided {@code length} is greater than the remaining
+   * bytes in this buffer then a {@link java.nio.BufferOverflowException} will be thrown.
+   *
+   * @param bytes The array of bytes to write.
+   * @param offset The offset at which to start writing the bytes.
+   * @param length The number of bytes from the provided byte array to write to the buffer.
+   * @return The written buffer.
+   * @throws java.nio.BufferOverflowException If there are not enough bytes remaining in the buffer.
+   * @throws IndexOutOfBoundsException If the given offset is out of the bounds of the buffer.
+   * @see Buffer#write(byte[])
+   * @see Buffer#write(int, byte[], int, int)
+   */
+  @Override
+  Buffer write(byte[] bytes, int offset, int length);
+
+  /**
+   * Writes a buffer to the buffer.
+   *
+   * <p>When the buffer is written to the buffer, the buffer's {@code position} will be advanced by
+   * the number of bytes in the provided buffer. If the provided {@link Buffer#remaining()} exceeds
+   * {@link Buffer#remaining()} then an {@link java.nio.BufferOverflowException} will be thrown.
+   *
+   * @param buffer The buffer to write.
+   * @return The written buffer.
+   * @throws java.nio.BufferOverflowException If the given buffer's {@link Buffer#remaining()} bytes
+   *     exceeds this buffer's remaining bytes.
+   */
+  @Override
+  Buffer write(Buffer buffer);
+
+  /**
+   * Writes a byte to the buffer at the current position.
+   *
+   * <p>When the byte is written to the buffer, the buffer's {@code position} will be advanced by
+   * {@link Bytes#BYTE}. If there are no bytes remaining in the buffer then a {@link
+   * java.nio.BufferOverflowException} will be thrown.
+   *
+   * @param b The byte to write.
+   * @return The written buffer.
+   * @throws java.nio.BufferOverflowException If there are no bytes remaining in the buffer.
+   * @see Buffer#writeByte(int, int)
+   */
+  @Override
+  Buffer writeByte(int b);
+
+  /**
+   * Writes an unsigned byte to the buffer at the current position.
+   *
+   * <p>When the byte is written to the buffer, the buffer's {@code position} will be advanced by
+   * {@link Bytes#BYTE}. If there are no bytes remaining in the buffer then a {@link
+   * java.nio.BufferOverflowException} will be thrown.
+   *
+   * @param b The byte to write.
+   * @return The written buffer.
+   * @throws java.nio.BufferOverflowException If there are no bytes remaining in the buffer.
+   * @see Buffer#writeUnsignedByte(int, int)
+   */
+  @Override
+  Buffer writeUnsignedByte(int b);
+
+  /**
+   * Writes a 16-bit character to the buffer at the current position.
+   *
+   * <p>When the character is written to the buffer, the buffer's {@code position} will be advanced
+   * by {@link Bytes#CHARACTER}. If less than {@code 2} bytes are remaining in the buffer then a
+   * {@link java.nio.BufferOverflowException} will be thrown.
+   *
+   * @param c The character to write.
+   * @return The written buffer.
+   * @throws java.nio.BufferOverflowException If {@link Buffer#remaining()} is less than {@link
+   *     Bytes#CHARACTER}.
+   * @see Buffer#writeChar(int, char)
+   */
+  @Override
+  Buffer writeChar(char c);
+
+  /**
+   * Writes a 16-bit signed integer to the buffer at the current position.
+   *
+   * <p>When the short is written to the buffer, the buffer's {@code position} will be advanced by
+   * {@link Bytes#SHORT}. If less than {@link Bytes#SHORT} bytes are remaining in the buffer then a
+   * {@link java.nio.BufferOverflowException} will be thrown.
+   *
+   * @param s The short to write.
+   * @return The written buffer.
+   * @throws java.nio.BufferOverflowException If {@link Buffer#remaining()} is less than {@link
+   *     Bytes#SHORT}.
+   * @see Buffer#writeShort(int, short)
+   */
+  @Override
+  Buffer writeShort(short s);
+
+  /**
+   * Writes a 16-bit signed integer to the buffer at the current position.
+   *
+   * <p>When the short is written to the buffer, the buffer's {@code position} will be advanced by
+   * {@link Bytes#SHORT}. If less than {@link Bytes#SHORT} bytes are remaining in the buffer then a
+   * {@link java.nio.BufferOverflowException} will be thrown.
+   *
+   * @param s The short to write.
+   * @return The written buffer.
+   * @throws java.nio.BufferOverflowException If {@link Buffer#remaining()} is less than {@link
+   *     Bytes#SHORT}.
+   * @see Buffer#writeUnsignedShort(int, int)
+   */
+  @Override
+  Buffer writeUnsignedShort(int s);
+
+  /**
+   * Writes a 32-bit signed integer to the buffer at the current position.
+   *
+   * <p>When the integer is written to the buffer, the buffer's {@code position} will be advanced by
+   * {@link Bytes#INTEGER}. If less than {@link Bytes#INTEGER} bytes are remaining in the buffer
+   * then a {@link java.nio.BufferOverflowException} will be thrown.
+   *
+   * @param i The integer to write.
+   * @return The written buffer.
+   * @throws java.nio.BufferOverflowException If {@link Buffer#remaining()} is less than {@link
+   *     Bytes#INTEGER}.
+   * @see Buffer#writeInt(int, int)
+   */
+  @Override
+  Buffer writeInt(int i);
+
+  /**
+   * Writes a 32-bit signed integer to the buffer at the current position.
+   *
+   * <p>When the integer is written to the buffer, the buffer's {@code position} will be advanced by
+   * {@link Bytes#INTEGER}. If less than {@link Bytes#INTEGER} bytes are remaining in the buffer
+   * then a {@link java.nio.BufferOverflowException} will be thrown.
+   *
+   * @param i The integer to write.
+   * @return The written buffer.
+   * @throws java.nio.BufferOverflowException If {@link Buffer#remaining()} is less than {@link
+   *     Bytes#INTEGER}.
+   * @see Buffer#writeUnsignedInt(int, long)
+   */
+  @Override
+  Buffer writeUnsignedInt(long i);
+
+  /**
+   * Writes a 64-bit signed integer to the buffer at the current position.
+   *
+   * <p>When the long is written to the buffer, the buffer's {@code position} will be advanced by
+   * {@link Bytes#LONG}. If less than {@link Bytes#LONG} bytes are remaining in the buffer then a
+   * {@link java.nio.BufferOverflowException} will be thrown.
+   *
+   * @param l The long to write.
+   * @return The written buffer.
+   * @throws java.nio.BufferOverflowException If {@link Buffer#remaining()} is less than {@link
+   *     Bytes#LONG}.
+   * @see Buffer#writeLong(int, long)
+   */
+  @Override
+  Buffer writeLong(long l);
+
+  /**
+   * Writes a single-precision 32-bit floating point number to the buffer at the current position.
+   *
+   * <p>When the float is written to the buffer, the buffer's {@code position} will be advanced by
+   * {@link Bytes#FLOAT}. If less than {@link Bytes#FLOAT} bytes are remaining in the buffer then a
+   * {@link java.nio.BufferOverflowException} will be thrown.
+   *
+   * @param f The float to write.
+   * @return The written buffer.
+   * @throws java.nio.BufferOverflowException If {@link Buffer#remaining()} is less than {@link
+   *     Bytes#FLOAT}.
+   * @see Buffer#writeFloat(int, float)
+   */
+  @Override
+  Buffer writeFloat(float f);
+
+  /**
+   * Writes a double-precision 64-bit floating point number to the buffer at the current position.
+   *
+   * <p>When the double is written to the buffer, the buffer's {@code position} will be advanced by
+   * {@link Bytes#DOUBLE}. If less than {@link Bytes#DOUBLE} bytes are remaining in the buffer then
+   * a {@link java.nio.BufferOverflowException} will be thrown.
+   *
+   * @param d The double to write.
+   * @return The written buffer.
+   * @throws java.nio.BufferOverflowException If {@link Buffer#remaining()} is less than {@link
+   *     Bytes#DOUBLE}.
+   * @see Buffer#writeDouble(int, double)
+   */
+  @Override
+  Buffer writeDouble(double d);
+
+  /**
+   * Writes a 1 byte boolean to the buffer at the current position.
+   *
+   * <p>When the boolean is written to the buffer, the buffer's {@code position} will be advanced by
+   * {@code 1}. If there are no bytes remaining in the buffer then a {@link
+   * java.nio.BufferOverflowException} will be thrown.
+   *
+   * @param b The boolean to write.
+   * @return The written buffer.
+   * @throws java.nio.BufferOverflowException If the number of bytes exceeds the buffer's remaining
+   *     bytes.
+   * @see Buffer#writeBoolean(int, boolean)
+   */
+  @Override
+  Buffer writeBoolean(boolean b);
+
+  /**
+   * Writes a UTF-8 string to the buffer at the current position.
+   *
+   * <p>The string will be written with a two-byte unsigned byte length followed by the UTF-8 bytes.
+   * If there are not enough bytes remaining in the buffer then a {@link
+   * java.nio.BufferOverflowException} will be thrown.
+   *
+   * @param s The string to write.
+   * @return The written buffer.
+   * @throws java.nio.BufferOverflowException If the number of bytes exceeds the buffer's remaining
+   *     bytes.
+   * @see Buffer#writeUTF8(int, String)
+   */
+  @Override
+  Buffer writeUTF8(String s);
 
   /**
    * Writes an array of bytes to the buffer.
@@ -1042,26 +1242,6 @@ public interface Buffer
   /**
    * Writes an array of bytes to the buffer.
    *
-   * <p>The bytes will be written starting at the current position up to the given length. If the
-   * length of the byte array is larger than the provided {@code length} then only {@code length}
-   * bytes will be read from the array. If the provided {@code length} is greater than the remaining
-   * bytes in this buffer then a {@link java.nio.BufferOverflowException} will be thrown.
-   *
-   * @param bytes The array of bytes to write.
-   * @param offset The offset at which to start writing the bytes.
-   * @param length The number of bytes from the provided byte array to write to the buffer.
-   * @return The written buffer.
-   * @throws java.nio.BufferOverflowException If there are not enough bytes remaining in the buffer.
-   * @throws IndexOutOfBoundsException If the given offset is out of the bounds of the buffer.
-   * @see Buffer#write(byte[])
-   * @see Buffer#write(int, byte[], int, int)
-   */
-  @Override
-  Buffer write(byte[] bytes, int offset, int length);
-
-  /**
-   * Writes an array of bytes to the buffer.
-   *
    * <p>The bytes will be written starting at the given offset up to the given length. If the
    * remaining bytes in the byte array is larger than the provided {@code length} then only {@code
    * length} bytes will be read from the array. If the provided {@code length} is greater than
@@ -1082,19 +1262,26 @@ public interface Buffer
   Buffer write(int offset, byte[] src, int srcOffset, int length);
 
   /**
-   * Writes a byte to the buffer at the current position.
+   * Writes the {@code length} bytes from the {@code src}, starting at {@code srcOffset} into this
+   * buffer.
    *
-   * <p>When the byte is written to the buffer, the buffer's {@code position} will be advanced by
-   * {@link Bytes#BYTE}. If there are no bytes remaining in the buffer then a {@link
-   * java.nio.BufferOverflowException} will be thrown.
+   * <p>The bytes will be written starting at the given offset up to the given length. If the
+   * remaining bytes in the buffer is larger than the provided {@code length} then only {@code
+   * length} bytes will be read from the array. If the provided {@code length} is greater than
+   * {@link Buffer#limit()} minus {@code offset} then a {@link java.nio.BufferOverflowException}
+   * will be thrown.
    *
-   * @param b The byte to write.
+   * @param offset The offset at which to start writing the bytes.
+   * @param src The source buffer to write.
+   * @param srcOffset The offset at which to begin reading bytes from the source.
+   * @param length The number of bytes from the provided byte array to write to the buffer.
    * @return The written buffer.
-   * @throws java.nio.BufferOverflowException If there are no bytes remaining in the buffer.
-   * @see Buffer#writeByte(int, int)
+   * @throws java.nio.BufferOverflowException If there are not enough bytes remaining in the buffer.
+   * @throws IndexOutOfBoundsException If the given offset is out of the bounds of the buffer.
+   * @see Buffer#write(ByteBuffer)
    */
   @Override
-  Buffer writeByte(int b);
+  Buffer write(int offset, ByteBuffer src, int srcOffset, int length);
 
   /**
    * Writes a byte to the buffer at the given offset.
@@ -1114,21 +1301,6 @@ public interface Buffer
   Buffer writeByte(int offset, int b);
 
   /**
-   * Writes an unsigned byte to the buffer at the current position.
-   *
-   * <p>When the byte is written to the buffer, the buffer's {@code position} will be advanced by
-   * {@link Bytes#BYTE}. If there are no bytes remaining in the buffer then a {@link
-   * java.nio.BufferOverflowException} will be thrown.
-   *
-   * @param b The byte to write.
-   * @return The written buffer.
-   * @throws java.nio.BufferOverflowException If there are no bytes remaining in the buffer.
-   * @see Buffer#writeUnsignedByte(int, int)
-   */
-  @Override
-  Buffer writeUnsignedByte(int b);
-
-  /**
    * Writes an unsigned byte to the buffer at the given offset.
    *
    * <p>The byte will be written at the given offset. If there are no bytes remaining in the buffer
@@ -1144,22 +1316,6 @@ public interface Buffer
    */
   @Override
   Buffer writeUnsignedByte(int offset, int b);
-
-  /**
-   * Writes a 16-bit character to the buffer at the current position.
-   *
-   * <p>When the character is written to the buffer, the buffer's {@code position} will be advanced
-   * by {@link Bytes#CHARACTER}. If less than {@code 2} bytes are remaining in the buffer then a
-   * {@link java.nio.BufferOverflowException} will be thrown.
-   *
-   * @param c The character to write.
-   * @return The written buffer.
-   * @throws java.nio.BufferOverflowException If {@link Buffer#remaining()} is less than {@link
-   *     Bytes#CHARACTER}.
-   * @see Buffer#writeChar(int, char)
-   */
-  @Override
-  Buffer writeChar(char c);
 
   /**
    * Writes a 16-bit character to the buffer at the given offset.
@@ -1181,22 +1337,6 @@ public interface Buffer
   Buffer writeChar(int offset, char c);
 
   /**
-   * Writes a 16-bit signed integer to the buffer at the current position.
-   *
-   * <p>When the short is written to the buffer, the buffer's {@code position} will be advanced by
-   * {@link Bytes#SHORT}. If less than {@link Bytes#SHORT} bytes are remaining in the buffer then a
-   * {@link java.nio.BufferOverflowException} will be thrown.
-   *
-   * @param s The short to write.
-   * @return The written buffer.
-   * @throws java.nio.BufferOverflowException If {@link Buffer#remaining()} is less than {@link
-   *     Bytes#SHORT}.
-   * @see Buffer#writeShort(int, short)
-   */
-  @Override
-  Buffer writeShort(short s);
-
-  /**
    * Writes a 16-bit signed integer to the buffer at the given offset.
    *
    * <p>The short will be written at the given offset. If there are less than {@link Bytes#SHORT}
@@ -1215,22 +1355,6 @@ public interface Buffer
   Buffer writeShort(int offset, short s);
 
   /**
-   * Writes a 16-bit signed integer to the buffer at the current position.
-   *
-   * <p>When the short is written to the buffer, the buffer's {@code position} will be advanced by
-   * {@link Bytes#SHORT}. If less than {@link Bytes#SHORT} bytes are remaining in the buffer then a
-   * {@link java.nio.BufferOverflowException} will be thrown.
-   *
-   * @param s The short to write.
-   * @return The written buffer.
-   * @throws java.nio.BufferOverflowException If {@link Buffer#remaining()} is less than {@link
-   *     Bytes#SHORT}.
-   * @see Buffer#writeUnsignedShort(int, int)
-   */
-  @Override
-  Buffer writeUnsignedShort(int s);
-
-  /**
    * Writes a 16-bit signed integer to the buffer at the given offset.
    *
    * <p>The short will be written at the given offset. If there are less than {@link Bytes#SHORT}
@@ -1247,22 +1371,6 @@ public interface Buffer
    */
   @Override
   Buffer writeUnsignedShort(int offset, int s);
-
-  /**
-   * Writes a 32-bit signed integer to the buffer at the current position.
-   *
-   * <p>When the integer is written to the buffer, the buffer's {@code position} will be advanced by
-   * {@link Bytes#INTEGER}. If less than {@link Bytes#INTEGER} bytes are remaining in the buffer
-   * then a {@link java.nio.BufferOverflowException} will be thrown.
-   *
-   * @param i The integer to write.
-   * @return The written buffer.
-   * @throws java.nio.BufferOverflowException If {@link Buffer#remaining()} is less than {@link
-   *     Bytes#INTEGER}.
-   * @see Buffer#writeInt(int, int)
-   */
-  @Override
-  Buffer writeInt(int i);
 
   /**
    * Writes a 32-bit signed integer to the buffer at the given offset.
@@ -1284,22 +1392,6 @@ public interface Buffer
   Buffer writeInt(int offset, int i);
 
   /**
-   * Writes a 32-bit signed integer to the buffer at the current position.
-   *
-   * <p>When the integer is written to the buffer, the buffer's {@code position} will be advanced by
-   * {@link Bytes#INTEGER}. If less than {@link Bytes#INTEGER} bytes are remaining in the buffer
-   * then a {@link java.nio.BufferOverflowException} will be thrown.
-   *
-   * @param i The integer to write.
-   * @return The written buffer.
-   * @throws java.nio.BufferOverflowException If {@link Buffer#remaining()} is less than {@link
-   *     Bytes#INTEGER}.
-   * @see Buffer#writeUnsignedInt(int, long)
-   */
-  @Override
-  Buffer writeUnsignedInt(long i);
-
-  /**
    * Writes a 32-bit signed integer to the buffer at the given offset.
    *
    * <p>The integer will be written at the given offset. If there are less than {@link
@@ -1317,22 +1409,6 @@ public interface Buffer
    */
   @Override
   Buffer writeUnsignedInt(int offset, long i);
-
-  /**
-   * Writes a 64-bit signed integer to the buffer at the current position.
-   *
-   * <p>When the long is written to the buffer, the buffer's {@code position} will be advanced by
-   * {@link Bytes#LONG}. If less than {@link Bytes#LONG} bytes are remaining in the buffer then a
-   * {@link java.nio.BufferOverflowException} will be thrown.
-   *
-   * @param l The long to write.
-   * @return The written buffer.
-   * @throws java.nio.BufferOverflowException If {@link Buffer#remaining()} is less than {@link
-   *     Bytes#LONG}.
-   * @see Buffer#writeLong(int, long)
-   */
-  @Override
-  Buffer writeLong(long l);
 
   /**
    * Writes a 64-bit signed integer to the buffer at the given offset.
@@ -1353,22 +1429,6 @@ public interface Buffer
   Buffer writeLong(int offset, long l);
 
   /**
-   * Writes a single-precision 32-bit floating point number to the buffer at the current position.
-   *
-   * <p>When the float is written to the buffer, the buffer's {@code position} will be advanced by
-   * {@link Bytes#FLOAT}. If less than {@link Bytes#FLOAT} bytes are remaining in the buffer then a
-   * {@link java.nio.BufferOverflowException} will be thrown.
-   *
-   * @param f The float to write.
-   * @return The written buffer.
-   * @throws java.nio.BufferOverflowException If {@link Buffer#remaining()} is less than {@link
-   *     Bytes#FLOAT}.
-   * @see Buffer#writeFloat(int, float)
-   */
-  @Override
-  Buffer writeFloat(float f);
-
-  /**
    * Writes a single-precision 32-bit floating point number to the buffer at the given offset.
    *
    * <p>The float will be written at the given offset. If there are less than {@link Bytes#FLOAT}
@@ -1385,22 +1445,6 @@ public interface Buffer
    */
   @Override
   Buffer writeFloat(int offset, float f);
-
-  /**
-   * Writes a double-precision 64-bit floating point number to the buffer at the current position.
-   *
-   * <p>When the double is written to the buffer, the buffer's {@code position} will be advanced by
-   * {@link Bytes#DOUBLE}. If less than {@link Bytes#DOUBLE} bytes are remaining in the buffer then
-   * a {@link java.nio.BufferOverflowException} will be thrown.
-   *
-   * @param d The double to write.
-   * @return The written buffer.
-   * @throws java.nio.BufferOverflowException If {@link Buffer#remaining()} is less than {@link
-   *     Bytes#DOUBLE}.
-   * @see Buffer#writeDouble(int, double)
-   */
-  @Override
-  Buffer writeDouble(double d);
 
   /**
    * Writes a double-precision 64-bit floating point number to the buffer at the given offset.
@@ -1421,22 +1465,6 @@ public interface Buffer
   Buffer writeDouble(int offset, double d);
 
   /**
-   * Writes a 1 byte boolean to the buffer at the current position.
-   *
-   * <p>When the boolean is written to the buffer, the buffer's {@code position} will be advanced by
-   * {@code 1}. If there are no bytes remaining in the buffer then a {@link
-   * java.nio.BufferOverflowException} will be thrown.
-   *
-   * @param b The boolean to write.
-   * @return The written buffer.
-   * @throws java.nio.BufferOverflowException If the number of bytes exceeds the buffer's remaining
-   *     bytes.
-   * @see Buffer#writeBoolean(int, boolean)
-   */
-  @Override
-  Buffer writeBoolean(boolean b);
-
-  /**
    * Writes a 1 byte boolean to the buffer at the given offset.
    *
    * <p>The boolean will be written as a single byte at the given offset. If there are no bytes
@@ -1452,22 +1480,6 @@ public interface Buffer
    */
   @Override
   Buffer writeBoolean(int offset, boolean b);
-
-  /**
-   * Writes a UTF-8 string to the buffer at the current position.
-   *
-   * <p>The string will be written with a two-byte unsigned byte length followed by the UTF-8 bytes.
-   * If there are not enough bytes remaining in the buffer then a {@link
-   * java.nio.BufferOverflowException} will be thrown.
-   *
-   * @param s The string to write.
-   * @return The written buffer.
-   * @throws java.nio.BufferOverflowException If the number of bytes exceeds the buffer's remaining
-   *     bytes.
-   * @see Buffer#writeUTF8(int, String)
-   */
-  @Override
-  Buffer writeUTF8(String s);
 
   /**
    * Writes a UTF-8 string to the buffer at the given offset.
@@ -1486,16 +1498,4 @@ public interface Buffer
    */
   @Override
   Buffer writeUTF8(int offset, String s);
-
-  /**
-   * Closes the buffer.
-   *
-   * <p>This method effectively acts as an alias to {@link Buffer#release()} and allows buffers to
-   * be used as resources in try-with-resources statements. When the buffer is closed the internal
-   * reference counter defined by {@link ReferenceCounted} will be decremented. However, if
-   * references to the buffer still exist then those references will be allowed to continue to
-   * operate on the buffer until all references have been released.
-   */
-  @Override
-  void close();
 }

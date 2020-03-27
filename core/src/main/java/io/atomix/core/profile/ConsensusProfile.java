@@ -24,36 +24,6 @@ import java.util.Collection;
 /** Consensus profile. */
 public class ConsensusProfile implements Profile {
   public static final Type TYPE = new Type();
-
-  /**
-   * Creates a new consensus profile builder.
-   *
-   * @return a new consensus profile builder
-   */
-  public static ConsensusProfileBuilder builder() {
-    return new ConsensusProfileBuilder();
-  }
-
-  /** Consensus profile type. */
-  public static class Type implements Profile.Type<ConsensusProfileConfig> {
-    private static final String NAME = "consensus";
-
-    @Override
-    public String name() {
-      return NAME;
-    }
-
-    @Override
-    public ConsensusProfileConfig newConfig() {
-      return new ConsensusProfileConfig();
-    }
-
-    @Override
-    public Profile newProfile(final ConsensusProfileConfig config) {
-      return new ConsensusProfile(config);
-    }
-  }
-
   private final ConsensusProfileConfig config;
 
   ConsensusProfile(final String... members) {
@@ -66,6 +36,15 @@ public class ConsensusProfile implements Profile {
 
   ConsensusProfile(final ConsensusProfileConfig config) {
     this.config = config;
+  }
+
+  /**
+   * Creates a new consensus profile builder.
+   *
+   * @return a new consensus profile builder
+   */
+  public static ConsensusProfileBuilder builder() {
+    return new ConsensusProfileBuilder();
   }
 
   @Override
@@ -98,5 +77,25 @@ public class ConsensusProfile implements Profile {
                     .setDirectory(
                         String.format(
                             "%s/%s", this.config.getDataPath(), this.config.getDataGroup()))));
+  }
+
+  /** Consensus profile type. */
+  public static class Type implements Profile.Type<ConsensusProfileConfig> {
+    private static final String NAME = "consensus";
+
+    @Override
+    public String name() {
+      return NAME;
+    }
+
+    @Override
+    public ConsensusProfileConfig newConfig() {
+      return new ConsensusProfileConfig();
+    }
+
+    @Override
+    public Profile newProfile(final ConsensusProfileConfig config) {
+      return new ConsensusProfile(config);
+    }
   }
 }

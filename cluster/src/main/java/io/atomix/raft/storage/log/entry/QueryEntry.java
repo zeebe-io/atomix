@@ -28,7 +28,11 @@ import io.atomix.primitive.operation.PrimitiveOperation;
 public class QueryEntry extends OperationEntry {
 
   public QueryEntry(
-      final long term, final long timestamp, final long session, final long sequence, final PrimitiveOperation operation) {
+      final long term,
+      final long timestamp,
+      final long session,
+      final long sequence,
+      final PrimitiveOperation operation) {
     super(term, timestamp, session, sequence, operation);
   }
 }

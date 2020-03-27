@@ -18,7 +18,7 @@ package io.atomix.utils.serializer.serializers;
 import io.atomix.utils.serializer.Serializer;
 
 /** Default serializers. */
-public class DefaultSerializers {
+public final class DefaultSerializers {
 
   /** Basic serializer. */
   public static final Serializer BASIC = Serializer.builder().build();

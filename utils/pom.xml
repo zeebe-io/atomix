@@ -13,67 +13,67 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://maven.apache.org/POM/4.0.0"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-
-  <parent>
-    <groupId>io.zeebe</groupId>
-    <artifactId>atomix-parent</artifactId>
-    <version>0.23.0-SNAPSHOT</version>
-  </parent>
-
-  <packaging>jar</packaging>
   <artifactId>atomix-utils</artifactId>
-  <name>Atomix Utilities</name>
 
   <dependencies>
     <dependency>
-      <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.esotericsoftware</groupId>
-      <artifactId>kryo</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.typesafe</groupId>
-      <artifactId>config</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.objenesis</groupId>
-      <artifactId>objenesis</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.errorprone</groupId>
-      <artifactId>error_prone_annotations</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>com.google.guava</groupId>
+    </dependency>
+    <dependency>
+      <artifactId>commons-lang3</artifactId>
+      <groupId>org.apache.commons</groupId>
+    </dependency>
+    <dependency>
+      <artifactId>kryo</artifactId>
+      <groupId>com.esotericsoftware</groupId>
+    </dependency>
+    <dependency>
+      <artifactId>config</artifactId>
+      <groupId>com.typesafe</groupId>
+    </dependency>
+
+    <dependency>
+      <artifactId>objenesis</artifactId>
+      <groupId>org.objenesis</groupId>
+    </dependency>
+    <dependency>
+      <artifactId>error_prone_annotations</artifactId>
+      <groupId>com.google.errorprone</groupId>
+    </dependency>
+
+    <dependency>
+      <artifactId>slf4j-api</artifactId>
+      <groupId>org.slf4j</groupId>
+    </dependency>
+
+    <dependency>
+      <artifactId>hamcrest</artifactId>
+      <groupId>org.hamcrest</groupId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <artifactId>junit</artifactId>
+      <groupId>junit</groupId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <artifactId>guava-testlib</artifactId>
+      <groupId>com.google.guava</groupId>
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <modelVersion>4.0.0</modelVersion>
+  <name>Atomix Utilities</name>
+  <packaging>jar</packaging>
+
+  <parent>
+    <artifactId>atomix-parent</artifactId>
+    <groupId>io.zeebe</groupId>
+    <version>0.23.0-SNAPSHOT</version>
+  </parent>
 </project>

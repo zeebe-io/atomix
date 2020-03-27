@@ -18,7 +18,8 @@ public class TestPrimitiveImpl extends AbstractAsyncPrimitive<TestPrimitive, Tes
   private final Set<Consumer<String>> expireListeners = Sets.newCopyOnWriteArraySet();
   private final Set<Consumer<String>> closeListeners = Sets.newCopyOnWriteArraySet();
 
-  public TestPrimitiveImpl(final ProxyClient<TestPrimitiveService> proxy, final PrimitiveRegistry registry) {
+  public TestPrimitiveImpl(
+      final ProxyClient<TestPrimitiveService> proxy, final PrimitiveRegistry registry) {
     super(proxy, registry);
   }
 

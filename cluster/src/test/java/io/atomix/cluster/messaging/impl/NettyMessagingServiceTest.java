@@ -54,16 +54,13 @@ import org.slf4j.Logger;
 public class NettyMessagingServiceTest {
 
   private static final Logger LOGGER = getLogger(NettyMessagingServiceTest.class);
-
+  private static final String IP_STRING = "127.0.0.1";
   ManagedMessagingService netty1;
   ManagedMessagingService netty2;
   ManagedMessagingService nettyv11;
   ManagedMessagingService nettyv12;
   ManagedMessagingService nettyv21;
   ManagedMessagingService nettyv22;
-
-  private static final String IP_STRING = "127.0.0.1";
-
   Address address1;
   Address address2;
   Address addressv11;

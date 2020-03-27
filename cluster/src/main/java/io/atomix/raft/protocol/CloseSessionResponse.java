@@ -35,17 +35,17 @@ public class CloseSessionResponse extends SessionResponse {
   }
 
   @Override
+  public int hashCode() {
+    return super.hashCode();
+  }
+
+  @Override
   public boolean equals(final Object object) {
     if (object instanceof CloseSessionResponse) {
       final CloseSessionResponse response = (CloseSessionResponse) object;
       return response.status == status && Objects.equals(response.error, error);
     }
     return false;
-  }
-
-  @Override
-  public int hashCode() {
-    return super.hashCode();
   }
 
   /** Status response builder. */

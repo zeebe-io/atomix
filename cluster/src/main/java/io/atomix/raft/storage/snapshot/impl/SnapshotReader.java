@@ -93,11 +93,6 @@ public class SnapshotReader implements BufferInput<SnapshotReader> {
     return this;
   }
 
-  public SnapshotReader read(final ByteBuffer bytes) {
-    buffer.read(bytes);
-    return this;
-  }
-
   @Override
   public SnapshotReader read(final byte[] bytes) {
     buffer.read(bytes);
@@ -119,6 +114,11 @@ public class SnapshotReader implements BufferInput<SnapshotReader> {
   @Override
   public SnapshotReader read(final Buffer buffer) {
     this.buffer.read(buffer);
+    return this;
+  }
+
+  public SnapshotReader read(final ByteBuffer bytes) {
+    buffer.read(bytes);
     return this;
   }
 

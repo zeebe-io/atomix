@@ -345,7 +345,8 @@ public class RaftSessionManager {
   }
 
   /** Sends a keep-alive request to the cluster. */
-  private synchronized void keepAliveSessions(final long lastKeepAliveTime, final long sessionTimeout) {
+  private synchronized void keepAliveSessions(
+      final long lastKeepAliveTime, final long sessionTimeout) {
     // Filter the list of sessions by timeout.
     final List<RaftSessionState> needKeepAlive =
         sessions.values().stream()
@@ -444,7 +445,8 @@ public class RaftSessionManager {
     }
   }
 
-  private void updateSessions(final List<RaftSessionState> needKeepAlive, final Set<Long> keptAliveSessions) {
+  private void updateSessions(
+      final List<RaftSessionState> needKeepAlive, final Set<Long> keptAliveSessions) {
     for (final RaftSessionState session : needKeepAlive) {
       if (keptAliveSessions.contains(session.getSessionId().id())) {
         session.setState(PrimitiveState.CONNECTED);
@@ -455,7 +457,8 @@ public class RaftSessionManager {
   }
 
   /** Schedules a keep-alive request. */
-  private synchronized void scheduleKeepAlive(final long lastKeepAliveTime, final long timeout, final long delta) {
+  private synchronized void scheduleKeepAlive(
+      final long lastKeepAliveTime, final long timeout, final long delta) {
     final Scheduled keepAliveFuture = keepAliveTimers.remove(timeout);
     if (keepAliveFuture != null) {
       keepAliveFuture.cancel();

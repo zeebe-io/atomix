@@ -31,7 +31,15 @@ import java.nio.channels.FileChannel;
  *
  * @author <a href="http://github.com/kuujo">Jordan Halterman</a>
  */
-public class FileBuffer extends AbstractBuffer {
+public final class FileBuffer extends AbstractBuffer {
+
+  private final FileBytes bytes;
+
+  private FileBuffer(
+      final FileBytes bytes, final int offset, final int initialCapacity, final int maxCapacity) {
+    super(bytes, offset, initialCapacity, maxCapacity, null);
+    this.bytes = bytes;
+  }
 
   /**
    * Allocates a file buffer of unlimited capacity.
@@ -83,7 +91,8 @@ public class FileBuffer extends AbstractBuffer {
    * @see FileBuffer#allocate(File, int)
    * @see FileBuffer#allocate(File, String, int, int)
    */
-  public static FileBuffer allocate(final File file, final int initialCapacity, final int maxCapacity) {
+  public static FileBuffer allocate(
+      final File file, final int initialCapacity, final int maxCapacity) {
     return allocate(file, FileBytes.DEFAULT_MODE, initialCapacity, maxCapacity);
   }
 
@@ -103,7 +112,8 @@ public class FileBuffer extends AbstractBuffer {
    * @see FileBuffer#allocate(File, int)
    * @see FileBuffer#allocate(File, int, int)
    */
-  public static FileBuffer allocate(final File file, final String mode, final int initialCapacity, final int maxCapacity) {
+  public static FileBuffer allocate(
+      final File file, final String mode, final int initialCapacity, final int maxCapacity) {
     checkArgument(
         initialCapacity <= maxCapacity, "initial capacity cannot be greater than maximum capacity");
     return new FileBuffer(
@@ -111,13 +121,6 @@ public class FileBuffer extends AbstractBuffer {
         0,
         initialCapacity,
         maxCapacity);
-  }
-
-  private final FileBytes bytes;
-
-  private FileBuffer(final FileBytes bytes, final int offset, final int initialCapacity, final int maxCapacity) {
-    super(bytes, offset, initialCapacity, maxCapacity, null);
-    this.bytes = bytes;
   }
 
   /**

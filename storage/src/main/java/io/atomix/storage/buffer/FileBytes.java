@@ -42,6 +42,36 @@ import java.nio.file.Files;
  */
 public class FileBytes extends AbstractBytes {
   static final String DEFAULT_MODE = "rw";
+  private static final int PAGE_SIZE = 1024 * 4;
+  private static final byte[] BLANK_PAGE = new byte[PAGE_SIZE];
+  private final File file;
+  private final String mode;
+  private final RandomAccessFile randomAccessFile;
+  private int size;
+
+  FileBytes(final File file, String mode, final int size) {
+    if (file == null) {
+      throw new NullPointerException("file cannot be null");
+    }
+    if (mode == null) {
+      mode = DEFAULT_MODE;
+    }
+    if (size < 0) {
+      throw new IllegalArgumentException("size must be positive");
+    }
+
+    this.file = file;
+    this.mode = mode;
+    this.size = size;
+    try {
+      this.randomAccessFile = new RandomAccessFile(file, mode);
+      if (size > randomAccessFile.length()) {
+        randomAccessFile.setLength(size);
+      }
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
   /**
    * Allocates a randomAccessFile buffer of unlimited count.
@@ -83,38 +113,6 @@ public class FileBytes extends AbstractBytes {
    */
   public static FileBytes allocate(final File file, final String mode, final int size) {
     return new FileBytes(file, mode, (int) Math.min(Memory.Util.toPow2(size), Integer.MAX_VALUE));
-  }
-
-  private static final int PAGE_SIZE = 1024 * 4;
-  private static final byte[] BLANK_PAGE = new byte[PAGE_SIZE];
-
-  private final File file;
-  private final String mode;
-  private final RandomAccessFile randomAccessFile;
-  private int size;
-
-  FileBytes(final File file, String mode, final int size) {
-    if (file == null) {
-      throw new NullPointerException("file cannot be null");
-    }
-    if (mode == null) {
-      mode = DEFAULT_MODE;
-    }
-    if (size < 0) {
-      throw new IllegalArgumentException("size must be positive");
-    }
-
-    this.file = file;
-    this.mode = mode;
-    this.size = size;
-    try {
-      this.randomAccessFile = new RandomAccessFile(file, mode);
-      if (size > randomAccessFile.length()) {
-        randomAccessFile.setLength(size);
-      }
-    } catch (final IOException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   /**
@@ -165,6 +163,31 @@ public class FileBytes extends AbstractBytes {
     return true;
   }
 
+  @Override
+  public ByteOrder order() {
+    return ByteOrder.BIG_ENDIAN;
+  }
+
+  @Override
+  public Bytes flush() {
+    try {
+      randomAccessFile.getFD().sync();
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
+    }
+    return this;
+  }
+
+  @Override
+  public void close() {
+    try {
+      randomAccessFile.close();
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
+    }
+    super.close();
+  }
+
   /**
    * Maps a portion of the randomAccessFile into memory in {@link FileChannel.MapMode#READ_WRITE}
    * mode and returns a {@link UnsafeMappedBytes} instance.
@@ -196,7 +219,10 @@ public class FileBytes extends AbstractBytes {
   }
 
   private static MappedByteBuffer mapFile(
-      final RandomAccessFile randomAccessFile, final int offset, final int size, final FileChannel.MapMode mode) {
+      final RandomAccessFile randomAccessFile,
+      final int offset,
+      final int size,
+      final FileChannel.MapMode mode) {
     try {
       return randomAccessFile.getChannel().map(mode, offset, size);
     } catch (final IOException e) {
@@ -212,11 +238,6 @@ public class FileBytes extends AbstractBytes {
       default:
         return FileChannel.MapMode.READ_WRITE;
     }
-  }
-
-  @Override
-  public ByteOrder order() {
-    return ByteOrder.BIG_ENDIAN;
   }
 
   /** Seeks to the given offset. */
@@ -260,6 +281,147 @@ public class FileBytes extends AbstractBytes {
   public Bytes zero(final int offset, final int length) {
     for (int i = offset; i < offset + length; i++) {
       writeByte(i, (byte) 0);
+    }
+    return this;
+  }
+
+  @Override
+  public Bytes write(final int position, Bytes bytes, final int offset, final int length) {
+    checkWrite(position, length);
+    if (bytes instanceof WrappedBytes) {
+      bytes = ((WrappedBytes) bytes).root();
+    }
+    if (bytes.hasArray()) {
+      try {
+        seekToOffset(position);
+        randomAccessFile.write(bytes.array(), (int) offset, (int) length);
+      } catch (final IOException e) {
+        throw new RuntimeException(e);
+      }
+    } else {
+      try {
+        seekToOffset(position);
+        final byte[] writeBytes = new byte[(int) length];
+        bytes.read(offset, writeBytes, 0, length);
+        randomAccessFile.write(writeBytes);
+      } catch (final IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return this;
+  }
+
+  @Override
+  public Bytes write(final int position, final byte[] bytes, final int offset, final int length) {
+    checkWrite(position, length);
+    try {
+      seekToOffset(position);
+      randomAccessFile.write(bytes, (int) offset, (int) length);
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
+    }
+    return this;
+  }
+
+  @Override
+  public Bytes write(
+      final int offset, final ByteBuffer src, final int srcOffset, final int length) {
+    checkWrite(offset, length);
+
+    try {
+      final ByteBuffer view = src.asReadOnlyBuffer();
+      view.position(srcOffset).limit(srcOffset + length);
+      randomAccessFile.getChannel().write(view, offset);
+    } catch (final IllegalArgumentException e) {
+      // this is necessary in order not to break the method contract
+      throw new IndexOutOfBoundsException(e.getMessage());
+    } catch (final IOException e) {
+      throw new UncheckedIOException(e);
+    }
+
+    return this;
+  }
+
+  @Override
+  public Bytes writeByte(final int offset, final int b) {
+    checkWrite(offset, BYTE);
+    try {
+      seekToOffset(offset);
+      randomAccessFile.writeByte(b);
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
+    }
+    return this;
+  }
+
+  @Override
+  public Bytes writeChar(final int offset, final char c) {
+    checkWrite(offset, CHARACTER);
+    try {
+      seekToOffset(offset);
+      randomAccessFile.writeChar(c);
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
+    }
+    return this;
+  }
+
+  @Override
+  public Bytes writeShort(final int offset, final short s) {
+    checkWrite(offset, SHORT);
+    try {
+      seekToOffset(offset);
+      randomAccessFile.writeShort(s);
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
+    }
+    return this;
+  }
+
+  @Override
+  public Bytes writeInt(final int offset, final int i) {
+    checkWrite(offset, INTEGER);
+    try {
+      seekToOffset(offset);
+      randomAccessFile.writeInt(i);
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
+    }
+    return this;
+  }
+
+  @Override
+  public Bytes writeLong(final int offset, final long l) {
+    checkWrite(offset, LONG);
+    try {
+      seekToOffset(offset);
+      randomAccessFile.writeLong(l);
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
+    }
+    return this;
+  }
+
+  @Override
+  public Bytes writeFloat(final int offset, final float f) {
+    checkWrite(offset, FLOAT);
+    try {
+      seekToOffset(offset);
+      randomAccessFile.writeFloat(f);
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
+    }
+    return this;
+  }
+
+  @Override
+  public Bytes writeDouble(final int offset, final double d) {
+    checkWrite(offset, DOUBLE);
+    try {
+      seekToOffset(offset);
+      randomAccessFile.writeDouble(d);
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
     }
     return this;
   }
@@ -392,166 +554,6 @@ public class FileBytes extends AbstractBytes {
     } catch (final IOException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  @Override
-  public Bytes write(final int position, Bytes bytes, final int offset, final int length) {
-    checkWrite(position, length);
-    if (bytes instanceof WrappedBytes) {
-      bytes = ((WrappedBytes) bytes).root();
-    }
-    if (bytes.hasArray()) {
-      try {
-        seekToOffset(position);
-        randomAccessFile.write(bytes.array(), (int) offset, (int) length);
-      } catch (final IOException e) {
-        throw new RuntimeException(e);
-      }
-    } else {
-      try {
-        seekToOffset(position);
-        final byte[] writeBytes = new byte[(int) length];
-        bytes.read(offset, writeBytes, 0, length);
-        randomAccessFile.write(writeBytes);
-      } catch (final IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
-    return this;
-  }
-
-  @Override
-  public Bytes write(final int position, final byte[] bytes, final int offset, final int length) {
-    checkWrite(position, length);
-    try {
-      seekToOffset(position);
-      randomAccessFile.write(bytes, (int) offset, (int) length);
-    } catch (final IOException e) {
-      throw new RuntimeException(e);
-    }
-    return this;
-  }
-
-  @Override
-  public Bytes write(final int offset, final ByteBuffer src, final int srcOffset, final int length) {
-    checkWrite(offset, length);
-
-    try {
-      final ByteBuffer view = src.asReadOnlyBuffer();
-      view.position(srcOffset).limit(srcOffset + length);
-      randomAccessFile.getChannel().write(view, offset);
-    } catch (final IllegalArgumentException e) {
-      // this is necessary in order not to break the method contract
-      throw new IndexOutOfBoundsException(e.getMessage());
-    } catch (final IOException e) {
-      throw new UncheckedIOException(e);
-    }
-
-    return this;
-  }
-
-  @Override
-  public Bytes writeByte(final int offset, final int b) {
-    checkWrite(offset, BYTE);
-    try {
-      seekToOffset(offset);
-      randomAccessFile.writeByte(b);
-    } catch (final IOException e) {
-      throw new RuntimeException(e);
-    }
-    return this;
-  }
-
-  @Override
-  public Bytes writeChar(final int offset, final char c) {
-    checkWrite(offset, CHARACTER);
-    try {
-      seekToOffset(offset);
-      randomAccessFile.writeChar(c);
-    } catch (final IOException e) {
-      throw new RuntimeException(e);
-    }
-    return this;
-  }
-
-  @Override
-  public Bytes writeShort(final int offset, final short s) {
-    checkWrite(offset, SHORT);
-    try {
-      seekToOffset(offset);
-      randomAccessFile.writeShort(s);
-    } catch (final IOException e) {
-      throw new RuntimeException(e);
-    }
-    return this;
-  }
-
-  @Override
-  public Bytes writeInt(final int offset, final int i) {
-    checkWrite(offset, INTEGER);
-    try {
-      seekToOffset(offset);
-      randomAccessFile.writeInt(i);
-    } catch (final IOException e) {
-      throw new RuntimeException(e);
-    }
-    return this;
-  }
-
-  @Override
-  public Bytes writeLong(final int offset, final long l) {
-    checkWrite(offset, LONG);
-    try {
-      seekToOffset(offset);
-      randomAccessFile.writeLong(l);
-    } catch (final IOException e) {
-      throw new RuntimeException(e);
-    }
-    return this;
-  }
-
-  @Override
-  public Bytes writeFloat(final int offset, final float f) {
-    checkWrite(offset, FLOAT);
-    try {
-      seekToOffset(offset);
-      randomAccessFile.writeFloat(f);
-    } catch (final IOException e) {
-      throw new RuntimeException(e);
-    }
-    return this;
-  }
-
-  @Override
-  public Bytes writeDouble(final int offset, final double d) {
-    checkWrite(offset, DOUBLE);
-    try {
-      seekToOffset(offset);
-      randomAccessFile.writeDouble(d);
-    } catch (final IOException e) {
-      throw new RuntimeException(e);
-    }
-    return this;
-  }
-
-  @Override
-  public Bytes flush() {
-    try {
-      randomAccessFile.getFD().sync();
-    } catch (final IOException e) {
-      throw new RuntimeException(e);
-    }
-    return this;
-  }
-
-  @Override
-  public void close() {
-    try {
-      randomAccessFile.close();
-    } catch (final IOException e) {
-      throw new RuntimeException(e);
-    }
-    super.close();
   }
 
   /** Deletes the underlying file. */

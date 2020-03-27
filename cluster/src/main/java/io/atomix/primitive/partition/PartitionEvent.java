@@ -28,18 +28,6 @@ import java.util.Optional;
 /** Partition event. */
 public class PartitionEvent extends AbstractEvent<PartitionEvent.Type, PartitionId> {
 
-  /** Partition event type. */
-  public enum Type {
-    /** Event type indicating the partition primary has changed. */
-    PRIMARY_CHANGED,
-
-    /** Event type indicating the partition backups have changed. */
-    BACKUPS_CHANGED,
-
-    /** Event type indicating the partition membership has changed. */
-    MEMBERS_CHANGED,
-  }
-
   private final Collection<MemberId> members;
   private final MemberId primary;
   private final Collection<MemberId> backups;
@@ -129,5 +117,17 @@ public class PartitionEvent extends AbstractEvent<PartitionEvent.Type, Partition
         .add("primary", primary)
         .add("backups", backups)
         .toString();
+  }
+
+  /** Partition event type. */
+  public enum Type {
+    /** Event type indicating the partition primary has changed. */
+    PRIMARY_CHANGED,
+
+    /** Event type indicating the partition backups have changed. */
+    BACKUPS_CHANGED,
+
+    /** Event type indicating the partition membership has changed. */
+    MEMBERS_CHANGED,
   }
 }

@@ -29,6 +29,11 @@ import io.atomix.utils.serializer.Namespaces;
 public enum SessionIdGeneratorOperations implements OperationId {
   NEXT(OperationType.COMMAND);
 
+  public static final Namespace NAMESPACE =
+      Namespace.builder()
+          .register(Namespaces.BASIC)
+          .nextId(Namespaces.BEGIN_USER_CUSTOM_ID)
+          .build(SessionIdGeneratorOperations.class.getSimpleName());
   private final OperationType type;
 
   SessionIdGeneratorOperations(final OperationType type) {
@@ -44,10 +49,4 @@ public enum SessionIdGeneratorOperations implements OperationId {
   public OperationType type() {
     return type;
   }
-
-  public static final Namespace NAMESPACE =
-      Namespace.builder()
-          .register(Namespaces.BASIC)
-          .nextId(Namespaces.BEGIN_USER_CUSTOM_ID)
-          .build(SessionIdGeneratorOperations.class.getSimpleName());
 }

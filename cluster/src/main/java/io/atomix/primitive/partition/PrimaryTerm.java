@@ -36,7 +36,8 @@ public class PrimaryTerm {
   private final GroupMember primary;
   private final List<GroupMember> candidates;
 
-  public PrimaryTerm(final long term, final GroupMember primary, final List<GroupMember> candidates) {
+  public PrimaryTerm(
+      final long term, final GroupMember primary, final List<GroupMember> candidates) {
     this.term = term;
     this.primary = primary;
     this.candidates = candidates;

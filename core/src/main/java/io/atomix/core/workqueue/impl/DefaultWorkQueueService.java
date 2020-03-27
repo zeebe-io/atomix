@@ -75,6 +75,16 @@ public class DefaultWorkQueueService extends AbstractPrimitiveService<WorkQueueC
   }
 
   @Override
+  public void onExpire(final Session session) {
+    evictWorker(session.sessionId());
+  }
+
+  @Override
+  public void onClose(final Session session) {
+    evictWorker(session.sessionId());
+  }
+
+  @Override
   public void backup(final BackupOutput writer) {
     writer.writeObject(registeredWorkers);
     writer.writeObject(assignments);
@@ -88,33 +98,6 @@ public class DefaultWorkQueueService extends AbstractPrimitiveService<WorkQueueC
     assignments = reader.readObject();
     unassignedTasks = reader.readObject();
     totalCompleted.set(reader.readLong());
-  }
-
-  @Override
-  public WorkQueueStats stats() {
-    return WorkQueueStats.builder()
-        .withTotalCompleted(totalCompleted.get())
-        .withTotalPending(unassignedTasks.size())
-        .withTotalInProgress(assignments.size())
-        .build();
-  }
-
-  @Override
-  public void clear() {
-    unassignedTasks.clear();
-    assignments.clear();
-    registeredWorkers.clear();
-    totalCompleted.set(0);
-  }
-
-  @Override
-  public void register() {
-    registeredWorkers.add(getCurrentSession().sessionId());
-  }
-
-  @Override
-  public void unregister() {
-    registeredWorkers.remove(getCurrentSession().sessionId());
   }
 
   @Override
@@ -148,9 +131,9 @@ public class DefaultWorkQueueService extends AbstractPrimitiveService<WorkQueueC
       return IntStream.range(0, Math.min(maxTasks, unassignedTasks.size()))
           .mapToObj(
               i -> {
-                Task<byte[]> task = unassignedTasks.poll();
-                String taskId = task.taskId();
-                TaskAssignment assignment = new TaskAssignment(sessionId, task);
+                final Task<byte[]> task = unassignedTasks.poll();
+                final String taskId = task.taskId();
+                final TaskAssignment assignment = new TaskAssignment(sessionId, task);
 
                 // bookkeeping
                 assignments.put(taskId, assignment);
@@ -186,13 +169,30 @@ public class DefaultWorkQueueService extends AbstractPrimitiveService<WorkQueueC
   }
 
   @Override
-  public void onExpire(final Session session) {
-    evictWorker(session.sessionId());
+  public WorkQueueStats stats() {
+    return WorkQueueStats.builder()
+        .withTotalCompleted(totalCompleted.get())
+        .withTotalPending(unassignedTasks.size())
+        .withTotalInProgress(assignments.size())
+        .build();
   }
 
   @Override
-  public void onClose(final Session session) {
-    evictWorker(session.sessionId());
+  public void register() {
+    registeredWorkers.add(getCurrentSession().sessionId());
+  }
+
+  @Override
+  public void unregister() {
+    registeredWorkers.remove(getCurrentSession().sessionId());
+  }
+
+  @Override
+  public void clear() {
+    unassignedTasks.clear();
+    assignments.clear();
+    registeredWorkers.clear();
+    totalCompleted.set(0);
   }
 
   private void evictWorker(final SessionId sessionId) {

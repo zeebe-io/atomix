@@ -66,6 +66,7 @@ public class VersionTest {
       callback.run();
       fail();
     } catch (final IllegalArgumentException e) {
+      // expected
     }
   }
 }

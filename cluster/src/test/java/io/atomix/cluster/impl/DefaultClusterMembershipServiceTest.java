@@ -224,7 +224,8 @@ public class DefaultClusterMembershipServiceTest {
     assertTrue(clusterService2.getMember(MemberId.from("3")).isActive());
     assertNull(clusterService2.getMember(MemberId.from("4")));
 
-    final TestClusterMembershipEventListener eventListener = new TestClusterMembershipEventListener();
+    final TestClusterMembershipEventListener eventListener =
+        new TestClusterMembershipEventListener();
     clusterService2.addListener(eventListener);
 
     ClusterMembershipEvent event;

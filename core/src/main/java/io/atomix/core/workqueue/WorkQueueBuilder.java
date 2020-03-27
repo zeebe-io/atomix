@@ -27,7 +27,9 @@ public abstract class WorkQueueBuilder<E>
     implements ProxyCompatibleBuilder<WorkQueueBuilder<E>> {
 
   protected WorkQueueBuilder(
-      final String name, final WorkQueueConfig config, final PrimitiveManagementService managementService) {
+      final String name,
+      final WorkQueueConfig config,
+      final PrimitiveManagementService managementService) {
     super(WorkQueueType.instance(), name, config, managementService);
   }
 

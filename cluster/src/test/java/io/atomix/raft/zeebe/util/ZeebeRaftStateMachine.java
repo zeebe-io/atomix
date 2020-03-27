@@ -30,18 +30,20 @@ public class ZeebeRaftStateMachine extends RaftServiceManager {
   private volatile long compactableTerm;
 
   public ZeebeRaftStateMachine(
-      final RaftContext raft, final ThreadContext stateContext, final ThreadContextFactory threadContextFactory) {
+      final RaftContext raft,
+      final ThreadContext stateContext,
+      final ThreadContextFactory threadContextFactory) {
     super(raft, stateContext, threadContextFactory);
-  }
-
-  @Override
-  public void setCompactableIndex(final long index) {
-    compactableIndex = index;
   }
 
   @Override
   public long getCompactableIndex() {
     return compactableIndex;
+  }
+
+  @Override
+  public void setCompactableIndex(final long index) {
+    compactableIndex = index;
   }
 
   @Override

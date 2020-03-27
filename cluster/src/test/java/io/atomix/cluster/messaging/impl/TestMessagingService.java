@@ -45,7 +45,8 @@ public class TestMessagingService implements ManagedMessagingService {
   private final AtomicBoolean started = new AtomicBoolean();
   private final Set<Address> partitions = Sets.newConcurrentHashSet();
 
-  public TestMessagingService(final Address address, final Map<Address, TestMessagingService> services) {
+  public TestMessagingService(
+      final Address address, final Map<Address, TestMessagingService> services) {
     this.address = address;
     this.services = services;
   }
@@ -116,7 +117,11 @@ public class TestMessagingService implements ManagedMessagingService {
 
   @Override
   public CompletableFuture<byte[]> sendAndReceive(
-      final Address address, final String type, final byte[] payload, final boolean keepAlive, final Executor executor) {
+      final Address address,
+      final String type,
+      final byte[] payload,
+      final boolean keepAlive,
+      final Executor executor) {
     if (isPartitioned(address)) {
       return Futures.exceptionalFuture(new ConnectException());
     }
@@ -127,7 +132,11 @@ public class TestMessagingService implements ManagedMessagingService {
 
   @Override
   public CompletableFuture<byte[]> sendAndReceive(
-      final Address address, final String type, final byte[] payload, final boolean keepAlive, final Duration timeout) {
+      final Address address,
+      final String type,
+      final byte[] payload,
+      final boolean keepAlive,
+      final Duration timeout) {
     if (isPartitioned(address)) {
       return Futures.exceptionalFuture(new ConnectException());
     }
@@ -151,7 +160,8 @@ public class TestMessagingService implements ManagedMessagingService {
   }
 
   @Override
-  public void registerHandler(final String type, final BiConsumer<Address, byte[]> handler, final Executor executor) {
+  public void registerHandler(
+      final String type, final BiConsumer<Address, byte[]> handler, final Executor executor) {
     checkNotNull(type);
     checkNotNull(handler);
     handlers.put(
@@ -168,7 +178,9 @@ public class TestMessagingService implements ManagedMessagingService {
 
   @Override
   public void registerHandler(
-      final String type, final BiFunction<Address, byte[], byte[]> handler, final Executor executor) {
+      final String type,
+      final BiFunction<Address, byte[], byte[]> handler,
+      final Executor executor) {
     checkNotNull(type);
     checkNotNull(handler);
     handlers.put(

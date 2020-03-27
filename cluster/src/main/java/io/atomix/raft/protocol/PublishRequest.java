@@ -41,7 +41,10 @@ public class PublishRequest extends SessionRequest {
   private final List<PrimitiveEvent> events;
 
   public PublishRequest(
-      final long session, final long eventIndex, final long previousIndex, final List<PrimitiveEvent> events) {
+      final long session,
+      final long eventIndex,
+      final long previousIndex,
+      final List<PrimitiveEvent> events) {
     super(session);
     this.eventIndex = eventIndex;
     this.previousIndex = previousIndex;

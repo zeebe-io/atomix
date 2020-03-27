@@ -38,18 +38,20 @@ public class TestPrimitiveType implements PrimitiveType {
   }
 
   @Override
-  public PrimitiveService newService(final ServiceConfig config) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public PrimitiveConfig newConfig() {
     throw new UnsupportedOperationException();
   }
 
   @Override
   public PrimitiveBuilder newBuilder(
-      final String primitiveName, final PrimitiveConfig config, final PrimitiveManagementService managementService) {
+      final String primitiveName,
+      final PrimitiveConfig config,
+      final PrimitiveManagementService managementService) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public PrimitiveService newService(final ServiceConfig config) {
     throw new UnsupportedOperationException();
   }
 }

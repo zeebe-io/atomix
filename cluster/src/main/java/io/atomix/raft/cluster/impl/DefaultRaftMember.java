@@ -113,6 +113,15 @@ public final class DefaultRaftMember implements RaftMember, AutoCloseable {
   }
 
   /**
+   * Sets the member type.
+   *
+   * @param type the member type
+   */
+  void setType(final Type type) {
+    this.type = type;
+  }
+
+  /**
    * Updates the member type.
    *
    * @param type The member type.
@@ -232,14 +241,5 @@ public final class DefaultRaftMember implements RaftMember, AutoCloseable {
   DefaultRaftMember setCluster(final RaftClusterContext cluster) {
     this.cluster = cluster;
     return this;
-  }
-
-  /**
-   * Sets the member type.
-   *
-   * @param type the member type
-   */
-  void setType(final Type type) {
-    this.type = type;
   }
 }

@@ -28,6 +28,12 @@ import java.util.Objects;
  */
 public class LogicalTimestamp implements Timestamp {
 
+  private final long value;
+
+  public LogicalTimestamp(final long value) {
+    this.value = value;
+  }
+
   /**
    * Returns a new logical timestamp for the given logical time.
    *
@@ -36,12 +42,6 @@ public class LogicalTimestamp implements Timestamp {
    */
   public static LogicalTimestamp of(final long value) {
     return new LogicalTimestamp(value);
-  }
-
-  private final long value;
-
-  public LogicalTimestamp(final long value) {
-    this.value = value;
   }
 
   /**

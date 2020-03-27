@@ -149,27 +149,9 @@ final class LeaderAppender extends AbstractAppender {
     super.handleAppendResponseFailure(member, request, error);
   }
 
-  /** Records a failed heartbeat. */
-  private void failHeartbeat() {
-    raft.checkThread();
-
-    // Iterate through pending timestamped heartbeat futures and fail futures that have been pending
-    // longer
-    // than an election timeout.
-    final long currentTimestamp = System.currentTimeMillis();
-    final Iterator<TimestampedFuture<Long>> iterator = heartbeatFutures.iterator();
-    while (iterator.hasNext()) {
-      final TimestampedFuture<Long> future = iterator.next();
-      if (currentTimestamp - future.timestamp > electionTimeout) {
-        future.completeExceptionally(
-            new RaftException.ProtocolException("Failed to reach consensus"));
-        iterator.remove();
-      }
-    }
-  }
-
   @Override
-  protected void failAttempt(final RaftMemberContext member, final RaftRequest request, final Throwable error) {
+  protected void failAttempt(
+      final RaftMemberContext member, final RaftRequest request, final Throwable error) {
     super.failAttempt(member, request, error);
 
     // Fail heartbeat futures.
@@ -198,80 +180,12 @@ final class LeaderAppender extends AbstractAppender {
 
   @Override
   protected void handleAppendResponse(
-      final RaftMemberContext member, final AppendRequest request, final AppendResponse response, final long timestamp) {
+      final RaftMemberContext member,
+      final AppendRequest request,
+      final AppendResponse response,
+      final long timestamp) {
     super.handleAppendResponse(member, request, response, timestamp);
     recordHeartbeat(member, timestamp);
-  }
-
-  /** Records a completed heartbeat to the given member. */
-  private void recordHeartbeat(final RaftMemberContext member, final long timestamp) {
-    raft.checkThread();
-
-    // Update the member's heartbeat time. This will be used when calculating the quorum heartbeat
-    // time.
-    member.setHeartbeatTime(timestamp);
-    member.setResponseTime(System.currentTimeMillis());
-
-    // Compute the quorum heartbeat time.
-    final long heartbeatTime = computeHeartbeatTime();
-    final long currentTimestamp = System.currentTimeMillis();
-
-    // Iterate through pending timestamped heartbeat futures and complete all futures where the
-    // timestamp
-    // is greater than the last timestamp a quorum of the cluster was contacted.
-    final Iterator<TimestampedFuture<Long>> iterator = heartbeatFutures.iterator();
-    while (iterator.hasNext()) {
-      final TimestampedFuture<Long> future = iterator.next();
-
-      // If the future is timestamped prior to the last heartbeat to a majority of the cluster,
-      // complete the future.
-      if (future.timestamp < heartbeatTime) {
-        future.complete(null);
-        iterator.remove();
-      }
-      // If the future is more than an election timeout old, fail it with a protocol exception.
-      else if (currentTimestamp - future.timestamp > electionTimeout) {
-        future.completeExceptionally(
-            new RaftException.ProtocolException("Failed to reach consensus"));
-        iterator.remove();
-      }
-      // Otherwise, we've reached recent heartbeat futures. Break out of the loop.
-      else {
-        break;
-      }
-    }
-
-    // If heartbeat futures are still pending, attempt to send heartbeats.
-    if (!heartbeatFutures.isEmpty()) {
-      sendHeartbeats();
-    }
-  }
-
-  /**
-   * Returns the last time a majority of the cluster was contacted.
-   *
-   * <p>This is calculated by sorting the list of active members and getting the last time the
-   * majority of the cluster was contacted based on the index of a majority of the members. So, in a
-   * list of 3 ACTIVE members, index 1 (the second member) will be used to determine the commit time
-   * in a sorted members list.
-   */
-  private long computeHeartbeatTime() {
-    final int quorumIndex = getQuorumIndex();
-    if (quorumIndex >= 0) {
-      return raft.getCluster()
-          .getActiveMemberStates(
-              (m1, m2) -> Long.compare(m2.getHeartbeatTime(), m1.getHeartbeatTime()))
-          .get(quorumIndex)
-          .getHeartbeatTime();
-    }
-    return System.currentTimeMillis();
-  }
-
-  /** Attempts to send heartbeats to all followers. */
-  private void sendHeartbeats() {
-    for (final RaftMemberContext member : raft.getCluster().getRemoteMemberStates()) {
-      appendEntries(member);
-    }
   }
 
   @Override
@@ -419,7 +333,10 @@ final class LeaderAppender extends AbstractAppender {
 
   @Override
   protected void handleInstallResponse(
-      final RaftMemberContext member, final InstallRequest request, final InstallResponse response, final long timestamp) {
+      final RaftMemberContext member,
+      final InstallRequest request,
+      final InstallResponse response,
+      final long timestamp) {
     super.handleInstallResponse(member, request, response, timestamp);
     recordHeartbeat(member, timestamp);
   }
@@ -435,6 +352,96 @@ final class LeaderAppender extends AbstractAppender {
         future ->
             future.completeExceptionally(
                 new RaftException.ProtocolException("Failed to reach consensus")));
+  }
+
+  /** Records a failed heartbeat. */
+  private void failHeartbeat() {
+    raft.checkThread();
+
+    // Iterate through pending timestamped heartbeat futures and fail futures that have been pending
+    // longer
+    // than an election timeout.
+    final long currentTimestamp = System.currentTimeMillis();
+    final Iterator<TimestampedFuture<Long>> iterator = heartbeatFutures.iterator();
+    while (iterator.hasNext()) {
+      final TimestampedFuture<Long> future = iterator.next();
+      if (currentTimestamp - future.timestamp > electionTimeout) {
+        future.completeExceptionally(
+            new RaftException.ProtocolException("Failed to reach consensus"));
+        iterator.remove();
+      }
+    }
+  }
+
+  /** Records a completed heartbeat to the given member. */
+  private void recordHeartbeat(final RaftMemberContext member, final long timestamp) {
+    raft.checkThread();
+
+    // Update the member's heartbeat time. This will be used when calculating the quorum heartbeat
+    // time.
+    member.setHeartbeatTime(timestamp);
+    member.setResponseTime(System.currentTimeMillis());
+
+    // Compute the quorum heartbeat time.
+    final long heartbeatTime = computeHeartbeatTime();
+    final long currentTimestamp = System.currentTimeMillis();
+
+    // Iterate through pending timestamped heartbeat futures and complete all futures where the
+    // timestamp
+    // is greater than the last timestamp a quorum of the cluster was contacted.
+    final Iterator<TimestampedFuture<Long>> iterator = heartbeatFutures.iterator();
+    while (iterator.hasNext()) {
+      final TimestampedFuture<Long> future = iterator.next();
+
+      // If the future is timestamped prior to the last heartbeat to a majority of the cluster,
+      // complete the future.
+      if (future.timestamp < heartbeatTime) {
+        future.complete(null);
+        iterator.remove();
+      }
+      // If the future is more than an election timeout old, fail it with a protocol exception.
+      else if (currentTimestamp - future.timestamp > electionTimeout) {
+        future.completeExceptionally(
+            new RaftException.ProtocolException("Failed to reach consensus"));
+        iterator.remove();
+      }
+      // Otherwise, we've reached recent heartbeat futures. Break out of the loop.
+      else {
+        break;
+      }
+    }
+
+    // If heartbeat futures are still pending, attempt to send heartbeats.
+    if (!heartbeatFutures.isEmpty()) {
+      sendHeartbeats();
+    }
+  }
+
+  /**
+   * Returns the last time a majority of the cluster was contacted.
+   *
+   * <p>This is calculated by sorting the list of active members and getting the last time the
+   * majority of the cluster was contacted based on the index of a majority of the members. So, in a
+   * list of 3 ACTIVE members, index 1 (the second member) will be used to determine the commit time
+   * in a sorted members list.
+   */
+  private long computeHeartbeatTime() {
+    final int quorumIndex = getQuorumIndex();
+    if (quorumIndex >= 0) {
+      return raft.getCluster()
+          .getActiveMemberStates(
+              (m1, m2) -> Long.compare(m2.getHeartbeatTime(), m1.getHeartbeatTime()))
+          .get(quorumIndex)
+          .getHeartbeatTime();
+    }
+    return System.currentTimeMillis();
+  }
+
+  /** Attempts to send heartbeats to all followers. */
+  private void sendHeartbeats() {
+    for (final RaftMemberContext member : raft.getCluster().getRemoteMemberStates()) {
+      appendEntries(member);
+    }
   }
 
   /** Checks whether any futures can be completed. */

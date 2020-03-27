@@ -29,30 +29,13 @@ abstract class AbstractMessageEncoder extends MessageToByteEncoder<Object> {
   // Effectively MessageToByteEncoder<InternalMessage>,
   // had to specify <Object> to avoid Class Loader not being able to find some classes.
 
-  private final Logger log = LoggerFactory.getLogger(getClass());
-
   protected final Address address;
+  private final Logger log = LoggerFactory.getLogger(getClass());
   private boolean addressWritten;
 
   AbstractMessageEncoder(final Address address) {
     super();
     this.address = address;
-  }
-
-  @Override
-  protected void encode(final ChannelHandlerContext context, final Object rawMessage, final ByteBuf out) {
-    if (!addressWritten) {
-      encodeAddress((ProtocolMessage) rawMessage, out);
-      addressWritten = true;
-    }
-
-    encodeMessage((ProtocolMessage) rawMessage, out);
-
-    if (rawMessage instanceof ProtocolRequest) {
-      encodeRequest((ProtocolRequest) rawMessage, out);
-    } else if (rawMessage instanceof ProtocolReply) {
-      encodeReply((ProtocolReply) rawMessage, out);
-    }
   }
 
   protected abstract void encodeAddress(ProtocolMessage message, ByteBuf buffer);
@@ -173,5 +156,22 @@ abstract class AbstractMessageEncoder extends MessageToByteEncoder<Object> {
   @Override
   public final boolean acceptOutboundMessage(final Object msg) throws Exception {
     return msg instanceof ProtocolMessage;
+  }
+
+  @Override
+  protected void encode(
+      final ChannelHandlerContext context, final Object rawMessage, final ByteBuf out) {
+    if (!addressWritten) {
+      encodeAddress((ProtocolMessage) rawMessage, out);
+      addressWritten = true;
+    }
+
+    encodeMessage((ProtocolMessage) rawMessage, out);
+
+    if (rawMessage instanceof ProtocolRequest) {
+      encodeRequest((ProtocolRequest) rawMessage, out);
+    } else if (rawMessage instanceof ProtocolReply) {
+      encodeReply((ProtocolReply) rawMessage, out);
+    }
   }
 }

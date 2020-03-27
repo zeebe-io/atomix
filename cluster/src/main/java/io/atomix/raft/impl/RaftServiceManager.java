@@ -98,7 +98,9 @@ public class RaftServiceManager implements RaftStateMachine {
   private long lastCompacted;
 
   public RaftServiceManager(
-      final RaftContext raft, final ThreadContext stateContext, final ThreadContextFactory threadContextFactory) {
+      final RaftContext raft,
+      final ThreadContext stateContext,
+      final ThreadContextFactory threadContextFactory) {
     this.raft = checkNotNull(raft, "state cannot be null");
     this.log = raft.getLog();
     this.reader = log.openReader(1, RaftLogReader.Mode.COMMITS);
@@ -237,6 +239,21 @@ public class RaftServiceManager implements RaftStateMachine {
     return future;
   }
 
+  @Override
+  public void close() {
+    // Don't close the thread context here since state machines can be reused.
+  }
+
+  @Override
+  public long getCompactableIndex() {
+    return raft.getLastApplied();
+  }
+
+  @Override
+  public long getCompactableTerm() {
+    return raft.getLastAppliedTerm();
+  }
+
   /**
    * Prepares sessions for the given index.
    *
@@ -296,7 +313,10 @@ public class RaftServiceManager implements RaftStateMachine {
   /** Initializes a new service. */
   @SuppressWarnings("unchecked")
   private RaftServiceContext initializeService(
-      final PrimitiveId primitiveId, final PrimitiveType primitiveType, final String serviceName, final byte[] config) {
+      final PrimitiveId primitiveId,
+      final PrimitiveType primitiveType,
+      final String serviceName,
+      final byte[] config) {
     final RaftServiceContext oldService = raft.getServices().getService(serviceName);
     final ServiceConfig serviceConfig =
         config == null
@@ -465,7 +485,10 @@ public class RaftServiceManager implements RaftStateMachine {
 
   /** Gets or initializes a service context. */
   private RaftServiceContext getOrInitializeService(
-      final PrimitiveId primitiveId, final PrimitiveType primitiveType, final String serviceName, final byte[] config) {
+      final PrimitiveId primitiveId,
+      final PrimitiveType primitiveType,
+      final String serviceName,
+      final byte[] config) {
     // Get the state machine executor or create one if it doesn't already exist.
     RaftServiceContext service = raft.getServices().getService(serviceName);
     if (service == null) {
@@ -613,21 +636,6 @@ public class RaftServiceManager implements RaftStateMachine {
             entry.entry().operation());
   }
 
-  @Override
-  public void close() {
-    // Don't close the thread context here since state machines can be reused.
-  }
-
-  @Override
-  public long getCompactableIndex() {
-    return raft.getLastApplied();
-  }
-
-  @Override
-  public long getCompactableTerm() {
-    return raft.getLastAppliedTerm();
-  }
-
   /**
    * Applies all entries up to the given index.
    *
@@ -700,7 +708,8 @@ public class RaftServiceManager implements RaftStateMachine {
    * Takes a snapshot of all services and compacts logs if the server is not under high load or disk
    * needs to be freed.
    */
-  private CompletableFuture<Void> takeSnapshots(final boolean rescheduleAfterCompletion, final boolean force) {
+  private CompletableFuture<Void> takeSnapshots(
+      final boolean rescheduleAfterCompletion, final boolean force) {
     // If compaction is already in progress, return the existing future and reschedule if this is a
     // scheduled compaction.
     if (compactFuture != null) {

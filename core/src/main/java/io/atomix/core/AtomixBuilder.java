@@ -231,7 +231,8 @@ public class AtomixBuilder extends AtomixClusterBuilder {
    * @return the Atomix builder
    * @throws NullPointerException if the partition groups are null
    */
-  public AtomixBuilder withPartitionGroups(final Collection<ManagedPartitionGroup> partitionGroups) {
+  public AtomixBuilder withPartitionGroups(
+      final Collection<ManagedPartitionGroup> partitionGroups) {
     partitionGroups.forEach(group -> config.addPartitionGroup(group.config()));
     return this;
   }
@@ -371,13 +372,6 @@ public class AtomixBuilder extends AtomixClusterBuilder {
   }
 
   @Override
-  @Deprecated
-  public AtomixBuilder withZone(final String zone) {
-    super.withZone(zone);
-    return this;
-  }
-
-  @Override
   public AtomixBuilder withZoneId(final String zoneId) {
     super.withZoneId(zoneId);
     return this;
@@ -385,14 +379,21 @@ public class AtomixBuilder extends AtomixClusterBuilder {
 
   @Override
   @Deprecated
-  public AtomixBuilder withRack(final String rack) {
-    super.withRack(rack);
+  public AtomixBuilder withZone(final String zone) {
+    super.withZone(zone);
     return this;
   }
 
   @Override
   public AtomixBuilder withRackId(final String rackId) {
     super.withRackId(rackId);
+    return this;
+  }
+
+  @Override
+  @Deprecated
+  public AtomixBuilder withRack(final String rack) {
+    super.withRack(rack);
     return this;
   }
 
@@ -463,18 +464,6 @@ public class AtomixBuilder extends AtomixClusterBuilder {
   }
 
   @Override
-  public AtomixBuilder withMembershipProtocol(final GroupMembershipProtocol protocol) {
-    super.withMembershipProtocol(protocol);
-    return this;
-  }
-
-  @Override
-  public AtomixBuilder withMembershipProvider(final NodeDiscoveryProvider locationProvider) {
-    super.withMembershipProvider(locationProvider);
-    return this;
-  }
-
-  @Override
   public AtomixBuilder setBroadcastInterval(final Duration interval) {
     super.setBroadcastInterval(interval);
     return this;
@@ -489,6 +478,18 @@ public class AtomixBuilder extends AtomixClusterBuilder {
   @Override
   public AtomixBuilder withReachabilityTimeout(final Duration timeout) {
     super.withReachabilityTimeout(timeout);
+    return this;
+  }
+
+  @Override
+  public AtomixBuilder withMembershipProtocol(final GroupMembershipProtocol protocol) {
+    super.withMembershipProtocol(protocol);
+    return this;
+  }
+
+  @Override
+  public AtomixBuilder withMembershipProvider(final NodeDiscoveryProvider locationProvider) {
+    super.withMembershipProvider(locationProvider);
     return this;
   }
 

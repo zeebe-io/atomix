@@ -36,6 +36,18 @@ public final class Match<T> {
   private final T value;
   private final boolean negation;
 
+  private Match() {
+    matchAny = true;
+    negation = false;
+    value = null;
+  }
+
+  private Match(final T value, final boolean negation) {
+    matchAny = false;
+    this.value = value;
+    this.negation = negation;
+  }
+
   /**
    * Returns a Match that matches any value including null.
    *
@@ -86,18 +98,6 @@ public final class Match<T> {
    */
   public static <T> Match<T> ifNotValue(final T value) {
     return new Match<>(value, true);
-  }
-
-  private Match() {
-    matchAny = true;
-    negation = false;
-    value = null;
-  }
-
-  private Match(final T value, final boolean negation) {
-    matchAny = false;
-    this.value = value;
-    this.negation = negation;
   }
 
   /**

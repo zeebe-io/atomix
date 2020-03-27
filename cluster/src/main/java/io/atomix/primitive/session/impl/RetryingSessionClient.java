@@ -53,7 +53,10 @@ public class RetryingSessionClient extends DelegatingSessionClient {
               || e instanceof PrimitiveException.ClosedSession;
 
   public RetryingSessionClient(
-      final SessionClient session, final Scheduler scheduler, final int maxRetries, final Duration delayBetweenRetries) {
+      final SessionClient session,
+      final Scheduler scheduler,
+      final int maxRetries,
+      final Duration delayBetweenRetries) {
     super(session);
     this.session = session;
     this.scheduler = scheduler;
@@ -80,7 +83,9 @@ public class RetryingSessionClient extends DelegatingSessionClient {
   }
 
   private void execute(
-      final PrimitiveOperation operation, final int attemptIndex, final CompletableFuture<byte[]> future) {
+      final PrimitiveOperation operation,
+      final int attemptIndex,
+      final CompletableFuture<byte[]> future) {
     session
         .execute(operation)
         .whenComplete(

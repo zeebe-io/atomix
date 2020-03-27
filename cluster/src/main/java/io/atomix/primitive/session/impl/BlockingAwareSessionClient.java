@@ -45,22 +45,6 @@ public class BlockingAwareSessionClient extends DelegatingSessionClient {
   }
 
   @Override
-  public void addStateChangeListener(final Consumer<PrimitiveState> listener) {
-    final Consumer<PrimitiveState> wrappedListener =
-        state -> context.execute(() -> listener.accept(state));
-    stateChangeListeners.put(listener, wrappedListener);
-    super.addStateChangeListener(wrappedListener);
-  }
-
-  @Override
-  public void removeStateChangeListener(final Consumer<PrimitiveState> listener) {
-    final Consumer<PrimitiveState> wrappedListener = stateChangeListeners.remove(listener);
-    if (wrappedListener != null) {
-      super.removeStateChangeListener(wrappedListener);
-    }
-  }
-
-  @Override
   public CompletableFuture<byte[]> execute(final PrimitiveOperation operation) {
     return asyncFuture(super.execute(operation), context);
   }
@@ -73,10 +57,27 @@ public class BlockingAwareSessionClient extends DelegatingSessionClient {
   }
 
   @Override
-  public void removeEventListener(final EventType eventType, final Consumer<PrimitiveEvent> listener) {
+  public void removeEventListener(
+      final EventType eventType, final Consumer<PrimitiveEvent> listener) {
     final Consumer<PrimitiveEvent> wrappedListener = eventListeners.remove(listener);
     if (wrappedListener != null) {
       super.removeEventListener(eventType, wrappedListener);
+    }
+  }
+
+  @Override
+  public void addStateChangeListener(final Consumer<PrimitiveState> listener) {
+    final Consumer<PrimitiveState> wrappedListener =
+        state -> context.execute(() -> listener.accept(state));
+    stateChangeListeners.put(listener, wrappedListener);
+    super.addStateChangeListener(wrappedListener);
+  }
+
+  @Override
+  public void removeStateChangeListener(final Consumer<PrimitiveState> listener) {
+    final Consumer<PrimitiveState> wrappedListener = stateChangeListeners.remove(listener);
+    if (wrappedListener != null) {
+      super.removeStateChangeListener(wrappedListener);
     }
   }
 

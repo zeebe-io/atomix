@@ -56,7 +56,9 @@ public class RaftClientCommunicator implements RaftClientProtocol {
   }
 
   public RaftClientCommunicator(
-      final String prefix, final Serializer serializer, final ClusterCommunicationService clusterCommunicator) {
+      final String prefix,
+      final Serializer serializer,
+      final ClusterCommunicationService clusterCommunicator) {
     this.context = new RaftMessageContext(prefix);
     this.serializer = Preconditions.checkNotNull(serializer, "serializer cannot be null");
     this.clusterCommunicator =
@@ -67,11 +69,6 @@ public class RaftClientCommunicator implements RaftClientProtocol {
   public CompletableFuture<OpenSessionResponse> openSession(
       final MemberId memberId, final OpenSessionRequest request) {
     return sendAndReceive(context.openSessionSubject, request, memberId);
-  }
-
-  private <T, U> CompletableFuture<U> sendAndReceive(final String subject, final T request, final MemberId memberId) {
-    return clusterCommunicator.send(
-        subject, request, serializer::encode, serializer::decode, memberId);
   }
 
   @Override
@@ -87,17 +84,20 @@ public class RaftClientCommunicator implements RaftClientProtocol {
   }
 
   @Override
-  public CompletableFuture<QueryResponse> query(final MemberId memberId, final QueryRequest request) {
+  public CompletableFuture<QueryResponse> query(
+      final MemberId memberId, final QueryRequest request) {
     return sendAndReceive(context.querySubject, request, memberId);
   }
 
   @Override
-  public CompletableFuture<CommandResponse> command(final MemberId memberId, final CommandRequest request) {
+  public CompletableFuture<CommandResponse> command(
+      final MemberId memberId, final CommandRequest request) {
     return sendAndReceive(context.commandSubject, request, memberId);
   }
 
   @Override
-  public CompletableFuture<MetadataResponse> metadata(final MemberId memberId, final MetadataRequest request) {
+  public CompletableFuture<MetadataResponse> metadata(
+      final MemberId memberId, final MetadataRequest request) {
     return sendAndReceive(context.metadataSubject, request, memberId);
   }
 
@@ -129,5 +129,11 @@ public class RaftClientCommunicator implements RaftClientProtocol {
   @Override
   public void unregisterPublishListener(final SessionId sessionId) {
     clusterCommunicator.unsubscribe(context.publishSubject(sessionId.id()));
+  }
+
+  private <T, U> CompletableFuture<U> sendAndReceive(
+      final String subject, final T request, final MemberId memberId) {
+    return clusterCommunicator.send(
+        subject, request, serializer::encode, serializer::decode, memberId);
   }
 }

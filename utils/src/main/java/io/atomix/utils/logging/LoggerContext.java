@@ -22,6 +22,12 @@ import java.util.function.Supplier;
 /** Logger context. */
 public class LoggerContext {
 
+  private final Supplier<String> stringProvider;
+
+  public LoggerContext(final Supplier<String> stringProvider) {
+    this.stringProvider = stringProvider;
+  }
+
   /**
    * Returns a new contextual logger builder.
    *
@@ -40,12 +46,6 @@ public class LoggerContext {
    */
   public static Builder builder(final Class clazz) {
     return new Builder(clazz.getSimpleName());
-  }
-
-  private final Supplier<String> stringProvider;
-
-  public LoggerContext(final Supplier<String> stringProvider) {
-    this.stringProvider = stringProvider;
   }
 
   @Override

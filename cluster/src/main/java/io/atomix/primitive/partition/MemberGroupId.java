@@ -20,6 +20,12 @@ import io.atomix.utils.AbstractIdentifier;
 /** Member group identifier. */
 public class MemberGroupId extends AbstractIdentifier<String> {
 
+  private MemberGroupId() {}
+
+  public MemberGroupId(final String value) {
+    super(value);
+  }
+
   /**
    * Creates a new member group identifier.
    *
@@ -28,11 +34,5 @@ public class MemberGroupId extends AbstractIdentifier<String> {
    */
   public static MemberGroupId from(final String id) {
     return new MemberGroupId(id);
-  }
-
-  private MemberGroupId() {}
-
-  public MemberGroupId(final String value) {
-    super(value);
   }
 }

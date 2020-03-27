@@ -117,7 +117,8 @@ public class AtomixConfig implements Config {
    * @param partitionGroups the partition group configurations
    * @return the Atomix configuration
    */
-  public AtomixConfig setPartitionGroups(final Map<String, PartitionGroupConfig<?>> partitionGroups) {
+  public AtomixConfig setPartitionGroups(
+      final Map<String, PartitionGroupConfig<?>> partitionGroups) {
     partitionGroups.forEach((name, group) -> group.setName(name));
     this.partitionGroups = partitionGroups;
     return this;

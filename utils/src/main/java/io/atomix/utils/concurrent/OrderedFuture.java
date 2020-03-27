@@ -36,6 +36,16 @@ import java.util.function.Function;
  */
 public class OrderedFuture<T> extends CompletableFuture<T> {
 
+  private static final ThreadContext NULL_CONTEXT = new NullThreadContext();
+  private final Queue<CompletableFuture<T>> orderedFutures = new LinkedList<>();
+  private volatile boolean complete;
+  private volatile T result;
+  private volatile Throwable error;
+
+  public OrderedFuture() {
+    super.whenComplete(this::complete);
+  }
+
   /**
    * Wraps the given future in a new blockable future.
    *
@@ -54,17 +64,6 @@ public class OrderedFuture<T> extends CompletableFuture<T> {
           }
         });
     return newFuture;
-  }
-
-  private static final ThreadContext NULL_CONTEXT = new NullThreadContext();
-
-  private final Queue<CompletableFuture<T>> orderedFutures = new LinkedList<>();
-  private volatile boolean complete;
-  private volatile T result;
-  private volatile Throwable error;
-
-  public OrderedFuture() {
-    super.whenComplete(this::complete);
   }
 
   private ThreadContext getThreadContext() {
@@ -106,6 +105,233 @@ public class OrderedFuture<T> extends CompletableFuture<T> {
     }
   }
 
+  @Override
+  public <U> CompletableFuture<U> thenApply(final Function<? super T, ? extends U> fn) {
+    return wrap(orderedFuture().thenApply(fn));
+  }
+
+  @Override
+  public <U> CompletableFuture<U> thenApplyAsync(final Function<? super T, ? extends U> fn) {
+    return wrap(orderedFuture().thenApplyAsync(fn));
+  }
+
+  @Override
+  public <U> CompletableFuture<U> thenApplyAsync(
+      final Function<? super T, ? extends U> fn, final Executor executor) {
+    return wrap(orderedFuture().thenApplyAsync(fn, executor));
+  }
+
+  @Override
+  public CompletableFuture<Void> thenAccept(final Consumer<? super T> action) {
+    return wrap(orderedFuture().thenAccept(action));
+  }
+
+  @Override
+  public CompletableFuture<Void> thenAcceptAsync(final Consumer<? super T> action) {
+    return wrap(orderedFuture().thenAcceptAsync(action));
+  }
+
+  @Override
+  public CompletableFuture<Void> thenAcceptAsync(
+      final Consumer<? super T> action, final Executor executor) {
+    return wrap(orderedFuture().thenAcceptAsync(action, executor));
+  }
+
+  @Override
+  public CompletableFuture<Void> thenRun(final Runnable action) {
+    return wrap(orderedFuture().thenRun(action));
+  }
+
+  @Override
+  public CompletableFuture<Void> thenRunAsync(final Runnable action) {
+    return wrap(orderedFuture().thenRunAsync(action));
+  }
+
+  @Override
+  public CompletableFuture<Void> thenRunAsync(final Runnable action, final Executor executor) {
+    return wrap(orderedFuture().thenRunAsync(action, executor));
+  }
+
+  @Override
+  public <U, V> CompletableFuture<V> thenCombine(
+      final CompletionStage<? extends U> other,
+      final BiFunction<? super T, ? super U, ? extends V> fn) {
+    return wrap(orderedFuture().thenCombine(other, fn));
+  }
+
+  @Override
+  public <U, V> CompletableFuture<V> thenCombineAsync(
+      final CompletionStage<? extends U> other,
+      final BiFunction<? super T, ? super U, ? extends V> fn) {
+    return wrap(orderedFuture().thenCombineAsync(other, fn));
+  }
+
+  @Override
+  public <U, V> CompletableFuture<V> thenCombineAsync(
+      final CompletionStage<? extends U> other,
+      final BiFunction<? super T, ? super U, ? extends V> fn,
+      final Executor executor) {
+    return wrap(orderedFuture().thenCombineAsync(other, fn, executor));
+  }
+
+  @Override
+  public <U> CompletableFuture<Void> thenAcceptBoth(
+      final CompletionStage<? extends U> other, final BiConsumer<? super T, ? super U> action) {
+    return wrap(orderedFuture().thenAcceptBoth(other, action));
+  }
+
+  @Override
+  public <U> CompletableFuture<Void> thenAcceptBothAsync(
+      final CompletionStage<? extends U> other, final BiConsumer<? super T, ? super U> action) {
+    return wrap(orderedFuture().thenAcceptBothAsync(other, action));
+  }
+
+  @Override
+  public <U> CompletableFuture<Void> thenAcceptBothAsync(
+      final CompletionStage<? extends U> other,
+      final BiConsumer<? super T, ? super U> action,
+      final Executor executor) {
+    return wrap(orderedFuture().thenAcceptBothAsync(other, action, executor));
+  }
+
+  @Override
+  public CompletableFuture<Void> runAfterBoth(
+      final CompletionStage<?> other, final Runnable action) {
+    return wrap(orderedFuture().runAfterBoth(other, action));
+  }
+
+  @Override
+  public CompletableFuture<Void> runAfterBothAsync(
+      final CompletionStage<?> other, final Runnable action) {
+    return wrap(orderedFuture().runAfterBothAsync(other, action));
+  }
+
+  @Override
+  public CompletableFuture<Void> runAfterBothAsync(
+      final CompletionStage<?> other, final Runnable action, final Executor executor) {
+    return wrap(orderedFuture().runAfterBothAsync(other, action, executor));
+  }
+
+  @Override
+  public <U> CompletableFuture<U> applyToEither(
+      final CompletionStage<? extends T> other, final Function<? super T, U> fn) {
+    return wrap(orderedFuture().applyToEither(other, fn));
+  }
+
+  @Override
+  public <U> CompletableFuture<U> applyToEitherAsync(
+      final CompletionStage<? extends T> other, final Function<? super T, U> fn) {
+    return wrap(orderedFuture().applyToEitherAsync(other, fn));
+  }
+
+  @Override
+  public <U> CompletableFuture<U> applyToEitherAsync(
+      final CompletionStage<? extends T> other,
+      final Function<? super T, U> fn,
+      final Executor executor) {
+    return wrap(orderedFuture().applyToEitherAsync(other, fn, executor));
+  }
+
+  @Override
+  public CompletableFuture<Void> acceptEither(
+      final CompletionStage<? extends T> other, final Consumer<? super T> action) {
+    return wrap(orderedFuture().acceptEither(other, action));
+  }
+
+  @Override
+  public CompletableFuture<Void> acceptEitherAsync(
+      final CompletionStage<? extends T> other, final Consumer<? super T> action) {
+    return wrap(orderedFuture().acceptEitherAsync(other, action));
+  }
+
+  @Override
+  public CompletableFuture<Void> acceptEitherAsync(
+      final CompletionStage<? extends T> other,
+      final Consumer<? super T> action,
+      final Executor executor) {
+    return wrap(orderedFuture().acceptEitherAsync(other, action, executor));
+  }
+
+  @Override
+  public CompletableFuture<Void> runAfterEither(
+      final CompletionStage<?> other, final Runnable action) {
+    return wrap(orderedFuture().runAfterEither(other, action));
+  }
+
+  @Override
+  public CompletableFuture<Void> runAfterEitherAsync(
+      final CompletionStage<?> other, final Runnable action) {
+    return wrap(orderedFuture().runAfterEitherAsync(other, action));
+  }
+
+  @Override
+  public CompletableFuture<Void> runAfterEitherAsync(
+      final CompletionStage<?> other, final Runnable action, final Executor executor) {
+    return wrap(orderedFuture().runAfterEitherAsync(other, action, executor));
+  }
+
+  @Override
+  public <U> CompletableFuture<U> thenCompose(
+      final Function<? super T, ? extends CompletionStage<U>> fn) {
+    return wrap(orderedFuture().thenCompose(fn));
+  }
+
+  @Override
+  public <U> CompletableFuture<U> thenComposeAsync(
+      final Function<? super T, ? extends CompletionStage<U>> fn) {
+    return wrap(orderedFuture().thenComposeAsync(fn));
+  }
+
+  @Override
+  public <U> CompletableFuture<U> thenComposeAsync(
+      final Function<? super T, ? extends CompletionStage<U>> fn, final Executor executor) {
+    return wrap(orderedFuture().thenComposeAsync(fn, executor));
+  }
+
+  @Override
+  public CompletableFuture<T> whenComplete(final BiConsumer<? super T, ? super Throwable> action) {
+    return wrap(orderedFuture().whenComplete(action));
+  }
+
+  @Override
+  public CompletableFuture<T> whenCompleteAsync(
+      final BiConsumer<? super T, ? super Throwable> action) {
+    return wrap(orderedFuture().whenCompleteAsync(action));
+  }
+
+  @Override
+  public CompletableFuture<T> whenCompleteAsync(
+      final BiConsumer<? super T, ? super Throwable> action, final Executor executor) {
+    return wrap(orderedFuture().whenCompleteAsync(action, executor));
+  }
+
+  @Override
+  public <U> CompletableFuture<U> handle(final BiFunction<? super T, Throwable, ? extends U> fn) {
+    return wrap(orderedFuture().handle(fn));
+  }
+
+  @Override
+  public <U> CompletableFuture<U> handleAsync(
+      final BiFunction<? super T, Throwable, ? extends U> fn) {
+    return wrap(orderedFuture().handleAsync(fn));
+  }
+
+  @Override
+  public <U> CompletableFuture<U> handleAsync(
+      final BiFunction<? super T, Throwable, ? extends U> fn, final Executor executor) {
+    return wrap(orderedFuture().handleAsync(fn, executor));
+  }
+
+  @Override
+  public CompletableFuture<T> toCompletableFuture() {
+    return this;
+  }
+
+  @Override
+  public CompletableFuture<T> exceptionally(final Function<Throwable, ? extends T> fn) {
+    return wrap(orderedFuture().exceptionally(fn));
+  }
+
   /** Adds a new ordered future. */
   private CompletableFuture<T> orderedFuture() {
     if (!complete) {
@@ -143,219 +369,5 @@ public class OrderedFuture<T> extends CompletableFuture<T> {
       }
       orderedFutures.clear();
     }
-  }
-
-  @Override
-  public <U> CompletableFuture<U> thenApply(final Function<? super T, ? extends U> fn) {
-    return wrap(orderedFuture().thenApply(fn));
-  }
-
-  @Override
-  public <U> CompletableFuture<U> thenApplyAsync(final Function<? super T, ? extends U> fn) {
-    return wrap(orderedFuture().thenApplyAsync(fn));
-  }
-
-  @Override
-  public <U> CompletableFuture<U> thenApplyAsync(
-      final Function<? super T, ? extends U> fn, final Executor executor) {
-    return wrap(orderedFuture().thenApplyAsync(fn, executor));
-  }
-
-  @Override
-  public CompletableFuture<Void> thenAccept(final Consumer<? super T> action) {
-    return wrap(orderedFuture().thenAccept(action));
-  }
-
-  @Override
-  public CompletableFuture<Void> thenAcceptAsync(final Consumer<? super T> action) {
-    return wrap(orderedFuture().thenAcceptAsync(action));
-  }
-
-  @Override
-  public CompletableFuture<Void> thenAcceptAsync(final Consumer<? super T> action, final Executor executor) {
-    return wrap(orderedFuture().thenAcceptAsync(action, executor));
-  }
-
-  @Override
-  public CompletableFuture<Void> thenRun(final Runnable action) {
-    return wrap(orderedFuture().thenRun(action));
-  }
-
-  @Override
-  public CompletableFuture<Void> thenRunAsync(final Runnable action) {
-    return wrap(orderedFuture().thenRunAsync(action));
-  }
-
-  @Override
-  public CompletableFuture<Void> thenRunAsync(final Runnable action, final Executor executor) {
-    return wrap(orderedFuture().thenRunAsync(action, executor));
-  }
-
-  @Override
-  public <U, V> CompletableFuture<V> thenCombine(
-      final CompletionStage<? extends U> other, final BiFunction<? super T, ? super U, ? extends V> fn) {
-    return wrap(orderedFuture().thenCombine(other, fn));
-  }
-
-  @Override
-  public <U, V> CompletableFuture<V> thenCombineAsync(
-      final CompletionStage<? extends U> other, final BiFunction<? super T, ? super U, ? extends V> fn) {
-    return wrap(orderedFuture().thenCombineAsync(other, fn));
-  }
-
-  @Override
-  public <U, V> CompletableFuture<V> thenCombineAsync(
-      final CompletionStage<? extends U> other,
-      final BiFunction<? super T, ? super U, ? extends V> fn,
-      final Executor executor) {
-    return wrap(orderedFuture().thenCombineAsync(other, fn, executor));
-  }
-
-  @Override
-  public <U> CompletableFuture<Void> thenAcceptBoth(
-      final CompletionStage<? extends U> other, final BiConsumer<? super T, ? super U> action) {
-    return wrap(orderedFuture().thenAcceptBoth(other, action));
-  }
-
-  @Override
-  public <U> CompletableFuture<Void> thenAcceptBothAsync(
-      final CompletionStage<? extends U> other, final BiConsumer<? super T, ? super U> action) {
-    return wrap(orderedFuture().thenAcceptBothAsync(other, action));
-  }
-
-  @Override
-  public <U> CompletableFuture<Void> thenAcceptBothAsync(
-      final CompletionStage<? extends U> other,
-      final BiConsumer<? super T, ? super U> action,
-      final Executor executor) {
-    return wrap(orderedFuture().thenAcceptBothAsync(other, action, executor));
-  }
-
-  @Override
-  public CompletableFuture<Void> runAfterBoth(final CompletionStage<?> other, final Runnable action) {
-    return wrap(orderedFuture().runAfterBoth(other, action));
-  }
-
-  @Override
-  public CompletableFuture<Void> runAfterBothAsync(final CompletionStage<?> other, final Runnable action) {
-    return wrap(orderedFuture().runAfterBothAsync(other, action));
-  }
-
-  @Override
-  public CompletableFuture<Void> runAfterBothAsync(
-      final CompletionStage<?> other, final Runnable action, final Executor executor) {
-    return wrap(orderedFuture().runAfterBothAsync(other, action, executor));
-  }
-
-  @Override
-  public <U> CompletableFuture<U> applyToEither(
-      final CompletionStage<? extends T> other, final Function<? super T, U> fn) {
-    return wrap(orderedFuture().applyToEither(other, fn));
-  }
-
-  @Override
-  public <U> CompletableFuture<U> applyToEitherAsync(
-      final CompletionStage<? extends T> other, final Function<? super T, U> fn) {
-    return wrap(orderedFuture().applyToEitherAsync(other, fn));
-  }
-
-  @Override
-  public <U> CompletableFuture<U> applyToEitherAsync(
-      final CompletionStage<? extends T> other, final Function<? super T, U> fn, final Executor executor) {
-    return wrap(orderedFuture().applyToEitherAsync(other, fn, executor));
-  }
-
-  @Override
-  public CompletableFuture<Void> acceptEither(
-      final CompletionStage<? extends T> other, final Consumer<? super T> action) {
-    return wrap(orderedFuture().acceptEither(other, action));
-  }
-
-  @Override
-  public CompletableFuture<Void> acceptEitherAsync(
-      final CompletionStage<? extends T> other, final Consumer<? super T> action) {
-    return wrap(orderedFuture().acceptEitherAsync(other, action));
-  }
-
-  @Override
-  public CompletableFuture<Void> acceptEitherAsync(
-      final CompletionStage<? extends T> other, final Consumer<? super T> action, final Executor executor) {
-    return wrap(orderedFuture().acceptEitherAsync(other, action, executor));
-  }
-
-  @Override
-  public CompletableFuture<Void> runAfterEither(final CompletionStage<?> other, final Runnable action) {
-    return wrap(orderedFuture().runAfterEither(other, action));
-  }
-
-  @Override
-  public CompletableFuture<Void> runAfterEitherAsync(final CompletionStage<?> other, final Runnable action) {
-    return wrap(orderedFuture().runAfterEitherAsync(other, action));
-  }
-
-  @Override
-  public CompletableFuture<Void> runAfterEitherAsync(
-      final CompletionStage<?> other, final Runnable action, final Executor executor) {
-    return wrap(orderedFuture().runAfterEitherAsync(other, action, executor));
-  }
-
-  @Override
-  public <U> CompletableFuture<U> thenCompose(
-      final Function<? super T, ? extends CompletionStage<U>> fn) {
-    return wrap(orderedFuture().thenCompose(fn));
-  }
-
-  @Override
-  public <U> CompletableFuture<U> thenComposeAsync(
-      final Function<? super T, ? extends CompletionStage<U>> fn) {
-    return wrap(orderedFuture().thenComposeAsync(fn));
-  }
-
-  @Override
-  public <U> CompletableFuture<U> thenComposeAsync(
-      final Function<? super T, ? extends CompletionStage<U>> fn, final Executor executor) {
-    return wrap(orderedFuture().thenComposeAsync(fn, executor));
-  }
-
-  @Override
-  public CompletableFuture<T> whenComplete(final BiConsumer<? super T, ? super Throwable> action) {
-    return wrap(orderedFuture().whenComplete(action));
-  }
-
-  @Override
-  public CompletableFuture<T> whenCompleteAsync(final BiConsumer<? super T, ? super Throwable> action) {
-    return wrap(orderedFuture().whenCompleteAsync(action));
-  }
-
-  @Override
-  public CompletableFuture<T> whenCompleteAsync(
-      final BiConsumer<? super T, ? super Throwable> action, final Executor executor) {
-    return wrap(orderedFuture().whenCompleteAsync(action, executor));
-  }
-
-  @Override
-  public <U> CompletableFuture<U> handle(final BiFunction<? super T, Throwable, ? extends U> fn) {
-    return wrap(orderedFuture().handle(fn));
-  }
-
-  @Override
-  public <U> CompletableFuture<U> handleAsync(final BiFunction<? super T, Throwable, ? extends U> fn) {
-    return wrap(orderedFuture().handleAsync(fn));
-  }
-
-  @Override
-  public <U> CompletableFuture<U> handleAsync(
-      final BiFunction<? super T, Throwable, ? extends U> fn, final Executor executor) {
-    return wrap(orderedFuture().handleAsync(fn, executor));
-  }
-
-  @Override
-  public CompletableFuture<T> exceptionally(final Function<Throwable, ? extends T> fn) {
-    return wrap(orderedFuture().exceptionally(fn));
-  }
-
-  @Override
-  public CompletableFuture<T> toCompletableFuture() {
-    return this;
   }
 }

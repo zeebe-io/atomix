@@ -40,7 +40,8 @@ public class KeepAliveRequest extends AbstractRaftRequest {
   private final long[] commandSequences;
   private final long[] eventIndexes;
 
-  public KeepAliveRequest(final long[] sessionIds, final long[] commandSequences, final long[] eventIndexes) {
+  public KeepAliveRequest(
+      final long[] sessionIds, final long[] commandSequences, final long[] eventIndexes) {
     this.sessionIds = sessionIds;
     this.commandSequences = commandSequences;
     this.eventIndexes = eventIndexes;

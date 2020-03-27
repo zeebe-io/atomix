@@ -18,7 +18,9 @@ package io.atomix.utils.logging;
 import org.slf4j.LoggerFactory;
 
 /** Contextual logger factory. */
-public class ContextualLoggerFactory {
+public final class ContextualLoggerFactory {
+
+  private ContextualLoggerFactory() {}
 
   /**
    * Returns a contextual logger.
@@ -41,6 +43,4 @@ public class ContextualLoggerFactory {
   public static ContextualLogger getLogger(final Class clazz, final LoggerContext context) {
     return new ContextualLogger(LoggerFactory.getLogger(clazz), context);
   }
-
-  private ContextualLoggerFactory() {}
 }

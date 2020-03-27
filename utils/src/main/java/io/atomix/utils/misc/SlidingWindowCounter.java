@@ -36,15 +36,12 @@ import org.slf4j.LoggerFactory;
  * get the total count for the last N window slots.
  */
 public final class SlidingWindowCounter {
+  private static final int SLIDE_WINDOW_PERIOD_SECONDS = 1;
   private final Logger log = LoggerFactory.getLogger(getClass());
   private volatile int headSlot;
   private final int windowSlots;
-
   private final List<AtomicLong> counters;
-
   private final Scheduled schedule;
-
-  private static final int SLIDE_WINDOW_PERIOD_SECONDS = 1;
 
   public SlidingWindowCounter(final int windowSlots) {
     this(windowSlots, new SingleThreadContext("sliding-window-counter-%d"));

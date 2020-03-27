@@ -67,13 +67,13 @@ public class ClientSession<C> implements Session<C> {
   }
 
   @Override
-  public void publish(final PrimitiveEvent event) {
-    session.publish(event);
+  public <T> void publish(final EventType eventType, final T event) {
+    session.publish(eventType, event);
   }
 
   @Override
-  public <T> void publish(final EventType eventType, final T event) {
-    session.publish(eventType, event);
+  public void publish(final PrimitiveEvent event) {
+    session.publish(event);
   }
 
   @Override
@@ -116,7 +116,8 @@ public class ClientSession<C> implements Session<C> {
     }
 
     @Override
-    public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+    public Object invoke(final Object proxy, final Method method, final Object[] args)
+        throws Throwable {
       final EventType eventType = events.get(method);
       if (eventType == null) {
         throw new PrimitiveException.ServiceException(

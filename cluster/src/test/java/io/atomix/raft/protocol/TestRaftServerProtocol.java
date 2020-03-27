@@ -65,15 +65,6 @@ public class TestRaftServerProtocol extends TestRaftProtocol implements RaftServ
         getServer(memberId).thenCompose(listener -> listener.openSession(request)));
   }
 
-  private CompletableFuture<TestRaftServerProtocol> getServer(final MemberId memberId) {
-    final TestRaftServerProtocol server = server(memberId);
-    if (server != null) {
-      return Futures.completedFuture(server);
-    } else {
-      return Futures.exceptionalFuture(new ConnectException());
-    }
-  }
-
   @Override
   public CompletableFuture<CloseSessionResponse> closeSession(
       final MemberId memberId, final CloseSessionRequest request) {
@@ -89,17 +80,20 @@ public class TestRaftServerProtocol extends TestRaftProtocol implements RaftServ
   }
 
   @Override
-  public CompletableFuture<QueryResponse> query(final MemberId memberId, final QueryRequest request) {
+  public CompletableFuture<QueryResponse> query(
+      final MemberId memberId, final QueryRequest request) {
     return scheduleTimeout(getServer(memberId).thenCompose(listener -> listener.query(request)));
   }
 
   @Override
-  public CompletableFuture<CommandResponse> command(final MemberId memberId, final CommandRequest request) {
+  public CompletableFuture<CommandResponse> command(
+      final MemberId memberId, final CommandRequest request) {
     return scheduleTimeout(getServer(memberId).thenCompose(listener -> listener.command(request)));
   }
 
   @Override
-  public CompletableFuture<MetadataResponse> metadata(final MemberId memberId, final MetadataRequest request) {
+  public CompletableFuture<MetadataResponse> metadata(
+      final MemberId memberId, final MetadataRequest request) {
     return scheduleTimeout(getServer(memberId).thenCompose(listener -> listener.metadata(request)));
   }
 
@@ -109,7 +103,8 @@ public class TestRaftServerProtocol extends TestRaftProtocol implements RaftServ
   }
 
   @Override
-  public CompletableFuture<LeaveResponse> leave(final MemberId memberId, final LeaveRequest request) {
+  public CompletableFuture<LeaveResponse> leave(
+      final MemberId memberId, final LeaveRequest request) {
     return scheduleTimeout(getServer(memberId).thenCompose(listener -> listener.leave(request)));
   }
 
@@ -128,12 +123,14 @@ public class TestRaftServerProtocol extends TestRaftProtocol implements RaftServ
   }
 
   @Override
-  public CompletableFuture<InstallResponse> install(final MemberId memberId, final InstallRequest request) {
+  public CompletableFuture<InstallResponse> install(
+      final MemberId memberId, final InstallRequest request) {
     return scheduleTimeout(getServer(memberId).thenCompose(listener -> listener.install(request)));
   }
 
   @Override
-  public CompletableFuture<TransferResponse> transfer(final MemberId memberId, final TransferRequest request) {
+  public CompletableFuture<TransferResponse> transfer(
+      final MemberId memberId, final TransferRequest request) {
     return scheduleTimeout(getServer(memberId).thenCompose(listener -> listener.transfer(request)));
   }
 
@@ -148,7 +145,8 @@ public class TestRaftServerProtocol extends TestRaftProtocol implements RaftServ
   }
 
   @Override
-  public CompletableFuture<AppendResponse> append(final MemberId memberId, final AppendRequest request) {
+  public CompletableFuture<AppendResponse> append(
+      final MemberId memberId, final AppendRequest request) {
     return scheduleTimeout(getServer(memberId).thenCompose(listener -> listener.append(request)));
   }
 
@@ -231,7 +229,8 @@ public class TestRaftServerProtocol extends TestRaftProtocol implements RaftServ
   }
 
   @Override
-  public void registerJoinHandler(final Function<JoinRequest, CompletableFuture<JoinResponse>> handler) {
+  public void registerJoinHandler(
+      final Function<JoinRequest, CompletableFuture<JoinResponse>> handler) {
     this.joinHandler = handler;
   }
 
@@ -296,7 +295,8 @@ public class TestRaftServerProtocol extends TestRaftProtocol implements RaftServ
   }
 
   @Override
-  public void registerPollHandler(final Function<PollRequest, CompletableFuture<PollResponse>> handler) {
+  public void registerPollHandler(
+      final Function<PollRequest, CompletableFuture<PollResponse>> handler) {
     this.pollHandler = handler;
   }
 
@@ -306,7 +306,8 @@ public class TestRaftServerProtocol extends TestRaftProtocol implements RaftServ
   }
 
   @Override
-  public void registerVoteHandler(final Function<VoteRequest, CompletableFuture<VoteResponse>> handler) {
+  public void registerVoteHandler(
+      final Function<VoteRequest, CompletableFuture<VoteResponse>> handler) {
     this.voteHandler = handler;
   }
 
@@ -342,6 +343,27 @@ public class TestRaftServerProtocol extends TestRaftProtocol implements RaftServ
     getServer(memberId).thenAccept(l -> l.leaderHeartbeat(heartbeat));
   }
 
+  @Override
+  public void registerLeaderHeartbeatHandler(
+      final Consumer<LeaderHeartbeatRequest> leaderHeartbeatRequestConsumer,
+      final Executor executor) {
+    this.leaderHeartbeatRequestConsumer = (r) -> leaderHeartbeatRequestConsumer.accept(r);
+  }
+
+  @Override
+  public void unregisterLeaderHeartbeatHandler() {
+    leaderHeartbeatRequestConsumer = null;
+  }
+
+  private CompletableFuture<TestRaftServerProtocol> getServer(final MemberId memberId) {
+    final TestRaftServerProtocol server = server(memberId);
+    if (server != null) {
+      return Futures.completedFuture(server);
+    } else {
+      return Futures.exceptionalFuture(new ConnectException());
+    }
+  }
+
   private void leaderHeartbeat(final LeaderHeartbeatRequest request) {
 
     if (leaderHeartbeatRequestConsumer == null) {
@@ -349,17 +371,6 @@ public class TestRaftServerProtocol extends TestRaftProtocol implements RaftServ
     }
 
     leaderHeartbeatRequestConsumer.accept(request);
-  }
-
-  @Override
-  public void registerLeaderHeartbeatHandler(
-      final Consumer<LeaderHeartbeatRequest> leaderHeartbeatRequestConsumer, final Executor executor) {
-    this.leaderHeartbeatRequestConsumer = (r) -> leaderHeartbeatRequestConsumer.accept(r);
-  }
-
-  @Override
-  public void unregisterLeaderHeartbeatHandler() {
-    leaderHeartbeatRequestConsumer = null;
   }
 
   private CompletableFuture<TestRaftClientProtocol> getClient(final MemberId memberId) {

@@ -27,16 +27,6 @@ import java.util.Objects;
  */
 public class WallClockTimestamp implements Timestamp {
 
-  /**
-   * Returns a new wall clock timestamp for the given unix timestamp.
-   *
-   * @param unixTimestamp the unix timestamp for which to create a new wall clock timestamp
-   * @return the wall clock timestamp
-   */
-  public static WallClockTimestamp from(final long unixTimestamp) {
-    return new WallClockTimestamp(unixTimestamp);
-  }
-
   private final long unixTimestamp;
 
   public WallClockTimestamp() {
@@ -45,6 +35,16 @@ public class WallClockTimestamp implements Timestamp {
 
   public WallClockTimestamp(final long timestamp) {
     unixTimestamp = timestamp;
+  }
+
+  /**
+   * Returns a new wall clock timestamp for the given unix timestamp.
+   *
+   * @param unixTimestamp the unix timestamp for which to create a new wall clock timestamp
+   * @return the wall clock timestamp
+   */
+  public static WallClockTimestamp from(final long unixTimestamp) {
+    return new WallClockTimestamp(unixTimestamp);
   }
 
   @Override

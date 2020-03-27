@@ -33,6 +33,12 @@ public enum ProtocolVersion {
     }
   };
 
+  private final short version;
+
+  ProtocolVersion(final int version) {
+    this.version = (short) version;
+  }
+
   /**
    * Returns the protocol version for the given version number.
    *
@@ -50,12 +56,6 @@ public enum ProtocolVersion {
    */
   public static ProtocolVersion latest() {
     return values()[values().length - 1];
-  }
-
-  private final short version;
-
-  ProtocolVersion(final int version) {
-    this.version = (short) version;
   }
 
   /**

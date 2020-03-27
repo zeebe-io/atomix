@@ -23,7 +23,8 @@ public enum ThreadModel {
   /** A thread model that creates a thread pool to be shared by all services. */
   SHARED_THREAD_POOL {
     @Override
-    public ThreadContextFactory factory(final String nameFormat, final int threadPoolSize, final Logger logger) {
+    public ThreadContextFactory factory(
+        final String nameFormat, final int threadPoolSize, final Logger logger) {
       return new BlockingAwareThreadPoolContextFactory(nameFormat, threadPoolSize, logger);
     }
   },
@@ -31,7 +32,8 @@ public enum ThreadModel {
   /** A thread model that creates a thread for each Raft service. */
   THREAD_PER_SERVICE {
     @Override
-    public ThreadContextFactory factory(final String nameFormat, final int threadPoolSize, final Logger logger) {
+    public ThreadContextFactory factory(
+        final String nameFormat, final int threadPoolSize, final Logger logger) {
       return new BlockingAwareSingleThreadContextFactory(nameFormat, threadPoolSize, logger);
     }
   };

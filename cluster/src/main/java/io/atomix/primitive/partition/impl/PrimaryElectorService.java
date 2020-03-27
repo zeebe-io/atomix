@@ -83,6 +83,27 @@ public class PrimaryElectorService extends AbstractPrimitiveService {
   }
 
   @Override
+  protected void configure(final ServiceExecutor executor) {
+    executor.register(PrimaryElectorOperations.ENTER, this::enter);
+    executor.register(PrimaryElectorOperations.GET_TERM, this::getTerm);
+  }
+
+  @Override
+  public void onOpen(final Session session) {
+    listeners.put(session.sessionId().id(), session);
+  }
+
+  @Override
+  public void onExpire(final Session session) {
+    onSessionEnd(session);
+  }
+
+  @Override
+  public void onClose(final Session session) {
+    onSessionEnd(session);
+  }
+
+  @Override
   public void backup(final BackupOutput writer) {
     writer.writeObject(Sets.newHashSet(listeners.keySet()), SERIALIZER::encode);
     writer.writeObject(elections, SERIALIZER::encode);
@@ -98,12 +119,6 @@ public class PrimaryElectorService extends AbstractPrimitiveService {
     elections = reader.readObject(SERIALIZER::decode);
     elections.values().forEach(e -> e.elections = elections);
     getLogger().debug("Reinstated state machine from snapshot");
-  }
-
-  @Override
-  protected void configure(final ServiceExecutor executor) {
-    executor.register(PrimaryElectorOperations.ENTER, this::enter);
-    executor.register(PrimaryElectorOperations.GET_TERM, this::getTerm);
   }
 
   private void notifyTermChange(final PartitionId partitionId, final PrimaryTerm term) {
@@ -452,11 +467,11 @@ public class PrimaryElectorService extends AbstractPrimitiveService {
                     // Get the topic leader's identifier and a list of session identifiers.
                     // Then return true if the leader's identifier matches any of the session's
                     // candidates.
-                    GroupMember leaderId = entry.getValue().primary();
-                    List<GroupMember> sessionCandidates =
+                    final GroupMember leaderId = entry.getValue().primary();
+                    final List<GroupMember> sessionCandidates =
                         entry.getValue().registrations.stream()
                             .filter(r -> r.sessionId == registration.sessionId)
-                            .map(r -> r.member())
+                            .map(Registration::member)
                             .collect(Collectors.toList());
                     return sessionCandidates.stream()
                         .anyMatch(candidate -> Objects.equals(candidate, leaderId));
@@ -477,20 +492,5 @@ public class PrimaryElectorService extends AbstractPrimitiveService {
         return this;
       }
     }
-  }
-
-  @Override
-  public void onOpen(final Session session) {
-    listeners.put(session.sessionId().id(), session);
-  }
-
-  @Override
-  public void onExpire(final Session session) {
-    onSessionEnd(session);
-  }
-
-  @Override
-  public void onClose(final Session session) {
-    onSessionEnd(session);
   }
 }

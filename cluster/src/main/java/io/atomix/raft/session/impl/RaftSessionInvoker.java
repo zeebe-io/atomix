@@ -103,7 +103,8 @@ final class RaftSessionInvoker {
   }
 
   /** Submits a command to the cluster. */
-  private void invokeCommand(final PrimitiveOperation operation, final CompletableFuture<byte[]> future) {
+  private void invokeCommand(
+      final PrimitiveOperation operation, final CompletableFuture<byte[]> future) {
     final CommandRequest request =
         CommandRequest.builder()
             .withSession(state.getSessionId().id())
@@ -135,7 +136,8 @@ final class RaftSessionInvoker {
   }
 
   /** Submits a query to the cluster. */
-  private void invokeQuery(final PrimitiveOperation operation, final CompletableFuture<byte[]> future) {
+  private void invokeQuery(
+      final PrimitiveOperation operation, final CompletableFuture<byte[]> future) {
     final QueryRequest request =
         QueryRequest.builder()
             .withSession(state.getSessionId().id())
@@ -232,7 +234,10 @@ final class RaftSessionInvoker {
     protected final CompletableFuture<byte[]> future;
 
     protected OperationAttempt(
-        final long sequence, final int attempt, final T request, final CompletableFuture<byte[]> future) {
+        final long sequence,
+        final int attempt,
+        final T request,
+        final CompletableFuture<byte[]> future) {
       this.sequence = sequence;
       this.attempt = attempt;
       this.request = request;
@@ -326,12 +331,16 @@ final class RaftSessionInvoker {
   /** Command operation attempt. */
   private final class CommandAttempt extends OperationAttempt<CommandRequest, CommandResponse> {
 
-    CommandAttempt(final long sequence, final CommandRequest request, final CompletableFuture<byte[]> future) {
+    CommandAttempt(
+        final long sequence, final CommandRequest request, final CompletableFuture<byte[]> future) {
       super(sequence, 1, request, future);
     }
 
     CommandAttempt(
-        final long sequence, final int attempt, final CommandRequest request, final CompletableFuture<byte[]> future) {
+        final long sequence,
+        final int attempt,
+        final CommandRequest request,
+        final CompletableFuture<byte[]> future) {
       super(sequence, attempt, request, future);
     }
 
@@ -413,12 +422,16 @@ final class RaftSessionInvoker {
   /** Query operation attempt. */
   private final class QueryAttempt extends OperationAttempt<QueryRequest, QueryResponse> {
 
-    QueryAttempt(final long sequence, final QueryRequest request, final CompletableFuture<byte[]> future) {
+    QueryAttempt(
+        final long sequence, final QueryRequest request, final CompletableFuture<byte[]> future) {
       super(sequence, 1, request, future);
     }
 
     QueryAttempt(
-        final long sequence, final int attempt, final QueryRequest request, final CompletableFuture<byte[]> future) {
+        final long sequence,
+        final int attempt,
+        final QueryRequest request,
+        final CompletableFuture<byte[]> future) {
       super(sequence, attempt, request, future);
     }
 

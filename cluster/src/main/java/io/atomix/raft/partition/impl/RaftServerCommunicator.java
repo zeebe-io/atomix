@@ -78,7 +78,9 @@ public class RaftServerCommunicator implements RaftServerProtocol {
   }
 
   public RaftServerCommunicator(
-      final String prefix, final Serializer serializer, final ClusterCommunicationService clusterCommunicator) {
+      final String prefix,
+      final Serializer serializer,
+      final ClusterCommunicationService clusterCommunicator) {
     this.context = new RaftMessageContext(prefix);
     this.partitionName = prefix;
     this.serializer = Preconditions.checkNotNull(serializer, "serializer cannot be null");
@@ -91,12 +93,6 @@ public class RaftServerCommunicator implements RaftServerProtocol {
   public CompletableFuture<OpenSessionResponse> openSession(
       final MemberId memberId, final OpenSessionRequest request) {
     return sendAndReceive(context.openSessionSubject, request, memberId);
-  }
-
-  private <T, U> CompletableFuture<U> sendAndReceive(final String subject, final T request, final MemberId memberId) {
-    metrics.sendMessage(memberId.id(), request.getClass().getSimpleName());
-    return clusterCommunicator.send(
-        subject, request, serializer::encode, serializer::decode, MemberId.from(memberId.id()));
   }
 
   @Override
@@ -112,17 +108,20 @@ public class RaftServerCommunicator implements RaftServerProtocol {
   }
 
   @Override
-  public CompletableFuture<QueryResponse> query(final MemberId memberId, final QueryRequest request) {
+  public CompletableFuture<QueryResponse> query(
+      final MemberId memberId, final QueryRequest request) {
     return sendAndReceive(context.querySubject, request, memberId);
   }
 
   @Override
-  public CompletableFuture<CommandResponse> command(final MemberId memberId, final CommandRequest request) {
+  public CompletableFuture<CommandResponse> command(
+      final MemberId memberId, final CommandRequest request) {
     return sendAndReceive(context.commandSubject, request, memberId);
   }
 
   @Override
-  public CompletableFuture<MetadataResponse> metadata(final MemberId memberId, final MetadataRequest request) {
+  public CompletableFuture<MetadataResponse> metadata(
+      final MemberId memberId, final MetadataRequest request) {
     return sendAndReceive(context.metadataSubject, request, memberId);
   }
 
@@ -132,7 +131,8 @@ public class RaftServerCommunicator implements RaftServerProtocol {
   }
 
   @Override
-  public CompletableFuture<LeaveResponse> leave(final MemberId memberId, final LeaveRequest request) {
+  public CompletableFuture<LeaveResponse> leave(
+      final MemberId memberId, final LeaveRequest request) {
     return sendAndReceive(context.leaveSubject, request, memberId);
   }
 
@@ -149,12 +149,14 @@ public class RaftServerCommunicator implements RaftServerProtocol {
   }
 
   @Override
-  public CompletableFuture<InstallResponse> install(final MemberId memberId, final InstallRequest request) {
+  public CompletableFuture<InstallResponse> install(
+      final MemberId memberId, final InstallRequest request) {
     return sendAndReceive(context.installSubject, request, memberId);
   }
 
   @Override
-  public CompletableFuture<TransferResponse> transfer(final MemberId memberId, final TransferRequest request) {
+  public CompletableFuture<TransferResponse> transfer(
+      final MemberId memberId, final TransferRequest request) {
     return sendAndReceive(context.transferSubject, request, memberId);
   }
 
@@ -169,7 +171,8 @@ public class RaftServerCommunicator implements RaftServerProtocol {
   }
 
   @Override
-  public CompletableFuture<AppendResponse> append(final MemberId memberId, final AppendRequest request) {
+  public CompletableFuture<AppendResponse> append(
+      final MemberId memberId, final AppendRequest request) {
     return sendAndReceive(context.appendSubject, request, memberId);
   }
 
@@ -177,13 +180,6 @@ public class RaftServerCommunicator implements RaftServerProtocol {
   public CompletableFuture<HeartbeatResponse> heartbeat(
       final MemberId memberId, final HeartbeatRequest request) {
     return sendAndReceive(context.heartbeatSubject, request, memberId);
-  }
-
-  @Override
-  public void leaderHeartbeat(final MemberId memberId, final LeaderHeartbeatRequest request) {
-    metrics.sendMessage(memberId.id(), request.getClass().getSimpleName());
-    clusterCommunicator.unicast(
-        context.leaderHeartbeatSubject, request, serializer::encode, MemberId.from(memberId.id()));
   }
 
   @Override
@@ -283,7 +279,8 @@ public class RaftServerCommunicator implements RaftServerProtocol {
   }
 
   @Override
-  public void registerJoinHandler(final Function<JoinRequest, CompletableFuture<JoinResponse>> handler) {
+  public void registerJoinHandler(
+      final Function<JoinRequest, CompletableFuture<JoinResponse>> handler) {
     clusterCommunicator.subscribe(
         context.joinSubject,
         serializer::decode,
@@ -372,7 +369,8 @@ public class RaftServerCommunicator implements RaftServerProtocol {
   }
 
   @Override
-  public void registerPollHandler(final Function<PollRequest, CompletableFuture<PollResponse>> handler) {
+  public void registerPollHandler(
+      final Function<PollRequest, CompletableFuture<PollResponse>> handler) {
     clusterCommunicator.subscribe(
         context.pollSubject,
         serializer::decode,
@@ -386,7 +384,8 @@ public class RaftServerCommunicator implements RaftServerProtocol {
   }
 
   @Override
-  public void registerVoteHandler(final Function<VoteRequest, CompletableFuture<VoteResponse>> handler) {
+  public void registerVoteHandler(
+      final Function<VoteRequest, CompletableFuture<VoteResponse>> handler) {
     clusterCommunicator.subscribe(
         context.voteSubject,
         serializer::decode,
@@ -427,6 +426,13 @@ public class RaftServerCommunicator implements RaftServerProtocol {
   }
 
   @Override
+  public void leaderHeartbeat(final MemberId memberId, final LeaderHeartbeatRequest request) {
+    metrics.sendMessage(memberId.id(), request.getClass().getSimpleName());
+    clusterCommunicator.unicast(
+        context.leaderHeartbeatSubject, request, serializer::encode, MemberId.from(memberId.id()));
+  }
+
+  @Override
   public void registerLeaderHeartbeatHandler(
       final Consumer<LeaderHeartbeatRequest> heartbeatRequestConsumer, final Executor executor) {
     clusterCommunicator.subscribe(
@@ -436,6 +442,13 @@ public class RaftServerCommunicator implements RaftServerProtocol {
   @Override
   public void unregisterLeaderHeartbeatHandler() {
     clusterCommunicator.unsubscribe(context.leaderHeartbeatSubject);
+  }
+
+  private <T, U> CompletableFuture<U> sendAndReceive(
+      final String subject, final T request, final MemberId memberId) {
+    metrics.sendMessage(memberId.id(), request.getClass().getSimpleName());
+    return clusterCommunicator.send(
+        subject, request, serializer::encode, serializer::decode, MemberId.from(memberId.id()));
   }
 
   private <T extends RaftMessage> T recordReceivedMetrics(final T m) {

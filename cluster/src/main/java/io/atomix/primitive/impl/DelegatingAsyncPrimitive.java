@@ -59,11 +59,6 @@ public abstract class DelegatingAsyncPrimitive<T extends AsyncPrimitive> impleme
   }
 
   @Override
-  public CompletableFuture<Void> delete() {
-    return primitive.delete();
-  }
-
-  @Override
   public void addStateChangeListener(final Consumer<PrimitiveState> listener) {
     primitive.addStateChangeListener(listener);
   }
@@ -79,8 +74,8 @@ public abstract class DelegatingAsyncPrimitive<T extends AsyncPrimitive> impleme
   }
 
   @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(getClass()).add("delegate", primitive).toString();
+  public CompletableFuture<Void> delete() {
+    return primitive.delete();
   }
 
   @Override
@@ -92,5 +87,10 @@ public abstract class DelegatingAsyncPrimitive<T extends AsyncPrimitive> impleme
   public boolean equals(final Object other) {
     return other instanceof DelegatingAsyncPrimitive
         && primitive.equals(((DelegatingAsyncPrimitive) other).primitive);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(getClass()).add("delegate", primitive).toString();
   }
 }

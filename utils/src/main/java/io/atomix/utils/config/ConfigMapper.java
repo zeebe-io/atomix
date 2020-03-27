@@ -70,7 +70,8 @@ public class ConfigMapper {
    * @param <T> the resulting type
    * @return the loaded configuration
    */
-  public <T> T loadFiles(final Class<T> type, final List<File> files, final List<String> resources) {
+  public <T> T loadFiles(
+      final Class<T> type, final List<File> files, final List<String> resources) {
     if (files == null) {
       return loadResources(type, resources);
     }
@@ -149,7 +150,8 @@ public class ConfigMapper {
    * @param clazz the class to which to apply the configuration
    */
   @SuppressWarnings("unchecked")
-  protected <T> T map(final Config config, final String path, final String name, final Class<T> clazz) {
+  protected <T> T map(
+      final Config config, final String path, final String name, final Class<T> clazz) {
     final T instance = newInstance(config, name, clazz);
 
     // Map config property names to bean properties.
@@ -232,11 +234,7 @@ public class ConfigMapper {
               && name != null
               && descriptor.name.equals("name")) {
             if (descriptor.deprecated) {
-              if (path == null) {
-                LOGGER.warn("{} is deprecated!", name);
-              } else {
-                LOGGER.warn("{}.{} is deprecated!", path, name);
-              }
+              logDeprecatedWarning(path, name);
             }
             setter.invoke(instance, name);
           }
@@ -270,6 +268,14 @@ public class ConfigMapper {
     } catch (final InvocationTargetException e) {
       throw new ConfigurationException(
           "Calling bean method on " + instance.getClass().getName() + " caused an exception", e);
+    }
+  }
+
+  private void logDeprecatedWarning(final String path, final String name) {
+    if (path == null) {
+      LOGGER.warn("{} is deprecated!", name);
+    } else {
+      LOGGER.warn("{}.{} is deprecated!", path, name);
     }
   }
 
@@ -404,7 +410,8 @@ public class ConfigMapper {
     } else if (parameterClass.isEnum()) {
       final String value = config.getString(configPropName);
       final String enumName = value.replace("-", "_").toUpperCase();
-      @SuppressWarnings("unchecked") final Enum enumValue = Enum.valueOf((Class<Enum>) parameterClass, enumName);
+      @SuppressWarnings("unchecked")
+      final Enum enumValue = Enum.valueOf((Class<Enum>) parameterClass, enumName);
       try {
         final Deprecated deprecated =
             enumValue.getDeclaringClass().getField(enumName).getAnnotation(Deprecated.class);
@@ -412,6 +419,7 @@ public class ConfigMapper {
           LOGGER.warn("{}.{} = {} is deprecated!", configPath, configPropName, value);
         }
       } catch (final NoSuchFieldException e) {
+        // can happen
       }
       return enumValue;
     } else {
@@ -568,7 +576,8 @@ public class ConfigMapper {
     } else if (elementType == Object.class) {
       return config.getAnyRefList(configPropName);
     } else if (((Class<?>) elementType).isEnum()) {
-      @SuppressWarnings("unchecked") final List<Enum> enumValues = config.getEnumList((Class<Enum>) elementType, configPropName);
+      @SuppressWarnings("unchecked")
+      final List<Enum> enumValues = config.getEnumList((Class<Enum>) elementType, configPropName);
       return enumValues;
     } else {
       final List<Object> beanList = new ArrayList<>();

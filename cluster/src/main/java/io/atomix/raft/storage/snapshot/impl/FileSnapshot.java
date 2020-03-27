@@ -43,29 +43,25 @@ final class FileSnapshot extends DefaultSnapshot {
     this.file = checkNotNull(file, "file cannot be null");
   }
 
+  /** Deletes the temporary file */
   @Override
-  public synchronized SnapshotWriter openWriter() {
-    checkWriter();
-    checkState(!file.file().exists(), "cannot write to completed snapshot");
-    checkNotNull(file.temporaryFile(), "missing temporary snapshot file for writing");
-    final Buffer buffer =
-        FileBuffer.allocate(file.temporaryFile(), DefaultSnapshotDescriptor.BYTES);
-    descriptor.copyTo(buffer);
+  public void close() {
+    super.close();
 
-    final int length = buffer.position(DefaultSnapshotDescriptor.BYTES).readInt();
-    return openWriter(new SnapshotWriter(buffer.skip(length).mark(), this), descriptor);
+    if (file.temporaryFile() != null) {
+      deleteFileSilently(file.temporaryFile().toPath());
+    }
   }
 
+  /** Deletes the snapshot file. */
   @Override
-  public synchronized SnapshotReader openReader() {
-    checkState(file.file().exists(), "missing snapshot file: %s", file.file());
-    final Buffer buffer = FileBuffer.allocate(file.file(), DefaultSnapshotDescriptor.BYTES);
-    final DefaultSnapshotDescriptor descriptor = new DefaultSnapshotDescriptor(buffer);
-    final int length = buffer.position(DefaultSnapshotDescriptor.BYTES).readInt();
-    return openReader(
-        new SnapshotReader(
-            buffer.mark().limit(DefaultSnapshotDescriptor.BYTES + Integer.BYTES + length), this),
-        descriptor);
+  public void delete() {
+    LOGGER.debug("Deleting {}", this);
+    final Path path = file.file().toPath();
+
+    if (Files.exists(path)) {
+      deleteFileSilently(path);
+    }
   }
 
   @Override
@@ -90,27 +86,6 @@ final class FileSnapshot extends DefaultSnapshot {
     return super.complete();
   }
 
-  /** Deletes the temporary file */
-  @Override
-  public void close() {
-    super.close();
-
-    if (file.temporaryFile() != null) {
-      deleteFileSilently(file.temporaryFile().toPath());
-    }
-  }
-
-  /** Deletes the snapshot file. */
-  @Override
-  public void delete() {
-    LOGGER.debug("Deleting {}", this);
-    final Path path = file.file().toPath();
-
-    if (Files.exists(path)) {
-      deleteFileSilently(path);
-    }
-  }
-
   @Override
   public void closeWriter(final SnapshotWriter writer) {
     final int length =
@@ -122,6 +97,31 @@ final class FileSnapshot extends DefaultSnapshot {
   @Override
   public Path getPath() {
     return file.file().toPath();
+  }
+
+  @Override
+  public synchronized SnapshotWriter openWriter() {
+    checkWriter();
+    checkState(!file.file().exists(), "cannot write to completed snapshot");
+    checkNotNull(file.temporaryFile(), "missing temporary snapshot file for writing");
+    final Buffer buffer =
+        FileBuffer.allocate(file.temporaryFile(), DefaultSnapshotDescriptor.BYTES);
+    descriptor.copyTo(buffer);
+
+    final int length = buffer.position(DefaultSnapshotDescriptor.BYTES).readInt();
+    return openWriter(new SnapshotWriter(buffer.skip(length).mark(), this), descriptor);
+  }
+
+  @Override
+  public synchronized SnapshotReader openReader() {
+    checkState(file.file().exists(), "missing snapshot file: %s", file.file());
+    final Buffer buffer = FileBuffer.allocate(file.file(), DefaultSnapshotDescriptor.BYTES);
+    final DefaultSnapshotDescriptor descriptor = new DefaultSnapshotDescriptor(buffer);
+    final int length = buffer.position(DefaultSnapshotDescriptor.BYTES).readInt();
+    return openReader(
+        new SnapshotReader(
+            buffer.mark().limit(DefaultSnapshotDescriptor.BYTES + Integer.BYTES + length), this),
+        descriptor);
   }
 
   private void deleteFileSilently(final Path path) {
