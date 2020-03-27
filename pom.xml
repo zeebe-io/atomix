@@ -74,16 +74,6 @@
       </plugin>
 
       <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <source>${java.version}</source>
-          <target>${java.version}</target>
-        </configuration>
-        <groupId>org.apache.maven.plugins</groupId>
-        <version>${maven.compiler.plugin.version}</version>
-      </plugin>
-
-      <plugin>
         <artifactId>maven-checkstyle-plugin</artifactId>
         <configuration>
           <configLocation>check/.checkstyle.xml</configLocation>
@@ -367,7 +357,7 @@
     <dockerfile.version>latest</dockerfile.version>
     <guava.version>23.0</guava.version>
     <jackson.version>2.10.3</jackson.version>
-    <java.version>1.8</java.version>
+    <java.version>11</java.version>
     <jaxrs.version>2.1.1</jaxrs.version>
     <junit.version>4.13</junit.version>
     <jv>${project.version}</jv>
@@ -378,14 +368,9 @@
     <!-- Maven plugins -->
     <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
     <maven.assembly.plugin.version>3.2.0</maven.assembly.plugin.version>
-    <maven.bundle.plugin.version>4.2.1</maven.bundle.plugin.version>
     <maven.clean.plugin.version>2.5</maven.clean.plugin.version>
-    <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
     <maven.dependency.plugin.version>2.7</maven.dependency.plugin.version>
-    <maven.dockerfile.plugin.version>1.4.3</maven.dockerfile.plugin.version>
-    <maven.failsafe.plugin.version>2.21.0</maven.failsafe.plugin.version>
     <maven.javadoc.plugin.version>3.2.0</maven.javadoc.plugin.version>
-    <maven.resources.plugin.version>2.6</maven.resources.plugin.version>
     <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
     <maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
 
