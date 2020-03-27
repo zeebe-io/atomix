@@ -45,7 +45,7 @@ public class TestProtocolConfig extends PrimitiveProtocolConfig<TestProtocolConf
    * @param group the partition group
    * @return the test protocol configuration
    */
-  public TestProtocolConfig setGroup(String group) {
+  public TestProtocolConfig setGroup(final String group) {
     this.group = group;
     return this;
   }
@@ -65,7 +65,7 @@ public class TestProtocolConfig extends PrimitiveProtocolConfig<TestProtocolConf
    * @param partitions the number of partitions to use in tests
    * @return the test protocol configuration
    */
-  public TestProtocolConfig setPartitions(int partitions) {
+  public TestProtocolConfig setPartitions(final int partitions) {
     this.partitions = partitions;
     return this;
   }
@@ -85,7 +85,7 @@ public class TestProtocolConfig extends PrimitiveProtocolConfig<TestProtocolConf
    * @param partitioner the protocol partitioner
    * @return the protocol configuration
    */
-  public TestProtocolConfig setPartitioner(Partitioner<String> partitioner) {
+  public TestProtocolConfig setPartitioner(final Partitioner<String> partitioner) {
     this.partitioner = partitioner;
     return this;
   }

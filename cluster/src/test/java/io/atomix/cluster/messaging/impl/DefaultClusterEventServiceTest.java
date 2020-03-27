@@ -53,14 +53,14 @@ import org.junit.Test;
 public class DefaultClusterEventServiceTest {
   private static final Serializer SERIALIZER = Serializer.using(Namespaces.BASIC);
 
-  private Member buildNode(int memberId) {
+  private Member buildNode(final int memberId) {
     return Member.builder(String.valueOf(memberId))
         .withHost("localhost")
         .withPort(memberId)
         .build();
   }
 
-  private Collection<Node> buildBootstrapNodes(int nodes) {
+  private Collection<Node> buildBootstrapNodes(final int nodes) {
     return IntStream.range(1, nodes + 1)
         .mapToObj(
             id ->
@@ -73,21 +73,21 @@ public class DefaultClusterEventServiceTest {
 
   @Test
   public void testClusterEventService() throws Exception {
-    TestMessagingServiceFactory messagingServiceFactory = new TestMessagingServiceFactory();
-    TestUnicastServiceFactory unicastServiceFactory = new TestUnicastServiceFactory();
-    TestBroadcastServiceFactory broadcastServiceFactory = new TestBroadcastServiceFactory();
+    final TestMessagingServiceFactory messagingServiceFactory = new TestMessagingServiceFactory();
+    final TestUnicastServiceFactory unicastServiceFactory = new TestUnicastServiceFactory();
+    final TestBroadcastServiceFactory broadcastServiceFactory = new TestBroadcastServiceFactory();
 
-    Collection<Node> bootstrapLocations = buildBootstrapNodes(3);
+    final Collection<Node> bootstrapLocations = buildBootstrapNodes(3);
 
-    Member localMember1 = buildNode(1);
-    MessagingService messagingService1 =
+    final Member localMember1 = buildNode(1);
+    final MessagingService messagingService1 =
         messagingServiceFactory.newMessagingService(localMember1.address()).start().join();
-    BootstrapService bootstrapService1 =
+    final BootstrapService bootstrapService1 =
         new TestBootstrapService(
             messagingService1,
             unicastServiceFactory.newUnicastService(localMember1.address()).start().join(),
             broadcastServiceFactory.newBroadcastService().start().join());
-    ManagedClusterMembershipService clusterService1 =
+    final ManagedClusterMembershipService clusterService1 =
         new DefaultClusterMembershipService(
             localMember1,
             Version.from("1.0.0"),
@@ -97,20 +97,20 @@ public class DefaultClusterEventServiceTest {
                 new BootstrapDiscoveryProvider(bootstrapLocations)),
             bootstrapService1,
             new HeartbeatMembershipProtocol(new HeartbeatMembershipProtocolConfig()));
-    ClusterMembershipService clusterMembershipService1 = clusterService1.start().join();
-    ManagedClusterEventService clusterEventingService1 =
+    final ClusterMembershipService clusterMembershipService1 = clusterService1.start().join();
+    final ManagedClusterEventService clusterEventingService1 =
         new DefaultClusterEventService(clusterMembershipService1, messagingService1);
-    ClusterEventService eventService1 = clusterEventingService1.start().join();
+    final ClusterEventService eventService1 = clusterEventingService1.start().join();
 
-    Member localMember2 = buildNode(2);
-    MessagingService messagingService2 =
+    final Member localMember2 = buildNode(2);
+    final MessagingService messagingService2 =
         messagingServiceFactory.newMessagingService(localMember2.address()).start().join();
-    BootstrapService bootstrapService2 =
+    final BootstrapService bootstrapService2 =
         new TestBootstrapService(
             messagingService2,
             unicastServiceFactory.newUnicastService(localMember2.address()).start().join(),
             broadcastServiceFactory.newBroadcastService().start().join());
-    ManagedClusterMembershipService clusterService2 =
+    final ManagedClusterMembershipService clusterService2 =
         new DefaultClusterMembershipService(
             localMember2,
             Version.from("1.0.0"),
@@ -120,20 +120,20 @@ public class DefaultClusterEventServiceTest {
                 new BootstrapDiscoveryProvider(bootstrapLocations)),
             bootstrapService2,
             new HeartbeatMembershipProtocol(new HeartbeatMembershipProtocolConfig()));
-    ClusterMembershipService clusterMembershipService2 = clusterService2.start().join();
-    ManagedClusterEventService clusterEventingService2 =
+    final ClusterMembershipService clusterMembershipService2 = clusterService2.start().join();
+    final ManagedClusterEventService clusterEventingService2 =
         new DefaultClusterEventService(clusterMembershipService2, messagingService2);
-    ClusterEventService eventService2 = clusterEventingService2.start().join();
+    final ClusterEventService eventService2 = clusterEventingService2.start().join();
 
-    Member localMember3 = buildNode(3);
-    MessagingService messagingService3 =
+    final Member localMember3 = buildNode(3);
+    final MessagingService messagingService3 =
         messagingServiceFactory.newMessagingService(localMember3.address()).start().join();
-    BootstrapService bootstrapService3 =
+    final BootstrapService bootstrapService3 =
         new TestBootstrapService(
             messagingService3,
             unicastServiceFactory.newUnicastService(localMember1.address()).start().join(),
             broadcastServiceFactory.newBroadcastService().start().join());
-    ManagedClusterMembershipService clusterService3 =
+    final ManagedClusterMembershipService clusterService3 =
         new DefaultClusterMembershipService(
             localMember3,
             Version.from("1.0.0"),
@@ -143,14 +143,14 @@ public class DefaultClusterEventServiceTest {
                 new BootstrapDiscoveryProvider(bootstrapLocations)),
             bootstrapService3,
             new HeartbeatMembershipProtocol(new HeartbeatMembershipProtocolConfig()));
-    ClusterMembershipService clusterMembershipService3 = clusterService3.start().join();
-    ManagedClusterEventService clusterEventingService3 =
+    final ClusterMembershipService clusterMembershipService3 = clusterService3.start().join();
+    final ManagedClusterEventService clusterEventingService3 =
         new DefaultClusterEventService(clusterMembershipService3, messagingService3);
-    ClusterEventService eventService3 = clusterEventingService3.start().join();
+    final ClusterEventService eventService3 = clusterEventingService3.start().join();
 
     Thread.sleep(100);
 
-    Set<Integer> events = new CopyOnWriteArraySet<>();
+    final Set<Integer> events = new CopyOnWriteArraySet<>();
 
     eventService1
         .<String>subscribe(

@@ -31,7 +31,7 @@ import java.util.Collections;
 /** Test Atomix instance. */
 public class TestAtomix extends Atomix {
 
-  private static AtomixConfig config(MemberId memberId, Address address) {
+  private static AtomixConfig config(final MemberId memberId, final Address address) {
     return new AtomixConfig()
         .setClusterConfig(
             new ClusterConfig()
@@ -40,11 +40,11 @@ public class TestAtomix extends Atomix {
   }
 
   TestAtomix(
-      MemberId memberId,
-      Address address,
-      TestMessagingServiceFactory messagingServiceFactory,
-      TestUnicastServiceFactory unicastServiceFactory,
-      TestBroadcastServiceFactory broadcastServiceFactory) {
+      final MemberId memberId,
+      final Address address,
+      final TestMessagingServiceFactory messagingServiceFactory,
+      final TestUnicastServiceFactory unicastServiceFactory,
+      final TestBroadcastServiceFactory broadcastServiceFactory) {
     super(
         config(memberId, address),
         AtomixRegistry.registry(),

@@ -83,16 +83,16 @@ public class PrimaryElectorService extends AbstractPrimitiveService {
   }
 
   @Override
-  public void backup(BackupOutput writer) {
+  public void backup(final BackupOutput writer) {
     writer.writeObject(Sets.newHashSet(listeners.keySet()), SERIALIZER::encode);
     writer.writeObject(elections, SERIALIZER::encode);
     getLogger().debug("Took state machine snapshot");
   }
 
   @Override
-  public void restore(BackupInput reader) {
+  public void restore(final BackupInput reader) {
     listeners = new LinkedHashMap<>();
-    for (Long sessionId : reader.<Set<Long>>readObject(SERIALIZER::decode)) {
+    for (final Long sessionId : reader.<Set<Long>>readObject(SERIALIZER::decode)) {
       listeners.put(sessionId, getSession(sessionId));
     }
     elections = reader.readObject(SERIALIZER::decode);
@@ -101,12 +101,12 @@ public class PrimaryElectorService extends AbstractPrimitiveService {
   }
 
   @Override
-  protected void configure(ServiceExecutor executor) {
+  protected void configure(final ServiceExecutor executor) {
     executor.register(PrimaryElectorOperations.ENTER, this::enter);
     executor.register(PrimaryElectorOperations.GET_TERM, this::getTerm);
   }
 
-  private void notifyTermChange(PartitionId partitionId, PrimaryTerm term) {
+  private void notifyTermChange(final PartitionId partitionId, final PrimaryTerm term) {
     listeners
         .values()
         .forEach(
@@ -128,13 +128,13 @@ public class PrimaryElectorService extends AbstractPrimitiveService {
   /** Periodically rebalances primaries. */
   private void rebalance() {
     boolean rebalanced = false;
-    for (ElectionState election : elections.values()) {
+    for (final ElectionState election : elections.values()) {
       // Count the total number of primaries for this election's primary.
-      int primaryCount = election.countPrimaries(election.primary);
+      final int primaryCount = election.countPrimaries(election.primary);
 
       // Find the registration with the fewest number of primaries.
       int minCandidateCount = 0;
-      for (Registration candidate : election.registrations) {
+      for (final Registration candidate : election.registrations) {
         if (minCandidateCount == 0) {
           minCandidateCount = election.countPrimaries(candidate);
         } else {
@@ -146,11 +146,11 @@ public class PrimaryElectorService extends AbstractPrimitiveService {
       // fewest
       // primaries then transfer leadership to the candidate.
       if (minCandidateCount < primaryCount) {
-        for (Registration candidate : election.registrations) {
+        for (final Registration candidate : election.registrations) {
           if (election.countPrimaries(candidate) < primaryCount) {
-            PrimaryTerm oldTerm = election.term();
+            final PrimaryTerm oldTerm = election.term();
             elections.put(election.partitionId, election.transfer(candidate.member()));
-            PrimaryTerm newTerm = term(election.partitionId);
+            final PrimaryTerm newTerm = term(election.partitionId);
             if (!Objects.equals(oldTerm, newTerm)) {
               notifyTermChange(election.partitionId, newTerm);
               rebalanced = true;
@@ -175,13 +175,13 @@ public class PrimaryElectorService extends AbstractPrimitiveService {
    * @return topic leader. If no previous leader existed this is the node that just entered the
    *     race.
    */
-  protected PrimaryTerm enter(Commit<? extends PrimaryElectorOperations.Enter> commit) {
+  protected PrimaryTerm enter(final Commit<? extends PrimaryElectorOperations.Enter> commit) {
     try {
-      PartitionId partitionId = commit.value().partitionId();
-      PrimaryTerm oldTerm = term(partitionId);
-      Registration registration =
+      final PartitionId partitionId = commit.value().partitionId();
+      final PrimaryTerm oldTerm = term(partitionId);
+      final Registration registration =
           new Registration(commit.value().member(), commit.session().sessionId().id());
-      PrimaryTerm newTerm =
+      final PrimaryTerm newTerm =
           elections
               .compute(
                   partitionId,
@@ -203,7 +203,7 @@ public class PrimaryElectorService extends AbstractPrimitiveService {
         scheduleRebalance();
       }
       return newTerm;
-    } catch (Exception e) {
+    } catch (final Exception e) {
       getLogger().error("State machine operation failed", e);
       throwIfUnchecked(e);
       throw new RuntimeException(e);
@@ -216,30 +216,30 @@ public class PrimaryElectorService extends AbstractPrimitiveService {
    * @param commit GetLeadership commit
    * @return leader
    */
-  protected PrimaryTerm getTerm(Commit<? extends PrimaryElectorOperations.GetTerm> commit) {
-    PartitionId partitionId = commit.value().partitionId();
+  protected PrimaryTerm getTerm(final Commit<? extends PrimaryElectorOperations.GetTerm> commit) {
+    final PartitionId partitionId = commit.value().partitionId();
     try {
       return term(partitionId);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       getLogger().error("State machine operation failed", e);
       throwIfUnchecked(e);
       throw new RuntimeException(e);
     }
   }
 
-  private PrimaryTerm term(PartitionId partitionId) {
-    ElectionState electionState = elections.get(partitionId);
+  private PrimaryTerm term(final PartitionId partitionId) {
+    final ElectionState electionState = elections.get(partitionId);
     return electionState != null ? electionState.term() : null;
   }
 
-  private void onSessionEnd(Session session) {
+  private void onSessionEnd(final Session session) {
     listeners.remove(session.sessionId().id());
-    Set<PartitionId> partitions = elections.keySet();
+    final Set<PartitionId> partitions = elections.keySet();
     partitions.forEach(
         partitionId -> {
-          PrimaryTerm oldTerm = term(partitionId);
+          final PrimaryTerm oldTerm = term(partitionId);
           elections.compute(partitionId, (k, v) -> v.cleanup(session));
-          PrimaryTerm newTerm = term(partitionId);
+          final PrimaryTerm newTerm = term(partitionId);
           if (!Objects.equals(oldTerm, newTerm)) {
             notifyTermChange(partitionId, newTerm);
             scheduleRebalance();
@@ -251,7 +251,7 @@ public class PrimaryElectorService extends AbstractPrimitiveService {
     private final GroupMember member;
     private final long sessionId;
 
-    Registration(GroupMember member, long sessionId) {
+    Registration(final GroupMember member, final long sessionId) {
       this.member = member;
       this.sessionId = sessionId;
     }
@@ -282,9 +282,9 @@ public class PrimaryElectorService extends AbstractPrimitiveService {
     private transient Map<PartitionId, ElectionState> elections;
 
     ElectionState(
-        PartitionId partitionId,
-        Registration registration,
-        Map<PartitionId, ElectionState> elections) {
+        final PartitionId partitionId,
+        final Registration registration,
+        final Map<PartitionId, ElectionState> elections) {
       registrations = Arrays.asList(registration);
       termStartTime = System.currentTimeMillis();
       primary = registration;
@@ -293,7 +293,7 @@ public class PrimaryElectorService extends AbstractPrimitiveService {
       this.elections = elections;
     }
 
-    ElectionState(ElectionState other) {
+    ElectionState(final ElectionState other) {
       partitionId = other.partitionId;
       registrations = Lists.newArrayList(other.registrations);
       primary = other.primary;
@@ -303,12 +303,12 @@ public class PrimaryElectorService extends AbstractPrimitiveService {
     }
 
     ElectionState(
-        PartitionId partitionId,
-        List<Registration> registrations,
-        Registration primary,
-        long term,
-        long termStartTime,
-        Map<PartitionId, ElectionState> elections) {
+        final PartitionId partitionId,
+        final List<Registration> registrations,
+        final Registration primary,
+        final long term,
+        final long termStartTime,
+        final Map<PartitionId, ElectionState> elections) {
       this.partitionId = partitionId;
       this.registrations = Lists.newArrayList(registrations);
       this.primary = primary;
@@ -317,11 +317,11 @@ public class PrimaryElectorService extends AbstractPrimitiveService {
       this.elections = elections;
     }
 
-    ElectionState cleanup(Session session) {
-      Optional<Registration> registration =
+    ElectionState cleanup(final Session session) {
+      final Optional<Registration> registration =
           registrations.stream().filter(r -> r.sessionId() == session.sessionId().id()).findFirst();
       if (registration.isPresent()) {
-        List<Registration> updatedRegistrations =
+        final List<Registration> updatedRegistrations =
             registrations.stream()
                 .filter(r -> r.sessionId() != session.sessionId().id())
                 .collect(Collectors.toList());
@@ -347,7 +347,7 @@ public class PrimaryElectorService extends AbstractPrimitiveService {
       }
     }
 
-    boolean isDuplicate(Registration registration) {
+    boolean isDuplicate(final Registration registration) {
       return registrations.stream().anyMatch(r -> r.sessionId() == registration.sessionId());
     }
 
@@ -369,12 +369,12 @@ public class PrimaryElectorService extends AbstractPrimitiveService {
           .collect(Collectors.toList());
     }
 
-    ElectionState addRegistration(Registration registration) {
+    ElectionState addRegistration(final Registration registration) {
       if (!registrations.stream().anyMatch(r -> r.sessionId() == registration.sessionId())) {
-        List<Registration> updatedRegistrations = new LinkedList<>(registrations);
+        final List<Registration> updatedRegistrations = new LinkedList<>(registrations);
 
         boolean added = false;
-        int registrationCount = countPrimaries(registration);
+        final int registrationCount = countPrimaries(registration);
         for (int i = 0; i < registrations.size(); i++) {
           if (countPrimaries(registrations.get(i)) > registrationCount) {
             updatedRegistrations.add(i, registration);
@@ -387,9 +387,9 @@ public class PrimaryElectorService extends AbstractPrimitiveService {
           updatedRegistrations.add(registration);
         }
 
-        List<Registration> sortedRegistrations = sortRegistrations(updatedRegistrations);
+        final List<Registration> sortedRegistrations = sortRegistrations(updatedRegistrations);
 
-        Registration firstRegistration = sortedRegistrations.get(0);
+        final Registration firstRegistration = sortedRegistrations.get(0);
         Registration leader = this.primary;
         long term = this.term;
         long termStartTime = this.termStartTime;
@@ -404,13 +404,13 @@ public class PrimaryElectorService extends AbstractPrimitiveService {
       return this;
     }
 
-    List<Registration> sortRegistrations(List<Registration> registrations) {
+    List<Registration> sortRegistrations(final List<Registration> registrations) {
       // Count the number of distinct groups in the registrations list.
-      int groupCount =
+      final int groupCount =
           (int) registrations.stream().map(r -> r.member().groupId()).distinct().count();
 
-      Set<MemberGroupId> groups = new HashSet<>();
-      List<Registration> sortedRegistrations = new LinkedList<>();
+      final Set<MemberGroupId> groups = new HashSet<>();
+      final List<Registration> sortedRegistrations = new LinkedList<>();
 
       // Loop until all registrations have been sorted.
       while (!registrations.isEmpty()) {
@@ -418,9 +418,9 @@ public class PrimaryElectorService extends AbstractPrimitiveService {
         groups.clear();
 
         // For each registration, check if it can be added to the registrations list.
-        Iterator<Registration> iterator = registrations.iterator();
+        final Iterator<Registration> iterator = registrations.iterator();
         while (iterator.hasNext()) {
-          Registration registration = iterator.next();
+          final Registration registration = iterator.next();
 
           // If the registration's group has not been added to the list, add the registration.
           if (groups.add(registration.member().groupId())) {
@@ -438,7 +438,7 @@ public class PrimaryElectorService extends AbstractPrimitiveService {
       return sortedRegistrations;
     }
 
-    int countPrimaries(Registration registration) {
+    int countPrimaries(final Registration registration) {
       if (registration == null) {
         return 0;
       }
@@ -464,8 +464,8 @@ public class PrimaryElectorService extends AbstractPrimitiveService {
               .count();
     }
 
-    ElectionState transfer(GroupMember member) {
-      Registration newLeader =
+    ElectionState transfer(final GroupMember member) {
+      final Registration newLeader =
           registrations.stream()
               .filter(r -> Objects.equals(r.member(), member))
               .findFirst()
@@ -480,17 +480,17 @@ public class PrimaryElectorService extends AbstractPrimitiveService {
   }
 
   @Override
-  public void onOpen(Session session) {
+  public void onOpen(final Session session) {
     listeners.put(session.sessionId().id(), session);
   }
 
   @Override
-  public void onExpire(Session session) {
+  public void onExpire(final Session session) {
     onSessionEnd(session);
   }
 
   @Override
-  public void onClose(Session session) {
+  public void onClose(final Session session) {
     onSessionEnd(session);
   }
 }

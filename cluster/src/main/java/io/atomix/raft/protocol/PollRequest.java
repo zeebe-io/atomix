@@ -37,7 +37,7 @@ public class PollRequest extends AbstractRaftRequest {
   private final long lastLogIndex;
   private final long lastLogTerm;
 
-  public PollRequest(long term, String candidate, long lastLogIndex, long lastLogTerm) {
+  public PollRequest(final long term, final String candidate, final long lastLogIndex, final long lastLogTerm) {
     this.term = term;
     this.candidate = candidate;
     this.lastLogIndex = lastLogIndex;
@@ -95,7 +95,7 @@ public class PollRequest extends AbstractRaftRequest {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof PollRequest) {
       final PollRequest request = (PollRequest) object;
       return request.term == term
@@ -131,7 +131,7 @@ public class PollRequest extends AbstractRaftRequest {
      * @return The poll request builder.
      * @throws IllegalArgumentException if {@code term} is negative
      */
-    public Builder withTerm(long term) {
+    public Builder withTerm(final long term) {
       checkArgument(term >= 0, "term must be positive");
       this.term = term;
       return this;
@@ -144,7 +144,7 @@ public class PollRequest extends AbstractRaftRequest {
      * @return The poll request builder.
      * @throws IllegalArgumentException if {@code candidate} is not positive
      */
-    public Builder withCandidate(MemberId candidate) {
+    public Builder withCandidate(final MemberId candidate) {
       this.candidate = checkNotNull(candidate, "candidate cannot be null").id();
       return this;
     }
@@ -156,7 +156,7 @@ public class PollRequest extends AbstractRaftRequest {
      * @return The poll request builder.
      * @throws IllegalArgumentException if {@code index} is negative
      */
-    public Builder withLastLogIndex(long logIndex) {
+    public Builder withLastLogIndex(final long logIndex) {
       checkArgument(logIndex >= 0, "lastLogIndex must be positive");
       this.lastLogIndex = logIndex;
       return this;
@@ -169,7 +169,7 @@ public class PollRequest extends AbstractRaftRequest {
      * @return The poll request builder.
      * @throws IllegalArgumentException if {@code term} is negative
      */
-    public Builder withLastLogTerm(long logTerm) {
+    public Builder withLastLogTerm(final long logTerm) {
       checkArgument(logTerm >= 0, "lastLogTerm must be positive");
       this.lastLogTerm = logTerm;
       return this;

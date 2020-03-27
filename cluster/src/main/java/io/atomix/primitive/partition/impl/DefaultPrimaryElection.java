@@ -54,7 +54,7 @@ public class DefaultPrimaryElection implements ManagedPrimaryElection {
   private final AtomicBoolean started = new AtomicBoolean();
 
   public DefaultPrimaryElection(
-      PartitionId partitionId, SessionClient proxy, PrimaryElectionService service) {
+      final PartitionId partitionId, final SessionClient proxy, final PrimaryElectionService service) {
     this.partitionId = checkNotNull(partitionId);
     this.proxy = proxy;
     this.service = service;
@@ -68,7 +68,7 @@ public class DefaultPrimaryElection implements ManagedPrimaryElection {
   }
 
   @Override
-  public CompletableFuture<PrimaryTerm> enter(GroupMember member) {
+  public CompletableFuture<PrimaryTerm> enter(final GroupMember member) {
     return proxy
         .execute(operation(ENTER, SERIALIZER.encode(new Enter(partitionId, member))))
         .thenApply(SERIALIZER::decode);
@@ -82,12 +82,12 @@ public class DefaultPrimaryElection implements ManagedPrimaryElection {
   }
 
   @Override
-  public synchronized void addListener(PrimaryElectionEventListener listener) {
+  public synchronized void addListener(final PrimaryElectionEventListener listener) {
     listeners.add(checkNotNull(listener));
   }
 
   @Override
-  public synchronized void removeListener(PrimaryElectionEventListener listener) {
+  public synchronized void removeListener(final PrimaryElectionEventListener listener) {
     listeners.remove(checkNotNull(listener));
   }
 

@@ -44,7 +44,7 @@ public class PrimaryElectorType implements PrimitiveType {
   }
 
   @Override
-  public PrimitiveService newService(ServiceConfig config) {
+  public PrimitiveService newService(final ServiceConfig config) {
     return new PrimaryElectorService();
   }
 
@@ -55,7 +55,7 @@ public class PrimaryElectorType implements PrimitiveType {
 
   @Override
   public PrimitiveBuilder newBuilder(
-      String name, PrimitiveConfig config, PrimitiveManagementService managementService) {
+      final String name, final PrimitiveConfig config, final PrimitiveManagementService managementService) {
     throw new UnsupportedOperationException();
   }
 

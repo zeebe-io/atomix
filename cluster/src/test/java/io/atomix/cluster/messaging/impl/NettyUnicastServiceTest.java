@@ -71,7 +71,7 @@ public class NettyUnicastServiceTest extends ConcurrentTestCase {
     if (service1 != null) {
       try {
         service1.stop().join();
-      } catch (Exception e) {
+      } catch (final Exception e) {
         LOGGER.warn("Failed stopping netty1", e);
       }
     }
@@ -79,20 +79,20 @@ public class NettyUnicastServiceTest extends ConcurrentTestCase {
     if (service2 != null) {
       try {
         service2.stop().join();
-      } catch (Exception e) {
+      } catch (final Exception e) {
         LOGGER.warn("Failed stopping netty2", e);
       }
     }
   }
 
-  private static int findAvailablePort(int defaultPort) {
+  private static int findAvailablePort(final int defaultPort) {
     try {
-      ServerSocket socket = new ServerSocket(0);
+      final ServerSocket socket = new ServerSocket(0);
       socket.setReuseAddress(true);
-      int port = socket.getLocalPort();
+      final int port = socket.getLocalPort();
       socket.close();
       return port;
-    } catch (IOException ex) {
+    } catch (final IOException ex) {
       return defaultPort;
     }
   }

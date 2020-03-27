@@ -40,8 +40,8 @@ public class ClasspathScanningPrimitiveTypeRegistry implements PrimitiveTypeRegi
 
   private final Map<String, PrimitiveType> primitiveTypes = new ConcurrentHashMap<>();
 
-  public ClasspathScanningPrimitiveTypeRegistry(ClassLoader classLoader) {
-    Map<String, PrimitiveType> types =
+  public ClasspathScanningPrimitiveTypeRegistry(final ClassLoader classLoader) {
+    final Map<String, PrimitiveType> types =
         CACHE.computeIfAbsent(
             classLoader,
             cl -> {
@@ -91,10 +91,10 @@ public class ClasspathScanningPrimitiveTypeRegistry implements PrimitiveTypeRegi
    * @throws ServiceException if the type cannot be instantiated
    */
   @SuppressWarnings("unchecked")
-  private static <T> T newInstance(Class<?> type) {
+  private static <T> T newInstance(final Class<?> type) {
     try {
       return (T) type.newInstance();
-    } catch (InstantiationException | IllegalAccessException e) {
+    } catch (final InstantiationException | IllegalAccessException e) {
       throw new ServiceException("Cannot instantiate service class " + type, e);
     }
   }
@@ -105,8 +105,8 @@ public class ClasspathScanningPrimitiveTypeRegistry implements PrimitiveTypeRegi
   }
 
   @Override
-  public PrimitiveType getPrimitiveType(String typeName) {
-    PrimitiveType type = primitiveTypes.get(typeName);
+  public PrimitiveType getPrimitiveType(final String typeName) {
+    final PrimitiveType type = primitiveTypes.get(typeName);
     if (type == null) {
       throw new ServiceException("Unknown primitive type " + typeName);
     }

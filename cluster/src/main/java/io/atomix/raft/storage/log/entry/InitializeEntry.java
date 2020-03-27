@@ -26,7 +26,7 @@ package io.atomix.raft.storage.log.entry;
  */
 public class InitializeEntry extends TimestampedEntry {
 
-  public InitializeEntry(long term, long timestamp) {
+  public InitializeEntry(final long term, final long timestamp) {
     super(term, timestamp);
   }
 }

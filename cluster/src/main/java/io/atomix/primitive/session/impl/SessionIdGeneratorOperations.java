@@ -31,7 +31,7 @@ public enum SessionIdGeneratorOperations implements OperationId {
 
   private final OperationType type;
 
-  SessionIdGeneratorOperations(OperationType type) {
+  SessionIdGeneratorOperations(final OperationType type) {
     this.type = type;
   }
 

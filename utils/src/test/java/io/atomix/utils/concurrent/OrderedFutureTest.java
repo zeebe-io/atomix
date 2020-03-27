@@ -28,8 +28,8 @@ public class OrderedFutureTest {
   /** Tests ordered completion of future callbacks. */
   @Test
   public void testOrderedCompletion() throws Throwable {
-    CompletableFuture<String> future = new OrderedFuture<>();
-    AtomicInteger order = new AtomicInteger();
+    final CompletableFuture<String> future = new OrderedFuture<>();
+    final AtomicInteger order = new AtomicInteger();
     future.whenComplete((r, e) -> assertEquals(1, order.incrementAndGet()));
     future.whenComplete((r, e) -> assertEquals(2, order.incrementAndGet()));
     future.handle(
@@ -60,8 +60,8 @@ public class OrderedFutureTest {
 
   /** Tests ordered failure of future callbacks. */
   public void testOrderedFailure() throws Throwable {
-    CompletableFuture<String> future = new OrderedFuture<>();
-    AtomicInteger order = new AtomicInteger();
+    final CompletableFuture<String> future = new OrderedFuture<>();
+    final AtomicInteger order = new AtomicInteger();
     future.whenComplete((r, e) -> assertEquals(1, order.incrementAndGet()));
     future.whenComplete((r, e) -> assertEquals(2, order.incrementAndGet()));
     future.handle(
@@ -81,10 +81,10 @@ public class OrderedFutureTest {
 
   /** Tests calling callbacks that are added after completion. */
   public void testAfterComplete() throws Throwable {
-    CompletableFuture<String> future = new OrderedFuture<>();
+    final CompletableFuture<String> future = new OrderedFuture<>();
     future.whenComplete((result, error) -> assertEquals("foo", result));
     future.complete("foo");
-    AtomicInteger count = new AtomicInteger();
+    final AtomicInteger count = new AtomicInteger();
     future.whenComplete(
         (result, error) -> {
           assertEquals("foo", result);

@@ -23,15 +23,15 @@ public class MessagingException extends IOException {
 
   public MessagingException() {}
 
-  public MessagingException(String message) {
+  public MessagingException(final String message) {
     super(message);
   }
 
-  public MessagingException(String message, Throwable t) {
+  public MessagingException(final String message, final Throwable t) {
     super(message, t);
   }
 
-  public MessagingException(Throwable t) {
+  public MessagingException(final Throwable t) {
     super(t);
   }
 

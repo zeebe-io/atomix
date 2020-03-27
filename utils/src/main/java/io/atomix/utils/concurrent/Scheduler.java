@@ -29,7 +29,7 @@ public interface Scheduler {
    * @param callback the callback to run
    * @return the scheduled callback
    */
-  default Scheduled schedule(long delay, TimeUnit timeUnit, Runnable callback) {
+  default Scheduled schedule(final long delay, final TimeUnit timeUnit, final Runnable callback) {
     return schedule(Duration.ofMillis(timeUnit.toMillis(delay)), callback);
   }
 
@@ -52,7 +52,7 @@ public interface Scheduler {
    * @return the scheduled callback
    */
   default Scheduled schedule(
-      long initialDelay, long interval, TimeUnit timeUnit, Runnable callback) {
+      final long initialDelay, final long interval, final TimeUnit timeUnit, final Runnable callback) {
     return schedule(
         Duration.ofMillis(timeUnit.toMillis(initialDelay)),
         Duration.ofMillis(timeUnit.toMillis(interval)),

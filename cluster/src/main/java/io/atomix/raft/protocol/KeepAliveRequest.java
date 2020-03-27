@@ -40,7 +40,7 @@ public class KeepAliveRequest extends AbstractRaftRequest {
   private final long[] commandSequences;
   private final long[] eventIndexes;
 
-  public KeepAliveRequest(long[] sessionIds, long[] commandSequences, long[] eventIndexes) {
+  public KeepAliveRequest(final long[] sessionIds, final long[] commandSequences, final long[] eventIndexes) {
     this.sessionIds = sessionIds;
     this.commandSequences = commandSequences;
     this.eventIndexes = eventIndexes;
@@ -88,7 +88,7 @@ public class KeepAliveRequest extends AbstractRaftRequest {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof KeepAliveRequest) {
       final KeepAliveRequest request = (KeepAliveRequest) object;
       return Arrays.equals(request.sessionIds, sessionIds)
@@ -121,7 +121,7 @@ public class KeepAliveRequest extends AbstractRaftRequest {
      * @return The request builders.
      * @throws NullPointerException if {@code sessionIds} is {@code null}
      */
-    public Builder withSessionIds(long[] sessionIds) {
+    public Builder withSessionIds(final long[] sessionIds) {
       this.sessionIds = checkNotNull(sessionIds, "sessionIds cannot be null");
       return this;
     }
@@ -133,7 +133,7 @@ public class KeepAliveRequest extends AbstractRaftRequest {
      * @return The request builder.
      * @throws NullPointerException if {@code commandSequences} is {@code null}
      */
-    public Builder withCommandSequences(long[] commandSequences) {
+    public Builder withCommandSequences(final long[] commandSequences) {
       this.commandSequences = checkNotNull(commandSequences, "commandSequences cannot be null");
       return this;
     }
@@ -145,7 +145,7 @@ public class KeepAliveRequest extends AbstractRaftRequest {
      * @return The request builder.
      * @throws NullPointerException if {@code eventIndexes} is {@code null}
      */
-    public Builder withEventIndexes(long[] eventIndexes) {
+    public Builder withEventIndexes(final long[] eventIndexes) {
       this.eventIndexes = checkNotNull(eventIndexes, "eventIndexes cannot be null");
       return this;
     }

@@ -33,7 +33,7 @@ public class ConfigurationEntry extends TimestampedEntry {
 
   protected final Collection<RaftMember> members;
 
-  public ConfigurationEntry(long term, long timestamp, Collection<RaftMember> members) {
+  public ConfigurationEntry(final long term, final long timestamp, final Collection<RaftMember> members) {
     super(term, timestamp);
     this.members = members;
   }

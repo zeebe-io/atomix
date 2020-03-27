@@ -27,11 +27,11 @@ import io.atomix.utils.misc.ArraySizeHashPrinter;
 public class TestEntry {
   private final byte[] bytes;
 
-  public TestEntry(int size) {
+  public TestEntry(final int size) {
     this(new byte[size]);
   }
 
-  public TestEntry(byte[] bytes) {
+  public TestEntry(final byte[] bytes) {
     this.bytes = bytes;
   }
 

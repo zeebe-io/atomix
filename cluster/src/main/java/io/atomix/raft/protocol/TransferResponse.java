@@ -20,7 +20,7 @@ import io.atomix.raft.RaftError;
 /** Leadership transfer response. */
 public class TransferResponse extends AbstractRaftResponse {
 
-  public TransferResponse(Status status, RaftError error) {
+  public TransferResponse(final Status status, final RaftError error) {
     super(status, error);
   }
 

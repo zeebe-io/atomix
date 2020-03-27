@@ -39,7 +39,7 @@ public enum PrimaryElectorOperations implements OperationId {
 
   private final OperationType type;
 
-  PrimaryElectorOperations(OperationType type) {
+  PrimaryElectorOperations(final OperationType type) {
     this.type = type;
   }
 
@@ -76,7 +76,7 @@ public enum PrimaryElectorOperations implements OperationId {
 
     public PartitionOperation() {}
 
-    public PartitionOperation(PartitionId partitionId) {
+    public PartitionOperation(final PartitionId partitionId) {
       this.partitionId = checkNotNull(partitionId);
     }
 
@@ -95,7 +95,7 @@ public enum PrimaryElectorOperations implements OperationId {
   public static class GetTerm extends PartitionOperation {
     public GetTerm() {}
 
-    public GetTerm(PartitionId partitionId) {
+    public GetTerm(final PartitionId partitionId) {
       super(partitionId);
     }
 
@@ -112,7 +112,7 @@ public enum PrimaryElectorOperations implements OperationId {
 
     Enter() {}
 
-    Enter(PartitionId partitionId, GroupMember member) {
+    Enter(final PartitionId partitionId, final GroupMember member) {
       super(partitionId);
       this.member = member;
     }

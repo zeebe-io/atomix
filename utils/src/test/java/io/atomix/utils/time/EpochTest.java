@@ -25,7 +25,7 @@ import org.junit.Test;
 public class EpochTest {
   @Test
   public void testLogicalTimestamp() throws Exception {
-    Epoch epoch = Epoch.of(1);
+    final Epoch epoch = Epoch.of(1);
     assertEquals(1, epoch.value());
     assertTrue(epoch.isNewerThan(Epoch.of(0)));
     assertFalse(epoch.isNewerThan(Epoch.of(2)));

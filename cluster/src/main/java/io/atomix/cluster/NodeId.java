@@ -37,7 +37,7 @@ public class NodeId extends AbstractIdentifier<String> implements Comparable<Nod
    * @param id string identifier
    * @return node id
    */
-  public static NodeId from(String id) {
+  public static NodeId from(final String id) {
     return new NodeId(id);
   }
 
@@ -51,7 +51,7 @@ public class NodeId extends AbstractIdentifier<String> implements Comparable<Nod
    *
    * @param id string identifier
    */
-  public NodeId(String id) {
+  public NodeId(final String id) {
     super(id);
   }
 
@@ -61,12 +61,12 @@ public class NodeId extends AbstractIdentifier<String> implements Comparable<Nod
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     return object instanceof NodeId && ((NodeId) object).id().equals(id());
   }
 
   @Override
-  public int compareTo(NodeId that) {
+  public int compareTo(final NodeId that) {
     return identifier.compareTo(that.identifier);
   }
 }

@@ -30,7 +30,7 @@ public abstract class Synchronous<T extends AsyncPrimitive> implements SyncPrimi
 
   private final T primitive;
 
-  public Synchronous(T primitive) {
+  public Synchronous(final T primitive) {
     this.primitive = primitive;
   }
 
@@ -53,7 +53,7 @@ public abstract class Synchronous<T extends AsyncPrimitive> implements SyncPrimi
   public void delete() {
     try {
       primitive.delete().get(DEFAULT_OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
-    } catch (InterruptedException | ExecutionException | TimeoutException e) {
+    } catch (final InterruptedException | ExecutionException | TimeoutException e) {
       throw new AtomixRuntimeException(e);
     }
   }
@@ -62,7 +62,7 @@ public abstract class Synchronous<T extends AsyncPrimitive> implements SyncPrimi
   public void close() {
     try {
       primitive.close().get(DEFAULT_OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
-    } catch (InterruptedException | ExecutionException | TimeoutException e) {
+    } catch (final InterruptedException | ExecutionException | TimeoutException e) {
       throw new AtomixRuntimeException(e);
     }
   }

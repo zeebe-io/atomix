@@ -40,20 +40,20 @@ public class AtomixConfigTest {
 
   @Test
   public void testDefaultAtomixConfig() throws Exception {
-    AtomixConfig config = Atomix.config();
+    final AtomixConfig config = Atomix.config();
     assertTrue(config.getPartitionGroups().isEmpty());
     assertTrue(config.getProfiles().isEmpty());
   }
 
   @Test
   public void testAtomixConfig() throws Exception {
-    AtomixConfig config =
+    final AtomixConfig config =
         Atomix.config(getClass().getClassLoader().getResource("test.conf").getPath());
 
-    ClusterConfig cluster = config.getClusterConfig();
+    final ClusterConfig cluster = config.getClusterConfig();
     assertEquals("test", cluster.getClusterId());
 
-    MemberConfig node = cluster.getNodeConfig();
+    final MemberConfig node = cluster.getNodeConfig();
     assertEquals("one", node.getId().id());
     assertEquals("localhost:5000", node.getAddress().toString());
     assertEquals("foo", node.getZoneId());
@@ -62,29 +62,29 @@ public class AtomixConfigTest {
     assertEquals("bar", node.getProperties().getProperty("foo"));
     assertEquals("baz", node.getProperties().getProperty("bar"));
 
-    MulticastConfig multicast = cluster.getMulticastConfig();
+    final MulticastConfig multicast = cluster.getMulticastConfig();
     assertTrue(multicast.isEnabled());
     assertEquals("230.0.1.1", multicast.getGroup().getHostAddress());
     assertEquals(56789, multicast.getPort());
 
-    HeartbeatMembershipProtocolConfig protocol =
+    final HeartbeatMembershipProtocolConfig protocol =
         (HeartbeatMembershipProtocolConfig) cluster.getProtocolConfig();
     assertEquals(Duration.ofMillis(200), protocol.getHeartbeatInterval());
     assertEquals(12, protocol.getPhiFailureThreshold());
     assertEquals(Duration.ofSeconds(15), protocol.getFailureTimeout());
 
-    MembershipConfig membership = cluster.getMembershipConfig();
+    final MembershipConfig membership = cluster.getMembershipConfig();
     assertEquals(Duration.ofSeconds(1), membership.getBroadcastInterval());
     assertEquals(12, membership.getReachabilityThreshold());
     assertEquals(Duration.ofSeconds(15), membership.getReachabilityTimeout());
 
-    MulticastDiscoveryConfig discovery = (MulticastDiscoveryConfig) cluster.getDiscoveryConfig();
+    final MulticastDiscoveryConfig discovery = (MulticastDiscoveryConfig) cluster.getDiscoveryConfig();
     assertEquals(MulticastDiscoveryProvider.TYPE, discovery.getType());
     assertEquals(Duration.ofSeconds(1), discovery.getBroadcastInterval());
     assertEquals(12, discovery.getFailureThreshold());
     assertEquals(Duration.ofSeconds(15), discovery.getFailureTimeout());
 
-    MessagingConfig messaging = cluster.getMessagingConfig();
+    final MessagingConfig messaging = cluster.getMessagingConfig();
     assertEquals(2, messaging.getInterfaces().size());
     assertEquals("127.0.0.1", messaging.getInterfaces().get(0));
     assertEquals("0.0.0.0", messaging.getInterfaces().get(1));
@@ -96,7 +96,7 @@ public class AtomixConfigTest {
     assertEquals("truststore.jks", messaging.getTlsConfig().getTrustStore());
     assertEquals("bar", messaging.getTlsConfig().getTrustStorePassword());
 
-    RaftPartitionGroupConfig managementGroup =
+    final RaftPartitionGroupConfig managementGroup =
         (RaftPartitionGroupConfig) config.getManagementGroup();
     assertEquals(RaftPartitionGroup.TYPE, managementGroup.getType());
     assertEquals(1, managementGroup.getPartitions());
@@ -106,13 +106,13 @@ public class AtomixConfigTest {
     assertEquals(
         new MemorySize(1024 * 1024 * 16), managementGroup.getStorageConfig().getSegmentSize());
 
-    RaftPartitionGroupConfig groupOne =
+    final RaftPartitionGroupConfig groupOne =
         (RaftPartitionGroupConfig) config.getPartitionGroups().get("one");
     assertEquals(RaftPartitionGroup.TYPE, groupOne.getType());
     assertEquals("one", groupOne.getName());
     assertEquals(7, groupOne.getPartitions());
 
-    ConsensusProfileConfig consensusProfile = (ConsensusProfileConfig) config.getProfiles().get(0);
+    final ConsensusProfileConfig consensusProfile = (ConsensusProfileConfig) config.getProfiles().get(0);
     assertEquals(ConsensusProfile.TYPE, consensusProfile.getType());
     assertEquals("management", consensusProfile.getManagementGroup());
     assertEquals("consensus", consensusProfile.getDataGroup());

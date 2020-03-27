@@ -59,7 +59,7 @@ public class RaftCompactionConfig {
    * @param dynamic whether dynamic compaction is enabled
    * @return the compaction configuration
    */
-  public RaftCompactionConfig setDynamic(boolean dynamic) {
+  public RaftCompactionConfig setDynamic(final boolean dynamic) {
     this.dynamic = dynamic;
     return this;
   }
@@ -70,7 +70,7 @@ public class RaftCompactionConfig {
    * @param freeDiskBuffer the free disk buffer
    * @return the compaction configuration
    */
-  public RaftCompactionConfig setFreeDiskBuffer(double freeDiskBuffer) {
+  public RaftCompactionConfig setFreeDiskBuffer(final double freeDiskBuffer) {
     this.freeDiskBuffer = freeDiskBuffer;
     return this;
   }
@@ -81,7 +81,7 @@ public class RaftCompactionConfig {
    * @param freeMemoryBuffer the free memory buffer
    * @return the compaction configuration
    */
-  public RaftCompactionConfig setFreeMemoryBuffer(double freeMemoryBuffer) {
+  public RaftCompactionConfig setFreeMemoryBuffer(final double freeMemoryBuffer) {
     this.freeMemoryBuffer = freeMemoryBuffer;
     return this;
   }

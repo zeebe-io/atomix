@@ -76,11 +76,11 @@ public class BufferCleaner {
         f.setAccessible(true);
         final Object theUnsafe = f.get(null);
         return newBufferCleaner(ByteBuffer.class, unmapper.bindTo(theUnsafe));
-      } catch (SecurityException se) {
+      } catch (final SecurityException se) {
         // rethrow to report errors correctly (we need to catch it here, as we also catch
         // RuntimeException below!):
         throw se;
-      } catch (ReflectiveOperationException | RuntimeException e) {
+      } catch (final ReflectiveOperationException | RuntimeException e) {
         // *** sun.misc.Cleaner unmapping (Java 8) ***
         final Class<?> directBufferClass = Class.forName("java.nio.DirectByteBuffer");
 
@@ -114,12 +114,12 @@ public class BufferCleaner {
                 .asType(methodType(void.class, ByteBuffer.class));
         return newBufferCleaner(directBufferClass, unmapper);
       }
-    } catch (SecurityException se) {
+    } catch (final SecurityException se) {
       return "Unmapping is not supported, because not all required permissions are given to the Lucene JAR file: "
           + se
           + " [Please grant at least the following permissions: RuntimePermission(\"accessClassInPackage.sun.misc\") "
           + " and ReflectPermission(\"suppressAccessChecks\")]";
-    } catch (ReflectiveOperationException | RuntimeException e) {
+    } catch (final ReflectiveOperationException | RuntimeException e) {
       return "Unmapping is not supported on this platform, because internal Java APIs are not compatible with this Atomix version: "
           + e;
     }
@@ -142,7 +142,7 @@ public class BufferCleaner {
                     try {
                       unmapper.invokeExact(buffer);
                       return null;
-                    } catch (Throwable t) {
+                    } catch (final Throwable t) {
                       return t;
                     }
                   });
@@ -153,7 +153,7 @@ public class BufferCleaner {
   }
 
   /** Free {@link ByteBuffer} if possible. */
-  public static void freeBuffer(ByteBuffer buffer) throws IOException {
+  public static void freeBuffer(final ByteBuffer buffer) throws IOException {
     CLEANER.freeBuffer(buffer);
   }
 }

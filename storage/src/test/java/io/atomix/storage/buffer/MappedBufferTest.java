@@ -36,25 +36,25 @@ public class MappedBufferTest extends BufferTest {
   }
 
   @Override
-  protected Buffer createBuffer(int capacity) {
+  protected Buffer createBuffer(final int capacity) {
     return MappedBuffer.allocate(FileTesting.createFile(), capacity);
   }
 
   @Override
-  protected Buffer createBuffer(int capacity, int maxCapacity) {
+  protected Buffer createBuffer(final int capacity, final int maxCapacity) {
     return MappedBuffer.allocate(FileTesting.createFile(), capacity, maxCapacity);
   }
 
   /** Rests reopening a file that has been closed. */
   @Test
   public void testPersist() {
-    File file = FileTesting.createFile();
-    try (MappedBuffer buffer = MappedBuffer.allocate(file, 16)) {
+    final File file = FileTesting.createFile();
+    try (final MappedBuffer buffer = MappedBuffer.allocate(file, 16)) {
       buffer.writeLong(10).writeLong(11).flip();
       assertEquals(10, buffer.readLong());
       assertEquals(11, buffer.readLong());
     }
-    try (MappedBuffer buffer = MappedBuffer.allocate(file, 16)) {
+    try (final MappedBuffer buffer = MappedBuffer.allocate(file, 16)) {
       assertEquals(10, buffer.readLong());
       assertEquals(11, buffer.readLong());
     }
@@ -63,8 +63,8 @@ public class MappedBufferTest extends BufferTest {
   /** Tests deleting a file. */
   @Test
   public void testDelete() {
-    File file = FileTesting.createFile();
-    MappedBuffer buffer = MappedBuffer.allocate(file, 16);
+    final File file = FileTesting.createFile();
+    final MappedBuffer buffer = MappedBuffer.allocate(file, 16);
     buffer.writeLong(10).writeLong(11).flip();
     assertEquals(10, buffer.readLong());
     assertEquals(11, buffer.readLong());

@@ -49,12 +49,12 @@ public class TestSessionClient implements SessionClient {
       Maps.newConcurrentMap();
 
   TestSessionClient(
-      String name,
-      PrimitiveType type,
-      SessionId sessionId,
-      PartitionId partitionId,
-      ThreadContext context,
-      TestProtocolService service) {
+      final String name,
+      final PrimitiveType type,
+      final SessionId sessionId,
+      final PartitionId partitionId,
+      final ThreadContext context,
+      final TestProtocolService service) {
     this.name = name;
     this.type = type;
     this.sessionId = sessionId;
@@ -94,8 +94,8 @@ public class TestSessionClient implements SessionClient {
   }
 
   @Override
-  public CompletableFuture<byte[]> execute(PrimitiveOperation operation) {
-    CompletableFuture<byte[]> future = new CompletableFuture<>();
+  public CompletableFuture<byte[]> execute(final PrimitiveOperation operation) {
+    final CompletableFuture<byte[]> future = new CompletableFuture<>();
     service
         .execute(sessionId, operation)
         .whenCompleteAsync(
@@ -111,10 +111,10 @@ public class TestSessionClient implements SessionClient {
   }
 
   /** Handles a primitive event. */
-  void accept(PrimitiveEvent event) {
+  void accept(final PrimitiveEvent event) {
     context.execute(
         () -> {
-          List<Consumer<PrimitiveEvent>> listeners = eventListeners.get(event.type());
+          final List<Consumer<PrimitiveEvent>> listeners = eventListeners.get(event.type());
           if (listeners != null) {
             listeners.forEach(l -> l.accept(event));
           }
@@ -123,8 +123,8 @@ public class TestSessionClient implements SessionClient {
 
   @Override
   public synchronized void addEventListener(
-      EventType eventType, Consumer<PrimitiveEvent> listener) {
-    List<Consumer<PrimitiveEvent>> listeners =
+      final EventType eventType, final Consumer<PrimitiveEvent> listener) {
+    final List<Consumer<PrimitiveEvent>> listeners =
         eventListeners.computeIfAbsent(eventType, type -> Lists.newCopyOnWriteArrayList());
     if (!listeners.contains(listener)) {
       listeners.add(listener);
@@ -133,8 +133,8 @@ public class TestSessionClient implements SessionClient {
 
   @Override
   public synchronized void removeEventListener(
-      EventType eventType, Consumer<PrimitiveEvent> listener) {
-    List<Consumer<PrimitiveEvent>> listeners = eventListeners.get(eventType);
+      final EventType eventType, final Consumer<PrimitiveEvent> listener) {
+    final List<Consumer<PrimitiveEvent>> listeners = eventListeners.get(eventType);
     if (listeners != null && listeners.contains(listener)) {
       listeners.remove(listener);
       if (listeners.isEmpty()) {
@@ -144,16 +144,16 @@ public class TestSessionClient implements SessionClient {
   }
 
   @Override
-  public void addStateChangeListener(Consumer<PrimitiveState> listener) {
+  public void addStateChangeListener(final Consumer<PrimitiveState> listener) {
     stateChangeListeners.add(listener);
   }
 
   @Override
-  public void removeStateChangeListener(Consumer<PrimitiveState> listener) {
+  public void removeStateChangeListener(final Consumer<PrimitiveState> listener) {
     stateChangeListeners.remove(listener);
   }
 
-  private synchronized void changeState(PrimitiveState state) {
+  private synchronized void changeState(final PrimitiveState state) {
     if (this.state != state) {
       this.state = state;
       stateChangeListeners.forEach(l -> l.accept(state));
@@ -162,7 +162,7 @@ public class TestSessionClient implements SessionClient {
 
   @Override
   public synchronized CompletableFuture<SessionClient> connect() {
-    CompletableFuture<SessionClient> future = new CompletableFuture<>();
+    final CompletableFuture<SessionClient> future = new CompletableFuture<>();
     service
         .open(sessionId, this)
         .whenCompleteAsync(
@@ -180,7 +180,7 @@ public class TestSessionClient implements SessionClient {
 
   @Override
   public synchronized CompletableFuture<Void> close() {
-    CompletableFuture<Void> future = new CompletableFuture<>();
+    final CompletableFuture<Void> future = new CompletableFuture<>();
     if (state == PrimitiveState.CLOSED) {
       future.complete(null);
     } else {

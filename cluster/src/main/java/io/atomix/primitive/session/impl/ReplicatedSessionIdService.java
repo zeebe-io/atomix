@@ -40,7 +40,7 @@ public class ReplicatedSessionIdService implements ManagedSessionIdService {
   private SessionClient proxy;
   private final AtomicBoolean started = new AtomicBoolean();
 
-  public ReplicatedSessionIdService(PartitionGroup systemPartitionGroup) {
+  public ReplicatedSessionIdService(final PartitionGroup systemPartitionGroup) {
     this.systemPartitionGroup = systemPartitionGroup;
   }
 

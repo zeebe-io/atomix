@@ -19,19 +19,19 @@ package io.atomix.utils;
 public class AtomixIOException extends AtomixRuntimeException {
   public AtomixIOException() {}
 
-  public AtomixIOException(String message) {
+  public AtomixIOException(final String message) {
     super(message);
   }
 
-  public AtomixIOException(String message, Object... args) {
+  public AtomixIOException(final String message, final Object... args) {
     super(message, args);
   }
 
-  public AtomixIOException(String message, Throwable cause) {
+  public AtomixIOException(final String message, final Throwable cause) {
     super(message, cause);
   }
 
-  public AtomixIOException(Throwable cause) {
+  public AtomixIOException(final Throwable cause) {
     super(cause);
   }
 }

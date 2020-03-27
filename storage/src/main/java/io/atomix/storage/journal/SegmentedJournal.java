@@ -79,14 +79,14 @@ public class SegmentedJournal<E> implements Journal<E> {
   private volatile boolean open = true;
 
   public SegmentedJournal(
-      String name,
-      StorageLevel storageLevel,
-      File directory,
-      Namespace namespace,
-      int maxSegmentSize,
-      int maxEntrySize,
-      int maxEntriesPerSegment,
-      boolean flushOnCommit,
+      final String name,
+      final StorageLevel storageLevel,
+      final File directory,
+      final Namespace namespace,
+      final int maxSegmentSize,
+      final int maxEntrySize,
+      final int maxEntriesPerSegment,
+      final boolean flushOnCommit,
       final Supplier<JournalIndex> journalIndexFactory) {
     this.name = checkNotNull(name, "name cannot be null");
     this.storageLevel = checkNotNull(storageLevel, "storageLevel cannot be null");
@@ -195,7 +195,7 @@ public class SegmentedJournal<E> implements Journal<E> {
    * @param index the starting index
    * @return the journal segments starting with indexes greater than or equal to the given index
    */
-  public Collection<JournalSegment<E>> segments(long index) {
+  public Collection<JournalSegment<E>> segments(final long index) {
     return segments.tailMap(index).values();
   }
 
@@ -214,7 +214,7 @@ public class SegmentedJournal<E> implements Journal<E> {
   }
 
   @Override
-  public SegmentedJournalReader<E> openReader(long index) {
+  public SegmentedJournalReader<E> openReader(final long index) {
     return openReader(index, SegmentedJournalReader.Mode.ALL);
   }
 
@@ -225,8 +225,8 @@ public class SegmentedJournal<E> implements Journal<E> {
    * @param mode The mode in which to read entries.
    * @return The Raft log reader.
    */
-  public SegmentedJournalReader<E> openReader(long index, SegmentedJournalReader.Mode mode) {
-    SegmentedJournalReader<E> reader = new SegmentedJournalReader<>(this, index, mode);
+  public SegmentedJournalReader<E> openReader(final long index, final SegmentedJournalReader.Mode mode) {
+    final SegmentedJournalReader<E> reader = new SegmentedJournalReader<>(this, index, mode);
     readers.add(reader);
     return reader;
   }
@@ -243,7 +243,7 @@ public class SegmentedJournal<E> implements Journal<E> {
   /** Opens the segments. */
   private void open() {
     // Load existing log segments from disk.
-    for (JournalSegment<E> segment : loadSegments()) {
+    for (final JournalSegment<E> segment : loadSegments()) {
       segments.put(segment.descriptor().index(), segment);
     }
 
@@ -251,7 +251,7 @@ public class SegmentedJournal<E> implements Journal<E> {
     if (!segments.isEmpty()) {
       currentSegment = segments.lastEntry().getValue();
     } else {
-      JournalSegmentDescriptor descriptor =
+      final JournalSegmentDescriptor descriptor =
           JournalSegmentDescriptor.builder()
               .withId(1)
               .withIndex(1)
@@ -285,11 +285,11 @@ public class SegmentedJournal<E> implements Journal<E> {
 
   /** Resets the current segment, creating a new segment if necessary. */
   private synchronized void resetCurrentSegment() {
-    JournalSegment<E> lastSegment = getLastSegment();
+    final JournalSegment<E> lastSegment = getLastSegment();
     if (lastSegment != null) {
       currentSegment = lastSegment;
     } else {
-      JournalSegmentDescriptor descriptor =
+      final JournalSegmentDescriptor descriptor =
           JournalSegmentDescriptor.builder()
               .withId(1)
               .withIndex(1)
@@ -309,22 +309,22 @@ public class SegmentedJournal<E> implements Journal<E> {
    * @param index the starting index of the journal
    * @return the first segment
    */
-  JournalSegment<E> resetSegments(long index) {
+  JournalSegment<E> resetSegments(final long index) {
     assertOpen();
 
     // If the index already equals the first segment index, skip the reset.
-    JournalSegment<E> firstSegment = getFirstSegment();
+    final JournalSegment<E> firstSegment = getFirstSegment();
     if (index == firstSegment.index()) {
       return firstSegment;
     }
 
-    for (JournalSegment<E> segment : segments.values()) {
+    for (final JournalSegment<E> segment : segments.values()) {
       segment.close();
       segment.delete();
     }
     segments.clear();
 
-    JournalSegmentDescriptor descriptor =
+    final JournalSegmentDescriptor descriptor =
         JournalSegmentDescriptor.builder()
             .withId(1)
             .withIndex(index)
@@ -343,7 +343,7 @@ public class SegmentedJournal<E> implements Journal<E> {
    */
   JournalSegment<E> getFirstSegment() {
     assertOpen();
-    Map.Entry<Long, JournalSegment<E>> segment = segments.firstEntry();
+    final Map.Entry<Long, JournalSegment<E>> segment = segments.firstEntry();
     return segment != null ? segment.getValue() : null;
   }
 
@@ -354,7 +354,7 @@ public class SegmentedJournal<E> implements Journal<E> {
    */
   JournalSegment<E> getLastSegment() {
     assertOpen();
-    Map.Entry<Long, JournalSegment<E>> segment = segments.lastEntry();
+    final Map.Entry<Long, JournalSegment<E>> segment = segments.lastEntry();
     return segment != null ? segment.getValue() : null;
   }
 
@@ -368,8 +368,8 @@ public class SegmentedJournal<E> implements Journal<E> {
     assertOpen();
     assertDiskSpace();
 
-    JournalSegment lastSegment = getLastSegment();
-    JournalSegmentDescriptor descriptor =
+    final JournalSegment lastSegment = getLastSegment();
+    final JournalSegmentDescriptor descriptor =
         JournalSegmentDescriptor.builder()
             .withId(lastSegment != null ? lastSegment.descriptor().id() + 1 : 1)
             .withIndex(currentSegment.lastIndex() + 1)
@@ -389,8 +389,8 @@ public class SegmentedJournal<E> implements Journal<E> {
    * @param index The segment index with which to look up the next segment.
    * @return The next segment for the given index.
    */
-  JournalSegment<E> getNextSegment(long index) {
-    Map.Entry<Long, JournalSegment<E>> nextSegment = segments.higherEntry(index);
+  JournalSegment<E> getNextSegment(final long index) {
+    final Map.Entry<Long, JournalSegment<E>> nextSegment = segments.higherEntry(index);
     return nextSegment != null ? nextSegment.getValue() : null;
   }
 
@@ -400,7 +400,7 @@ public class SegmentedJournal<E> implements Journal<E> {
    * @param index The index for which to return the segment.
    * @throws IllegalStateException if the segment manager is not open
    */
-  synchronized JournalSegment<E> getSegment(long index) {
+  synchronized JournalSegment<E> getSegment(final long index) {
     assertOpen();
     // Check if the current segment contains the given index first in order to prevent an
     // unnecessary map lookup.
@@ -409,7 +409,7 @@ public class SegmentedJournal<E> implements Journal<E> {
     }
 
     // If the index is in another segment, get the entry with the next lowest first index.
-    Map.Entry<Long, JournalSegment<E>> segment = segments.floorEntry(index);
+    final Map.Entry<Long, JournalSegment<E>> segment = segments.floorEntry(index);
     if (segment != null) {
       return segment.getValue();
     }
@@ -421,7 +421,7 @@ public class SegmentedJournal<E> implements Journal<E> {
    *
    * @param segment The segment to remove.
    */
-  synchronized void removeSegment(JournalSegment segment) {
+  synchronized void removeSegment(final JournalSegment segment) {
     segments.remove(segment.index());
     segment.close();
     segment.delete();
@@ -429,34 +429,34 @@ public class SegmentedJournal<E> implements Journal<E> {
   }
 
   /** Creates a new segment. */
-  JournalSegment<E> createSegment(JournalSegmentDescriptor descriptor) {
-    File segmentFile = JournalSegmentFile.createSegmentFile(name, directory, descriptor.id());
+  JournalSegment<E> createSegment(final JournalSegmentDescriptor descriptor) {
+    final File segmentFile = JournalSegmentFile.createSegmentFile(name, directory, descriptor.id());
 
-    RandomAccessFile raf;
-    FileChannel channel;
+    final RandomAccessFile raf;
+    final FileChannel channel;
     try {
       raf = new RandomAccessFile(segmentFile, "rw");
       raf.setLength(descriptor.maxSegmentSize());
       channel = raf.getChannel();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new StorageException(e);
     }
 
-    ByteBuffer buffer = ByteBuffer.allocate(JournalSegmentDescriptor.BYTES);
+    final ByteBuffer buffer = ByteBuffer.allocate(JournalSegmentDescriptor.BYTES);
     descriptor.copyTo(buffer);
     buffer.flip();
     try {
       channel.write(buffer);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new StorageException(e);
     } finally {
       try {
         channel.close();
         raf.close();
-      } catch (IOException e) {
+      } catch (final IOException e) {
       }
     }
-    JournalSegment<E> segment = newSegment(new JournalSegmentFile(segmentFile), descriptor);
+    final JournalSegment<E> segment = newSegment(new JournalSegmentFile(segmentFile), descriptor);
     log.debug("Created segment: {}", segment);
     return segment;
   }
@@ -469,35 +469,35 @@ public class SegmentedJournal<E> implements Journal<E> {
    * @return The segment instance.
    */
   protected JournalSegment<E> newSegment(
-      JournalSegmentFile segmentFile, JournalSegmentDescriptor descriptor) {
+      final JournalSegmentFile segmentFile, final JournalSegmentDescriptor descriptor) {
     return new JournalSegment<>(
         segmentFile, descriptor, storageLevel, maxEntrySize, namespace, journalIndexFactory.get());
   }
 
   /** Loads a segment. */
-  private JournalSegment<E> loadSegment(long segmentId) {
-    File segmentFile = JournalSegmentFile.createSegmentFile(name, directory, segmentId);
-    ByteBuffer buffer = ByteBuffer.allocate(JournalSegmentDescriptor.BYTES);
-    try (FileChannel channel = openChannel(segmentFile)) {
+  private JournalSegment<E> loadSegment(final long segmentId) {
+    final File segmentFile = JournalSegmentFile.createSegmentFile(name, directory, segmentId);
+    final ByteBuffer buffer = ByteBuffer.allocate(JournalSegmentDescriptor.BYTES);
+    try (final FileChannel channel = openChannel(segmentFile)) {
       channel.read(buffer);
       buffer.flip();
-      JournalSegmentDescriptor descriptor = new JournalSegmentDescriptor(buffer);
-      JournalSegment<E> segment = newSegment(new JournalSegmentFile(segmentFile), descriptor);
+      final JournalSegmentDescriptor descriptor = new JournalSegmentDescriptor(buffer);
+      final JournalSegment<E> segment = newSegment(new JournalSegmentFile(segmentFile), descriptor);
       log.debug("Loaded disk segment: {} ({})", descriptor.id(), segmentFile.getName());
       return segment;
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new StorageException(e);
     }
   }
 
-  private FileChannel openChannel(File file) {
+  private FileChannel openChannel(final File file) {
     try {
       return FileChannel.open(
           file.toPath(),
           StandardOpenOption.CREATE,
           StandardOpenOption.READ,
           StandardOpenOption.WRITE);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new StorageException(e);
     }
   }
@@ -511,26 +511,26 @@ public class SegmentedJournal<E> implements Journal<E> {
     // Ensure log directories are created.
     directory.mkdirs();
 
-    TreeMap<Long, JournalSegment<E>> segments = new TreeMap<>();
+    final TreeMap<Long, JournalSegment<E>> segments = new TreeMap<>();
 
     // Iterate through all files in the log directory.
-    for (File file : directory.listFiles(File::isFile)) {
+    for (final File file : directory.listFiles(File::isFile)) {
 
       // If the file looks like a segment file, attempt to load the segment.
       if (JournalSegmentFile.isSegmentFile(name, file)) {
-        JournalSegmentFile segmentFile = new JournalSegmentFile(file);
-        ByteBuffer buffer = ByteBuffer.allocate(JournalSegmentDescriptor.BYTES);
-        try (FileChannel channel = openChannel(file)) {
+        final JournalSegmentFile segmentFile = new JournalSegmentFile(file);
+        final ByteBuffer buffer = ByteBuffer.allocate(JournalSegmentDescriptor.BYTES);
+        try (final FileChannel channel = openChannel(file)) {
           channel.read(buffer);
           buffer.flip();
-        } catch (IOException e) {
+        } catch (final IOException e) {
           throw new StorageException(e);
         }
 
-        JournalSegmentDescriptor descriptor = new JournalSegmentDescriptor(buffer);
+        final JournalSegmentDescriptor descriptor = new JournalSegmentDescriptor(buffer);
 
         // Load the segment.
-        JournalSegment<E> segment = loadSegment(descriptor.id());
+        final JournalSegment<E> segment = loadSegment(descriptor.id());
 
         // Add the segment to the segments list.
         log.debug(
@@ -542,9 +542,9 @@ public class SegmentedJournal<E> implements Journal<E> {
     // Verify that all the segments in the log align with one another.
     JournalSegment<E> previousSegment = null;
     boolean corrupted = false;
-    Iterator<Map.Entry<Long, JournalSegment<E>>> iterator = segments.entrySet().iterator();
+    final Iterator<Map.Entry<Long, JournalSegment<E>>> iterator = segments.entrySet().iterator();
     while (iterator.hasNext()) {
-      JournalSegment<E> segment = iterator.next().getValue();
+      final JournalSegment<E> segment = iterator.next().getValue();
       if (previousSegment != null && previousSegment.lastIndex() != segment.index() - 1) {
         log.warn(
             "Journal is inconsistent. {} is not aligned with prior segment {}",
@@ -568,8 +568,8 @@ public class SegmentedJournal<E> implements Journal<E> {
    *
    * @param index The index at which to reset readers.
    */
-  void resetHead(long index) {
-    for (SegmentedJournalReader reader : readers) {
+  void resetHead(final long index) {
+    for (final SegmentedJournalReader reader : readers) {
       if (reader.getNextIndex() < index) {
         reader.reset(index);
       }
@@ -581,15 +581,15 @@ public class SegmentedJournal<E> implements Journal<E> {
    *
    * @param index The index at which to reset readers.
    */
-  void resetTail(long index) {
-    for (SegmentedJournalReader reader : readers) {
+  void resetTail(final long index) {
+    for (final SegmentedJournalReader reader : readers) {
       if (reader.getNextIndex() >= index) {
         reader.reset(index);
       }
     }
   }
 
-  void closeReader(SegmentedJournalReader reader) {
+  void closeReader(final SegmentedJournalReader reader) {
     readers.remove(reader);
   }
 
@@ -605,8 +605,8 @@ public class SegmentedJournal<E> implements Journal<E> {
    * @param index the index from which to remove segments
    * @return indicates whether a segment can be removed from the journal
    */
-  public boolean isCompactable(long index) {
-    Map.Entry<Long, JournalSegment<E>> segmentEntry = segments.floorEntry(index);
+  public boolean isCompactable(final long index) {
+    final Map.Entry<Long, JournalSegment<E>> segmentEntry = segments.floorEntry(index);
     return segmentEntry != null && segments.headMap(segmentEntry.getValue().index()).size() > 0;
   }
 
@@ -616,8 +616,8 @@ public class SegmentedJournal<E> implements Journal<E> {
    * @param index the compaction index
    * @return the starting index of the last segment in the log
    */
-  public long getCompactableIndex(long index) {
-    Map.Entry<Long, JournalSegment<E>> segmentEntry = segments.floorEntry(index);
+  public long getCompactableIndex(final long index) {
+    final Map.Entry<Long, JournalSegment<E>> segmentEntry = segments.floorEntry(index);
     return segmentEntry != null ? segmentEntry.getValue().index() : 0;
   }
 
@@ -628,14 +628,14 @@ public class SegmentedJournal<E> implements Journal<E> {
    *
    * @param index The index up to which to compact the journal.
    */
-  public void compact(long index) {
-    Map.Entry<Long, JournalSegment<E>> segmentEntry = segments.floorEntry(index);
+  public void compact(final long index) {
+    final Map.Entry<Long, JournalSegment<E>> segmentEntry = segments.floorEntry(index);
     if (segmentEntry != null) {
-      SortedMap<Long, JournalSegment<E>> compactSegments =
+      final SortedMap<Long, JournalSegment<E>> compactSegments =
           segments.headMap(segmentEntry.getValue().index());
       if (!compactSegments.isEmpty()) {
         log.debug("{} - Compacting {} segment(s)", name, compactSegments.size());
-        for (JournalSegment segment : compactSegments.values()) {
+        for (final JournalSegment segment : compactSegments.values()) {
           log.trace("Deleting segment: {}", segment);
           segment.compactIndex(index);
           segment.close();
@@ -674,7 +674,7 @@ public class SegmentedJournal<E> implements Journal<E> {
    *
    * @param index The index up to which to commit entries.
    */
-  void setCommitIndex(long index) {
+  void setCommitIndex(final long index) {
     this.commitIndex = index;
   }
 
@@ -716,7 +716,7 @@ public class SegmentedJournal<E> implements Journal<E> {
      * @param name The storage name.
      * @return The storage builder.
      */
-    public Builder<E> withName(String name) {
+    public Builder<E> withName(final String name) {
       this.name = checkNotNull(name, "name cannot be null");
       return this;
     }
@@ -729,7 +729,7 @@ public class SegmentedJournal<E> implements Journal<E> {
      * @param storageLevel The log storage level.
      * @return The storage builder.
      */
-    public Builder<E> withStorageLevel(StorageLevel storageLevel) {
+    public Builder<E> withStorageLevel(final StorageLevel storageLevel) {
       this.storageLevel = checkNotNull(storageLevel, "storageLevel cannot be null");
       return this;
     }
@@ -743,7 +743,7 @@ public class SegmentedJournal<E> implements Journal<E> {
      * @return The storage builder.
      * @throws NullPointerException If the {@code directory} is {@code null}
      */
-    public Builder<E> withDirectory(String directory) {
+    public Builder<E> withDirectory(final String directory) {
       return withDirectory(new File(checkNotNull(directory, "directory cannot be null")));
     }
 
@@ -756,7 +756,7 @@ public class SegmentedJournal<E> implements Journal<E> {
      * @return The storage builder.
      * @throws NullPointerException If the {@code directory} is {@code null}
      */
-    public Builder<E> withDirectory(File directory) {
+    public Builder<E> withDirectory(final File directory) {
       this.directory = checkNotNull(directory, "directory cannot be null");
       return this;
     }
@@ -767,7 +767,7 @@ public class SegmentedJournal<E> implements Journal<E> {
      * @param namespace The journal serializer.
      * @return The journal builder.
      */
-    public Builder<E> withNamespace(Namespace namespace) {
+    public Builder<E> withNamespace(final Namespace namespace) {
       this.namespace = checkNotNull(namespace, "namespace cannot be null");
       return this;
     }
@@ -786,7 +786,7 @@ public class SegmentedJournal<E> implements Journal<E> {
      * @return The storage builder.
      * @throws IllegalArgumentException If the {@code maxSegmentSize} is not positive
      */
-    public Builder<E> withMaxSegmentSize(int maxSegmentSize) {
+    public Builder<E> withMaxSegmentSize(final int maxSegmentSize) {
       checkArgument(
           maxSegmentSize > JournalSegmentDescriptor.BYTES,
           "maxSegmentSize must be greater than " + JournalSegmentDescriptor.BYTES);
@@ -801,7 +801,7 @@ public class SegmentedJournal<E> implements Journal<E> {
      * @return the storage builder
      * @throws IllegalArgumentException if the {@code maxEntrySize} is not positive
      */
-    public Builder<E> withMaxEntrySize(int maxEntrySize) {
+    public Builder<E> withMaxEntrySize(final int maxEntrySize) {
       checkArgument(maxEntrySize > 0, "maxEntrySize must be positive");
       this.maxEntrySize = maxEntrySize;
       return this;
@@ -825,7 +825,7 @@ public class SegmentedJournal<E> implements Journal<E> {
      * @deprecated since 3.0.2
      */
     @Deprecated
-    public Builder<E> withMaxEntriesPerSegment(int maxEntriesPerSegment) {
+    public Builder<E> withMaxEntriesPerSegment(final int maxEntriesPerSegment) {
       checkArgument(maxEntriesPerSegment > 0, "max entries per segment must be positive");
       checkArgument(
           maxEntriesPerSegment <= DEFAULT_MAX_ENTRIES_PER_SEGMENT,
@@ -858,7 +858,7 @@ public class SegmentedJournal<E> implements Journal<E> {
      *     segment.
      * @return The storage builder.
      */
-    public Builder<E> withFlushOnCommit(boolean flushOnCommit) {
+    public Builder<E> withFlushOnCommit(final boolean flushOnCommit) {
       this.flushOnCommit = flushOnCommit;
       return this;
     }

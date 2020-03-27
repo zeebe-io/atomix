@@ -27,7 +27,7 @@ public class ReconfigureRequest extends ConfigurationRequest {
   private final long index;
   private final long term;
 
-  public ReconfigureRequest(RaftMember member, long index, long term) {
+  public ReconfigureRequest(final RaftMember member, final long index, final long term) {
     super(member);
     this.index = index;
     this.term = term;
@@ -66,7 +66,7 @@ public class ReconfigureRequest extends ConfigurationRequest {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof ReconfigureRequest) {
       final ReconfigureRequest request = (ReconfigureRequest) object;
       return request.index == index && request.term == term && request.member.equals(member);
@@ -95,7 +95,7 @@ public class ReconfigureRequest extends ConfigurationRequest {
      * @param index The request index.
      * @return The request builder.
      */
-    public Builder withIndex(long index) {
+    public Builder withIndex(final long index) {
       checkArgument(index >= 0, "index must be positive");
       this.index = index;
       return this;
@@ -107,7 +107,7 @@ public class ReconfigureRequest extends ConfigurationRequest {
      * @param term The request term.
      * @return The request builder.
      */
-    public Builder withTerm(long term) {
+    public Builder withTerm(final long term) {
       checkArgument(term >= 0, "term must be positive");
       this.term = term;
       return this;

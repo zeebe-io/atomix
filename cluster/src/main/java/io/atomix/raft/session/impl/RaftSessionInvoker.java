@@ -67,12 +67,12 @@ final class RaftSessionInvoker {
   private final AtomicLong keepAliveIndex = new AtomicLong();
 
   RaftSessionInvoker(
-      RaftSessionConnection leaderConnection,
-      RaftSessionConnection sessionConnection,
-      RaftSessionState state,
-      RaftSessionSequencer sequencer,
-      RaftSessionManager manager,
-      ThreadContext context) {
+      final RaftSessionConnection leaderConnection,
+      final RaftSessionConnection sessionConnection,
+      final RaftSessionState state,
+      final RaftSessionSequencer sequencer,
+      final RaftSessionManager manager,
+      final ThreadContext context) {
     this.leaderConnection = checkNotNull(leaderConnection, "leaderConnection");
     this.sessionConnection = checkNotNull(sessionConnection, "sessionConnection");
     this.state = checkNotNull(state, "state");
@@ -87,7 +87,7 @@ final class RaftSessionInvoker {
    * @param operation The operation to submit.
    * @return A completable future to be completed once the command has been submitted.
    */
-  public CompletableFuture<byte[]> invoke(PrimitiveOperation operation) {
+  public CompletableFuture<byte[]> invoke(final PrimitiveOperation operation) {
     final CompletableFuture<byte[]> future = new CompletableFuture<>();
     switch (operation.id().type()) {
       case COMMAND:
@@ -103,7 +103,7 @@ final class RaftSessionInvoker {
   }
 
   /** Submits a command to the cluster. */
-  private void invokeCommand(PrimitiveOperation operation, CompletableFuture<byte[]> future) {
+  private void invokeCommand(final PrimitiveOperation operation, final CompletableFuture<byte[]> future) {
     final CommandRequest request =
         CommandRequest.builder()
             .withSession(state.getSessionId().id())
@@ -114,7 +114,7 @@ final class RaftSessionInvoker {
   }
 
   /** Submits a command request to the cluster. */
-  private void invokeCommand(CommandRequest request, CompletableFuture<byte[]> future) {
+  private void invokeCommand(final CommandRequest request, final CompletableFuture<byte[]> future) {
     invoke(new CommandAttempt(sequencer.nextRequest(), request, future));
   }
 
@@ -124,7 +124,7 @@ final class RaftSessionInvoker {
    * @param attempt The attempt to submit.
    */
   private <T extends OperationRequest, U extends OperationResponse> void invoke(
-      OperationAttempt<T, U> attempt) {
+      final OperationAttempt<T, U> attempt) {
     if (state.getState() == PrimitiveState.CLOSED) {
       attempt.fail(new PrimitiveException.ClosedSession("session closed"));
     } else {
@@ -135,7 +135,7 @@ final class RaftSessionInvoker {
   }
 
   /** Submits a query to the cluster. */
-  private void invokeQuery(PrimitiveOperation operation, CompletableFuture<byte[]> future) {
+  private void invokeQuery(final PrimitiveOperation operation, final CompletableFuture<byte[]> future) {
     final QueryRequest request =
         QueryRequest.builder()
             .withSession(state.getSessionId().id())
@@ -147,7 +147,7 @@ final class RaftSessionInvoker {
   }
 
   /** Submits a query request to the cluster. */
-  private void invokeQuery(QueryRequest request, CompletableFuture<byte[]> future) {
+  private void invokeQuery(final QueryRequest request, final CompletableFuture<byte[]> future) {
     invoke(new QueryAttempt(sequencer.nextRequest(), request, future));
   }
 
@@ -161,7 +161,7 @@ final class RaftSessionInvoker {
    * given {@code commandSequence} number and the attempt number is less than or equal to the
    * version.
    */
-  private void resubmit(long commandSequence, OperationAttempt<?, ?> attempt) {
+  private void resubmit(final long commandSequence, final OperationAttempt<?, ?> attempt) {
     // If the client's response sequence number is greater than the given command sequence number,
     // the cluster likely has a new leader, and we need to reset the sequencing in the leader by
     // sending a keep-alive request.
@@ -186,7 +186,7 @@ final class RaftSessionInvoker {
               },
               context);
     } else {
-      for (Map.Entry<Long, OperationAttempt> entry : attempts.entrySet()) {
+      for (final Map.Entry<Long, OperationAttempt> entry : attempts.entrySet()) {
         final OperationAttempt operation = entry.getValue();
         if (operation instanceof CommandAttempt
             && operation.request.sequenceNumber() > commandSequence
@@ -201,7 +201,7 @@ final class RaftSessionInvoker {
   public void reset() {
     context.execute(
         () -> {
-          for (OperationAttempt attempt : attempts.values()) {
+          for (final OperationAttempt attempt : attempts.values()) {
             attempt.retry();
           }
         });
@@ -213,7 +213,7 @@ final class RaftSessionInvoker {
    * @return A completable future to be completed with a list of pending operations.
    */
   public CompletableFuture<Void> close() {
-    for (OperationAttempt attempt : new ArrayList<>(attempts.values())) {
+    for (final OperationAttempt attempt : new ArrayList<>(attempts.values())) {
       attempt.fail(new PrimitiveException.ClosedSession("session closed"));
     }
     attempts.clear();
@@ -232,7 +232,7 @@ final class RaftSessionInvoker {
     protected final CompletableFuture<byte[]> future;
 
     protected OperationAttempt(
-        long sequence, int attempt, T request, CompletableFuture<byte[]> future) {
+        final long sequence, final int attempt, final T request, final CompletableFuture<byte[]> future) {
       this.sequence = sequence;
       this.attempt = attempt;
       this.request = request;
@@ -254,7 +254,7 @@ final class RaftSessionInvoker {
      *
      * @param error The completion exception.
      */
-    protected void complete(Throwable error) {
+    protected void complete(final Throwable error) {
       sequence(null, () -> future.completeExceptionally(error));
     }
 
@@ -264,7 +264,7 @@ final class RaftSessionInvoker {
      * @param response The operation response.
      * @param callback The callback to run in sequence.
      */
-    protected final void sequence(OperationResponse response, Runnable callback) {
+    protected final void sequence(final OperationResponse response, final Runnable callback) {
       sequencer.sequenceResponse(sequence, response, callback);
     }
 
@@ -285,7 +285,7 @@ final class RaftSessionInvoker {
      *
      * @param t The exception with which to fail the attempt.
      */
-    public void fail(Throwable t) {
+    public void fail(final Throwable t) {
       sequence(
           null,
           () -> {
@@ -318,7 +318,7 @@ final class RaftSessionInvoker {
      *
      * @param after The duration after which to retry the attempt.
      */
-    public void retry(Duration after) {
+    public void retry(final Duration after) {
       context.schedule(after, () -> invoke(next()));
     }
   }
@@ -326,12 +326,12 @@ final class RaftSessionInvoker {
   /** Command operation attempt. */
   private final class CommandAttempt extends OperationAttempt<CommandRequest, CommandResponse> {
 
-    CommandAttempt(long sequence, CommandRequest request, CompletableFuture<byte[]> future) {
+    CommandAttempt(final long sequence, final CommandRequest request, final CompletableFuture<byte[]> future) {
       super(sequence, 1, request, future);
     }
 
     CommandAttempt(
-        long sequence, int attempt, CommandRequest request, CompletableFuture<byte[]> future) {
+        final long sequence, final int attempt, final CommandRequest request, final CompletableFuture<byte[]> future) {
       super(sequence, attempt, request, future);
     }
 
@@ -342,7 +342,7 @@ final class RaftSessionInvoker {
 
     @Override
     @SuppressWarnings("unchecked")
-    protected void complete(CommandResponse response) {
+    protected void complete(final CommandResponse response) {
       sequence(
           response,
           () -> {
@@ -363,7 +363,7 @@ final class RaftSessionInvoker {
     }
 
     @Override
-    public void accept(CommandResponse response, Throwable error) {
+    public void accept(final CommandResponse response, final Throwable error) {
       if (error == null) {
         if (response.status() == RaftResponse.Status.OK) {
           complete(response);
@@ -413,12 +413,12 @@ final class RaftSessionInvoker {
   /** Query operation attempt. */
   private final class QueryAttempt extends OperationAttempt<QueryRequest, QueryResponse> {
 
-    QueryAttempt(long sequence, QueryRequest request, CompletableFuture<byte[]> future) {
+    QueryAttempt(final long sequence, final QueryRequest request, final CompletableFuture<byte[]> future) {
       super(sequence, 1, request, future);
     }
 
     QueryAttempt(
-        long sequence, int attempt, QueryRequest request, CompletableFuture<byte[]> future) {
+        final long sequence, final int attempt, final QueryRequest request, final CompletableFuture<byte[]> future) {
       super(sequence, attempt, request, future);
     }
 
@@ -429,7 +429,7 @@ final class RaftSessionInvoker {
 
     @Override
     @SuppressWarnings("unchecked")
-    protected void complete(QueryResponse response) {
+    protected void complete(final QueryResponse response) {
       sequence(
           response,
           () -> {
@@ -449,7 +449,7 @@ final class RaftSessionInvoker {
     }
 
     @Override
-    public void accept(QueryResponse response, Throwable error) {
+    public void accept(final QueryResponse response, final Throwable error) {
       if (error == null) {
         if (response.status() == RaftResponse.Status.OK) {
           complete(response);

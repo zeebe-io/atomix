@@ -39,17 +39,17 @@ public final class WorkQueueStats {
 
     WorkQueueStats workQueueStats = new WorkQueueStats();
 
-    public Builder withTotalPending(long value) {
+    public Builder withTotalPending(final long value) {
       workQueueStats.totalPending = value;
       return this;
     }
 
-    public Builder withTotalInProgress(long value) {
+    public Builder withTotalInProgress(final long value) {
       workQueueStats.totalInProgress = value;
       return this;
     }
 
-    public Builder withTotalCompleted(long value) {
+    public Builder withTotalCompleted(final long value) {
       workQueueStats.totalCompleted = value;
       return this;
     }

@@ -27,7 +27,7 @@ public class ContextualLoggerFactory {
    * @param context the logger context
    * @return the logger
    */
-  public static ContextualLogger getLogger(String name, LoggerContext context) {
+  public static ContextualLogger getLogger(final String name, final LoggerContext context) {
     return new ContextualLogger(LoggerFactory.getLogger(name), context);
   }
 
@@ -38,7 +38,7 @@ public class ContextualLoggerFactory {
    * @param context the logger context
    * @return the logger
    */
-  public static ContextualLogger getLogger(Class clazz, LoggerContext context) {
+  public static ContextualLogger getLogger(final Class clazz, final LoggerContext context) {
     return new ContextualLogger(LoggerFactory.getLogger(clazz), context);
   }
 

@@ -24,7 +24,7 @@ import java.util.Map;
 public class DefaultProfileTypeRegistry implements ProfileTypeRegistry {
   private final Map<String, Profile.Type> profileTypes;
 
-  public DefaultProfileTypeRegistry(Map<String, Profile.Type> profileTypes) {
+  public DefaultProfileTypeRegistry(final Map<String, Profile.Type> profileTypes) {
     this.profileTypes = profileTypes;
   }
 
@@ -34,7 +34,7 @@ public class DefaultProfileTypeRegistry implements ProfileTypeRegistry {
   }
 
   @Override
-  public Profile.Type getProfileType(String name) {
+  public Profile.Type getProfileType(final String name) {
     return profileTypes.get(name);
   }
 }

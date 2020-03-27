@@ -37,7 +37,7 @@ public class ZeebeEntry extends TimestampedEntry {
   private final ByteBuffer data;
 
   public ZeebeEntry(
-      long term, long timestamp, long lowestPosition, long highestPosition, ByteBuffer data) {
+      final long term, final long timestamp, final long lowestPosition, final long highestPosition, final ByteBuffer data) {
     super(term, timestamp);
     this.lowestPosition = lowestPosition;
     this.highestPosition = highestPosition;
@@ -50,7 +50,7 @@ public class ZeebeEntry extends TimestampedEntry {
   }
 
   @Override
-  public boolean equals(Object other) {
+  public boolean equals(final Object other) {
     if (this == other) {
       return true;
     }

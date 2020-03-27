@@ -56,12 +56,12 @@ public class ClasspathScanningRegistry implements AtomixRegistry {
   private final Map<Class<? extends NamedType>, Map<String, NamedType>> registrations =
       new ConcurrentHashMap<>();
 
-  private ClasspathScanningRegistry(ClassLoader classLoader) {
+  private ClasspathScanningRegistry(final ClassLoader classLoader) {
     this(classLoader, Sets.newHashSet());
   }
 
   @SuppressWarnings("unchecked")
-  private ClasspathScanningRegistry(ClassLoader classLoader, Set<String> whitelistPackages) {
+  private ClasspathScanningRegistry(final ClassLoader classLoader, final Set<String> whitelistPackages) {
     final Map<Class<? extends NamedType>, Map<String, NamedType>> registrations =
         CACHE.computeIfAbsent(
             classLoader,
@@ -108,7 +108,7 @@ public class ClasspathScanningRegistry implements AtomixRegistry {
 
   private Class<? extends NamedType> getClassType(Class<?> type) {
     while (type != Object.class) {
-      Class<? extends NamedType> baseType = getInterfaceType(type);
+      final Class<? extends NamedType> baseType = getInterfaceType(type);
       if (baseType != null) {
         return baseType;
       }
@@ -119,12 +119,12 @@ public class ClasspathScanningRegistry implements AtomixRegistry {
 
   @SuppressWarnings("unchecked")
   private Class<? extends NamedType> getInterfaceType(Class<?> type) {
-    for (Class<?> iface : type.getInterfaces()) {
+    for (final Class<?> iface : type.getInterfaces()) {
       if (iface == ConfiguredType.class || iface == NamedType.class) {
         return (Class<? extends NamedType>) type;
       }
     }
-    for (Class<?> iface : type.getInterfaces()) {
+    for (final Class<?> iface : type.getInterfaces()) {
       type = getInterfaceType(iface);
       if (type != null) {
         return (Class<? extends NamedType>) type;
@@ -142,25 +142,25 @@ public class ClasspathScanningRegistry implements AtomixRegistry {
    * @throws ServiceException if the type cannot be instantiated
    */
   @SuppressWarnings("unchecked")
-  private static <T> T newInstance(Class<?> type) {
+  private static <T> T newInstance(final Class<?> type) {
     try {
       return (T) type.newInstance();
-    } catch (InstantiationException | IllegalAccessException e) {
+    } catch (final InstantiationException | IllegalAccessException e) {
       throw new ServiceException("Cannot instantiate service class " + type, e);
     }
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T extends NamedType> Collection<T> getTypes(Class<T> type) {
-    Map<String, NamedType> types = registrations.get(type);
+  public <T extends NamedType> Collection<T> getTypes(final Class<T> type) {
+    final Map<String, NamedType> types = registrations.get(type);
     return types != null ? (Collection<T>) types.values() : Collections.emptyList();
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T extends NamedType> T getType(Class<T> type, String name) {
-    Map<String, NamedType> types = registrations.get(type);
+  public <T extends NamedType> T getType(final Class<T> type, final String name) {
+    final Map<String, NamedType> types = registrations.get(type);
     return types != null ? (T) types.get(name) : null;
   }
 
@@ -170,7 +170,7 @@ public class ClasspathScanningRegistry implements AtomixRegistry {
     private Set<String> whitelistPackages = Sets.newHashSet();
 
     private Builder() {
-      String whitelistPackages = System.getProperty("io.atomix.whitelistPackages");
+      final String whitelistPackages = System.getProperty("io.atomix.whitelistPackages");
       if (whitelistPackages != null) {
         this.whitelistPackages = Sets.newHashSet(StringUtils.split(whitelistPackages, ","));
       }
@@ -182,7 +182,7 @@ public class ClasspathScanningRegistry implements AtomixRegistry {
      * @param classLoader the classpath scanner class loader
      * @return the registry builder
      */
-    public Builder withClassLoader(ClassLoader classLoader) {
+    public Builder withClassLoader(final ClassLoader classLoader) {
       this.classLoader = checkNotNull(classLoader, "classLoader cannot be null");
       return this;
     }
@@ -196,7 +196,7 @@ public class ClasspathScanningRegistry implements AtomixRegistry {
      * @param whitelistPackages the whitelist packages
      * @return the registry builder
      */
-    public Builder withWhitelistPackages(String... whitelistPackages) {
+    public Builder withWhitelistPackages(final String... whitelistPackages) {
       return withWhitelistPackages(Sets.newHashSet(whitelistPackages));
     }
 
@@ -209,7 +209,7 @@ public class ClasspathScanningRegistry implements AtomixRegistry {
      * @param whitelistPackages the whitelist packages
      * @return the registry builder
      */
-    public Builder withWhitelistPackages(Collection<String> whitelistPackages) {
+    public Builder withWhitelistPackages(final Collection<String> whitelistPackages) {
       this.whitelistPackages = Sets.newHashSet(whitelistPackages);
       return this;
     }
@@ -220,7 +220,7 @@ public class ClasspathScanningRegistry implements AtomixRegistry {
      * @param whitelistPackage the package to add
      * @return the registry builder
      */
-    public Builder addWhitelistPackage(String whitelistPackage) {
+    public Builder addWhitelistPackage(final String whitelistPackage) {
       checkNotNull(whitelistPackage, "whitelistPackage cannot be null");
       whitelistPackages.add(whitelistPackage);
       return this;

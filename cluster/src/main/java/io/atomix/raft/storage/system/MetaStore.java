@@ -45,7 +45,7 @@ public class MetaStore implements AutoCloseable {
   private final FileBuffer metadataBuffer;
   private final Buffer configurationBuffer;
 
-  public MetaStore(RaftStorage storage, Serializer serializer) {
+  public MetaStore(final RaftStorage storage, final Serializer serializer) {
     this.serializer = checkNotNull(serializer, "serializer cannot be null");
 
     if (!(storage.directory().isDirectory() || storage.directory().mkdirs())) {
@@ -72,7 +72,7 @@ public class MetaStore implements AutoCloseable {
    *
    * @param term The current server term.
    */
-  public synchronized void storeTerm(long term) {
+  public synchronized void storeTerm(final long term) {
     log.trace("Store term {}", term);
     metadataBuffer.writeLong(0, term).flush();
   }
@@ -91,7 +91,7 @@ public class MetaStore implements AutoCloseable {
    *
    * @param vote The server vote.
    */
-  public synchronized void storeVote(MemberId vote) {
+  public synchronized void storeVote(final MemberId vote) {
     log.trace("Store vote {}", vote);
     metadataBuffer.writeString(8, vote != null ? vote.id() : null).flush();
   }
@@ -111,7 +111,7 @@ public class MetaStore implements AutoCloseable {
    *
    * @param configuration The current cluster configuration.
    */
-  public synchronized void storeConfiguration(Configuration configuration) {
+  public synchronized void storeConfiguration(final Configuration configuration) {
     log.trace("Store configuration {}", configuration);
     final byte[] bytes = serializer.encode(configuration);
     configurationBuffer.position(0).writeByte(1).writeInt(bytes.length).write(bytes);

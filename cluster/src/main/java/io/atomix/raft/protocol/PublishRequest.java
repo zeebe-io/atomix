@@ -41,7 +41,7 @@ public class PublishRequest extends SessionRequest {
   private final List<PrimitiveEvent> events;
 
   public PublishRequest(
-      long session, long eventIndex, long previousIndex, List<PrimitiveEvent> events) {
+      final long session, final long eventIndex, final long previousIndex, final List<PrimitiveEvent> events) {
     super(session);
     this.eventIndex = eventIndex;
     this.previousIndex = previousIndex;
@@ -90,7 +90,7 @@ public class PublishRequest extends SessionRequest {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof PublishRequest) {
       final PublishRequest request = (PublishRequest) object;
       return request.session == session
@@ -125,7 +125,7 @@ public class PublishRequest extends SessionRequest {
      * @return The request builder.
      * @throws IllegalArgumentException if {@code index} is less than 1
      */
-    public Builder withEventIndex(long eventIndex) {
+    public Builder withEventIndex(final long eventIndex) {
       checkArgument(eventIndex > 0, "eventIndex must be positive");
       this.eventIndex = eventIndex;
       return this;
@@ -138,7 +138,7 @@ public class PublishRequest extends SessionRequest {
      * @return The request builder.
      * @throws IllegalArgumentException if {@code index} is less than 1
      */
-    public Builder withPreviousIndex(long previousIndex) {
+    public Builder withPreviousIndex(final long previousIndex) {
       checkArgument(previousIndex >= 0, "previousIndex must be positive");
       this.previousIndex = previousIndex;
       return this;
@@ -150,7 +150,7 @@ public class PublishRequest extends SessionRequest {
      * @param events The request events.
      * @return The publish request builder.
      */
-    public Builder withEvents(PrimitiveEvent... events) {
+    public Builder withEvents(final PrimitiveEvent... events) {
       return withEvents(Arrays.asList(checkNotNull(events, "events cannot be null")));
     }
 
@@ -160,7 +160,7 @@ public class PublishRequest extends SessionRequest {
      * @param events The request events.
      * @return The publish request builder.
      */
-    public Builder withEvents(List<PrimitiveEvent> events) {
+    public Builder withEvents(final List<PrimitiveEvent> events) {
       this.events = checkNotNull(events, "events cannot be null");
       return this;
     }

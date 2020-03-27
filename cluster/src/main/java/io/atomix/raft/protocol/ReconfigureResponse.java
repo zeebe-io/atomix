@@ -23,12 +23,12 @@ import java.util.Collection;
 public class ReconfigureResponse extends ConfigurationResponse {
 
   public ReconfigureResponse(
-      Status status,
-      RaftError error,
-      long index,
-      long term,
-      long timestamp,
-      Collection<RaftMember> members) {
+      final Status status,
+      final RaftError error,
+      final long index,
+      final long term,
+      final long timestamp,
+      final Collection<RaftMember> members) {
     super(status, error, index, term, timestamp, members);
   }
 

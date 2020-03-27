@@ -47,7 +47,7 @@ public abstract class AbstractPrimitiveTest {
    * @return a new Atomix instance.
    */
   protected Atomix atomix() throws Exception {
-    Atomix instance = createAtomix();
+    final Atomix instance = createAtomix();
     instance.start().get(30, TimeUnit.SECONDS);
     return instance;
   }
@@ -58,7 +58,7 @@ public abstract class AbstractPrimitiveTest {
    * @return the Atomix instance
    */
   private Atomix createAtomix() {
-    Atomix atomix = atomixFactory.newInstance();
+    final Atomix atomix = atomixFactory.newInstance();
     members.add(atomix);
     return atomix;
   }
@@ -72,12 +72,12 @@ public abstract class AbstractPrimitiveTest {
 
   @After
   public void teardownTest() throws Exception {
-    List<CompletableFuture<Void>> futures =
+    final List<CompletableFuture<Void>> futures =
         members.stream().map(Atomix::stop).collect(Collectors.toList());
     try {
       CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
           .get(30, TimeUnit.SECONDS);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       // Do nothing
     } finally {
       protocol.close();

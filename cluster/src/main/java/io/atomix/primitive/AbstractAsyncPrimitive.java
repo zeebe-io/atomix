@@ -31,7 +31,7 @@ public abstract class AbstractAsyncPrimitive<A extends AsyncPrimitive, S>
   private final ProxyClient<S> client;
   private final PrimitiveRegistry registry;
 
-  protected AbstractAsyncPrimitive(ProxyClient<S> client, PrimitiveRegistry registry) {
+  protected AbstractAsyncPrimitive(final ProxyClient<S> client, final PrimitiveRegistry registry) {
     this.client = checkNotNull(client, "proxy cannot be null");
     this.registry = checkNotNull(registry, "registry cannot be null");
     client.register(this);
@@ -62,12 +62,12 @@ public abstract class AbstractAsyncPrimitive<A extends AsyncPrimitive, S>
   }
 
   @Override
-  public void addStateChangeListener(Consumer<PrimitiveState> listener) {
+  public void addStateChangeListener(final Consumer<PrimitiveState> listener) {
     client.addStateChangeListener(listener);
   }
 
   @Override
-  public void removeStateChangeListener(Consumer<PrimitiveState> listener) {
+  public void removeStateChangeListener(final Consumer<PrimitiveState> listener) {
     client.removeStateChangeListener(listener);
   }
 

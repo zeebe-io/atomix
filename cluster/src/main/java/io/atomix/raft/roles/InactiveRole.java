@@ -57,7 +57,7 @@ import java.util.concurrent.CompletableFuture;
 /** Inactive state. */
 public class InactiveRole extends AbstractRole {
 
-  public InactiveRole(RaftContext context) {
+  public InactiveRole(final RaftContext context) {
     super(context);
   }
 
@@ -67,7 +67,7 @@ public class InactiveRole extends AbstractRole {
   }
 
   @Override
-  public CompletableFuture<MetadataResponse> onMetadata(MetadataRequest request) {
+  public CompletableFuture<MetadataResponse> onMetadata(final MetadataRequest request) {
     logRequest(request);
     return Futures.completedFuture(
         logResponse(
@@ -78,7 +78,7 @@ public class InactiveRole extends AbstractRole {
   }
 
   @Override
-  public CompletableFuture<OpenSessionResponse> onOpenSession(OpenSessionRequest request) {
+  public CompletableFuture<OpenSessionResponse> onOpenSession(final OpenSessionRequest request) {
     logRequest(request);
     return Futures.completedFuture(
         logResponse(
@@ -89,7 +89,7 @@ public class InactiveRole extends AbstractRole {
   }
 
   @Override
-  public CompletableFuture<KeepAliveResponse> onKeepAlive(KeepAliveRequest request) {
+  public CompletableFuture<KeepAliveResponse> onKeepAlive(final KeepAliveRequest request) {
     logRequest(request);
     return Futures.completedFuture(
         logResponse(
@@ -100,7 +100,7 @@ public class InactiveRole extends AbstractRole {
   }
 
   @Override
-  public CompletableFuture<CloseSessionResponse> onCloseSession(CloseSessionRequest request) {
+  public CompletableFuture<CloseSessionResponse> onCloseSession(final CloseSessionRequest request) {
     logRequest(request);
     return Futures.completedFuture(
         logResponse(
@@ -111,7 +111,7 @@ public class InactiveRole extends AbstractRole {
   }
 
   @Override
-  public CompletableFuture<ConfigureResponse> onConfigure(ConfigureRequest request) {
+  public CompletableFuture<ConfigureResponse> onConfigure(final ConfigureRequest request) {
     raft.checkThread();
     logRequest(request);
     updateTermAndLeader(request.term(), request.leader());
@@ -135,7 +135,7 @@ public class InactiveRole extends AbstractRole {
   }
 
   @Override
-  public CompletableFuture<InstallResponse> onInstall(InstallRequest request) {
+  public CompletableFuture<InstallResponse> onInstall(final InstallRequest request) {
     logRequest(request);
     return Futures.completedFuture(
         logResponse(
@@ -146,7 +146,7 @@ public class InactiveRole extends AbstractRole {
   }
 
   @Override
-  public CompletableFuture<JoinResponse> onJoin(JoinRequest request) {
+  public CompletableFuture<JoinResponse> onJoin(final JoinRequest request) {
     logRequest(request);
     return Futures.completedFuture(
         logResponse(
@@ -157,7 +157,7 @@ public class InactiveRole extends AbstractRole {
   }
 
   @Override
-  public CompletableFuture<ReconfigureResponse> onReconfigure(ReconfigureRequest request) {
+  public CompletableFuture<ReconfigureResponse> onReconfigure(final ReconfigureRequest request) {
     logRequest(request);
     return Futures.completedFuture(
         logResponse(
@@ -168,7 +168,7 @@ public class InactiveRole extends AbstractRole {
   }
 
   @Override
-  public CompletableFuture<LeaveResponse> onLeave(LeaveRequest request) {
+  public CompletableFuture<LeaveResponse> onLeave(final LeaveRequest request) {
     logRequest(request);
     return Futures.completedFuture(
         logResponse(
@@ -179,7 +179,7 @@ public class InactiveRole extends AbstractRole {
   }
 
   @Override
-  public CompletableFuture<TransferResponse> onTransfer(TransferRequest request) {
+  public CompletableFuture<TransferResponse> onTransfer(final TransferRequest request) {
     logRequest(request);
     return Futures.completedFuture(
         logResponse(
@@ -190,7 +190,7 @@ public class InactiveRole extends AbstractRole {
   }
 
   @Override
-  public CompletableFuture<AppendResponse> onAppend(AppendRequest request) {
+  public CompletableFuture<AppendResponse> onAppend(final AppendRequest request) {
     logRequest(request);
     return Futures.completedFuture(
         logResponse(
@@ -201,7 +201,7 @@ public class InactiveRole extends AbstractRole {
   }
 
   @Override
-  public CompletableFuture<PollResponse> onPoll(PollRequest request) {
+  public CompletableFuture<PollResponse> onPoll(final PollRequest request) {
     logRequest(request);
     return Futures.completedFuture(
         logResponse(
@@ -212,7 +212,7 @@ public class InactiveRole extends AbstractRole {
   }
 
   @Override
-  public CompletableFuture<VoteResponse> onVote(VoteRequest request) {
+  public CompletableFuture<VoteResponse> onVote(final VoteRequest request) {
     logRequest(request);
     return Futures.completedFuture(
         logResponse(
@@ -223,7 +223,7 @@ public class InactiveRole extends AbstractRole {
   }
 
   @Override
-  public CompletableFuture<CommandResponse> onCommand(CommandRequest request) {
+  public CompletableFuture<CommandResponse> onCommand(final CommandRequest request) {
     logRequest(request);
     return Futures.completedFuture(
         logResponse(
@@ -234,7 +234,7 @@ public class InactiveRole extends AbstractRole {
   }
 
   @Override
-  public CompletableFuture<QueryResponse> onQuery(QueryRequest request) {
+  public CompletableFuture<QueryResponse> onQuery(final QueryRequest request) {
     logRequest(request);
     return Futures.completedFuture(
         logResponse(

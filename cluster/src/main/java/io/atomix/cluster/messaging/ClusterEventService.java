@@ -70,7 +70,7 @@ public interface ClusterEventService {
    * @param message message to send
    * @param <M> message type
    */
-  default <M> void broadcast(String topic, M message) {
+  default <M> void broadcast(final String topic, final M message) {
     broadcast(topic, message, BASIC::encode);
   }
 
@@ -92,7 +92,7 @@ public interface ClusterEventService {
    * @param <M> message type
    * @return future that is completed when the message is sent
    */
-  default <M> CompletableFuture<Void> unicast(String topic, M message) {
+  default <M> CompletableFuture<Void> unicast(final String topic, final M message) {
     return unicast(topic, message, BASIC::encode);
   }
 
@@ -116,7 +116,7 @@ public interface ClusterEventService {
    * @param <R> reply type
    * @return reply future
    */
-  default <M, R> CompletableFuture<R> send(String topic, M message) {
+  default <M, R> CompletableFuture<R> send(final String topic, final M message) {
     return send(topic, message, BASIC::encode, BASIC::decode, null);
   }
 
@@ -130,7 +130,7 @@ public interface ClusterEventService {
    * @param <R> reply type
    * @return reply future
    */
-  default <M, R> CompletableFuture<R> send(String topic, M message, Duration timeout) {
+  default <M, R> CompletableFuture<R> send(final String topic, final M message, final Duration timeout) {
     return send(topic, message, BASIC::encode, BASIC::decode, timeout);
   }
 
@@ -146,7 +146,7 @@ public interface ClusterEventService {
    * @return reply future
    */
   default <M, R> CompletableFuture<R> send(
-      String topic, M message, Function<M, byte[]> encoder, Function<byte[], R> decoder) {
+      final String topic, final M message, final Function<M, byte[]> encoder, final Function<byte[], R> decoder) {
     return send(topic, message, encoder, decoder, null);
   }
 
@@ -180,7 +180,7 @@ public interface ClusterEventService {
    * @return future to be completed once the subscription has been propagated
    */
   default <M, R> CompletableFuture<Subscription> subscribe(
-      String topic, Function<M, R> handler, Executor executor) {
+      final String topic, final Function<M, R> handler, final Executor executor) {
     return subscribe(topic, BASIC::decode, handler, BASIC::encode, executor);
   }
 
@@ -213,7 +213,7 @@ public interface ClusterEventService {
    * @return future to be completed once the subscription has been propagated
    */
   default <M, R> CompletableFuture<Subscription> subscribe(
-      String topic, Function<M, CompletableFuture<R>> handler) {
+      final String topic, final Function<M, CompletableFuture<R>> handler) {
     return subscribe(topic, BASIC::decode, handler, BASIC::encode);
   }
 
@@ -244,7 +244,7 @@ public interface ClusterEventService {
    * @return future to be completed once the subscription has been propagated
    */
   default <M> CompletableFuture<Subscription> subscribe(
-      String topic, Consumer<M> handler, Executor executor) {
+      final String topic, final Consumer<M> handler, final Executor executor) {
     return subscribe(topic, BASIC::decode, handler, executor);
   }
 

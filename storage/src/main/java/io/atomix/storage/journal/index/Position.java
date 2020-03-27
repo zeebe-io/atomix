@@ -22,7 +22,7 @@ public class Position {
   private final long index;
   private final int position;
 
-  public Position(long index, int position) {
+  public Position(final long index, final int position) {
     this.index = index;
     this.position = position;
   }

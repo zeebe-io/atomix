@@ -51,7 +51,7 @@ public interface RaftResponse extends RaftMessage {
 
     private final byte id;
 
-    Status(int id) {
+    Status(final int id) {
       this.id = (byte) id;
     }
 
@@ -62,7 +62,7 @@ public interface RaftResponse extends RaftMessage {
      * @return The status for the given identifier.
      * @throws IllegalArgumentException if {@code id} is not 0 or 1
      */
-    public static Status forId(int id) {
+    public static Status forId(final int id) {
       switch (id) {
         case 1:
           return OK;
@@ -109,7 +109,7 @@ public interface RaftResponse extends RaftMessage {
      * @return The response builder.
      * @throws NullPointerException if {@code type} is null
      */
-    default T withError(RaftError.Type type) {
+    default T withError(final RaftError.Type type) {
       return withError(new RaftError(type, null));
     }
 
@@ -130,7 +130,7 @@ public interface RaftResponse extends RaftMessage {
      * @return The response builder.
      * @throws NullPointerException if {@code type} is null
      */
-    default T withError(RaftError.Type type, String message) {
+    default T withError(final RaftError.Type type, final String message) {
       return withError(new RaftError(type, message));
     }
   }

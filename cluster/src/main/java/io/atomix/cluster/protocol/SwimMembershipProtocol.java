@@ -92,7 +92,7 @@ public class SwimMembershipProtocol
     }
 
     @Override
-    public GroupMembershipProtocol newProtocol(SwimMembershipProtocolConfig config) {
+    public GroupMembershipProtocol newProtocol(final SwimMembershipProtocolConfig config) {
       return new SwimMembershipProtocol(config);
     }
   }
@@ -150,7 +150,7 @@ public class SwimMembershipProtocol
 
   private final AtomicInteger probeCounter = new AtomicInteger();
 
-  SwimMembershipProtocol(SwimMembershipProtocolConfig config) {
+  SwimMembershipProtocol(final SwimMembershipProtocolConfig config) {
     this.config = config;
   }
 
@@ -165,12 +165,12 @@ public class SwimMembershipProtocol
   }
 
   @Override
-  public Member getMember(MemberId memberId) {
+  public Member getMember(final MemberId memberId) {
     return members.get(memberId);
   }
 
   @Override
-  protected void post(GroupMembershipEvent event) {
+  protected void post(final GroupMembershipEvent event) {
     eventExecutor.execute(() -> super.post(event));
   }
 
@@ -192,7 +192,7 @@ public class SwimMembershipProtocol
    * @param member the member for which to update the state
    * @return whether the state for the member was updated
    */
-  private boolean updateState(ImmutableMember member) {
+  private boolean updateState(final ImmutableMember member) {
     // If the member matches the local member, ignore the update.
     if (member.id().equals(localMember.id())) {
       return false;
@@ -338,13 +338,13 @@ public class SwimMembershipProtocol
    *
    * @param member the updated member
    */
-  private void recordUpdate(ImmutableMember member) {
+  private void recordUpdate(final ImmutableMember member) {
     updates.put(member.id(), member);
   }
 
   /** Checks suspect nodes for failures. */
   private void checkFailures() {
-    for (SwimMember member : members.values()) {
+    for (final SwimMember member : members.values()) {
       if (member.getState() == State.SUSPECT
           && System.currentTimeMillis() - member.getUpdated()
               > config.getFailureTimeout().toMillis()) {
@@ -361,12 +361,12 @@ public class SwimMembershipProtocol
 
   /** Synchronizes the node state with peers. */
   private void syncAll() {
-    List<SwimMember> syncMembers =
+    final List<SwimMember> syncMembers =
         discoveryService.getNodes().stream()
             .map(node -> new SwimMember(MemberId.from(node.id().id()), node.address()))
             .filter(member -> !member.id().equals(localMember.id()))
             .collect(Collectors.toList());
-    for (SwimMember member : syncMembers) {
+    for (final SwimMember member : syncMembers) {
       sync(member.copy());
     }
   }
@@ -376,7 +376,7 @@ public class SwimMembershipProtocol
    *
    * @param member the peer with which to synchronize the node state
    */
-  private void sync(ImmutableMember member) {
+  private void sync(final ImmutableMember member) {
     LOGGER.debug("{} - Synchronizing membership with {}", localMember.id(), member);
     bootstrapService
         .getMessagingService()
@@ -389,7 +389,7 @@ public class SwimMembershipProtocol
         .whenCompleteAsync(
             (response, error) -> {
               if (error == null) {
-                Collection<ImmutableMember> members = SERIALIZER.decode(response);
+                final Collection<ImmutableMember> members = SERIALIZER.decode(response);
                 LOGGER.debug(
                     "{} - Synchronized membership with {}, received: {}",
                     localMember.id(),
@@ -424,7 +424,7 @@ public class SwimMembershipProtocol
    *
    * @param member the peer from which to handle the request
    */
-  private Collection<ImmutableMember> handleSync(ImmutableMember member) {
+  private Collection<ImmutableMember> handleSync(final ImmutableMember member) {
     updateState(member);
     return new ArrayList<>(
         members.values().stream().map(SwimMember::copy).collect(Collectors.toList()));
@@ -435,7 +435,7 @@ public class SwimMembershipProtocol
     // First get a sorted list of discovery service nodes that are not present in the SWIM members.
     // This is necessary to ensure we attempt to probe all nodes that are provided by the discovery
     // provider.
-    List<SwimMember> probeMembers =
+    final List<SwimMember> probeMembers =
         Lists.newArrayList(
             discoveryService.getNodes().stream()
                 .map(node -> new SwimMember(MemberId.from(node.id().id()), node.address()))
@@ -450,7 +450,7 @@ public class SwimMembershipProtocol
     // If there are members to probe, select the next member to probe using a counter for round
     // robin probes.
     if (!probeMembers.isEmpty()) {
-      SwimMember probeMember =
+      final SwimMember probeMember =
           probeMembers.get(Math.abs(probeCounter.incrementAndGet() % probeMembers.size()));
       probe(probeMember.copy());
     }
@@ -461,7 +461,7 @@ public class SwimMembershipProtocol
    *
    * @param member the member to probe
    */
-  private void probe(ImmutableMember member) {
+  private void probe(final ImmutableMember member) {
     LOGGER.trace("{} - Probing {}", localMember.id(), member);
     bootstrapService
         .getMessagingService()
@@ -478,7 +478,7 @@ public class SwimMembershipProtocol
               } else {
                 LOGGER.debug("{} - Failed to probe {}", this.localMember.id(), member, error);
                 // Verify that the local member term has not changed and request probes from peers.
-                SwimMember swimMember = members.get(member.id());
+                final SwimMember swimMember = members.get(member.id());
                 if (swimMember != null
                     && swimMember.getIncarnationNumber() == member.incarnationNumber()) {
                   requestProbes(swimMember.copy());
@@ -494,9 +494,9 @@ public class SwimMembershipProtocol
    * @param members the probing member and local member info
    * @return the current term
    */
-  private ImmutableMember handleProbe(Pair<ImmutableMember, ImmutableMember> members) {
-    ImmutableMember remoteMember = members.getLeft();
-    ImmutableMember localMember = members.getRight();
+  private ImmutableMember handleProbe(final Pair<ImmutableMember, ImmutableMember> members) {
+    final ImmutableMember remoteMember = members.getLeft();
+    final ImmutableMember localMember = members.getRight();
 
     LOGGER.trace(
         "{} - Received probe {} from {}", this.localMember.id(), localMember, remoteMember);
@@ -523,16 +523,16 @@ public class SwimMembershipProtocol
   }
 
   /** Requests probes from n peers. */
-  private void requestProbes(ImmutableMember suspect) {
-    Collection<SwimMember> members = selectRandomMembers(config.getSuspectProbes() - 1, suspect);
+  private void requestProbes(final ImmutableMember suspect) {
+    final Collection<SwimMember> members = selectRandomMembers(config.getSuspectProbes() - 1, suspect);
     if (!members.isEmpty()) {
-      AtomicInteger counter = new AtomicInteger();
-      AtomicBoolean succeeded = new AtomicBoolean();
-      for (SwimMember member : members) {
+      final AtomicInteger counter = new AtomicInteger();
+      final AtomicBoolean succeeded = new AtomicBoolean();
+      for (final SwimMember member : members) {
         requestProbe(member, suspect)
             .whenCompleteAsync(
                 (success, error) -> {
-                  int count = counter.incrementAndGet();
+                  final int count = counter.incrementAndGet();
                   if (error == null && success) {
                     succeeded.set(true);
                   }
@@ -550,8 +550,8 @@ public class SwimMembershipProtocol
   }
 
   /** Marks the given member suspect after all probes failing. */
-  private void failProbes(ImmutableMember suspect) {
-    SwimMember swimMember = new SwimMember(suspect);
+  private void failProbes(final ImmutableMember suspect) {
+    final SwimMember swimMember = new SwimMember(suspect);
     LOGGER.debug("{} - Failed all probes of {}", localMember.id(), swimMember);
     swimMember.setState(State.SUSPECT);
     if (updateState(swimMember.copy()) && config.isBroadcastUpdates()) {
@@ -565,7 +565,7 @@ public class SwimMembershipProtocol
    * @param member the member to perform the probe
    * @param suspect the suspect member to probe
    */
-  private CompletableFuture<Boolean> requestProbe(SwimMember member, ImmutableMember suspect) {
+  private CompletableFuture<Boolean> requestProbe(final SwimMember member, final ImmutableMember suspect) {
     LOGGER.debug("{} - Requesting probe of {} from {}", this.localMember.id(), suspect, member);
     return bootstrapService
         .getMessagingService()
@@ -596,8 +596,8 @@ public class SwimMembershipProtocol
    * @param exclude the member to exclude
    * @return members a set of random members
    */
-  private Collection<SwimMember> selectRandomMembers(int count, ImmutableMember exclude) {
-    List<SwimMember> members =
+  private Collection<SwimMember> selectRandomMembers(final int count, final ImmutableMember exclude) {
+    final List<SwimMember> members =
         this.members.values().stream()
             .filter(
                 member ->
@@ -612,8 +612,8 @@ public class SwimMembershipProtocol
    *
    * @param member the member to probe
    */
-  private CompletableFuture<Boolean> handleProbeRequest(ImmutableMember member) {
-    CompletableFuture<Boolean> future = new CompletableFuture<>();
+  private CompletableFuture<Boolean> handleProbeRequest(final ImmutableMember member) {
+    final CompletableFuture<Boolean> future = new CompletableFuture<>();
     swimScheduler.execute(
         () -> {
           LOGGER.trace("{} - Probing {}", localMember.id(), member);
@@ -644,8 +644,8 @@ public class SwimMembershipProtocol
    *
    * @param update the update to broadcast
    */
-  private void broadcast(ImmutableMember update) {
-    for (SwimMember member : members.values()) {
+  private void broadcast(final ImmutableMember update) {
+    for (final SwimMember member : members.values()) {
       if (!localMember.id().equals(member.id())) {
         unicast(member, update);
       }
@@ -658,7 +658,7 @@ public class SwimMembershipProtocol
    * @param member the member to which to unicast the update
    * @param update the update to unicast
    */
-  private void unicast(SwimMember member, ImmutableMember update) {
+  private void unicast(final SwimMember member, final ImmutableMember update) {
     bootstrapService
         .getUnicastService()
         .unicast(
@@ -675,7 +675,7 @@ public class SwimMembershipProtocol
 
     // Copy and clear the list of pending updates.
     if (!updates.isEmpty()) {
-      List<ImmutableMember> updates = Lists.newArrayList(this.updates.values());
+      final List<ImmutableMember> updates = Lists.newArrayList(this.updates.values());
       this.updates.clear();
 
       // Gossip the pending updates to peers.
@@ -688,11 +688,11 @@ public class SwimMembershipProtocol
    *
    * @param updates a collection of updated to gossip
    */
-  private void gossip(Collection<ImmutableMember> updates) {
+  private void gossip(final Collection<ImmutableMember> updates) {
     // Get a list of available peers. If peers are available, randomize the peer list and select a
     // subset of
     // peers with which to gossip updates.
-    List<SwimMember> members = Lists.newArrayList(randomMembers);
+    final List<SwimMember> members = Lists.newArrayList(randomMembers);
     if (!members.isEmpty()) {
       Collections.shuffle(members);
       for (int i = 0; i < Math.min(members.size(), config.getGossipFanout()); i++) {
@@ -707,7 +707,7 @@ public class SwimMembershipProtocol
    * @param member the peer with which to gossip this node's updates
    * @param updates the updated members to gossip
    */
-  private void gossip(SwimMember member, Collection<ImmutableMember> updates) {
+  private void gossip(final SwimMember member, final Collection<ImmutableMember> updates) {
     LOGGER.trace("{} - Gossipping updates {} to {}", localMember.id(), updates, member);
     bootstrapService
         .getUnicastService()
@@ -715,8 +715,8 @@ public class SwimMembershipProtocol
   }
 
   /** Handles a gossip message from a peer. */
-  private void handleGossipUpdates(Collection<ImmutableMember> updates) {
-    for (ImmutableMember update : updates) {
+  private void handleGossipUpdates(final Collection<ImmutableMember> updates) {
+    for (final ImmutableMember update : updates) {
       updateState(update);
     }
   }
@@ -726,7 +726,7 @@ public class SwimMembershipProtocol
    *
    * @param event the member location event
    */
-  private void handleDiscoveryEvent(NodeDiscoveryEvent event) {
+  private void handleDiscoveryEvent(final NodeDiscoveryEvent event) {
     switch (event.type()) {
       case JOIN:
         handleJoinEvent(event.subject());
@@ -740,16 +740,16 @@ public class SwimMembershipProtocol
   }
 
   /** Handles a node join event. */
-  private void handleJoinEvent(Node node) {
-    SwimMember member = new SwimMember(MemberId.from(node.id().id()), node.address());
+  private void handleJoinEvent(final Node node) {
+    final SwimMember member = new SwimMember(MemberId.from(node.id().id()), node.address());
     if (!members.containsKey(member.id())) {
       probe(member.copy());
     }
   }
 
   /** Handles a node leave event. */
-  private void handleLeaveEvent(Node node) {
-    SwimMember member = members.get(MemberId.from(node.id().id()));
+  private void handleLeaveEvent(final Node node) {
+    final SwimMember member = members.get(MemberId.from(node.id().id()));
     if (member != null && !member.isActive()) {
       members.remove(member.id());
     }
@@ -787,7 +787,7 @@ public class SwimMembershipProtocol
 
   @Override
   public CompletableFuture<Void> join(
-      BootstrapService bootstrap, NodeDiscoveryService discovery, Member member) {
+      final BootstrapService bootstrap, final NodeDiscoveryService discovery, final Member member) {
     if (started.compareAndSet(false, true)) {
       this.bootstrapService = bootstrap;
       this.discoveryService = discovery;
@@ -826,7 +826,7 @@ public class SwimMembershipProtocol
   }
 
   @Override
-  public CompletableFuture<Void> leave(Member member) {
+  public CompletableFuture<Void> leave(final Member member) {
     if (started.compareAndSet(true, false)) {
       discoveryService.removeListener(discoveryEventListener);
       gossipFuture.cancel(false);
@@ -852,7 +852,7 @@ public class SwimMembershipProtocol
     private final boolean active;
     private final boolean reachable;
 
-    State(boolean active, boolean reachable) {
+    State(final boolean active, final boolean reachable) {
       this.active = active;
       this.reachable = reachable;
     }
@@ -874,16 +874,16 @@ public class SwimMembershipProtocol
     private final long incarnationNumber;
 
     ImmutableMember(
-        MemberId id,
-        Address address,
-        String zone,
-        String rack,
-        String host,
-        Properties properties,
-        Version version,
-        long timestamp,
-        State state,
-        long incarnationNumber) {
+        final MemberId id,
+        final Address address,
+        final String zone,
+        final String rack,
+        final String host,
+        final Properties properties,
+        final Version version,
+        final long timestamp,
+        final State state,
+        final long incarnationNumber) {
       super(id, address, zone, rack, host, properties);
       this.version = version;
       this.timestamp = timestamp;
@@ -941,28 +941,28 @@ public class SwimMembershipProtocol
     private volatile long incarnationNumber;
     private volatile long updated;
 
-    SwimMember(MemberId id, Address address) {
+    SwimMember(final MemberId id, final Address address) {
       super(id, address);
       this.version = null;
       this.timestamp = 0;
     }
 
     SwimMember(
-        MemberId id,
-        Address address,
-        String zone,
-        String rack,
-        String host,
-        Properties properties,
-        Version version,
-        long timestamp) {
+        final MemberId id,
+        final Address address,
+        final String zone,
+        final String rack,
+        final String host,
+        final Properties properties,
+        final Version version,
+        final long timestamp) {
       super(id, address, zone, rack, host, properties);
       this.version = version;
       this.timestamp = timestamp;
       incarnationNumber = System.currentTimeMillis();
     }
 
-    SwimMember(ImmutableMember member) {
+    SwimMember(final ImmutableMember member) {
       super(
           member.id(),
           member.address(),
@@ -991,7 +991,7 @@ public class SwimMembershipProtocol
      *
      * @param state the member's state
      */
-    void setState(State state) {
+    void setState(final State state) {
       if (this.state != state) {
         this.state = state;
         setUpdated(System.currentTimeMillis());
@@ -1031,7 +1031,7 @@ public class SwimMembershipProtocol
      *
      * @param incarnationNumber the member's incarnation number
      */
-    void setIncarnationNumber(long incarnationNumber) {
+    void setIncarnationNumber(final long incarnationNumber) {
       this.incarnationNumber = incarnationNumber;
     }
 
@@ -1049,7 +1049,7 @@ public class SwimMembershipProtocol
      *
      * @param updated the wall clock timestamp
      */
-    void setUpdated(long updated) {
+    void setUpdated(final long updated) {
       this.updated = updated;
     }
 

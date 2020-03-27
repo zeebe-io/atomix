@@ -29,20 +29,20 @@ public class StatefulMember extends Member {
   private volatile boolean active;
   private volatile boolean reachable;
 
-  public StatefulMember(MemberId id, Address address) {
+  public StatefulMember(final MemberId id, final Address address) {
     super(id, address);
     this.version = null;
     timestamp.set(0);
   }
 
   public StatefulMember(
-      MemberId id,
-      Address address,
-      String zone,
-      String rack,
-      String host,
-      Properties properties,
-      Version version) {
+      final MemberId id,
+      final Address address,
+      final String zone,
+      final String rack,
+      final String host,
+      final Properties properties,
+      final Version version) {
     super(id, address, zone, rack, host, properties);
     this.version = version;
     timestamp.set(1);
@@ -67,7 +67,7 @@ public class StatefulMember extends Member {
    *
    * @param timestamp the member's logical timestamp
    */
-  void setTimestamp(long timestamp) {
+  void setTimestamp(final long timestamp) {
     this.timestamp.accumulateAndGet(timestamp, Math::max);
   }
 
@@ -81,7 +81,7 @@ public class StatefulMember extends Member {
    *
    * @param active whether this member is an active member of the cluster
    */
-  void setActive(boolean active) {
+  void setActive(final boolean active) {
     this.active = active;
   }
 
@@ -90,7 +90,7 @@ public class StatefulMember extends Member {
    *
    * @param reachable whether this member is reachable
    */
-  void setReachable(boolean reachable) {
+  void setReachable(final boolean reachable) {
     this.reachable = reachable;
   }
 

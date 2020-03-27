@@ -45,21 +45,21 @@ public class PartitionEvent extends AbstractEvent<PartitionEvent.Type, Partition
   private final Collection<MemberId> backups;
 
   public PartitionEvent(
-      Type type,
-      PartitionId partition,
-      Collection<MemberId> members,
-      MemberId primary,
-      Collection<MemberId> backups) {
+      final Type type,
+      final PartitionId partition,
+      final Collection<MemberId> members,
+      final MemberId primary,
+      final Collection<MemberId> backups) {
     this(type, partition, members, primary, backups, System.currentTimeMillis());
   }
 
   public PartitionEvent(
-      Type type,
-      PartitionId partition,
-      Collection<MemberId> members,
-      MemberId primary,
-      Collection<MemberId> backups,
-      long time) {
+      final Type type,
+      final PartitionId partition,
+      final Collection<MemberId> members,
+      final MemberId primary,
+      final Collection<MemberId> backups,
+      final long time) {
     super(type, partition, time);
     this.members = checkNotNull(members);
     this.primary = primary;
@@ -108,9 +108,9 @@ public class PartitionEvent extends AbstractEvent<PartitionEvent.Type, Partition
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof PartitionEvent) {
-      PartitionEvent that = (PartitionEvent) object;
+      final PartitionEvent that = (PartitionEvent) object;
       return this.partitionId().equals(that.partitionId())
           && this.members.equals(that.members)
           && Objects.equals(this.primary, that.primary)

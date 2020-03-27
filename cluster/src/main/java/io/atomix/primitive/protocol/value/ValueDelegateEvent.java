@@ -26,11 +26,11 @@ public class ValueDelegateEvent<V> extends AbstractEvent<ValueDelegateEvent.Type
     UPDATE,
   }
 
-  public ValueDelegateEvent(Type type, V subject) {
+  public ValueDelegateEvent(final Type type, final V subject) {
     super(type, subject);
   }
 
-  public ValueDelegateEvent(Type type, V subject, long time) {
+  public ValueDelegateEvent(final Type type, final V subject, final long time) {
     super(type, subject, time);
   }
 

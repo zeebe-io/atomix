@@ -38,7 +38,7 @@ public abstract class AbstractRole implements RaftRole {
   protected final RaftContext raft;
   private volatile boolean open = true;
 
-  protected AbstractRole(RaftContext raft) {
+  protected AbstractRole(final RaftContext raft) {
     this.raft = raft;
     this.log =
         ContextualLoggerFactory.getLogger(
@@ -57,13 +57,13 @@ public abstract class AbstractRole implements RaftRole {
   public abstract RaftServer.Role role();
 
   /** Logs a request. */
-  protected final <R extends RaftRequest> R logRequest(R request) {
+  protected final <R extends RaftRequest> R logRequest(final R request) {
     log.trace("Received {}", request);
     return request;
   }
 
   /** Logs a response. */
-  protected final <R extends RaftResponse> R logResponse(R response) {
+  protected final <R extends RaftResponse> R logResponse(final R response) {
     log.trace("Sending {}", response);
     return response;
   }
@@ -89,7 +89,7 @@ public abstract class AbstractRole implements RaftRole {
 
   /** Forwards the given request to the leader if possible. */
   protected <T extends RaftRequest, U extends RaftResponse> CompletableFuture<U> forward(
-      T request, BiFunction<MemberId, T, CompletableFuture<U>> function) {
+      final T request, final BiFunction<MemberId, T, CompletableFuture<U>> function) {
     final CompletableFuture<U> future = new CompletableFuture<>();
     final DefaultRaftMember leader = raft.getLeader();
     if (leader == null) {
@@ -111,7 +111,7 @@ public abstract class AbstractRole implements RaftRole {
   }
 
   /** Updates the term and leader. */
-  protected boolean updateTermAndLeader(long term, MemberId leader) {
+  protected boolean updateTermAndLeader(final long term, final MemberId leader) {
     // If the request indicates a term that is greater than the current term or no leader has been
     // set for the current term, update leader and term.
     if (term > raft.getTerm()

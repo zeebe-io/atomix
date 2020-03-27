@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DefaultPrimitiveTypeRegistry implements PrimitiveTypeRegistry {
   private final Map<String, PrimitiveType> primitiveTypes = new ConcurrentHashMap<>();
 
-  public DefaultPrimitiveTypeRegistry(Collection<PrimitiveType> primitiveTypes) {
+  public DefaultPrimitiveTypeRegistry(final Collection<PrimitiveType> primitiveTypes) {
     primitiveTypes.forEach(type -> this.primitiveTypes.put(type.name(), type));
   }
 
@@ -36,8 +36,8 @@ public class DefaultPrimitiveTypeRegistry implements PrimitiveTypeRegistry {
   }
 
   @Override
-  public PrimitiveType getPrimitiveType(String typeName) {
-    PrimitiveType type = primitiveTypes.get(typeName);
+  public PrimitiveType getPrimitiveType(final String typeName) {
+    final PrimitiveType type = primitiveTypes.get(typeName);
     if (type == null) {
       throw new ServiceException("Unknown primitive type " + typeName);
     }

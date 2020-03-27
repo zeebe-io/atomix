@@ -38,7 +38,7 @@ public class TestPrimitiveType implements PrimitiveType {
   }
 
   @Override
-  public PrimitiveService newService(ServiceConfig config) {
+  public PrimitiveService newService(final ServiceConfig config) {
     throw new UnsupportedOperationException();
   }
 
@@ -49,7 +49,7 @@ public class TestPrimitiveType implements PrimitiveType {
 
   @Override
   public PrimitiveBuilder newBuilder(
-      String primitiveName, PrimitiveConfig config, PrimitiveManagementService managementService) {
+      final String primitiveName, final PrimitiveConfig config, final PrimitiveManagementService managementService) {
     throw new UnsupportedOperationException();
   }
 }

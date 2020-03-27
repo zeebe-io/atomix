@@ -33,15 +33,15 @@ public class OpenSessionEntry extends TimestampedEntry {
   private final long maxTimeout;
 
   public OpenSessionEntry(
-      long term,
-      long timestamp,
-      String memberId,
-      String serviceName,
-      String serviceType,
-      byte[] serviceConfig,
-      ReadConsistency readConsistency,
-      long minTimeout,
-      long maxTimeout) {
+      final long term,
+      final long timestamp,
+      final String memberId,
+      final String serviceName,
+      final String serviceType,
+      final byte[] serviceConfig,
+      final ReadConsistency readConsistency,
+      final long minTimeout,
+      final long maxTimeout) {
     super(term, timestamp);
     this.memberId = memberId;
     this.serviceName = serviceName;

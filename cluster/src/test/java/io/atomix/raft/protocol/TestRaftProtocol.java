@@ -32,15 +32,15 @@ public abstract class TestRaftProtocol {
   private final ThreadContext context;
 
   public TestRaftProtocol(
-      Map<MemberId, TestRaftServerProtocol> servers,
-      Map<MemberId, TestRaftClientProtocol> clients,
-      ThreadContext context) {
+      final Map<MemberId, TestRaftServerProtocol> servers,
+      final Map<MemberId, TestRaftClientProtocol> clients,
+      final ThreadContext context) {
     this.servers = servers;
     this.clients = clients;
     this.context = context;
   }
 
-  <T> CompletableFuture<T> scheduleTimeout(CompletableFuture<T> future) {
+  <T> CompletableFuture<T> scheduleTimeout(final CompletableFuture<T> future) {
     final Scheduled scheduled =
         context.schedule(
             Duration.ofSeconds(1),
@@ -52,7 +52,7 @@ public abstract class TestRaftProtocol {
     return future.whenComplete((r, e) -> scheduled.cancel());
   }
 
-  TestRaftServerProtocol server(MemberId memberId) {
+  TestRaftServerProtocol server(final MemberId memberId) {
     return servers.get(memberId);
   }
 
@@ -60,7 +60,7 @@ public abstract class TestRaftProtocol {
     return servers.values();
   }
 
-  TestRaftClientProtocol client(MemberId memberId) {
+  TestRaftClientProtocol client(final MemberId memberId) {
     return clients.get(memberId);
   }
 }

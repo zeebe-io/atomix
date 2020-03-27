@@ -21,7 +21,7 @@ import io.atomix.raft.impl.RaftContext;
 /** Promotable role. */
 public class PromotableRole extends PassiveRole {
 
-  public PromotableRole(RaftContext context) {
+  public PromotableRole(final RaftContext context) {
     super(context);
   }
 

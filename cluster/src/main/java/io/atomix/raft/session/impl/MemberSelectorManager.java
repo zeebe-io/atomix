@@ -38,7 +38,7 @@ public final class MemberSelectorManager {
    *
    * @param listener the listener to add
    */
-  public void addLeaderChangeListener(Consumer<MemberId> listener) {
+  public void addLeaderChangeListener(final Consumer<MemberId> listener) {
     leaderChangeListeners.add(listener);
   }
 
@@ -47,7 +47,7 @@ public final class MemberSelectorManager {
    *
    * @param listener the listener to remove
    */
-  public void removeLeaderChangeListener(Consumer<MemberId> listener) {
+  public void removeLeaderChangeListener(final Consumer<MemberId> listener) {
     leaderChangeListeners.remove(listener);
   }
 
@@ -75,7 +75,7 @@ public final class MemberSelectorManager {
    * @param selectionStrategy The server selection strategy.
    * @return A new address selector.
    */
-  public MemberSelector createSelector(CommunicationStrategy selectionStrategy) {
+  public MemberSelector createSelector(final CommunicationStrategy selectionStrategy) {
     final MemberSelector selector = new MemberSelector(leader, members, selectionStrategy, this);
     selectors.add(selector);
     return selector;
@@ -92,7 +92,7 @@ public final class MemberSelectorManager {
    * @param leader The current cluster leader.
    * @param members The collection of all active members.
    */
-  public void resetAll(MemberId leader, Collection<MemberId> members) {
+  public void resetAll(final MemberId leader, final Collection<MemberId> members) {
     final MemberId oldLeader = this.leader;
     this.leader = leader;
     this.members = Lists.newLinkedList(members);
@@ -107,7 +107,7 @@ public final class MemberSelectorManager {
    *
    * @param selector The member selector to remove.
    */
-  void remove(MemberSelector selector) {
+  void remove(final MemberSelector selector) {
     selectors.remove(selector);
   }
 }

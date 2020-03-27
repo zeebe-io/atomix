@@ -37,16 +37,16 @@ public class MultiValuedTimestamp<T extends Comparable<T>, U extends Comparable<
    * @param value1 first value
    * @param value2 second value
    */
-  public MultiValuedTimestamp(T value1, U value2) {
+  public MultiValuedTimestamp(final T value1, final U value2) {
     this.value1 = Preconditions.checkNotNull(value1);
     this.value2 = Preconditions.checkNotNull(value2);
   }
 
   @Override
-  public int compareTo(Timestamp o) {
+  public int compareTo(final Timestamp o) {
     Preconditions.checkArgument(
         o instanceof MultiValuedTimestamp, "Must be MultiValuedTimestamp", o);
-    MultiValuedTimestamp that = (MultiValuedTimestamp) o;
+    final MultiValuedTimestamp that = (MultiValuedTimestamp) o;
 
     return ComparisonChain.start()
         .compare(this.value1, that.value1)
@@ -60,14 +60,14 @@ public class MultiValuedTimestamp<T extends Comparable<T>, U extends Comparable<
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(final Object obj) {
     if (this == obj) {
       return true;
     }
     if (!(obj instanceof MultiValuedTimestamp)) {
       return false;
     }
-    MultiValuedTimestamp that = (MultiValuedTimestamp) obj;
+    final MultiValuedTimestamp that = (MultiValuedTimestamp) obj;
     return Objects.equals(this.value1, that.value1) && Objects.equals(this.value2, that.value2);
   }
 

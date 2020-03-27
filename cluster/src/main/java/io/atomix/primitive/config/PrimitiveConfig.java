@@ -36,7 +36,7 @@ public abstract class PrimitiveConfig<C extends PrimitiveConfig<C>>
 
   @Override
   @SuppressWarnings("unchecked")
-  public C setName(String name) {
+  public C setName(final String name) {
     this.name = name;
     return (C) this;
   }
@@ -57,7 +57,7 @@ public abstract class PrimitiveConfig<C extends PrimitiveConfig<C>>
    * @return the primitive configuration
    */
   @SuppressWarnings("unchecked")
-  public C setNamespaceConfig(NamespaceConfig namespaceConfig) {
+  public C setNamespaceConfig(final NamespaceConfig namespaceConfig) {
     this.namespaceConfig = namespaceConfig;
     return (C) this;
   }
@@ -78,7 +78,7 @@ public abstract class PrimitiveConfig<C extends PrimitiveConfig<C>>
    * @return the primitive configuration
    */
   @SuppressWarnings("unchecked")
-  public C setProtocolConfig(PrimitiveProtocolConfig protocolConfig) {
+  public C setProtocolConfig(final PrimitiveProtocolConfig protocolConfig) {
     this.protocolConfig = protocolConfig;
     return (C) this;
   }
@@ -99,7 +99,7 @@ public abstract class PrimitiveConfig<C extends PrimitiveConfig<C>>
    * @return the primitive configuration
    */
   @SuppressWarnings("unchecked")
-  public C setReadOnly(boolean readOnly) {
+  public C setReadOnly(final boolean readOnly) {
     this.readOnly = readOnly;
     return (C) this;
   }

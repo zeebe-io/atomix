@@ -194,7 +194,7 @@ public class RaftServiceManagerTest {
           }
 
           @Override
-          public PrimitiveType getPrimitiveType(String typeName) {
+          public PrimitiveType getPrimitiveType(final String typeName) {
             return new TestType();
           }
         };
@@ -225,14 +225,14 @@ public class RaftServiceManagerTest {
           PATH,
           new SimpleFileVisitor<Path>() {
             @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs)
                 throws IOException {
               Files.delete(file);
               return FileVisitResult.CONTINUE;
             }
 
             @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException exc)
+            public FileVisitResult postVisitDirectory(final Path dir, final IOException exc)
                 throws IOException {
               Files.delete(dir);
               return FileVisitResult.CONTINUE;
@@ -249,25 +249,25 @@ public class RaftServiceManagerTest {
 
   private class TestService extends AbstractPrimitiveService {
 
-    protected TestService(PrimitiveType primitiveType) {
+    protected TestService(final PrimitiveType primitiveType) {
       super(primitiveType);
     }
 
     @Override
-    protected void configure(ServiceExecutor executor) {
+    protected void configure(final ServiceExecutor executor) {
       executor.register(RUN, this::run);
     }
 
     private void run() {}
 
     @Override
-    public void backup(BackupOutput output) {
+    public void backup(final BackupOutput output) {
       output.writeLong(10);
       snapshotTaken.set(true);
     }
 
     @Override
-    public void restore(BackupInput input) {
+    public void restore(final BackupInput input) {
       assertEquals(10, input.readLong());
       snapshotInstalled.set(true);
     }
@@ -282,14 +282,14 @@ public class RaftServiceManagerTest {
 
     @Override
     public PrimitiveBuilder newBuilder(
-        String primitiveName,
-        PrimitiveConfig config,
-        PrimitiveManagementService managementService) {
+        final String primitiveName,
+        final PrimitiveConfig config,
+        final PrimitiveManagementService managementService) {
       return null;
     }
 
     @Override
-    public PrimitiveService newService(ServiceConfig config) {
+    public PrimitiveService newService(final ServiceConfig config) {
       return new TestService(this);
     }
 

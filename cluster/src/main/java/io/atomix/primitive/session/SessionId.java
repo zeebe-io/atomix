@@ -26,13 +26,13 @@ public class SessionId extends AbstractIdentifier<Long> {
    * @param id the identifier from which to create a session ID
    * @return a new session identifier
    */
-  public static SessionId from(long id) {
+  public static SessionId from(final long id) {
     return new SessionId(id);
   }
 
   protected SessionId() {}
 
-  public SessionId(Long value) {
+  public SessionId(final Long value) {
     super(value);
   }
 }

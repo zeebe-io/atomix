@@ -40,7 +40,7 @@ public class Versioned<V> {
    * @param creationTime milliseconds of the creation event from the Java epoch of
    *     1970-01-01T00:00:00Z
    */
-  public Versioned(V value, long version, long creationTime) {
+  public Versioned(final V value, final long version, final long creationTime) {
     this.value = value;
     this.version = version;
     this.creationTime = creationTime;
@@ -52,7 +52,7 @@ public class Versioned<V> {
    * @param value value
    * @param version version
    */
-  public Versioned(V value, long version) {
+  public Versioned(final V value, final long version) {
     this(value, version, System.currentTimeMillis());
   }
 
@@ -95,7 +95,7 @@ public class Versioned<V> {
    * @param <U> value type of the returned instance
    * @return mapped instance
    */
-  public synchronized <U> Versioned<U> map(Function<V, U> transformer) {
+  public synchronized <U> Versioned<U> map(final Function<V, U> transformer) {
     return new Versioned<>(value != null ? transformer.apply(value) : null, version, creationTime);
   }
 
@@ -108,7 +108,7 @@ public class Versioned<V> {
    * @param <U> type of the versioned value
    * @return versioned value or default value if versioned object is null
    */
-  public static <U> U valueOrElse(Versioned<U> versioned, U defaultValue) {
+  public static <U> U valueOrElse(final Versioned<U> versioned, final U defaultValue) {
     return versioned == null ? defaultValue : versioned.value();
   }
 
@@ -119,7 +119,7 @@ public class Versioned<V> {
    * @param <U> type of the versioned value
    * @return versioned value or null if versioned object is null
    */
-  public static <U> U valueOrNull(Versioned<U> versioned) {
+  public static <U> U valueOrNull(final Versioned<U> versioned) {
     return valueOrElse(versioned, null);
   }
 
@@ -129,11 +129,11 @@ public class Versioned<V> {
   }
 
   @Override
-  public boolean equals(Object other) {
+  public boolean equals(final Object other) {
     if (!(other instanceof Versioned)) {
       return false;
     }
-    Versioned<V> that = (Versioned) other;
+    final Versioned<V> that = (Versioned) other;
     return Objects.equal(this.value, that.value)
         && Objects.equal(this.version, that.version)
         && Objects.equal(this.creationTime, that.creationTime);

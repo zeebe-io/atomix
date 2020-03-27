@@ -46,7 +46,7 @@ public final class SlidingWindowCounter {
 
   private static final int SLIDE_WINDOW_PERIOD_SECONDS = 1;
 
-  public SlidingWindowCounter(int windowSlots) {
+  public SlidingWindowCounter(final int windowSlots) {
     this(windowSlots, new SingleThreadContext("sliding-window-counter-%d"));
   }
 
@@ -55,7 +55,7 @@ public final class SlidingWindowCounter {
    *
    * @param windowSlots total number of window slots
    */
-  public SlidingWindowCounter(int windowSlots, ThreadContext context) {
+  public SlidingWindowCounter(final int windowSlots, final ThreadContext context) {
     checkArgument(windowSlots > 0, "Window size must be a positive integer");
 
     this.windowSlots = windowSlots;
@@ -85,11 +85,11 @@ public final class SlidingWindowCounter {
    *
    * @param value value to increment by
    */
-  public void incrementCount(long value) {
+  public void incrementCount(final long value) {
     incrementCount(headSlot, value);
   }
 
-  private void incrementCount(int slot, long value) {
+  private void incrementCount(final int slot, final long value) {
     counters.get(slot).addAndGet(value);
   }
 
@@ -99,7 +99,7 @@ public final class SlidingWindowCounter {
    * @param slots number of slots to include in the count
    * @return total count for last N slots
    */
-  public long get(int slots) {
+  public long get(final int slots) {
     checkArgument(
         slots <= windowSlots, "Requested window must be less than the total window slots");
 
@@ -121,7 +121,7 @@ public final class SlidingWindowCounter {
     headSlot = slotAfter(headSlot);
   }
 
-  private int slotAfter(int slot) {
+  private int slotAfter(final int slot) {
     return (slot + 1) % windowSlots;
   }
 }

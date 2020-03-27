@@ -38,7 +38,7 @@ public class TestAtomixFactory {
    * @return a new Atomix instance
    */
   public Atomix newInstance() {
-    int id = memberId.incrementAndGet();
+    final int id = memberId.incrementAndGet();
     return new TestAtomix(
         MemberId.from(String.valueOf(id)),
         Address.from("localhost", 5000 + id),

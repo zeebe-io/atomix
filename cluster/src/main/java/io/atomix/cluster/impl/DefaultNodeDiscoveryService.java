@@ -39,7 +39,7 @@ public class DefaultNodeDiscoveryService
   private final NodeDiscoveryEventListener discoveryEventListener = this::post;
 
   public DefaultNodeDiscoveryService(
-      BootstrapService bootstrapService, Node localNode, NodeDiscoveryProvider provider) {
+      final BootstrapService bootstrapService, final Node localNode, final NodeDiscoveryProvider provider) {
     this.bootstrapService = bootstrapService;
     this.localNode = localNode;
     this.provider = provider;
@@ -54,7 +54,7 @@ public class DefaultNodeDiscoveryService
   public CompletableFuture<NodeDiscoveryService> start() {
     if (started.compareAndSet(false, true)) {
       provider.addListener(discoveryEventListener);
-      Node node =
+      final Node node =
           Node.builder().withId(localNode.id().id()).withAddress(localNode.address()).build();
       return provider.join(bootstrapService, node).thenApply(v -> this);
     }

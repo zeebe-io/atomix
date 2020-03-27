@@ -29,7 +29,7 @@ public class NodeMemberGroup implements MemberGroup {
   private final MemberGroupId groupId;
   private final Set<Member> members;
 
-  public NodeMemberGroup(MemberGroupId groupId, Set<Member> members) {
+  public NodeMemberGroup(final MemberGroupId groupId, final Set<Member> members) {
     this.groupId = checkNotNull(groupId);
     this.members = checkNotNull(members);
   }
@@ -40,7 +40,7 @@ public class NodeMemberGroup implements MemberGroup {
   }
 
   @Override
-  public boolean isMember(Member member) {
+  public boolean isMember(final Member member) {
     return members.contains(member);
   }
 
@@ -50,9 +50,9 @@ public class NodeMemberGroup implements MemberGroup {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof NodeMemberGroup) {
-      NodeMemberGroup memberGroup = (NodeMemberGroup) object;
+      final NodeMemberGroup memberGroup = (NodeMemberGroup) object;
       return memberGroup.groupId.equals(groupId) && memberGroup.members.equals(members);
     }
     return false;

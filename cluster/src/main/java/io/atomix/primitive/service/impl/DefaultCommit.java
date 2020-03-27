@@ -35,7 +35,7 @@ public class DefaultCommit<T> implements Commit<T> {
   private final T value;
 
   public DefaultCommit(
-      long index, OperationId operation, T value, Session session, long timestamp) {
+      final long index, final OperationId operation, final T value, final Session session, final long timestamp) {
     this.index = index;
     this.session = session;
     this.timestamp = timestamp;
@@ -79,7 +79,7 @@ public class DefaultCommit<T> implements Commit<T> {
   }
 
   @Override
-  public <U> Commit<U> map(Function<T, U> transcoder) {
+  public <U> Commit<U> map(final Function<T, U> transcoder) {
     return new DefaultCommit<>(index, operation, transcoder.apply(value), session, timestamp);
   }
 
@@ -89,9 +89,9 @@ public class DefaultCommit<T> implements Commit<T> {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof Commit) {
-      Commit commit = (Commit) object;
+      final Commit commit = (Commit) object;
       return commit.index() == index
           && commit.session().equals(session)
           && commit.operation().equals(operation)

@@ -26,7 +26,7 @@ import java.util.concurrent.CompletableFuture;
 /** Default work queue builder implementation. */
 public class DefaultWorkQueueBuilder<E> extends WorkQueueBuilder<E> {
   public DefaultWorkQueueBuilder(
-      String name, WorkQueueConfig config, PrimitiveManagementService managementService) {
+      final String name, final WorkQueueConfig config, final PrimitiveManagementService managementService) {
     super(name, config, managementService);
   }
 
@@ -38,7 +38,7 @@ public class DefaultWorkQueueBuilder<E> extends WorkQueueBuilder<E> {
             proxy -> new WorkQueueProxy(proxy, managementService.getPrimitiveRegistry()).connect())
         .thenApply(
             queue -> {
-              Serializer serializer = serializer();
+              final Serializer serializer = serializer();
               return new TranscodingAsyncWorkQueue<E, byte[]>(
                       queue, item -> serializer.encode(item), bytes -> serializer.decode(bytes))
                   .sync();

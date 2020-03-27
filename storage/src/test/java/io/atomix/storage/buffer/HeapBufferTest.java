@@ -28,36 +28,36 @@ import org.junit.Test;
 public class HeapBufferTest extends BufferTest {
 
   @Override
-  protected Buffer createBuffer(int capacity) {
+  protected Buffer createBuffer(final int capacity) {
     return HeapBuffer.allocate(capacity);
   }
 
   @Override
-  protected Buffer createBuffer(int capacity, int maxCapacity) {
+  protected Buffer createBuffer(final int capacity, final int maxCapacity) {
     return HeapBuffer.allocate(capacity, maxCapacity);
   }
 
   @Test
   public void testByteBufferToHeapBuffer() {
-    ByteBuffer byteBuffer = ByteBuffer.allocate(8);
+    final ByteBuffer byteBuffer = ByteBuffer.allocate(8);
     byteBuffer.putLong(10);
     byteBuffer.rewind();
 
-    HeapBuffer directBuffer = HeapBuffer.wrap(byteBuffer.array());
+    final HeapBuffer directBuffer = HeapBuffer.wrap(byteBuffer.array());
     assertEquals(directBuffer.readLong(), byteBuffer.getLong());
   }
 
   @Test
   public void testDirectToHeapBuffer() {
-    DirectBuffer directBuffer = DirectBuffer.allocate(8);
+    final DirectBuffer directBuffer = DirectBuffer.allocate(8);
     directBuffer.writeLong(10);
     directBuffer.flip();
 
-    byte[] bytes = new byte[8];
+    final byte[] bytes = new byte[8];
     directBuffer.read(bytes);
     directBuffer.rewind();
 
-    HeapBuffer heapBuffer = HeapBuffer.wrap(bytes);
+    final HeapBuffer heapBuffer = HeapBuffer.wrap(bytes);
     assertEquals(directBuffer.readLong(), heapBuffer.readLong());
 
     directBuffer.release();
@@ -65,11 +65,11 @@ public class HeapBufferTest extends BufferTest {
 
   @Test
   public void testHeapToDirectBuffer() {
-    HeapBuffer heapBuffer = HeapBuffer.allocate(8);
+    final HeapBuffer heapBuffer = HeapBuffer.allocate(8);
     heapBuffer.writeLong(10);
     heapBuffer.flip();
 
-    DirectBuffer directBuffer = DirectBuffer.allocate(8);
+    final DirectBuffer directBuffer = DirectBuffer.allocate(8);
     directBuffer.write(heapBuffer.array());
     directBuffer.flip();
 

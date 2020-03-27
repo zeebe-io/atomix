@@ -102,8 +102,8 @@ public interface BufferOutput<T extends BufferOutput<?>> extends AutoCloseable {
    * @return The snapshot writer.
    */
   @SuppressWarnings("unchecked")
-  default <U> T writeObject(U object, Function<U, byte[]> encoder) {
-    byte[] bytes = encoder.apply(object);
+  default <U> T writeObject(final U object, final Function<U, byte[]> encoder) {
+    final byte[] bytes = encoder.apply(object);
     writeInt(bytes.length).write(bytes);
     return (T) this;
   }
@@ -115,7 +115,7 @@ public interface BufferOutput<T extends BufferOutput<?>> extends AutoCloseable {
    * @return The written buffer.
    */
   @SuppressWarnings("unchecked")
-  default T writeBytes(byte[] bytes) {
+  default T writeBytes(final byte[] bytes) {
     write(bytes);
     return (T) this;
   }

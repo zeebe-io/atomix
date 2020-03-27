@@ -50,11 +50,11 @@ public class DefaultProxySession<S> implements ProxySession<S> {
   private volatile boolean closed;
 
   @SuppressWarnings("unchecked")
-  public DefaultProxySession(SessionClient session, Class<S> serviceType, Serializer serializer) {
+  public DefaultProxySession(final SessionClient session, final Class<S> serviceType, final Serializer serializer) {
     this.session = session;
     this.serializer = serializer;
-    ServiceProxyHandler serviceProxyHandler = new ServiceProxyHandler(serviceType);
-    S serviceProxy =
+    final ServiceProxyHandler serviceProxyHandler = new ServiceProxyHandler(serviceType);
+    final S serviceProxy =
         (S)
             java.lang.reflect.Proxy.newProxyInstance(
                 serviceType.getClassLoader(), new Class[] {serviceType}, serviceProxyHandler);
@@ -87,7 +87,7 @@ public class DefaultProxySession<S> implements ProxySession<S> {
   }
 
   @Override
-  public void register(Object client) {
+  public void register(final Object client) {
     Events.getEventMap(client.getClass())
         .forEach(
             (eventType, method) -> {
@@ -96,7 +96,7 @@ public class DefaultProxySession<S> implements ProxySession<S> {
                   event -> {
                     try {
                       method.invoke(client, (Object[]) decode(event.value()));
-                    } catch (IllegalAccessException | InvocationTargetException e) {
+                    } catch (final IllegalAccessException | InvocationTargetException e) {
                       log.warn("Failed to handle event", e);
                     }
                   });
@@ -104,7 +104,7 @@ public class DefaultProxySession<S> implements ProxySession<S> {
   }
 
   @Override
-  public CompletableFuture<Void> accept(Consumer<S> operation) {
+  public CompletableFuture<Void> accept(final Consumer<S> operation) {
     if (closed) {
       return Futures.exceptionalFuture(new PrimitiveException.ClosedSession());
     }
@@ -112,7 +112,7 @@ public class DefaultProxySession<S> implements ProxySession<S> {
   }
 
   @Override
-  public <R> CompletableFuture<R> apply(Function<S, R> operation) {
+  public <R> CompletableFuture<R> apply(final Function<S, R> operation) {
     if (closed) {
       return Futures.exceptionalFuture(new PrimitiveException.ClosedSession());
     }
@@ -120,12 +120,12 @@ public class DefaultProxySession<S> implements ProxySession<S> {
   }
 
   @Override
-  public void addStateChangeListener(Consumer<PrimitiveState> listener) {
+  public void addStateChangeListener(final Consumer<PrimitiveState> listener) {
     session.addStateChangeListener(listener);
   }
 
   @Override
-  public void removeStateChangeListener(Consumer<PrimitiveState> listener) {
+  public void removeStateChangeListener(final Consumer<PrimitiveState> listener) {
     session.removeStateChangeListener(listener);
   }
 
@@ -167,7 +167,7 @@ public class DefaultProxySession<S> implements ProxySession<S> {
    * @param <T> the object type
    * @return the encoded bytes
    */
-  protected <T> byte[] encode(T object) {
+  protected <T> byte[] encode(final T object) {
     return object != null ? serializer().encode(object) : null;
   }
 
@@ -178,7 +178,7 @@ public class DefaultProxySession<S> implements ProxySession<S> {
    * @param <T> the object type
    * @return the decoded object
    */
-  protected <T> T decode(byte[] bytes) {
+  protected <T> T decode(final byte[] bytes) {
     return bytes != null ? serializer().decode(bytes) : null;
   }
 
@@ -187,7 +187,7 @@ public class DefaultProxySession<S> implements ProxySession<S> {
     private final S proxy;
     private final ServiceProxyHandler handler;
 
-    ServiceProxy(S proxy, ServiceProxyHandler handler) {
+    ServiceProxy(final S proxy, final ServiceProxyHandler handler) {
       this.proxy = proxy;
       this.handler = handler;
     }
@@ -198,7 +198,7 @@ public class DefaultProxySession<S> implements ProxySession<S> {
      * @param operation the operation to perform on the proxy
      * @return the resulting void future
      */
-    CompletableFuture<Void> accept(Consumer<S> operation) {
+    CompletableFuture<Void> accept(final Consumer<S> operation) {
       operation.accept(proxy);
       return handler.getResultFuture();
     }
@@ -210,7 +210,7 @@ public class DefaultProxySession<S> implements ProxySession<S> {
      * @param <T> the operation return type
      * @return the future result
      */
-    <T> CompletableFuture<T> apply(Function<S, T> operation) {
+    <T> CompletableFuture<T> apply(final Function<S, T> operation) {
       operation.apply(proxy);
       return handler.getResultFuture();
     }
@@ -225,13 +225,13 @@ public class DefaultProxySession<S> implements ProxySession<S> {
     private final ThreadLocal<CompletableFuture> future = new ThreadLocal<>();
     private final Map<Method, OperationId> operations = new ConcurrentHashMap<>();
 
-    private ServiceProxyHandler(Class<?> type) {
+    private ServiceProxyHandler(final Class<?> type) {
       this.operations.putAll(Operations.getMethodMap(type));
     }
 
     @Override
-    public Object invoke(Object object, Method method, Object[] args) throws Throwable {
-      OperationId operationId = operations.get(method);
+    public Object invoke(final Object object, final Method method, final Object[] args) throws Throwable {
+      final OperationId operationId = operations.get(method);
       if (operationId != null) {
         future.set(
             session

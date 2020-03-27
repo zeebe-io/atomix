@@ -26,7 +26,7 @@ public class TimestampPrinterTest {
   @Test
   @Ignore // Timestamp is environment specific
   public void testTimestampPrinter() throws Exception {
-    TimestampPrinter printer = TimestampPrinter.of(1);
+    final TimestampPrinter printer = TimestampPrinter.of(1);
     assertEquals("1969-12-31 04:00:00,001", printer.toString());
   }
 }

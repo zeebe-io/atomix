@@ -24,7 +24,7 @@ public final class ProtocolRequest extends ProtocolMessage {
   private final Address sender;
   private final String subject;
 
-  public ProtocolRequest(long id, Address sender, String subject, byte[] payload) {
+  public ProtocolRequest(final long id, final Address sender, final String subject, final byte[] payload) {
     super(id, payload);
     this.sender = sender;
     this.subject = subject;

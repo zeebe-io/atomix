@@ -46,7 +46,7 @@ public class PhiAccrualFailureDetector {
    * @param minSamples the minimum number of samples required to compute phi
    * @param phiFactor the phi factor
    */
-  public PhiAccrualFailureDetector(int minSamples, double phiFactor) {
+  public PhiAccrualFailureDetector(final int minSamples, final double phiFactor) {
     this(minSamples, phiFactor, DEFAULT_WINDOW_SIZE);
   }
 
@@ -57,7 +57,7 @@ public class PhiAccrualFailureDetector {
    * @param phiFactor the phi factor
    * @param windowSize the phi accrual window size
    */
-  public PhiAccrualFailureDetector(int minSamples, double phiFactor, int windowSize) {
+  public PhiAccrualFailureDetector(final int minSamples, final double phiFactor, final int windowSize) {
     this.minSamples = minSamples;
     this.phiFactor = phiFactor;
     this.history = new History(windowSize);
@@ -82,9 +82,9 @@ public class PhiAccrualFailureDetector {
    *
    * @param arrivalTime arrival time
    */
-  public void report(long arrivalTime) {
+  public void report(final long arrivalTime) {
     checkArgument(arrivalTime >= 0, "arrivalTime must not be negative");
-    long latestHeartbeat = history.latestHeartbeatTime();
+    final long latestHeartbeat = history.latestHeartbeatTime();
     history.samples().addValue(arrivalTime - latestHeartbeat);
     history.setLatestHeartbeatTime(arrivalTime);
   }
@@ -95,8 +95,8 @@ public class PhiAccrualFailureDetector {
    * @return phi value
    */
   public double phi() {
-    long latestHeartbeat = history.latestHeartbeatTime();
-    DescriptiveStatistics samples = history.samples();
+    final long latestHeartbeat = history.latestHeartbeatTime();
+    final DescriptiveStatistics samples = history.samples();
     if (samples.getN() < minSamples) {
       return 0.0;
     }
@@ -114,9 +114,9 @@ public class PhiAccrualFailureDetector {
    * @param currentTime the current time
    * @return phi
    */
-  private double computePhi(DescriptiveStatistics samples, long lastHeartbeat, long currentTime) {
-    long size = samples.getN();
-    long t = currentTime - lastHeartbeat;
+  private double computePhi(final DescriptiveStatistics samples, final long lastHeartbeat, final long currentTime) {
+    final long size = samples.getN();
+    final long t = currentTime - lastHeartbeat;
     return (size > 0) ? phiFactor * t / samples.getMean() : 100;
   }
 
@@ -125,7 +125,7 @@ public class PhiAccrualFailureDetector {
     private final DescriptiveStatistics samples;
     long lastHeartbeatTime = System.currentTimeMillis();
 
-    private History(int windowSize) {
+    private History(final int windowSize) {
       this.samples = new DescriptiveStatistics(windowSize);
     }
 
@@ -137,7 +137,7 @@ public class PhiAccrualFailureDetector {
       return lastHeartbeatTime;
     }
 
-    void setLatestHeartbeatTime(long value) {
+    void setLatestHeartbeatTime(final long value) {
       lastHeartbeatTime = value;
     }
   }

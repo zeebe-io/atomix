@@ -50,7 +50,7 @@ public class ClusterConfig implements Config {
    * @param clusterId the cluster identifier
    * @return the cluster configuration
    */
-  public ClusterConfig setClusterId(String clusterId) {
+  public ClusterConfig setClusterId(final String clusterId) {
     this.clusterId = clusterId;
     return this;
   }
@@ -70,7 +70,7 @@ public class ClusterConfig implements Config {
    * @param nodeConfig the local member configuration
    * @return the cluster configuration
    */
-  public ClusterConfig setNodeConfig(MemberConfig nodeConfig) {
+  public ClusterConfig setNodeConfig(final MemberConfig nodeConfig) {
     this.nodeConfig = checkNotNull(nodeConfig);
     return this;
   }
@@ -90,7 +90,7 @@ public class ClusterConfig implements Config {
    * @param discoveryConfig the node discovery provider configuration
    * @return the node configuration
    */
-  public ClusterConfig setDiscoveryConfig(NodeDiscoveryConfig discoveryConfig) {
+  public ClusterConfig setDiscoveryConfig(final NodeDiscoveryConfig discoveryConfig) {
     this.discoveryConfig = checkNotNull(discoveryConfig);
     return this;
   }
@@ -110,7 +110,7 @@ public class ClusterConfig implements Config {
    * @param multicastConfig the multicast configuration
    * @return the cluster configuration
    */
-  public ClusterConfig setMulticastConfig(MulticastConfig multicastConfig) {
+  public ClusterConfig setMulticastConfig(final MulticastConfig multicastConfig) {
     this.multicastConfig = checkNotNull(multicastConfig);
     return this;
   }
@@ -130,7 +130,7 @@ public class ClusterConfig implements Config {
    * @param protocolConfig the group membership protocol configuration
    * @return the cluster configuration
    */
-  public ClusterConfig setProtocolConfig(GroupMembershipProtocolConfig protocolConfig) {
+  public ClusterConfig setProtocolConfig(final GroupMembershipProtocolConfig protocolConfig) {
     this.protocolConfig = protocolConfig;
     return this;
   }
@@ -154,7 +154,7 @@ public class ClusterConfig implements Config {
    * @deprecated since 3.1
    */
   @Deprecated
-  public ClusterConfig setMembershipConfig(MembershipConfig membershipConfig) {
+  public ClusterConfig setMembershipConfig(final MembershipConfig membershipConfig) {
     this.membershipConfig = checkNotNull(membershipConfig);
     return this;
   }
@@ -174,7 +174,7 @@ public class ClusterConfig implements Config {
    * @param messagingConfig the messaging configuration
    * @return the cluster configuration
    */
-  public ClusterConfig setMessagingConfig(MessagingConfig messagingConfig) {
+  public ClusterConfig setMessagingConfig(final MessagingConfig messagingConfig) {
     this.messagingConfig = messagingConfig;
     return this;
   }

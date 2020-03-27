@@ -29,7 +29,7 @@ public class Quorum {
   private Consumer<Boolean> callback;
   private boolean complete;
 
-  public Quorum(int quorum, Consumer<Boolean> callback) {
+  public Quorum(final int quorum, final Consumer<Boolean> callback) {
     this.quorum = quorum;
     this.callback = callback;
   }

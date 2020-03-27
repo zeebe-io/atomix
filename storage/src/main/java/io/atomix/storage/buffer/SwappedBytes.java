@@ -24,7 +24,7 @@ import java.nio.ByteOrder;
  */
 public class SwappedBytes extends WrappedBytes {
 
-  public SwappedBytes(Bytes bytes) {
+  public SwappedBytes(final Bytes bytes) {
     super(bytes);
   }
 
@@ -34,110 +34,110 @@ public class SwappedBytes extends WrappedBytes {
   }
 
   @Override
-  public char readChar(int offset) {
+  public char readChar(final int offset) {
     return Character.reverseBytes(bytes.readChar(offset));
   }
 
   @Override
-  public short readShort(int offset) {
+  public short readShort(final int offset) {
     return Short.reverseBytes(bytes.readShort(offset));
   }
 
   @Override
-  public int readUnsignedShort(int offset) {
+  public int readUnsignedShort(final int offset) {
     return Short.reverseBytes(bytes.readShort(offset)) & 0xFFFF;
   }
 
   @Override
-  public int readMedium(int offset) {
+  public int readMedium(final int offset) {
     return Integer.reverseBytes(bytes.readMedium(offset));
   }
 
   @Override
-  public int readUnsignedMedium(int offset) {
+  public int readUnsignedMedium(final int offset) {
     return Integer.reverseBytes(bytes.readUnsignedMedium(offset));
   }
 
   @Override
-  public int readInt(int offset) {
+  public int readInt(final int offset) {
     return Integer.reverseBytes(bytes.readInt(offset));
   }
 
   @Override
-  public long readUnsignedInt(int offset) {
+  public long readUnsignedInt(final int offset) {
     return Integer.reverseBytes(bytes.readInt(offset)) & 0xFFFFFFFFL;
   }
 
   @Override
-  public long readLong(int offset) {
+  public long readLong(final int offset) {
     return Long.reverseBytes(bytes.readLong(offset));
   }
 
   @Override
-  public float readFloat(int offset) {
+  public float readFloat(final int offset) {
     return Float.intBitsToFloat(readInt(offset));
   }
 
   @Override
-  public double readDouble(int offset) {
+  public double readDouble(final int offset) {
     return Double.longBitsToDouble(readLong(offset));
   }
 
   @Override
-  public Bytes writeChar(int offset, char c) {
+  public Bytes writeChar(final int offset, final char c) {
     bytes.writeChar(offset, Character.reverseBytes(c));
     return this;
   }
 
   @Override
-  public Bytes writeShort(int offset, short s) {
+  public Bytes writeShort(final int offset, final short s) {
     bytes.writeShort(offset, Short.reverseBytes(s));
     return this;
   }
 
   @Override
-  public Bytes writeUnsignedShort(int offset, int s) {
+  public Bytes writeUnsignedShort(final int offset, final int s) {
     bytes.writeUnsignedShort(offset, Short.reverseBytes((short) s));
     return this;
   }
 
   @Override
-  public Bytes writeMedium(int offset, int m) {
+  public Bytes writeMedium(final int offset, final int m) {
     bytes.writeMedium(offset, Integer.reverseBytes(m));
     return this;
   }
 
   @Override
-  public Bytes writeUnsignedMedium(int offset, int m) {
+  public Bytes writeUnsignedMedium(final int offset, final int m) {
     bytes.writeUnsignedMedium(offset, Integer.reverseBytes(m));
     return this;
   }
 
   @Override
-  public Bytes writeInt(int offset, int i) {
+  public Bytes writeInt(final int offset, final int i) {
     bytes.writeInt(offset, Integer.reverseBytes(i));
     return this;
   }
 
   @Override
-  public Bytes writeUnsignedInt(int offset, long i) {
+  public Bytes writeUnsignedInt(final int offset, final long i) {
     bytes.writeUnsignedInt(offset, Integer.reverseBytes((int) i));
     return this;
   }
 
   @Override
-  public Bytes writeLong(int offset, long l) {
+  public Bytes writeLong(final int offset, final long l) {
     bytes.writeLong(offset, Long.reverseBytes(l));
     return this;
   }
 
   @Override
-  public Bytes writeFloat(int offset, float f) {
+  public Bytes writeFloat(final int offset, final float f) {
     return writeInt(offset, Float.floatToRawIntBits(f));
   }
 
   @Override
-  public Bytes writeDouble(int offset, double d) {
+  public Bytes writeDouble(final int offset, final double d) {
     return writeLong(offset, Double.doubleToRawLongBits(d));
   }
 }

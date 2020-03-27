@@ -41,7 +41,7 @@ public class NamespaceConfig implements Config {
    * @param name the serializer name
    * @return the serializer configuration
    */
-  public NamespaceConfig setName(String name) {
+  public NamespaceConfig setName(final String name) {
     this.name = name;
     return this;
   }
@@ -61,7 +61,7 @@ public class NamespaceConfig implements Config {
    * @param registrationRequired whether registration is required
    * @return the serializer configuration
    */
-  public NamespaceConfig setRegistrationRequired(boolean registrationRequired) {
+  public NamespaceConfig setRegistrationRequired(final boolean registrationRequired) {
     this.registrationRequired = registrationRequired;
     return this;
   }
@@ -81,7 +81,7 @@ public class NamespaceConfig implements Config {
    * @param compatible whether compatible serialization is enabled
    * @return the serializer configuration
    */
-  public NamespaceConfig setCompatible(boolean compatible) {
+  public NamespaceConfig setCompatible(final boolean compatible) {
     this.compatible = compatible;
     return this;
   }
@@ -101,7 +101,7 @@ public class NamespaceConfig implements Config {
    * @param types the serializable types
    * @return the serializer configuration
    */
-  public NamespaceConfig setTypes(List<NamespaceTypeConfig> types) {
+  public NamespaceConfig setTypes(final List<NamespaceTypeConfig> types) {
     this.types = types;
     return this;
   }
@@ -112,7 +112,7 @@ public class NamespaceConfig implements Config {
    * @param type the serializable type to add
    * @return the serializer configuration
    */
-  public NamespaceConfig addType(NamespaceTypeConfig type) {
+  public NamespaceConfig addType(final NamespaceTypeConfig type) {
     types.add(type);
     return this;
   }

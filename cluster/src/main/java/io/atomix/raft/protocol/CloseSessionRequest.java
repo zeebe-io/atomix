@@ -24,7 +24,7 @@ public class CloseSessionRequest extends SessionRequest {
 
   private final boolean delete;
 
-  public CloseSessionRequest(long session, boolean delete) {
+  public CloseSessionRequest(final long session, final boolean delete) {
     super(session);
     this.delete = delete;
   }
@@ -53,7 +53,7 @@ public class CloseSessionRequest extends SessionRequest {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (this == object) {
       return true;
     }
@@ -81,7 +81,7 @@ public class CloseSessionRequest extends SessionRequest {
      * @param delete whether the request is a delete
      * @return the request builder
      */
-    public Builder withDelete(boolean delete) {
+    public Builder withDelete(final boolean delete) {
       this.delete = delete;
       return this;
     }

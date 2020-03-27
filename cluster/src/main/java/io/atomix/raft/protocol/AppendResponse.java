@@ -30,12 +30,12 @@ public class AppendResponse extends AbstractRaftResponse {
   private final long lastSnapshotIndex;
 
   public AppendResponse(
-      Status status,
-      RaftError error,
-      long term,
-      boolean succeeded,
-      long lastLogIndex,
-      long lastSnapshotIndex) {
+      final Status status,
+      final RaftError error,
+      final long term,
+      final boolean succeeded,
+      final long lastLogIndex,
+      final long lastSnapshotIndex) {
     super(status, error);
     this.term = term;
     this.succeeded = succeeded;
@@ -94,7 +94,7 @@ public class AppendResponse extends AbstractRaftResponse {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof AppendResponse) {
       final AppendResponse response = (AppendResponse) object;
       return response.status == status
@@ -136,7 +136,7 @@ public class AppendResponse extends AbstractRaftResponse {
      * @return The append response builder
      * @throws IllegalArgumentException if {@code term} is not positive
      */
-    public Builder withTerm(long term) {
+    public Builder withTerm(final long term) {
       checkArgument(term > 0, "term must be positive");
       this.term = term;
       return this;
@@ -148,7 +148,7 @@ public class AppendResponse extends AbstractRaftResponse {
      * @param succeeded Whether the append request succeeded.
      * @return The append response builder.
      */
-    public Builder withSucceeded(boolean succeeded) {
+    public Builder withSucceeded(final boolean succeeded) {
       this.succeeded = succeeded;
       return this;
     }
@@ -160,13 +160,13 @@ public class AppendResponse extends AbstractRaftResponse {
      * @return The append response builder.
      * @throws IllegalArgumentException if {@code index} is negative
      */
-    public Builder withLastLogIndex(long lastLogIndex) {
+    public Builder withLastLogIndex(final long lastLogIndex) {
       checkArgument(lastLogIndex >= 0, "lastLogIndex must be positive");
       this.lastLogIndex = lastLogIndex;
       return this;
     }
 
-    public Builder withLastSnapshotIndex(long lastSnapshotIndex) {
+    public Builder withLastSnapshotIndex(final long lastSnapshotIndex) {
       checkArgument(lastSnapshotIndex >= 0, "lastSnapshotIndex must be positive");
       this.lastSnapshotIndex = lastSnapshotIndex;
       return this;

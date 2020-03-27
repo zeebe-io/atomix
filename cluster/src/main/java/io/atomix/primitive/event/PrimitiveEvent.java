@@ -30,7 +30,7 @@ public class PrimitiveEvent {
    * @param eventType the event type
    * @return the primitive event
    */
-  public static PrimitiveEvent event(EventType eventType) {
+  public static PrimitiveEvent event(final EventType eventType) {
     return event(eventType, null);
   }
 
@@ -41,7 +41,7 @@ public class PrimitiveEvent {
    * @param value the event value
    * @return the primitive event
    */
-  public static PrimitiveEvent event(EventType eventType, byte[] value) {
+  public static PrimitiveEvent event(final EventType eventType, final byte[] value) {
     return new PrimitiveEvent(EventType.canonical(eventType), value);
   }
 
@@ -53,7 +53,7 @@ public class PrimitiveEvent {
     this.value = null;
   }
 
-  public PrimitiveEvent(EventType type, byte[] value) {
+  public PrimitiveEvent(final EventType type, final byte[] value) {
     this.type = type;
     this.value = value;
   }
@@ -82,9 +82,9 @@ public class PrimitiveEvent {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof PrimitiveEvent) {
-      PrimitiveEvent event = (PrimitiveEvent) object;
+      final PrimitiveEvent event = (PrimitiveEvent) object;
       return Objects.equals(event.type, type) && Arrays.equals(event.value, value);
     }
     return false;

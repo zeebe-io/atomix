@@ -57,7 +57,7 @@ public class ConfigMapper {
   private static final Logger LOGGER = LoggerFactory.getLogger(ConfigMapper.class);
   private final ClassLoader classLoader;
 
-  public ConfigMapper(ClassLoader classLoader) {
+  public ConfigMapper(final ClassLoader classLoader) {
     this.classLoader = classLoader;
   }
 
@@ -70,19 +70,19 @@ public class ConfigMapper {
    * @param <T> the resulting type
    * @return the loaded configuration
    */
-  public <T> T loadFiles(Class<T> type, List<File> files, List<String> resources) {
+  public <T> T loadFiles(final Class<T> type, final List<File> files, final List<String> resources) {
     if (files == null) {
       return loadResources(type, resources);
     }
 
     Config config = ConfigFactory.systemProperties();
-    for (File file : files) {
+    for (final File file : files) {
       config =
           config.withFallback(
               ConfigFactory.parseFile(file, ConfigParseOptions.defaults().setAllowMissing(false)));
     }
 
-    for (String resource : resources) {
+    for (final String resource : resources) {
       config = config.withFallback(ConfigFactory.load(classLoader, resource));
     }
     return map(checkNotNull(config, "config cannot be null").resolve(), type);
@@ -96,7 +96,7 @@ public class ConfigMapper {
    * @param <T> the resulting type
    * @return the loaded configuration
    */
-  public <T> T loadResources(Class<T> type, String... resources) {
+  public <T> T loadResources(final Class<T> type, final String... resources) {
     return loadResources(type, Arrays.asList(resources));
   }
 
@@ -108,12 +108,12 @@ public class ConfigMapper {
    * @param <T> the resulting type
    * @return the loaded configuration
    */
-  public <T> T loadResources(Class<T> type, List<String> resources) {
+  public <T> T loadResources(final Class<T> type, final List<String> resources) {
     if (resources == null || resources.isEmpty()) {
       throw new IllegalArgumentException("resources must be defined");
     }
     Config config = null;
-    for (String resource : resources) {
+    for (final String resource : resources) {
       if (config == null) {
         config = ConfigFactory.load(classLoader, resource);
       } else {
@@ -129,14 +129,14 @@ public class ConfigMapper {
    * @param config the configuration to apply
    * @param clazz the class to which to apply the configuration
    */
-  protected <T> T map(Config config, Class<T> clazz) {
+  protected <T> T map(final Config config, final Class<T> clazz) {
     return map(config, null, null, clazz);
   }
 
-  protected <T> T newInstance(Config config, String key, Class<T> clazz) {
+  protected <T> T newInstance(final Config config, final String key, final Class<T> clazz) {
     try {
       return clazz.newInstance();
-    } catch (InstantiationException | IllegalAccessException e) {
+    } catch (final InstantiationException | IllegalAccessException e) {
       throw new ConfigurationException(
           clazz.getName() + " needs a public no-args constructor to be used as a bean", e);
     }
@@ -149,14 +149,14 @@ public class ConfigMapper {
    * @param clazz the class to which to apply the configuration
    */
   @SuppressWarnings("unchecked")
-  protected <T> T map(Config config, String path, String name, Class<T> clazz) {
-    T instance = newInstance(config, name, clazz);
+  protected <T> T map(final Config config, final String path, final String name, final Class<T> clazz) {
+    final T instance = newInstance(config, name, clazz);
 
     // Map config property names to bean properties.
-    Map<String, String> propertyNames = new HashMap<>();
-    for (Map.Entry<String, ConfigValue> configProp : config.root().entrySet()) {
-      String originalName = configProp.getKey();
-      String camelName = toCamelCase(originalName);
+    final Map<String, String> propertyNames = new HashMap<>();
+    for (final Map.Entry<String, ConfigValue> configProp : config.root().entrySet()) {
+      final String originalName = configProp.getKey();
+      final String camelName = toCamelCase(originalName);
       // if a setting is in there both as some hyphen name and the camel name,
       // the camel one wins
       if (!propertyNames.containsKey(camelName) || originalName.equals(camelName)) {
@@ -178,12 +178,12 @@ public class ConfigMapper {
   }
 
   protected void checkRemainingProperties(
-      Set<String> missingProperties,
-      List<String> availableProperties,
-      String path,
-      Class<?> clazz) {
-    Properties properties = System.getProperties();
-    List<String> cleanNames =
+      final Set<String> missingProperties,
+      final List<String> availableProperties,
+      final String path,
+      final Class<?> clazz) {
+    final Properties properties = System.getProperties();
+    final List<String> cleanNames =
         missingProperties.stream()
             .map(propertyName -> toPath(path, propertyName))
             .filter(propertyName -> !properties.containsKey(propertyName))
@@ -204,28 +204,28 @@ public class ConfigMapper {
     }
   }
 
-  private List<String> describeProperties(Object instance) {
-    Stream<String> setters =
+  private List<String> describeProperties(final Object instance) {
+    final Stream<String> setters =
         getSetterDescriptors(instance.getClass()).stream().map(descriptor -> descriptor.name);
-    Stream<String> fields =
+    final Stream<String> fields =
         getFieldDescriptors(instance.getClass()).stream().map(descriptor -> descriptor.name);
     return Stream.concat(setters, fields).sorted().collect(Collectors.toList());
   }
 
   private <T> void mapSetters(
-      T instance,
-      Class<T> clazz,
-      String path,
-      String name,
-      Map<String, String> propertyNames,
-      Config config) {
+      final T instance,
+      final Class<T> clazz,
+      final String path,
+      final String name,
+      final Map<String, String> propertyNames,
+      final Config config) {
     try {
-      for (SetterDescriptor descriptor : getSetterDescriptors(instance.getClass())) {
-        Method setter = descriptor.setter;
-        Type parameterType = setter.getGenericParameterTypes()[0];
-        Class<?> parameterClass = setter.getParameterTypes()[0];
+      for (final SetterDescriptor descriptor : getSetterDescriptors(instance.getClass())) {
+        final Method setter = descriptor.setter;
+        final Type parameterType = setter.getGenericParameterTypes()[0];
+        final Class<?> parameterClass = setter.getParameterTypes()[0];
 
-        String configPropName = propertyNames.remove(descriptor.name);
+        final String configPropName = propertyNames.remove(descriptor.name);
         if (configPropName == null) {
           if ((Named.class.isAssignableFrom(clazz) || NamedConfig.class.isAssignableFrom(clazz))
               && descriptor.setter.getParameterTypes()[0] == String.class
@@ -243,7 +243,7 @@ public class ConfigMapper {
           continue;
         }
 
-        Object value =
+        final Object value =
             getValue(
                 instance.getClass(),
                 parameterType,
@@ -262,33 +262,33 @@ public class ConfigMapper {
           setter.invoke(instance, value);
         }
       }
-    } catch (IllegalAccessException e) {
+    } catch (final IllegalAccessException e) {
       throw new ConfigurationException(
           instance.getClass().getName()
               + " getters and setters are not accessible, they must be for use as a bean",
           e);
-    } catch (InvocationTargetException e) {
+    } catch (final InvocationTargetException e) {
       throw new ConfigurationException(
           "Calling bean method on " + instance.getClass().getName() + " caused an exception", e);
     }
   }
 
   private <T> void mapFields(
-      T instance,
-      Class<T> clazz,
-      String path,
-      String name,
-      Map<String, String> propertyNames,
-      Config config) {
+      final T instance,
+      final Class<T> clazz,
+      final String path,
+      final String name,
+      final Map<String, String> propertyNames,
+      final Config config) {
     try {
-      for (FieldDescriptor descriptor : getFieldDescriptors(instance.getClass())) {
-        Field field = descriptor.field;
+      for (final FieldDescriptor descriptor : getFieldDescriptors(instance.getClass())) {
+        final Field field = descriptor.field;
         field.setAccessible(true);
 
-        Type genericType = field.getGenericType();
-        Class<?> fieldClass = field.getType();
+        final Type genericType = field.getGenericType();
+        final Class<?> fieldClass = field.getType();
 
-        String configPropName = propertyNames.remove(descriptor.name);
+        final String configPropName = propertyNames.remove(descriptor.name);
         if (configPropName == null) {
           if (Named.class.isAssignableFrom(clazz)
               && field.getType() == String.class
@@ -302,7 +302,7 @@ public class ConfigMapper {
           continue;
         }
 
-        Object value =
+        final Object value =
             getValue(
                 instance.getClass(),
                 genericType,
@@ -317,7 +317,7 @@ public class ConfigMapper {
           field.set(instance, value);
         }
       }
-    } catch (IllegalAccessException e) {
+    } catch (final IllegalAccessException e) {
       throw new ConfigurationException(
           instance.getClass().getName()
               + " fields are not accessible, they must be for use as a bean",
@@ -326,45 +326,45 @@ public class ConfigMapper {
   }
 
   protected Object getValue(
-      Class<?> beanClass,
-      Type parameterType,
-      Class<?> parameterClass,
-      Config config,
-      String configPath,
-      String configPropName) {
+      final Class<?> beanClass,
+      final Type parameterType,
+      final Class<?> parameterClass,
+      final Config config,
+      final String configPath,
+      final String configPropName) {
     if (parameterClass == Boolean.class || parameterClass == boolean.class) {
       try {
         return config.getBoolean(configPropName);
-      } catch (ConfigException.WrongType e) {
+      } catch (final ConfigException.WrongType e) {
         return Boolean.parseBoolean(config.getString(configPropName));
       }
     } else if (parameterClass == Integer.class || parameterClass == int.class) {
       try {
         return config.getInt(configPropName);
-      } catch (ConfigException.WrongType e) {
+      } catch (final ConfigException.WrongType e) {
         try {
           return Integer.parseInt(config.getString(configPropName));
-        } catch (NumberFormatException e1) {
+        } catch (final NumberFormatException e1) {
           throw e;
         }
       }
     } else if (parameterClass == Double.class || parameterClass == double.class) {
       try {
         return config.getDouble(configPropName);
-      } catch (ConfigException.WrongType e) {
+      } catch (final ConfigException.WrongType e) {
         try {
           return Double.parseDouble(config.getString(configPropName));
-        } catch (NumberFormatException e1) {
+        } catch (final NumberFormatException e1) {
           throw e;
         }
       }
     } else if (parameterClass == Long.class || parameterClass == long.class) {
       try {
         return config.getLong(configPropName);
-      } catch (ConfigException.WrongType e) {
+      } catch (final ConfigException.WrongType e) {
         try {
           return Long.parseLong(config.getString(configPropName));
-        } catch (NumberFormatException e1) {
+        } catch (final NumberFormatException e1) {
           throw e;
         }
       }
@@ -373,7 +373,7 @@ public class ConfigMapper {
     } else if (parameterClass == Duration.class) {
       return config.getDuration(configPropName);
     } else if (parameterClass == MemorySize.class) {
-      ConfigMemorySize size = config.getMemorySize(configPropName);
+      final ConfigMemorySize size = config.getMemorySize(configPropName);
       return new MemorySize(size.toBytes());
     } else if (parameterClass == Object.class) {
       return config.getAnyRef(configPropName);
@@ -395,24 +395,23 @@ public class ConfigMapper {
     } else if (parameterClass == ConfigList.class) {
       return config.getList(configPropName);
     } else if (parameterClass == Class.class) {
-      String className = config.getString(configPropName);
+      final String className = config.getString(configPropName);
       try {
         return classLoader.loadClass(className);
-      } catch (ClassNotFoundException e) {
+      } catch (final ClassNotFoundException e) {
         throw new ConfigurationException("Failed to load class: " + className);
       }
     } else if (parameterClass.isEnum()) {
-      String value = config.getString(configPropName);
-      String enumName = value.replace("-", "_").toUpperCase();
-      @SuppressWarnings("unchecked")
-      Enum enumValue = Enum.valueOf((Class<Enum>) parameterClass, enumName);
+      final String value = config.getString(configPropName);
+      final String enumName = value.replace("-", "_").toUpperCase();
+      @SuppressWarnings("unchecked") final Enum enumValue = Enum.valueOf((Class<Enum>) parameterClass, enumName);
       try {
-        Deprecated deprecated =
+        final Deprecated deprecated =
             enumValue.getDeclaringClass().getField(enumName).getAnnotation(Deprecated.class);
         if (deprecated != null) {
           LOGGER.warn("{}.{} = {} is deprecated!", configPath, configPropName, value);
         }
-      } catch (NoSuchFieldException e) {
+      } catch (final NoSuchFieldException e) {
       }
       return enumValue;
     } else {
@@ -421,25 +420,25 @@ public class ConfigMapper {
   }
 
   protected Map getMapValue(
-      Class<?> beanClass,
-      Type parameterType,
-      Class<?> parameterClass,
-      Config config,
-      String configPath,
-      String configPropName) {
-    Type[] typeArgs = ((ParameterizedType) parameterType).getActualTypeArguments();
-    Type keyType = typeArgs[0];
-    Type valueType = typeArgs[1];
+      final Class<?> beanClass,
+      final Type parameterType,
+      final Class<?> parameterClass,
+      final Config config,
+      final String configPath,
+      final String configPropName) {
+    final Type[] typeArgs = ((ParameterizedType) parameterType).getActualTypeArguments();
+    final Type keyType = typeArgs[0];
+    final Type valueType = typeArgs[1];
 
-    Map<Object, Object> map = new HashMap<>();
-    Config childConfig = config.getConfig(configPropName);
-    Class valueClass =
+    final Map<Object, Object> map = new HashMap<>();
+    final Config childConfig = config.getConfig(configPropName);
+    final Class valueClass =
         (Class)
             (valueType instanceof ParameterizedType
                 ? ((ParameterizedType) valueType).getRawType()
                 : valueType);
-    for (String key : config.getObject(configPropName).unwrapped().keySet()) {
-      Object value =
+    for (final String key : config.getObject(configPropName).unwrapped().keySet()) {
+      final Object value =
           getValue(
               Map.class,
               valueType,
@@ -452,7 +451,7 @@ public class ConfigMapper {
     return map;
   }
 
-  protected Object getKeyValue(Type keyType, String key) {
+  protected Object getKeyValue(final Type keyType, final String key) {
     if (keyType == Boolean.class || keyType == boolean.class) {
       return Boolean.parseBoolean(key);
     } else if (keyType == Integer.class || keyType == int.class) {
@@ -469,12 +468,12 @@ public class ConfigMapper {
   }
 
   protected Object getSetValue(
-      Class<?> beanClass,
-      Type parameterType,
-      Class<?> parameterClass,
-      Config config,
-      String configPath,
-      String configPropName) {
+      final Class<?> beanClass,
+      final Type parameterType,
+      final Class<?> parameterClass,
+      final Config config,
+      final String configPath,
+      final String configPropName) {
     return new HashSet(
         (List)
             getListValue(
@@ -482,12 +481,12 @@ public class ConfigMapper {
   }
 
   protected Object getListValue(
-      Class<?> beanClass,
-      Type parameterType,
-      Class<?> parameterClass,
-      Config config,
-      String configPath,
-      String configPropName) {
+      final Class<?> beanClass,
+      final Type parameterType,
+      final Class<?> parameterClass,
+      final Config config,
+      final String configPath,
+      final String configPropName) {
     Type elementType = ((ParameterizedType) parameterType).getActualTypeArguments()[0];
     if (elementType instanceof ParameterizedType) {
       elementType = ((ParameterizedType) elementType).getRawType();
@@ -496,7 +495,7 @@ public class ConfigMapper {
     if (elementType == Boolean.class) {
       try {
         return config.getBooleanList(configPropName);
-      } catch (ConfigException.WrongType e) {
+      } catch (final ConfigException.WrongType e) {
         return config.getStringList(configPropName).stream()
             .map(Boolean::parseBoolean)
             .collect(Collectors.toList());
@@ -504,7 +503,7 @@ public class ConfigMapper {
     } else if (elementType == Integer.class) {
       try {
         return config.getIntList(configPropName);
-      } catch (ConfigException.WrongType e) {
+      } catch (final ConfigException.WrongType e) {
         return config.getStringList(configPropName).stream()
             .map(
                 value -> {
@@ -519,7 +518,7 @@ public class ConfigMapper {
     } else if (elementType == Double.class) {
       try {
         return config.getDoubleList(configPropName);
-      } catch (ConfigException.WrongType e) {
+      } catch (final ConfigException.WrongType e) {
         return config.getStringList(configPropName).stream()
             .map(
                 value -> {
@@ -534,7 +533,7 @@ public class ConfigMapper {
     } else if (elementType == Long.class) {
       try {
         return config.getLongList(configPropName);
-      } catch (ConfigException.WrongType e) {
+      } catch (final ConfigException.WrongType e) {
         return config.getStringList(configPropName).stream()
             .map(
                 value -> {
@@ -551,7 +550,7 @@ public class ConfigMapper {
     } else if (elementType == Duration.class) {
       return config.getDurationList(configPropName);
     } else if (elementType == MemorySize.class) {
-      List<ConfigMemorySize> sizes = config.getMemorySizeList(configPropName);
+      final List<ConfigMemorySize> sizes = config.getMemorySizeList(configPropName);
       return sizes.stream()
           .map(size -> new MemorySize(size.toBytes()))
           .collect(Collectors.toList());
@@ -569,14 +568,13 @@ public class ConfigMapper {
     } else if (elementType == Object.class) {
       return config.getAnyRefList(configPropName);
     } else if (((Class<?>) elementType).isEnum()) {
-      @SuppressWarnings("unchecked")
-      List<Enum> enumValues = config.getEnumList((Class<Enum>) elementType, configPropName);
+      @SuppressWarnings("unchecked") final List<Enum> enumValues = config.getEnumList((Class<Enum>) elementType, configPropName);
       return enumValues;
     } else {
-      List<Object> beanList = new ArrayList<>();
-      List<? extends Config> configList = config.getConfigList(configPropName);
-      int i = 0;
-      for (Config listMember : configList) {
+      final List<Object> beanList = new ArrayList<>();
+      final List<? extends Config> configList = config.getConfigList(configPropName);
+      final int i = 0;
+      for (final Config listMember : configList) {
         beanList.add(
             map(
                 listMember,
@@ -588,11 +586,11 @@ public class ConfigMapper {
     }
   }
 
-  protected String toPath(String path, String name) {
+  protected String toPath(final String path, final String name) {
     return path != null ? String.format("%s.%s", path, name) : name;
   }
 
-  protected static boolean isSimpleType(Class<?> parameterClass) {
+  protected static boolean isSimpleType(final Class<?> parameterClass) {
     return parameterClass == Boolean.class
         || parameterClass == boolean.class
         || parameterClass == Integer.class
@@ -609,12 +607,12 @@ public class ConfigMapper {
         || parameterClass == Class.class;
   }
 
-  protected static String toCamelCase(String originalName) {
-    String[] words = originalName.split("-+");
+  protected static String toCamelCase(final String originalName) {
+    final String[] words = originalName.split("-+");
     if (words.length > 1) {
       LOGGER.warn("Kebab case config name '" + originalName + "' is deprecated!");
-      StringBuilder nameBuilder = new StringBuilder(originalName.length());
-      for (String word : words) {
+      final StringBuilder nameBuilder = new StringBuilder(originalName.length());
+      for (final String word : words) {
         if (nameBuilder.length() == 0) {
           nameBuilder.append(word);
         } else {
@@ -627,13 +625,13 @@ public class ConfigMapper {
     return originalName;
   }
 
-  protected static String toSetterName(String name) {
+  protected static String toSetterName(final String name) {
     return "set" + name.substring(0, 1).toUpperCase() + name.substring(1);
   }
 
-  protected static Collection<SetterDescriptor> getSetterDescriptors(Class<?> clazz) {
-    Map<String, SetterDescriptor> descriptors = Maps.newHashMap();
-    for (Method method : clazz.getMethods()) {
+  protected static Collection<SetterDescriptor> getSetterDescriptors(final Class<?> clazz) {
+    final Map<String, SetterDescriptor> descriptors = Maps.newHashMap();
+    for (final Method method : clazz.getMethods()) {
       String name = method.getName();
       if (method.getParameterTypes().length == 1
           && name.length() > 3
@@ -656,9 +654,9 @@ public class ConfigMapper {
         // If a setter with this property name has already been registered, determine whether to
         // override it.
         // We favor simpler types over more complex types (i.e. beans).
-        SetterDescriptor descriptor = descriptors.get(name);
+        final SetterDescriptor descriptor = descriptors.get(name);
         if (descriptor != null) {
-          Class<?> type = method.getParameterTypes()[0];
+          final Class<?> type = method.getParameterTypes()[0];
           if (isSimpleType(type)) {
             descriptors.put(name, new SetterDescriptor(name, method));
           }
@@ -670,18 +668,18 @@ public class ConfigMapper {
     return descriptors.values();
   }
 
-  protected static Collection<FieldDescriptor> getFieldDescriptors(Class<?> type) {
+  protected static Collection<FieldDescriptor> getFieldDescriptors(final Class<?> type) {
     Class<?> clazz = type;
-    Map<String, FieldDescriptor> descriptors = Maps.newHashMap();
+    final Map<String, FieldDescriptor> descriptors = Maps.newHashMap();
     while (clazz != Object.class) {
-      for (Field field : clazz.getDeclaredFields()) {
+      for (final Field field : clazz.getDeclaredFields()) {
         // If the field is static or transient, ignore it.
         if (Modifier.isTransient(field.getModifiers()) || Modifier.isStatic(field.getModifiers())) {
           continue;
         }
 
         // If the field has a setter, ignore it and use the setter.
-        Method method =
+        final Method method =
             Stream.of(clazz.getMethods())
                 .filter(m -> m.getName().equals(toSetterName(field.getName())))
                 .findFirst()
@@ -707,7 +705,7 @@ public class ConfigMapper {
     private final Method setter;
     private final boolean deprecated;
 
-    SetterDescriptor(String name, Method setter) {
+    SetterDescriptor(final String name, final Method setter) {
       this.name = name;
       this.setter = setter;
       this.deprecated = setter.getAnnotation(Deprecated.class) != null;
@@ -719,7 +717,7 @@ public class ConfigMapper {
     private final Field field;
     private final boolean deprecated;
 
-    FieldDescriptor(String name, Field field) {
+    FieldDescriptor(final String name, final Field field) {
       this.name = name;
       this.field = field;
       this.deprecated = field.getAnnotation(Deprecated.class) != null;

@@ -27,7 +27,7 @@ import io.atomix.raft.cluster.RaftMember;
  */
 public class JoinRequest extends ConfigurationRequest {
 
-  public JoinRequest(RaftMember member) {
+  public JoinRequest(final RaftMember member) {
     super(member);
   }
 

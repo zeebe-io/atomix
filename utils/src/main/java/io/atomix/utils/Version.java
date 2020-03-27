@@ -31,8 +31,8 @@ public final class Version implements Comparable<Version> {
    * @return the version object
    * @throws IllegalArgumentException if the version string is invalid
    */
-  public static Version from(String version) {
-    String[] fields = version.split("[.-]", 4);
+  public static Version from(final String version) {
+    final String[] fields = version.split("[.-]", 4);
     checkArgument(fields.length >= 3, "version number is invalid");
     return new Version(
         parseInt(fields[0]),
@@ -50,7 +50,7 @@ public final class Version implements Comparable<Version> {
    * @param build the build version number
    * @return the version object
    */
-  public static Version from(int major, int minor, int patch, String build) {
+  public static Version from(final int major, final int minor, final int patch, final String build) {
     return new Version(major, minor, patch, build);
   }
 
@@ -59,7 +59,7 @@ public final class Version implements Comparable<Version> {
   private final int patch;
   private final String build;
 
-  private Version(int major, int minor, int patch, String build) {
+  private Version(final int major, final int minor, final int patch, final String build) {
     checkArgument(major >= 0, "major version must be >= 0");
     checkArgument(minor >= 0, "minor version must be >= 0");
     checkArgument(patch >= 0, "patch version must be >= 0");
@@ -106,7 +106,7 @@ public final class Version implements Comparable<Version> {
   }
 
   @Override
-  public int compareTo(Version that) {
+  public int compareTo(final Version that) {
     return ComparisonChain.start()
         .compare(this.major, that.major)
         .compare(this.minor, that.minor)
@@ -121,12 +121,12 @@ public final class Version implements Comparable<Version> {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (!(object instanceof Version)) {
       return false;
     }
 
-    Version that = (Version) object;
+    final Version that = (Version) object;
     return this.major == that.major
         && this.minor == that.minor
         && this.patch == that.patch
@@ -135,9 +135,9 @@ public final class Version implements Comparable<Version> {
 
   @Override
   public String toString() {
-    StringBuilder builder =
+    final StringBuilder builder =
         new StringBuilder().append(major).append('.').append(minor).append('.').append(patch);
-    String build = Build.from(this.build).toString();
+    final String build = Build.from(this.build).toString();
     if (build != null) {
       builder.append('-').append(build);
     }
@@ -154,21 +154,21 @@ public final class Version implements Comparable<Version> {
      * @return the build version
      * @throws IllegalArgumentException if the build version string is invalid
      */
-    public static Build from(String build) {
+    public static Build from(final String build) {
       if (build == null) {
         return new Build(Type.FINAL, 0);
       } else if (build.equalsIgnoreCase(Type.SNAPSHOT.name())) {
         return new Build(Type.SNAPSHOT, 0);
       }
 
-      for (Type type : Type.values()) {
+      for (final Type type : Type.values()) {
         if (type.name != null
             && build.length() >= type.name.length()
             && build.substring(0, type.name.length()).equalsIgnoreCase(type.name)) {
           try {
-            int version = parseInt(build.substring(type.name.length()));
+            final int version = parseInt(build.substring(type.name.length()));
             return new Build(type, version);
-          } catch (NumberFormatException e) {
+          } catch (final NumberFormatException e) {
             throw new IllegalArgumentException(build + " is not a valid build version string");
           }
         }
@@ -179,13 +179,13 @@ public final class Version implements Comparable<Version> {
     private final Type type;
     private final int version;
 
-    private Build(Type type, int version) {
+    private Build(final Type type, final int version) {
       this.type = type;
       this.version = version;
     }
 
     @Override
-    public int compareTo(Build that) {
+    public int compareTo(final Build that) {
       return ComparisonChain.start()
           .compare(this.type.ordinal(), that.type.ordinal())
           .compare(this.version, that.version)
@@ -198,11 +198,11 @@ public final class Version implements Comparable<Version> {
     }
 
     @Override
-    public boolean equals(Object object) {
+    public boolean equals(final Object object) {
       if (!(object instanceof Build)) {
         return false;
       }
-      Build that = (Build) object;
+      final Build that = (Build) object;
       return Objects.equals(this.type, that.type) && this.version == that.version;
     }
 
@@ -221,11 +221,11 @@ public final class Version implements Comparable<Version> {
 
       private final String name;
 
-      Type(String name) {
+      Type(final String name) {
         this.name = name;
       }
 
-      String format(int version) {
+      String format(final int version) {
         if (name == null) {
           return null;
         } else if (name.equals("snapshot")) {

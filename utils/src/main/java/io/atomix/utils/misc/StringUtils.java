@@ -31,13 +31,13 @@ public final class StringUtils {
    * @param input the string to split.
    * @return the array of strings computed by splitting this string
    */
-  public static String[] split(String input, String regex) {
+  public static String[] split(final String input, final String regex) {
     if (input == null) {
       return null;
     }
-    String[] arr = input.split(regex);
-    List<String> results = new ArrayList<>(arr.length);
-    for (String a : arr) {
+    final String[] arr = input.split(regex);
+    final List<String> results = new ArrayList<>(arr.length);
+    for (final String a : arr) {
       if (!a.trim().isEmpty()) {
         results.add(a);
       }

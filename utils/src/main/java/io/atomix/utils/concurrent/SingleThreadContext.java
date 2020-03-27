@@ -50,10 +50,10 @@ public class SingleThreadContext extends AbstractThreadContext {
   private final Executor wrappedExecutor =
       new Executor() {
         @Override
-        public void execute(Runnable command) {
+        public void execute(final Runnable command) {
           try {
             executor.execute(() -> command.run());
-          } catch (RejectedExecutionException e) {
+          } catch (final RejectedExecutionException e) {
           }
         }
       };
@@ -66,7 +66,7 @@ public class SingleThreadContext extends AbstractThreadContext {
    *
    * @param nameFormat The context nameFormat which will be formatted with a thread number.
    */
-  public SingleThreadContext(String nameFormat) {
+  public SingleThreadContext(final String nameFormat) {
     this(namedThreads(nameFormat, LOGGER));
   }
 
@@ -79,7 +79,7 @@ public class SingleThreadContext extends AbstractThreadContext {
    * @param nameFormat The context nameFormat which will be formatted with a thread number.
    * @param uncaughtExceptionObserver A consumer to observe exceptions thrown by submitted tasks
    */
-  public SingleThreadContext(String nameFormat, Consumer<Throwable> uncaughtExceptionObserver) {
+  public SingleThreadContext(final String nameFormat, final Consumer<Throwable> uncaughtExceptionObserver) {
     this(namedThreads(nameFormat, LOGGER), uncaughtExceptionObserver);
   }
 
@@ -88,7 +88,7 @@ public class SingleThreadContext extends AbstractThreadContext {
    *
    * @param factory The thread factory.
    */
-  public SingleThreadContext(ThreadFactory factory) {
+  public SingleThreadContext(final ThreadFactory factory) {
     this(new ScheduledThreadPoolExecutor(1, factory), DEFAULT_UNCAUGHT_EXCEPTION_OBSERVER);
   }
 
@@ -98,7 +98,7 @@ public class SingleThreadContext extends AbstractThreadContext {
    * @param factory The thread factory.
    * @param uncaughtExceptionObserver A consumer to observe exceptions thrown by submitted tasks.
    */
-  public SingleThreadContext(ThreadFactory factory, Consumer<Throwable> uncaughtExceptionObserver) {
+  public SingleThreadContext(final ThreadFactory factory, final Consumer<Throwable> uncaughtExceptionObserver) {
     this(new ScheduledThreadPoolExecutor(1, factory), uncaughtExceptionObserver);
   }
 
@@ -110,14 +110,14 @@ public class SingleThreadContext extends AbstractThreadContext {
    * @param uncaughtExceptionObserver A consumer to observe exceptions thrown by submitted tasks.
    */
   protected SingleThreadContext(
-      ScheduledExecutorService executor, Consumer<Throwable> uncaughtExceptionObserver) {
+      final ScheduledExecutorService executor, final Consumer<Throwable> uncaughtExceptionObserver) {
     this(getThread(executor), executor, uncaughtExceptionObserver);
   }
 
   private SingleThreadContext(
-      Thread thread,
-      ScheduledExecutorService executor,
-      Consumer<Throwable> uncaughtExceptionObserver) {
+      final Thread thread,
+      final ScheduledExecutorService executor,
+      final Consumer<Throwable> uncaughtExceptionObserver) {
     this.executor = executor;
     this.uncaughtExceptionObserver = uncaughtExceptionObserver;
     checkState(thread instanceof AtomixThread, "not a Catalyst thread");
@@ -125,7 +125,7 @@ public class SingleThreadContext extends AbstractThreadContext {
   }
 
   /** Gets the thread from a single threaded executor service. */
-  protected static AtomixThread getThread(ExecutorService executor) {
+  protected static AtomixThread getThread(final ExecutorService executor) {
     final AtomicReference<AtomixThread> thread = new AtomicReference<>();
     try {
       executor
@@ -134,27 +134,27 @@ public class SingleThreadContext extends AbstractThreadContext {
                 thread.set((AtomixThread) Thread.currentThread());
               })
           .get();
-    } catch (InterruptedException | ExecutionException e) {
+    } catch (final InterruptedException | ExecutionException e) {
       throw new IllegalStateException("failed to initialize thread state", e);
     }
     return thread.get();
   }
 
   @Override
-  public void execute(Runnable command) {
+  public void execute(final Runnable command) {
     wrappedExecutor.execute(new WrappedRunnable(command));
   }
 
   @Override
-  public Scheduled schedule(Duration delay, Runnable runnable) {
-    ScheduledFuture<?> future =
+  public Scheduled schedule(final Duration delay, final Runnable runnable) {
+    final ScheduledFuture<?> future =
         executor.schedule(new WrappedRunnable(runnable), delay.toMillis(), TimeUnit.MILLISECONDS);
     return new ScheduledFutureImpl<>(future);
   }
 
   @Override
-  public Scheduled schedule(Duration delay, Duration interval, Runnable runnable) {
-    ScheduledFuture<?> future =
+  public Scheduled schedule(final Duration delay, final Duration interval, final Runnable runnable) {
+    final ScheduledFuture<?> future =
         executor.scheduleAtFixedRate(
             new WrappedRunnable(runnable),
             delay.toMillis(),
@@ -172,7 +172,7 @@ public class SingleThreadContext extends AbstractThreadContext {
 
     private final Runnable command;
 
-    WrappedRunnable(Runnable command) {
+    WrappedRunnable(final Runnable command) {
       this.command = command;
     }
 
@@ -180,9 +180,9 @@ public class SingleThreadContext extends AbstractThreadContext {
     public void run() {
       try {
         command.run();
-      } catch (Exception e) {
+      } catch (final Exception e) {
         uncaughtExceptionObserver.accept(e);
-      } catch (Throwable e) {
+      } catch (final Throwable e) {
         // If we don't handle throwable here, it will be swallowed by ScheduledThreadPoolExecutor
         uncaughtExceptionObserver.accept(e);
         throw e; // rethrow so that the ScheduledFuture is completed exceptionally

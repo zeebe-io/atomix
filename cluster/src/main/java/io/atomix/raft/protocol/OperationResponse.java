@@ -39,12 +39,12 @@ public abstract class OperationResponse extends SessionResponse {
   protected final long lastSequence;
 
   public OperationResponse(
-      Status status,
-      RaftError error,
-      long index,
-      long eventIndex,
-      byte[] result,
-      long lastSequence) {
+      final Status status,
+      final RaftError error,
+      final long index,
+      final long eventIndex,
+      final byte[] result,
+      final long lastSequence) {
     super(status, error);
     this.index = index;
     this.eventIndex = eventIndex;
@@ -96,7 +96,7 @@ public abstract class OperationResponse extends SessionResponse {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (this == object) {
       return true;
     }
@@ -148,7 +148,7 @@ public abstract class OperationResponse extends SessionResponse {
      * @throws IllegalArgumentException If the response index is not positive.
      */
     @SuppressWarnings("unchecked")
-    public T withIndex(long index) {
+    public T withIndex(final long index) {
       checkArgument(index >= 0, "index must be positive");
       this.index = index;
       return (T) this;
@@ -162,7 +162,7 @@ public abstract class OperationResponse extends SessionResponse {
      * @throws IllegalArgumentException If the response index is not positive.
      */
     @SuppressWarnings("unchecked")
-    public T withEventIndex(long eventIndex) {
+    public T withEventIndex(final long eventIndex) {
       checkArgument(eventIndex >= 0, "eventIndex must be positive");
       this.eventIndex = eventIndex;
       return (T) this;
@@ -176,7 +176,7 @@ public abstract class OperationResponse extends SessionResponse {
      * @throws NullPointerException if {@code result} is null
      */
     @SuppressWarnings("unchecked")
-    public T withResult(byte[] result) {
+    public T withResult(final byte[] result) {
       this.result = result;
       return (T) this;
     }
@@ -188,7 +188,7 @@ public abstract class OperationResponse extends SessionResponse {
      * @return The command response builder.
      */
     @SuppressWarnings("unchecked")
-    public T withLastSequence(long lastSequence) {
+    public T withLastSequence(final long lastSequence) {
       checkArgument(lastSequence >= 0, "lastSequence must be positive");
       this.lastSequence = lastSequence;
       return (T) this;

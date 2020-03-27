@@ -18,7 +18,7 @@ public class TestPrimitiveServiceImpl extends AbstractPrimitiveService<TestPrimi
   private SessionId expire;
   private SessionId close;
 
-  public TestPrimitiveServiceImpl(ServiceConfig config) {
+  public TestPrimitiveServiceImpl(final ServiceConfig config) {
     super(TestPrimitiveType.INSTANCE, TestPrimitiveClient.class);
   }
 
@@ -28,32 +28,32 @@ public class TestPrimitiveServiceImpl extends AbstractPrimitiveService<TestPrimi
   }
 
   @Override
-  public void onExpire(Session session) {
+  public void onExpire(final Session session) {
     if (expire != null) {
       getSession(expire).accept(client -> client.expire("Hello world!"));
     }
   }
 
   @Override
-  public void onClose(Session session) {
+  public void onClose(final Session session) {
     if (close != null && !session.sessionId().equals(close)) {
       getSession(close).accept(client -> client.close("Hello world!"));
     }
   }
 
   @Override
-  public void backup(BackupOutput writer) {
+  public void backup(final BackupOutput writer) {
     RaftTest.snapshots.incrementAndGet();
     writer.writeLong(10);
   }
 
   @Override
-  public void restore(BackupInput reader) {
+  public void restore(final BackupInput reader) {
     assertEquals(10, reader.readLong());
   }
 
   @Override
-  public long write(String value) {
+  public long write(final String value) {
     return getCurrentIndex();
   }
 
@@ -63,11 +63,11 @@ public class TestPrimitiveServiceImpl extends AbstractPrimitiveService<TestPrimi
   }
 
   @Override
-  public long sendEvent(boolean sender) {
+  public long sendEvent(final boolean sender) {
     if (sender) {
       getCurrentSession().accept(service -> service.event(getCurrentIndex()));
     } else {
-      for (Session<TestPrimitiveClient> session : getSessions()) {
+      for (final Session<TestPrimitiveClient> session : getSessions()) {
         session.accept(service -> service.event(getCurrentIndex()));
       }
     }

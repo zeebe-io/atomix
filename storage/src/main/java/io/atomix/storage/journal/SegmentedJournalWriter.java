@@ -25,7 +25,7 @@ public class SegmentedJournalWriter<E> implements JournalWriter<E> {
   private JournalSegment<E> currentSegment;
   private MappableJournalSegmentWriter<E> currentWriter;
 
-  public SegmentedJournalWriter(SegmentedJournal<E> journal) {
+  public SegmentedJournalWriter(final SegmentedJournal<E> journal) {
     this.journal = journal;
     journalMetrics = journal.getJournalMetrics();
     this.currentSegment = journal.getLastSegment();
@@ -49,7 +49,7 @@ public class SegmentedJournalWriter<E> implements JournalWriter<E> {
   }
 
   @Override
-  public void reset(long index) {
+  public void reset(final long index) {
     if (index > currentSegment.index()) {
       currentSegment.release();
       currentSegment = journal.resetSegments(index);
@@ -62,7 +62,7 @@ public class SegmentedJournalWriter<E> implements JournalWriter<E> {
   }
 
   @Override
-  public void commit(long index) {
+  public void commit(final long index) {
     if (index > journal.getCommitIndex()) {
       journal.setCommitIndex(index);
       if (journal.isFlushOnCommit()) {
@@ -72,10 +72,10 @@ public class SegmentedJournalWriter<E> implements JournalWriter<E> {
   }
 
   @Override
-  public <T extends E> Indexed<T> append(T entry) {
+  public <T extends E> Indexed<T> append(final T entry) {
     try {
       return currentWriter.append(entry);
-    } catch (BufferOverflowException e) {
+    } catch (final BufferOverflowException e) {
       if (currentSegment.index() == currentWriter.getNextIndex()) {
         throw e;
       }
@@ -87,10 +87,10 @@ public class SegmentedJournalWriter<E> implements JournalWriter<E> {
   }
 
   @Override
-  public void append(Indexed<E> entry) {
+  public void append(final Indexed<E> entry) {
     try {
       currentWriter.append(entry);
-    } catch (BufferOverflowException e) {
+    } catch (final BufferOverflowException e) {
       if (currentSegment.index() == currentWriter.getNextIndex()) {
         throw e;
       }
@@ -109,7 +109,7 @@ public class SegmentedJournalWriter<E> implements JournalWriter<E> {
   }
 
   @Override
-  public void truncate(long index) {
+  public void truncate(final long index) {
     if (index < journal.getCommitIndex()) {
       throw new IndexOutOfBoundsException("Cannot truncate committed index: " + index);
     }

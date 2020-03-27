@@ -49,7 +49,7 @@ public interface UnicastService {
    * @param subject the message subject
    * @param listener the broadcast listener to add
    */
-  default void addListener(String subject, BiConsumer<Address, byte[]> listener) {
+  default void addListener(final String subject, final BiConsumer<Address, byte[]> listener) {
     addListener(subject, listener, MoreExecutors.directExecutor());
   }
 

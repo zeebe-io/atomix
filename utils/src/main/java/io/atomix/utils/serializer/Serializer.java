@@ -34,7 +34,7 @@ public interface Serializer {
    * @param name the serializer name
    * @return a new serializer builder
    */
-  static SerializerBuilder builder(String name) {
+  static SerializerBuilder builder(final String name) {
     return new SerializerBuilder(name);
   }
 
@@ -62,15 +62,15 @@ public interface Serializer {
    * @param namespace serializer namespace
    * @return Serializer instance
    */
-  static Serializer using(Namespace namespace) {
+  static Serializer using(final Namespace namespace) {
     return new Serializer() {
       @Override
-      public <T> byte[] encode(T object) {
+      public <T> byte[] encode(final T object) {
         return namespace.serialize(object);
       }
 
       @Override
-      public <T> T decode(byte[] bytes) {
+      public <T> T decode(final byte[] bytes) {
         return namespace.deserialize(bytes);
       }
     };

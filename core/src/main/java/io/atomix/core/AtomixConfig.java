@@ -56,7 +56,7 @@ public class AtomixConfig implements Config {
    * @param cluster the cluster configuration
    * @return the Atomix configuration
    */
-  public AtomixConfig setClusterConfig(ClusterConfig cluster) {
+  public AtomixConfig setClusterConfig(final ClusterConfig cluster) {
     this.cluster = cluster;
     return this;
   }
@@ -76,7 +76,7 @@ public class AtomixConfig implements Config {
    * @param enableShutdownHook whether to enable the shutdown hook
    * @return the Atomix configuration
    */
-  public AtomixConfig setEnableShutdownHook(boolean enableShutdownHook) {
+  public AtomixConfig setEnableShutdownHook(final boolean enableShutdownHook) {
     this.enableShutdownHook = enableShutdownHook;
     return this;
   }
@@ -96,7 +96,7 @@ public class AtomixConfig implements Config {
    * @param managementGroup the system management partition group
    * @return the Atomix configuration
    */
-  public AtomixConfig setManagementGroup(PartitionGroupConfig<?> managementGroup) {
+  public AtomixConfig setManagementGroup(final PartitionGroupConfig<?> managementGroup) {
     managementGroup.setName(MANAGEMENT_GROUP_NAME);
     this.managementGroup = managementGroup;
     return this;
@@ -117,7 +117,7 @@ public class AtomixConfig implements Config {
    * @param partitionGroups the partition group configurations
    * @return the Atomix configuration
    */
-  public AtomixConfig setPartitionGroups(Map<String, PartitionGroupConfig<?>> partitionGroups) {
+  public AtomixConfig setPartitionGroups(final Map<String, PartitionGroupConfig<?>> partitionGroups) {
     partitionGroups.forEach((name, group) -> group.setName(name));
     this.partitionGroups = partitionGroups;
     return this;
@@ -129,7 +129,7 @@ public class AtomixConfig implements Config {
    * @param partitionGroup the partition group configuration to add
    * @return the Atomix configuration
    */
-  public AtomixConfig addPartitionGroup(PartitionGroupConfig partitionGroup) {
+  public AtomixConfig addPartitionGroup(final PartitionGroupConfig partitionGroup) {
     partitionGroups.put(partitionGroup.getName(), partitionGroup);
     return this;
   }
@@ -149,7 +149,7 @@ public class AtomixConfig implements Config {
    * @param primitiveDefaults the primitive default configurations
    * @return the Atomix configuration
    */
-  public AtomixConfig setPrimitiveDefaults(Map<String, PrimitiveConfig> primitiveDefaults) {
+  public AtomixConfig setPrimitiveDefaults(final Map<String, PrimitiveConfig> primitiveDefaults) {
     this.primitiveDefaults = primitiveDefaults;
     return this;
   }
@@ -162,7 +162,7 @@ public class AtomixConfig implements Config {
    * @return the primitive configuration
    */
   @SuppressWarnings("unchecked")
-  public <C extends PrimitiveConfig<C>> C getPrimitiveDefault(String name) {
+  public <C extends PrimitiveConfig<C>> C getPrimitiveDefault(final String name) {
     return (C) primitiveDefaults.get(name);
   }
 
@@ -181,7 +181,7 @@ public class AtomixConfig implements Config {
    * @param primitives the primitive configurations
    * @return the primitive configuration holder
    */
-  public AtomixConfig setPrimitives(Map<String, PrimitiveConfig> primitives) {
+  public AtomixConfig setPrimitives(final Map<String, PrimitiveConfig> primitives) {
     this.primitives = checkNotNull(primitives);
     return this;
   }
@@ -193,7 +193,7 @@ public class AtomixConfig implements Config {
    * @param config the primitive configuration
    * @return the primitive configuration holder
    */
-  public AtomixConfig addPrimitive(String name, PrimitiveConfig config) {
+  public AtomixConfig addPrimitive(final String name, final PrimitiveConfig config) {
     primitives.put(name, config);
     return this;
   }
@@ -206,7 +206,7 @@ public class AtomixConfig implements Config {
    * @return the primitive configuration
    */
   @SuppressWarnings("unchecked")
-  public <C extends PrimitiveConfig<C>> C getPrimitive(String name) {
+  public <C extends PrimitiveConfig<C>> C getPrimitive(final String name) {
     return (C) primitives.get(name);
   }
 
@@ -225,7 +225,7 @@ public class AtomixConfig implements Config {
    * @param profiles the profiles
    * @return the Atomix configuration
    */
-  public AtomixConfig setProfiles(List<ProfileConfig> profiles) {
+  public AtomixConfig setProfiles(final List<ProfileConfig> profiles) {
     this.profiles = profiles;
     return this;
   }
@@ -236,7 +236,7 @@ public class AtomixConfig implements Config {
    * @param profile the profile to add
    * @return the Atomix configuration
    */
-  public AtomixConfig addProfile(ProfileConfig profile) {
+  public AtomixConfig addProfile(final ProfileConfig profile) {
     profiles.add(checkNotNull(profile, "profile cannot be null"));
     return this;
   }
@@ -257,7 +257,7 @@ public class AtomixConfig implements Config {
    *     types
    * @return the Atomix configuration
    */
-  public AtomixConfig setTypeRegistrationRequired(boolean typeRegistrationRequired) {
+  public AtomixConfig setTypeRegistrationRequired(final boolean typeRegistrationRequired) {
     this.typeRegistrationRequired = typeRegistrationRequired;
     return this;
   }
@@ -277,7 +277,7 @@ public class AtomixConfig implements Config {
    * @param compatibleSerialization whether compatible serialization is enabled for user types
    * @return the Atomix configuration
    */
-  public AtomixConfig setCompatibleSerialization(boolean compatibleSerialization) {
+  public AtomixConfig setCompatibleSerialization(final boolean compatibleSerialization) {
     this.compatibleSerialization = compatibleSerialization;
     return this;
   }

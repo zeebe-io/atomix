@@ -42,7 +42,7 @@ public class Member extends Node {
    * @return the member builder
    * @throws NullPointerException if the member ID is null
    */
-  public static MemberBuilder builder(String memberId) {
+  public static MemberBuilder builder(final String memberId) {
     return builder(MemberId.from(memberId));
   }
 
@@ -53,7 +53,7 @@ public class Member extends Node {
    * @return the member builder
    * @throws NullPointerException if the member ID is null
    */
-  public static MemberBuilder builder(MemberId memberId) {
+  public static MemberBuilder builder(final MemberId memberId) {
     return builder().withId(memberId);
   }
 
@@ -63,7 +63,7 @@ public class Member extends Node {
    * @param address the member address
    * @return the member
    */
-  public static Member member(String address) {
+  public static Member member(final String address) {
     return member(Address.from(address));
   }
 
@@ -74,7 +74,7 @@ public class Member extends Node {
    * @param address the member address
    * @return the member
    */
-  public static Member member(String name, String address) {
+  public static Member member(final String name, final String address) {
     return member(MemberId.from(name), Address.from(address));
   }
 
@@ -84,7 +84,7 @@ public class Member extends Node {
    * @param address the member address
    * @return the member
    */
-  public static Member member(Address address) {
+  public static Member member(final Address address) {
     return builder().withAddress(address).build();
   }
 
@@ -95,7 +95,7 @@ public class Member extends Node {
    * @param address the member address
    * @return the member
    */
-  public static Member member(MemberId memberId, Address address) {
+  public static Member member(final MemberId memberId, final Address address) {
     return builder(memberId).withAddress(address).build();
   }
 
@@ -105,7 +105,7 @@ public class Member extends Node {
   private final String host;
   private final Properties properties;
 
-  public Member(MemberConfig config) {
+  public Member(final MemberConfig config) {
     super(config);
     this.id = config.getId();
     this.zone = config.getZoneId();
@@ -115,12 +115,12 @@ public class Member extends Node {
     properties.putAll(config.getProperties());
   }
 
-  protected Member(MemberId id, Address address) {
+  protected Member(final MemberId id, final Address address) {
     this(id, address, null, null, null, new Properties());
   }
 
   protected Member(
-      MemberId id, Address address, String zone, String rack, String host, Properties properties) {
+      final MemberId id, final Address address, final String zone, final String rack, final String host, final Properties properties) {
     super(id, address);
     this.id = checkNotNull(id, "id cannot be null");
     this.zone = zone;
@@ -223,9 +223,9 @@ public class Member extends Node {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof Member) {
-      Member member = (Member) object;
+      final Member member = (Member) object;
       return member.id().equals(id())
           && member.address().equals(address())
           && Objects.equals(member.zone(), zone())

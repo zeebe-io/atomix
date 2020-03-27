@@ -29,7 +29,7 @@ public interface Profile extends Configured<ProfileConfig> {
    * @param members the consensus members
    * @return the consensus profile
    */
-  static Profile consensus(String... members) {
+  static Profile consensus(final String... members) {
     return new ConsensusProfile(members);
   }
 
@@ -39,7 +39,7 @@ public interface Profile extends Configured<ProfileConfig> {
    * @param members the consensus members
    * @return the consensus profile
    */
-  static Profile consensus(Collection<String> members) {
+  static Profile consensus(final Collection<String> members) {
     return new ConsensusProfile(members);
   }
 

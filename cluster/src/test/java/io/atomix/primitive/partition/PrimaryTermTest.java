@@ -29,7 +29,7 @@ import org.junit.Test;
 public class PrimaryTermTest {
   @Test
   public void testEmptyTerm() throws Exception {
-    PrimaryTerm term = new PrimaryTerm(1, null, Collections.emptyList());
+    final PrimaryTerm term = new PrimaryTerm(1, null, Collections.emptyList());
     assertNull(term.primary());
     assertTrue(term.candidates().isEmpty());
     assertTrue(term.backups(0).isEmpty());
@@ -39,8 +39,8 @@ public class PrimaryTermTest {
 
   @Test
   public void testPrimaryTerm() throws Exception {
-    GroupMember primary = new GroupMember(MemberId.from("1"), MemberGroupId.from("1"));
-    List<GroupMember> candidates =
+    final GroupMember primary = new GroupMember(MemberId.from("1"), MemberGroupId.from("1"));
+    final List<GroupMember> candidates =
         Arrays.asList(
             new GroupMember(MemberId.from("1"), MemberGroupId.from("1")),
             new GroupMember(MemberId.from("2"), MemberGroupId.from("2")),
@@ -48,7 +48,7 @@ public class PrimaryTermTest {
             new GroupMember(MemberId.from("4"), MemberGroupId.from("3")),
             new GroupMember(MemberId.from("5"), MemberGroupId.from("3")));
 
-    PrimaryTerm term = new PrimaryTerm(1, primary, candidates);
+    final PrimaryTerm term = new PrimaryTerm(1, primary, candidates);
     assertEquals(primary, term.primary());
     assertEquals(candidates, term.candidates());
 

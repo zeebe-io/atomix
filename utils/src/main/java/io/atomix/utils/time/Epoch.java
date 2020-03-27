@@ -29,7 +29,7 @@ public class Epoch extends LogicalTimestamp {
    * @param value the logical time for which to create a new logical timestamp
    * @return the logical timestamp
    */
-  public static Epoch of(long value) {
+  public static Epoch of(final long value) {
     return new Epoch(value);
   }
 
@@ -38,7 +38,7 @@ public class Epoch extends LogicalTimestamp {
    *
    * @param value the epoch value
    */
-  public Epoch(long value) {
+  public Epoch(final long value) {
     super(value);
   }
 }

@@ -28,7 +28,7 @@ public final class PartitionGroupMembership {
   private final boolean system;
 
   public PartitionGroupMembership(
-      String group, PartitionGroupConfig config, Set<MemberId> members, boolean system) {
+      final String group, final PartitionGroupConfig config, final Set<MemberId> members, final boolean system) {
     this.group = group;
     this.config = config;
     this.members = members;

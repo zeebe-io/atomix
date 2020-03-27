@@ -30,19 +30,19 @@ public class TestProtocolSession<C> extends AbstractSession<C> {
   private volatile State state = State.CLOSED;
 
   public TestProtocolSession(
-      SessionId sessionId,
-      String primitiveName,
-      PrimitiveType primitiveType,
-      MemberId memberId,
-      Serializer serializer,
-      TestSessionClient client,
-      ThreadContext context) {
+      final SessionId sessionId,
+      final String primitiveName,
+      final PrimitiveType primitiveType,
+      final MemberId memberId,
+      final Serializer serializer,
+      final TestSessionClient client,
+      final ThreadContext context) {
     super(sessionId, primitiveName, primitiveType, memberId, serializer);
     this.client = client;
     this.context = context;
   }
 
-  void setState(State state) {
+  void setState(final State state) {
     this.state = state;
   }
 
@@ -52,7 +52,7 @@ public class TestProtocolSession<C> extends AbstractSession<C> {
   }
 
   @Override
-  public void publish(PrimitiveEvent event) {
+  public void publish(final PrimitiveEvent event) {
     context.execute(() -> client.accept(event));
   }
 }

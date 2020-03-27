@@ -33,7 +33,7 @@ import java.lang.ref.WeakReference;
 public class AtomixThread extends Thread {
   private WeakReference<ThreadContext> context;
 
-  public AtomixThread(Runnable target) {
+  public AtomixThread(final Runnable target) {
     super(target);
   }
 
@@ -42,7 +42,7 @@ public class AtomixThread extends Thread {
    *
    * @param context The thread context.
    */
-  public void setContext(ThreadContext context) {
+  public void setContext(final ThreadContext context) {
     this.context = new WeakReference<>(context);
   }
 

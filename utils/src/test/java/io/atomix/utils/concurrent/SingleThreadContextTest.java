@@ -20,7 +20,7 @@ public class SingleThreadContextTest {
   @Test
   public void shouldInvokeHandlerOnException() throws InterruptedException {
     // given
-    CountDownLatch latch = new CountDownLatch(1);
+    final CountDownLatch latch = new CountDownLatch(1);
     exceptionHandler = e -> latch.countDown();
 
     // when

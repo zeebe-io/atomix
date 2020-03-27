@@ -33,12 +33,12 @@ public abstract class ConfigurationResponse extends AbstractRaftResponse {
   protected final Collection<RaftMember> members;
 
   public ConfigurationResponse(
-      Status status,
-      RaftError error,
-      long index,
-      long term,
-      long timestamp,
-      Collection<RaftMember> members) {
+      final Status status,
+      final RaftError error,
+      final long index,
+      final long term,
+      final long timestamp,
+      final Collection<RaftMember> members) {
     super(status, error);
     this.index = index;
     this.term = term;
@@ -88,7 +88,7 @@ public abstract class ConfigurationResponse extends AbstractRaftResponse {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (this == object) {
       return true;
     }
@@ -136,7 +136,7 @@ public abstract class ConfigurationResponse extends AbstractRaftResponse {
      * @throws IllegalArgumentException if {@code index} is negative
      */
     @SuppressWarnings("unchecked")
-    public T withIndex(long index) {
+    public T withIndex(final long index) {
       checkArgument(index >= 0, "index must be positive");
       this.index = index;
       return (T) this;
@@ -150,7 +150,7 @@ public abstract class ConfigurationResponse extends AbstractRaftResponse {
      * @throws IllegalArgumentException if {@code term} is negative
      */
     @SuppressWarnings("unchecked")
-    public T withTerm(long term) {
+    public T withTerm(final long term) {
       checkArgument(term >= 0, "term must be positive");
       this.term = term;
       return (T) this;
@@ -164,7 +164,7 @@ public abstract class ConfigurationResponse extends AbstractRaftResponse {
      * @throws IllegalArgumentException if {@code time} is negative
      */
     @SuppressWarnings("unchecked")
-    public T withTime(long time) {
+    public T withTime(final long time) {
       checkArgument(time > 0, "time must be positive");
       this.timestamp = time;
       return (T) this;
@@ -178,7 +178,7 @@ public abstract class ConfigurationResponse extends AbstractRaftResponse {
      * @throws NullPointerException if {@code members} is null
      */
     @SuppressWarnings("unchecked")
-    public T withMembers(Collection<RaftMember> members) {
+    public T withMembers(final Collection<RaftMember> members) {
       this.members = checkNotNull(members, "members cannot be null");
       return (T) this;
     }

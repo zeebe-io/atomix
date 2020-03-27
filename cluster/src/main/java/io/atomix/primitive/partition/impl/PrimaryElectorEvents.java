@@ -31,7 +31,7 @@ public enum PrimaryElectorEvents implements EventType {
 
   private final String id;
 
-  PrimaryElectorEvents(String id) {
+  PrimaryElectorEvents(final String id) {
     this.id = id;
   }
 

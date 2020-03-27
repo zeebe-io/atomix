@@ -70,7 +70,7 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
   private volatile Scheduled leaveTimeout;
   private volatile CompletableFuture<Void> leaveFuture;
 
-  public RaftClusterContext(MemberId localMemberId, RaftContext raft) {
+  public RaftClusterContext(final MemberId localMemberId, final RaftContext raft) {
     final Instant time = Instant.now();
     this.member =
         new DefaultRaftMember(localMemberId, RaftMember.Type.PASSIVE, time).setCluster(this);
@@ -86,7 +86,7 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
     // Iterate through members in the new configuration and add remote members.
     if (configuration != null) {
       final Instant updateTime = Instant.ofEpochMilli(configuration.time());
-      for (RaftMember member : configuration.members()) {
+      for (final RaftMember member : configuration.members()) {
         if (member.equals(this.member)) {
           this.member.setType(member.getType());
           this.members.add(this.member);
@@ -113,17 +113,17 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
   }
 
   @Override
-  public void addLeaderElectionListener(Consumer<RaftMember> callback) {
+  public void addLeaderElectionListener(final Consumer<RaftMember> callback) {
     raft.addLeaderElectionListener(callback);
   }
 
   @Override
-  public void removeLeaderElectionListener(Consumer<RaftMember> listener) {
+  public void removeLeaderElectionListener(final Consumer<RaftMember> listener) {
     raft.removeLeaderElectionListener(listener);
   }
 
   @Override
-  public DefaultRaftMember getMember(MemberId id) {
+  public DefaultRaftMember getMember(final MemberId id) {
     if (member.memberId().equals(id)) {
       return member;
     }
@@ -136,13 +136,13 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
    * @param id The member ID.
    * @return The member.
    */
-  public DefaultRaftMember getRemoteMember(MemberId id) {
+  public DefaultRaftMember getRemoteMember(final MemberId id) {
     final RaftMemberContext member = membersMap.get(id);
     return member != null ? member.getMember() : null;
   }
 
   @Override
-  public CompletableFuture<Void> bootstrap(Collection<MemberId> cluster) {
+  public CompletableFuture<Void> bootstrap(final Collection<MemberId> cluster) {
     if (joinFuture != null) {
       return joinFuture;
     }
@@ -175,7 +175,7 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
   }
 
   @Override
-  public synchronized CompletableFuture<Void> join(Collection<MemberId> cluster) {
+  public synchronized CompletableFuture<Void> join(final Collection<MemberId> cluster) {
     if (joinFuture != null) {
       return joinFuture;
     }
@@ -216,7 +216,7 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
   }
 
   @Override
-  public synchronized CompletableFuture<Void> listen(Collection<MemberId> cluster) {
+  public synchronized CompletableFuture<Void> listen(final Collection<MemberId> cluster) {
     if (joinFuture != null) {
       return joinFuture;
     }
@@ -283,12 +283,12 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
   }
 
   @Override
-  public void addListener(RaftClusterEventListener listener) {
+  public void addListener(final RaftClusterEventListener listener) {
     listeners.add(listener);
   }
 
   @Override
-  public void removeListener(RaftClusterEventListener listener) {
+  public void removeListener(final RaftClusterEventListener listener) {
     listeners.remove(listener);
   }
 
@@ -319,7 +319,7 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
    * @param id The member ID.
    * @return The member state.
    */
-  public RaftMemberContext getMemberState(MemberId id) {
+  public RaftMemberContext getMemberState(final MemberId id) {
     return membersMap.get(id);
   }
 
@@ -329,7 +329,7 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
    * @param comparator A comparator with which to sort the members list.
    * @return The sorted members list.
    */
-  public List<RaftMemberContext> getActiveMemberStates(Comparator<RaftMemberContext> comparator) {
+  public List<RaftMemberContext> getActiveMemberStates(final Comparator<RaftMemberContext> comparator) {
     final List<RaftMemberContext> activeMembers = new ArrayList<>(getActiveMemberStates());
     activeMembers.sort(comparator);
     return activeMembers;
@@ -350,7 +350,7 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
    * @param type The member type.
    * @return A list of member states for the given type.
    */
-  public List<RaftMemberContext> getRemoteMemberStates(RaftMember.Type type) {
+  public List<RaftMemberContext> getRemoteMemberStates(final RaftMember.Type type) {
     final List<RaftMemberContext> members = memberTypes.get(type);
     return members != null ? members : Collections.EMPTY_LIST;
   }
@@ -361,7 +361,7 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
    * @param comparator A comparator with which to sort the members list.
    * @return The sorted members list.
    */
-  public List<RaftMemberContext> getPassiveMemberStates(Comparator<RaftMemberContext> comparator) {
+  public List<RaftMemberContext> getPassiveMemberStates(final Comparator<RaftMemberContext> comparator) {
     final List<RaftMemberContext> passiveMembers = new ArrayList<>(getPassiveMemberStates());
     passiveMembers.sort(comparator);
     return passiveMembers;
@@ -405,7 +405,7 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
   }
 
   /** Recursively attempts to join the cluster. */
-  private void join(Iterator<RaftMemberContext> iterator) {
+  private void join(final Iterator<RaftMemberContext> iterator) {
     if (iterator.hasNext()) {
       cancelJoinTimer();
       joinTimeout =
@@ -504,7 +504,7 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
   }
 
   /** Attempts to leave the cluster. */
-  private void leave(CompletableFuture<Void> future) {
+  private void leave(final CompletableFuture<Void> future) {
     // Set a timer to retry the attempt to leave the cluster.
     leaveTimeout =
         raft.getThreadContext()
@@ -575,7 +575,7 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
    * @param configuration The cluster configuration.
    * @return The cluster state.
    */
-  public RaftClusterContext configure(Configuration configuration) {
+  public RaftClusterContext configure(final Configuration configuration) {
     checkNotNull(configuration, "configuration cannot be null");
 
     // If the configuration index is less than the currently configured index, ignore it.
@@ -590,7 +590,7 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
     // Iterate through members in the new configuration, add any missing members, and update
     // existing members.
     boolean transition = false;
-    for (RaftMember member : configuration.members()) {
+    for (final RaftMember member : configuration.members()) {
       if (member.equals(this.member)) {
         transition = this.member.getType().ordinal() < member.getType().ordinal();
         this.member.update(member.getType(), time);
@@ -620,7 +620,7 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
         }
 
         // Update the optimized member collections according to the member type.
-        for (List<RaftMemberContext> memberType : memberTypes.values()) {
+        for (final List<RaftMemberContext> memberType : memberTypes.values()) {
           memberType.remove(state);
         }
 
@@ -648,7 +648,7 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
       if (!configuration.members().contains(member.getMember())) {
         this.members.remove(member.getMember());
         this.remoteMembers.remove(i);
-        for (List<RaftMemberContext> memberType : memberTypes.values()) {
+        for (final List<RaftMemberContext> memberType : memberTypes.values()) {
           memberType.remove(member);
         }
         membersMap.remove(member.getMember().memberId());
@@ -698,7 +698,7 @@ public final class RaftClusterContext implements RaftCluster, AutoCloseable {
 
   @Override
   public void close() {
-    for (RaftMemberContext member : remoteMembers) {
+    for (final RaftMemberContext member : remoteMembers) {
       member.getMember().close();
     }
     member.close();

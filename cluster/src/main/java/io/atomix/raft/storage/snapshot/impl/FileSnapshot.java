@@ -74,7 +74,7 @@ final class FileSnapshot extends DefaultSnapshot {
 
     final Buffer buffer =
         FileBuffer.allocate(file.temporaryFile(), DefaultSnapshotDescriptor.BYTES);
-    try (DefaultSnapshotDescriptor descriptor = new DefaultSnapshotDescriptor(buffer)) {
+    try (final DefaultSnapshotDescriptor descriptor = new DefaultSnapshotDescriptor(buffer)) {
       descriptor.lock();
     }
 

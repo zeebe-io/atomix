@@ -24,7 +24,7 @@ public abstract class SessionEntry extends TimestampedEntry {
 
   protected final long session;
 
-  public SessionEntry(long term, long timestamp, long session) {
+  public SessionEntry(final long term, final long timestamp, final long session) {
     super(term, timestamp);
     this.session = session;
   }

@@ -35,13 +35,13 @@ public final class AtomixRule extends ExternalResource {
   protected void after() {
     try {
       deleteData();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       LoggerFactory.getLogger(AtomixRule.class).error("Unexpected error on clean up data", e);
     }
   }
 
   /** Creates an Atomix instance. */
-  public AtomixBuilder buildAtomix(int id, Properties properties) {
+  public AtomixBuilder buildAtomix(final int id, final Properties properties) {
     return Atomix.builder()
         .withClusterId("test")
         .withMemberId(String.valueOf(id))
@@ -53,7 +53,7 @@ public final class AtomixRule extends ExternalResource {
   }
 
   /** Creates an Atomix instance. */
-  public AtomixBuilder buildAtomix(int id, List<Integer> memberIds, Properties properties) {
+  public AtomixBuilder buildAtomix(final int id, final List<Integer> memberIds, final Properties properties) {
     final Collection<Node> nodes =
         memberIds.stream()
             .map(
@@ -78,39 +78,39 @@ public final class AtomixRule extends ExternalResource {
   }
 
   /** Creates an Atomix instance. */
-  public Atomix createAtomix(int id, List<Integer> bootstrapIds, Profile... profiles) {
+  public Atomix createAtomix(final int id, final List<Integer> bootstrapIds, final Profile... profiles) {
     return createAtomix(id, bootstrapIds, new Properties(), profiles);
   }
 
   /** Creates an Atomix instance. */
   public Atomix createAtomix(
-      int id, List<Integer> bootstrapIds, Properties properties, Profile... profiles) {
+      final int id, final List<Integer> bootstrapIds, final Properties properties, final Profile... profiles) {
     return createAtomix(id, bootstrapIds, properties, b -> b.withProfiles(profiles).build());
   }
 
   /** Creates an Atomix instance. */
   public Atomix createAtomix(
-      int id, List<Integer> bootstrapIds, Function<AtomixBuilder, Atomix> builderFunction) {
+      final int id, final List<Integer> bootstrapIds, final Function<AtomixBuilder, Atomix> builderFunction) {
     return createAtomix(id, bootstrapIds, new Properties(), builderFunction);
   }
 
   /** Creates an Atomix instance. */
   public Atomix createAtomix(
-      int id,
-      List<Integer> bootstrapIds,
-      Properties properties,
-      Function<AtomixBuilder, Atomix> builderFunction) {
+      final int id,
+      final List<Integer> bootstrapIds,
+      final Properties properties,
+      final Function<AtomixBuilder, Atomix> builderFunction) {
     return builderFunction.apply(buildAtomix(id, bootstrapIds, properties));
   }
 
-  private int findAvailablePort(int defaultPort) {
+  private int findAvailablePort(final int defaultPort) {
     try {
       final ServerSocket socket = new ServerSocket(0);
       socket.setReuseAddress(true);
       final int port = socket.getLocalPort();
       socket.close();
       return port;
-    } catch (IOException ex) {
+    } catch (final IOException ex) {
       return defaultPort;
     }
   }
@@ -123,14 +123,14 @@ public final class AtomixRule extends ExternalResource {
           directory,
           new SimpleFileVisitor<Path>() {
             @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs)
                 throws IOException {
               Files.delete(file);
               return FileVisitResult.CONTINUE;
             }
 
             @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException exc)
+            public FileVisitResult postVisitDirectory(final Path dir, final IOException exc)
                 throws IOException {
               Files.delete(dir);
               return FileVisitResult.CONTINUE;

@@ -28,7 +28,7 @@ public class DefaultBackupInput implements BackupInput {
   private final BufferInput<?> input;
   private final Serializer serializer;
 
-  public DefaultBackupInput(BufferInput<?> input, Serializer serializer) {
+  public DefaultBackupInput(final BufferInput<?> input, final Serializer serializer) {
     this.input = input;
     this.serializer = serializer;
   }
@@ -54,37 +54,37 @@ public class DefaultBackupInput implements BackupInput {
   }
 
   @Override
-  public BackupInput skip(int bytes) {
+  public BackupInput skip(final int bytes) {
     input.skip(bytes);
     return this;
   }
 
   @Override
-  public BackupInput read(Bytes bytes) {
+  public BackupInput read(final Bytes bytes) {
     input.read(bytes);
     return this;
   }
 
   @Override
-  public BackupInput read(byte[] bytes) {
+  public BackupInput read(final byte[] bytes) {
     input.read(bytes);
     return this;
   }
 
   @Override
-  public BackupInput read(Bytes bytes, int offset, int length) {
+  public BackupInput read(final Bytes bytes, final int offset, final int length) {
     input.read(bytes, offset, length);
     return this;
   }
 
   @Override
-  public BackupInput read(byte[] bytes, int offset, int length) {
+  public BackupInput read(final byte[] bytes, final int offset, final int length) {
     input.read(bytes, offset, length);
     return this;
   }
 
   @Override
-  public BackupInput read(Buffer buffer) {
+  public BackupInput read(final Buffer buffer) {
     input.read(buffer);
     return this;
   }
@@ -166,7 +166,7 @@ public class DefaultBackupInput implements BackupInput {
   }
 
   @Override
-  public String readString(Charset charset) {
+  public String readString(final Charset charset) {
     return input.readString(charset);
   }
 

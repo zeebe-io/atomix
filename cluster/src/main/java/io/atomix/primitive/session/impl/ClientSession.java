@@ -36,7 +36,7 @@ public class ClientSession<C> implements Session<C> {
   private final Session session;
   private final SessionProxy proxy;
 
-  public ClientSession(Class<C> clientType, Session session) {
+  public ClientSession(final Class<C> clientType, final Session session) {
     this.session = checkNotNull(session);
     this.proxy = new SessionProxy(clientType);
   }
@@ -67,17 +67,17 @@ public class ClientSession<C> implements Session<C> {
   }
 
   @Override
-  public void publish(PrimitiveEvent event) {
+  public void publish(final PrimitiveEvent event) {
     session.publish(event);
   }
 
   @Override
-  public <T> void publish(EventType eventType, T event) {
+  public <T> void publish(final EventType eventType, final T event) {
     session.publish(eventType, event);
   }
 
   @Override
-  public void accept(Consumer<C> event) {
+  public void accept(final Consumer<C> event) {
     proxy.accept(event);
   }
 
@@ -86,7 +86,7 @@ public class ClientSession<C> implements Session<C> {
     private final C proxy;
 
     @SuppressWarnings("unchecked")
-    SessionProxy(Class<C> clientType) {
+    SessionProxy(final Class<C> clientType) {
       proxy =
           clientType == null
               ? null
@@ -102,7 +102,7 @@ public class ClientSession<C> implements Session<C> {
      *
      * @param event the event to publish
      */
-    void accept(Consumer<C> event) {
+    void accept(final Consumer<C> event) {
       event.accept(proxy);
     }
   }
@@ -111,13 +111,13 @@ public class ClientSession<C> implements Session<C> {
   private final class SessionProxyHandler implements InvocationHandler {
     private final Map<Method, EventType> events;
 
-    private SessionProxyHandler(Class<C> clientType) {
+    private SessionProxyHandler(final Class<C> clientType) {
       this.events = clientType != null ? Events.getMethodMap(clientType) : Maps.newHashMap();
     }
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-      EventType eventType = events.get(method);
+    public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+      final EventType eventType = events.get(method);
       if (eventType == null) {
         throw new PrimitiveException.ServiceException(
             "Cannot invoke unknown event type: " + method.getName());

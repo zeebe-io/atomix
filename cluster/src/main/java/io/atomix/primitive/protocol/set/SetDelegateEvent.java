@@ -29,11 +29,11 @@ public class SetDelegateEvent<E> extends AbstractEvent<SetDelegateEvent.Type, E>
     REMOVE,
   }
 
-  public SetDelegateEvent(Type type, E element) {
+  public SetDelegateEvent(final Type type, final E element) {
     super(type, element);
   }
 
-  public SetDelegateEvent(Type type, E element, long time) {
+  public SetDelegateEvent(final Type type, final E element, final long time) {
     super(type, element, time);
   }
 

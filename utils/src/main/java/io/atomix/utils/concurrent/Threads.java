@@ -28,7 +28,7 @@ public final class Threads {
    * @param pattern name pattern
    * @return thread factory
    */
-  public static ThreadFactory namedThreads(String pattern, Logger log) {
+  public static ThreadFactory namedThreads(final String pattern, final Logger log) {
     return new ThreadFactoryBuilder()
         .setNameFormat(pattern)
         .setThreadFactory(new AtomixThreadFactory())

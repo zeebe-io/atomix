@@ -26,13 +26,13 @@ public class MemberGroupId extends AbstractIdentifier<String> {
    * @param id the group ID
    * @return the new member group identifier
    */
-  public static MemberGroupId from(String id) {
+  public static MemberGroupId from(final String id) {
     return new MemberGroupId(id);
   }
 
   private MemberGroupId() {}
 
-  public MemberGroupId(String value) {
+  public MemberGroupId(final String value) {
     super(value);
   }
 }

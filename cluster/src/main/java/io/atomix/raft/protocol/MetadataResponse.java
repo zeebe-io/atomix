@@ -30,7 +30,7 @@ public class MetadataResponse extends AbstractRaftResponse {
 
   private final Set<SessionMetadata> sessions;
 
-  public MetadataResponse(Status status, RaftError error, Set<SessionMetadata> sessions) {
+  public MetadataResponse(final Status status, final RaftError error, final Set<SessionMetadata> sessions) {
     super(status, error);
     this.sessions = sessions;
   }
@@ -73,7 +73,7 @@ public class MetadataResponse extends AbstractRaftResponse {
      * @param sessions The client metadata.
      * @return The metadata response builder.
      */
-    public Builder withSessions(SessionMetadata... sessions) {
+    public Builder withSessions(final SessionMetadata... sessions) {
       return withSessions(Arrays.asList(checkNotNull(sessions, "sessions cannot be null")));
     }
 
@@ -83,7 +83,7 @@ public class MetadataResponse extends AbstractRaftResponse {
      * @param sessions The client metadata.
      * @return The metadata response builder.
      */
-    public Builder withSessions(Collection<SessionMetadata> sessions) {
+    public Builder withSessions(final Collection<SessionMetadata> sessions) {
       this.sessions = new HashSet<>(checkNotNull(sessions, "sessions cannot be null"));
       return this;
     }

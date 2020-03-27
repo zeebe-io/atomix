@@ -27,7 +27,7 @@ public class LoadMonitor {
   private final int windowSize;
   private final int highLoadThreshold;
 
-  public LoadMonitor(int windowSize, int highLoadThreshold, ThreadContext threadContext) {
+  public LoadMonitor(final int windowSize, final int highLoadThreshold, final ThreadContext threadContext) {
     this.windowSize = windowSize;
     this.highLoadThreshold = highLoadThreshold;
     this.loadCounter = new SlidingWindowCounter(windowSize, threadContext);

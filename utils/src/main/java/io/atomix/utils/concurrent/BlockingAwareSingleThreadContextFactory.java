@@ -29,16 +29,16 @@ public class BlockingAwareSingleThreadContextFactory implements ThreadContextFac
   private final Executor threadPoolExecutor;
 
   public BlockingAwareSingleThreadContextFactory(
-      String nameFormat, int threadPoolSize, Logger logger) {
+      final String nameFormat, final int threadPoolSize, final Logger logger) {
     this(threadPoolSize, namedThreads(nameFormat, logger));
   }
 
-  public BlockingAwareSingleThreadContextFactory(int threadPoolSize, ThreadFactory threadFactory) {
+  public BlockingAwareSingleThreadContextFactory(final int threadPoolSize, final ThreadFactory threadFactory) {
     this(threadFactory, Executors.newScheduledThreadPool(threadPoolSize, threadFactory));
   }
 
   public BlockingAwareSingleThreadContextFactory(
-      ThreadFactory threadFactory, Executor threadPoolExecutor) {
+      final ThreadFactory threadFactory, final Executor threadPoolExecutor) {
     this.threadFactory = checkNotNull(threadFactory);
     this.threadPoolExecutor = checkNotNull(threadPoolExecutor);
   }

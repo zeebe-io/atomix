@@ -83,7 +83,7 @@ public interface RaftStateMachine extends AutoCloseable {
    *
    * @param index index up to which the log can be compacted
    */
-  default void setCompactableIndex(long index) {}
+  default void setCompactableIndex(final long index) {}
 
   /**
    * Returns the current compactable index.

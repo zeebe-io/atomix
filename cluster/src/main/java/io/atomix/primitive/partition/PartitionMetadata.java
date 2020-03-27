@@ -30,7 +30,7 @@ public class PartitionMetadata {
   private final PartitionId id;
   private final List<MemberId> members;
 
-  public PartitionMetadata(PartitionId id, List<MemberId> members) {
+  public PartitionMetadata(final PartitionId id, final List<MemberId> members) {
     this.id = id;
     this.members = members;
   }
@@ -59,9 +59,9 @@ public class PartitionMetadata {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof PartitionMetadata) {
-      PartitionMetadata partition = (PartitionMetadata) object;
+      final PartitionMetadata partition = (PartitionMetadata) object;
       return partition.id.equals(id) && partition.members.equals(members);
     }
     return false;

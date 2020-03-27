@@ -51,11 +51,11 @@ public abstract class AbstractPrimitiveService<C> implements PrimitiveService {
   private ServiceExecutor executor;
   private final Map<SessionId, Session<C>> sessions = Maps.newHashMap();
 
-  protected AbstractPrimitiveService(PrimitiveType primitiveType) {
+  protected AbstractPrimitiveService(final PrimitiveType primitiveType) {
     this(primitiveType, null);
   }
 
-  protected AbstractPrimitiveService(PrimitiveType primitiveType, Class<C> clientInterface) {
+  protected AbstractPrimitiveService(final PrimitiveType primitiveType, final Class<C> clientInterface) {
     this.primitiveType = primitiveType;
     this.clientInterface = clientInterface;
     this.serializer = Serializer.using(primitiveType.namespace());
@@ -73,7 +73,7 @@ public abstract class AbstractPrimitiveService<C> implements PrimitiveService {
    * @param <T> the object type
    * @return the encoded bytes
    */
-  protected <T> byte[] encode(T object) {
+  protected <T> byte[] encode(final T object) {
     return object != null ? serializer().encode(object) : null;
   }
 
@@ -84,12 +84,12 @@ public abstract class AbstractPrimitiveService<C> implements PrimitiveService {
    * @param <T> the object type
    * @return the decoded object
    */
-  protected <T> T decode(byte[] bytes) {
+  protected <T> T decode(final byte[] bytes) {
     return bytes != null ? serializer().decode(bytes) : null;
   }
 
   @Override
-  public final void init(ServiceContext context) {
+  public final void init(final ServiceContext context) {
     this.context = context;
     this.executor = new DefaultServiceExecutor(context, serializer());
     this.log =
@@ -104,12 +104,12 @@ public abstract class AbstractPrimitiveService<C> implements PrimitiveService {
   }
 
   @Override
-  public final void tick(WallClockTimestamp timestamp) {
+  public final void tick(final WallClockTimestamp timestamp) {
     executor.tick(timestamp);
   }
 
   @Override
-  public final byte[] apply(Commit<byte[]> commit) {
+  public final byte[] apply(final Commit<byte[]> commit) {
     return executor.apply(commit);
   }
 
@@ -122,7 +122,7 @@ public abstract class AbstractPrimitiveService<C> implements PrimitiveService {
    *
    * @param executor The state machine executor.
    */
-  protected void configure(ServiceExecutor executor) {
+  protected void configure(final ServiceExecutor executor) {
     Operations.getOperationMap(getClass())
         .forEach(((operationId, method) -> configure(operationId, method, executor)));
   }
@@ -134,7 +134,7 @@ public abstract class AbstractPrimitiveService<C> implements PrimitiveService {
    * @param method the operation method
    * @param executor the service executor
    */
-  private void configure(OperationId operationId, Method method, ServiceExecutor executor) {
+  private void configure(final OperationId operationId, final Method method, final ServiceExecutor executor) {
     if (method.getReturnType() == Void.TYPE) {
       if (method.getParameterTypes().length == 0) {
         executor.register(
@@ -142,7 +142,7 @@ public abstract class AbstractPrimitiveService<C> implements PrimitiveService {
             () -> {
               try {
                 method.invoke(this);
-              } catch (IllegalAccessException | InvocationTargetException e) {
+              } catch (final IllegalAccessException | InvocationTargetException e) {
                 throw new PrimitiveException.ServiceException(e);
               }
             });
@@ -152,7 +152,7 @@ public abstract class AbstractPrimitiveService<C> implements PrimitiveService {
             args -> {
               try {
                 method.invoke(this, (Object[]) args.value());
-              } catch (IllegalAccessException | InvocationTargetException e) {
+              } catch (final IllegalAccessException | InvocationTargetException e) {
                 throw new PrimitiveException.ServiceException(e);
               }
             });
@@ -164,7 +164,7 @@ public abstract class AbstractPrimitiveService<C> implements PrimitiveService {
             () -> {
               try {
                 return method.invoke(this);
-              } catch (IllegalAccessException | InvocationTargetException e) {
+              } catch (final IllegalAccessException | InvocationTargetException e) {
                 throw new PrimitiveException.ServiceException(e);
               }
             });
@@ -174,7 +174,7 @@ public abstract class AbstractPrimitiveService<C> implements PrimitiveService {
             args -> {
               try {
                 return method.invoke(this, (Object[]) args.value());
-              } catch (IllegalAccessException | InvocationTargetException e) {
+              } catch (final IllegalAccessException | InvocationTargetException e) {
                 throw new PrimitiveException.ServiceException(e);
               }
             });
@@ -292,7 +292,7 @@ public abstract class AbstractPrimitiveService<C> implements PrimitiveService {
    * @param sessionId the session identifier
    * @return the primitive session
    */
-  protected Session<C> getSession(long sessionId) {
+  protected Session<C> getSession(final long sessionId) {
     return getSession(SessionId.from(sessionId));
   }
 
@@ -302,7 +302,7 @@ public abstract class AbstractPrimitiveService<C> implements PrimitiveService {
    * @param sessionId the session identifier
    * @return the primitive session
    */
-  protected Session<C> getSession(SessionId sessionId) {
+  protected Session<C> getSession(final SessionId sessionId) {
     return sessions.get(sessionId);
   }
 
@@ -317,22 +317,22 @@ public abstract class AbstractPrimitiveService<C> implements PrimitiveService {
 
   @Override
   @SuppressWarnings("unchecked")
-  public final void register(Session session) {
+  public final void register(final Session session) {
     sessions.put(session.sessionId(), new ClientSession<>(clientInterface, session));
     onOpen(session);
   }
 
   @Override
-  public final void expire(SessionId sessionId) {
-    Session session = sessions.remove(sessionId);
+  public final void expire(final SessionId sessionId) {
+    final Session session = sessions.remove(sessionId);
     if (session != null) {
       onExpire(session);
     }
   }
 
   @Override
-  public final void close(SessionId sessionId) {
-    Session session = sessions.remove(sessionId);
+  public final void close(final SessionId sessionId) {
+    final Session session = sessions.remove(sessionId);
     if (session != null) {
       onClose(session);
     }
@@ -365,7 +365,7 @@ public abstract class AbstractPrimitiveService<C> implements PrimitiveService {
    *
    * @param session The session that was registered
    */
-  protected void onOpen(Session session) {}
+  protected void onOpen(final Session session) {}
 
   /**
    * Called when a session is expired by the system.
@@ -378,7 +378,7 @@ public abstract class AbstractPrimitiveService<C> implements PrimitiveService {
    *
    * @param session The session that was expired
    */
-  protected void onExpire(Session session) {}
+  protected void onExpire(final Session session) {}
 
   /**
    * Called when a session was closed by the client.
@@ -387,5 +387,5 @@ public abstract class AbstractPrimitiveService<C> implements PrimitiveService {
    *
    * @param session The session that was closed
    */
-  protected void onClose(Session session) {}
+  protected void onClose(final Session session) {}
 }

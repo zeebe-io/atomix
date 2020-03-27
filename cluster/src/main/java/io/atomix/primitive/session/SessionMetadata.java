@@ -26,7 +26,7 @@ public final class SessionMetadata {
   private final String name;
   private final String type;
 
-  public SessionMetadata(long id, String name, String type) {
+  public SessionMetadata(final long id, final String name, final String type) {
     this.id = id;
     this.name = checkNotNull(name, "name cannot be null");
     this.type = checkNotNull(type, "type cannot be null");
@@ -65,9 +65,9 @@ public final class SessionMetadata {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof SessionMetadata) {
-      SessionMetadata metadata = (SessionMetadata) object;
+      final SessionMetadata metadata = (SessionMetadata) object;
       return metadata.id == id
           && Objects.equals(metadata.name, name)
           && Objects.equals(metadata.type, type);

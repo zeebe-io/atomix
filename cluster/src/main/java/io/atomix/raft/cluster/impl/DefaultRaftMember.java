@@ -44,7 +44,7 @@ public final class DefaultRaftMember implements RaftMember, AutoCloseable {
   private transient Scheduled configureTimeout;
   private transient RaftClusterContext cluster;
 
-  public DefaultRaftMember(MemberId id, Type type, Instant updated) {
+  public DefaultRaftMember(final MemberId id, final Type type, final Instant updated) {
     this.id = checkNotNull(id, "id cannot be null");
     this.hash = Hashing.murmur3_32().hashUnencodedChars(id.id()).asInt();
     this.type = checkNotNull(type, "type cannot be null");
@@ -62,12 +62,12 @@ public final class DefaultRaftMember implements RaftMember, AutoCloseable {
   }
 
   @Override
-  public void addTypeChangeListener(Consumer<Type> listener) {
+  public void addTypeChangeListener(final Consumer<Type> listener) {
     typeChangeListeners.add(listener);
   }
 
   @Override
-  public void removeTypeChangeListener(Consumer<Type> listener) {
+  public void removeTypeChangeListener(final Consumer<Type> listener) {
     typeChangeListeners.remove(listener);
   }
 
@@ -80,7 +80,7 @@ public final class DefaultRaftMember implements RaftMember, AutoCloseable {
   }
 
   @Override
-  public CompletableFuture<Void> promote(Type type) {
+  public CompletableFuture<Void> promote(final Type type) {
     return configure(type);
   }
 
@@ -93,7 +93,7 @@ public final class DefaultRaftMember implements RaftMember, AutoCloseable {
   }
 
   @Override
-  public CompletableFuture<Void> demote(Type type) {
+  public CompletableFuture<Void> demote(final Type type) {
     return configure(type);
   }
 
@@ -118,7 +118,7 @@ public final class DefaultRaftMember implements RaftMember, AutoCloseable {
    * @param type The member type.
    * @return The member.
    */
-  public DefaultRaftMember update(RaftMember.Type type, Instant time) {
+  public DefaultRaftMember update(final RaftMember.Type type, final Instant time) {
     if (this.type != type) {
       this.type = checkNotNull(type, "type cannot be null");
       if (time.isAfter(updated)) {
@@ -132,7 +132,7 @@ public final class DefaultRaftMember implements RaftMember, AutoCloseable {
   }
 
   /** Demotes the server to the given type. */
-  private CompletableFuture<Void> configure(RaftMember.Type type) {
+  private CompletableFuture<Void> configure(final RaftMember.Type type) {
     if (type == this.type) {
       return CompletableFuture.completedFuture(null);
     }
@@ -142,7 +142,7 @@ public final class DefaultRaftMember implements RaftMember, AutoCloseable {
   }
 
   /** Recursively reconfigures the cluster. */
-  private void configure(RaftMember.Type type, CompletableFuture<Void> future) {
+  private void configure(final RaftMember.Type type, final CompletableFuture<Void> future) {
     // Set a timer to retry the attempt to leave the cluster.
     configureTimeout =
         cluster
@@ -219,7 +219,7 @@ public final class DefaultRaftMember implements RaftMember, AutoCloseable {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     return object instanceof DefaultRaftMember && ((DefaultRaftMember) object).id.equals(id);
   }
 
@@ -229,7 +229,7 @@ public final class DefaultRaftMember implements RaftMember, AutoCloseable {
   }
 
   /** Sets the member's parent cluster. */
-  DefaultRaftMember setCluster(RaftClusterContext cluster) {
+  DefaultRaftMember setCluster(final RaftClusterContext cluster) {
     this.cluster = cluster;
     return this;
   }
@@ -239,7 +239,7 @@ public final class DefaultRaftMember implements RaftMember, AutoCloseable {
    *
    * @param type the member type
    */
-  void setType(Type type) {
+  void setType(final Type type) {
     this.type = type;
   }
 }

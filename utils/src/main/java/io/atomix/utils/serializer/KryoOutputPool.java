@@ -21,13 +21,13 @@ class KryoOutputPool extends KryoIOPool<ByteArrayOutput> {
   static final int MAX_POOLED_BUFFER_SIZE = 512 * 1024;
 
   @Override
-  protected ByteArrayOutput create(int bufferSize) {
+  protected ByteArrayOutput create(final int bufferSize) {
     return new ByteArrayOutput(
         bufferSize, MAX_BUFFER_SIZE, new BufferAwareByteArrayOutputStream(bufferSize));
   }
 
   @Override
-  protected boolean recycle(ByteArrayOutput output) {
+  protected boolean recycle(final ByteArrayOutput output) {
     if (output.getByteArrayOutputStream().getBufferSize() < MAX_POOLED_BUFFER_SIZE) {
       output.getByteArrayOutputStream().reset();
       output.clear();

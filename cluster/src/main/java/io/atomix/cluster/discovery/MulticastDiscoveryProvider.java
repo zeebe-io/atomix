@@ -79,7 +79,7 @@ public class MulticastDiscoveryProvider
     }
 
     @Override
-    public NodeDiscoveryProvider newProvider(MulticastDiscoveryConfig config) {
+    public NodeDiscoveryProvider newProvider(final MulticastDiscoveryConfig config) {
       return new MulticastDiscoveryProvider(config);
     }
   }
@@ -110,7 +110,7 @@ public class MulticastDiscoveryProvider
     this(new MulticastDiscoveryConfig());
   }
 
-  public MulticastDiscoveryProvider(MulticastDiscoveryConfig config) {
+  public MulticastDiscoveryProvider(final MulticastDiscoveryConfig config) {
     this.config = checkNotNull(config);
   }
 
@@ -124,9 +124,9 @@ public class MulticastDiscoveryProvider
     return ImmutableSet.copyOf(nodes.values());
   }
 
-  private void handleBroadcastMessage(byte[] message) {
-    Node node = SERIALIZER.decode(message);
-    Node oldNode = nodes.put(node.id(), node);
+  private void handleBroadcastMessage(final byte[] message) {
+    final Node node = SERIALIZER.decode(message);
+    final Node oldNode = nodes.put(node.id(), node);
     if (oldNode != null && !oldNode.id().equals(node.id())) {
       post(new NodeDiscoveryEvent(NodeDiscoveryEvent.Type.LEAVE, oldNode));
       post(new NodeDiscoveryEvent(NodeDiscoveryEvent.Type.JOIN, node));
@@ -136,15 +136,15 @@ public class MulticastDiscoveryProvider
     updateTimes.put(node.id(), System.currentTimeMillis());
   }
 
-  private void broadcastNode(Node localNode) {
+  private void broadcastNode(final Node localNode) {
     bootstrap.getBroadcastService().broadcast(DISCOVERY_SUBJECT, SERIALIZER.encode(localNode));
     expireNodes();
   }
 
   private void expireNodes() {
-    Iterator<Map.Entry<NodeId, Node>> iterator = nodes.entrySet().iterator();
+    final Iterator<Map.Entry<NodeId, Node>> iterator = nodes.entrySet().iterator();
     while (iterator.hasNext()) {
-      Map.Entry<NodeId, Node> entry = iterator.next();
+      final Map.Entry<NodeId, Node> entry = iterator.next();
       if (System.currentTimeMillis() - updateTimes.get(entry.getKey())
           > config.getFailureTimeout().toMillis()) {
         iterator.remove();
@@ -154,7 +154,7 @@ public class MulticastDiscoveryProvider
   }
 
   @Override
-  public CompletableFuture<Void> join(BootstrapService bootstrap, Node localNode) {
+  public CompletableFuture<Void> join(final BootstrapService bootstrap, final Node localNode) {
     if (nodes.putIfAbsent(localNode.id(), localNode) == null) {
       this.bootstrap = bootstrap;
       post(new NodeDiscoveryEvent(NodeDiscoveryEvent.Type.JOIN, localNode));
@@ -172,11 +172,11 @@ public class MulticastDiscoveryProvider
   }
 
   @Override
-  public CompletableFuture<Void> leave(Node localNode) {
+  public CompletableFuture<Void> leave(final Node localNode) {
     if (nodes.remove(localNode.id()) != null) {
       post(new NodeDiscoveryEvent(NodeDiscoveryEvent.Type.LEAVE, localNode));
       bootstrap.getBroadcastService().removeListener(DISCOVERY_SUBJECT, broadcastListener);
-      ScheduledFuture<?> broadcastFuture = this.broadcastFuture;
+      final ScheduledFuture<?> broadcastFuture = this.broadcastFuture;
       if (broadcastFuture != null) {
         broadcastFuture.cancel(false);
       }

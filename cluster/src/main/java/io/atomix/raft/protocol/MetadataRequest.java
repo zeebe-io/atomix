@@ -18,7 +18,7 @@ package io.atomix.raft.protocol;
 /** Cluster metadata request. */
 public class MetadataRequest extends SessionRequest {
 
-  public MetadataRequest(long session) {
+  public MetadataRequest(final long session) {
     super(session);
   }
 

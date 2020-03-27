@@ -58,17 +58,17 @@ public class RaftPartition implements Partition {
   private Supplier<JournalIndex> journalIndexFactory;
 
   public RaftPartition(
-      PartitionId partitionId,
-      RaftPartitionGroupConfig config,
-      File dataDirectory,
-      ThreadContextFactory threadContextFactory) {
+      final PartitionId partitionId,
+      final RaftPartitionGroupConfig config,
+      final File dataDirectory,
+      final ThreadContextFactory threadContextFactory) {
     this.partitionId = partitionId;
     this.config = config;
     this.dataDirectory = dataDirectory;
     this.threadContextFactory = threadContextFactory;
   }
 
-  public void addRoleChangeListener(RaftRoleChangeListener listener) {
+  public void addRoleChangeListener(final RaftRoleChangeListener listener) {
     if (server == null) {
       deferredRoleChangeListeners.add(listener);
     } else {
@@ -77,24 +77,24 @@ public class RaftPartition implements Partition {
   }
 
   @Deprecated
-  public void addRoleChangeListener(Consumer<Role> listener) {
+  public void addRoleChangeListener(final Consumer<Role> listener) {
     addRoleChangeListener((newRole, newTerm) -> listener.accept(newRole));
   }
 
-  public void removeRoleChangeListener(RaftRoleChangeListener listener) {
+  public void removeRoleChangeListener(final RaftRoleChangeListener listener) {
     deferredRoleChangeListeners.remove(listener);
     server.removeRoleChangeListener(listener);
   }
 
-  public void addFailureListener(RaftFailureListener failureListener) {
+  public void addFailureListener(final RaftFailureListener failureListener) {
     raftFailureListeners.add(failureListener);
   }
 
-  public void removeFailureListener(RaftFailureListener failureListener) {
+  public void removeFailureListener(final RaftFailureListener failureListener) {
     raftFailureListeners.remove(failureListener);
   }
 
-  public void setJournalIndexFactory(Supplier<JournalIndex> journalIndexFactory) {
+  public void setJournalIndexFactory(final Supplier<JournalIndex> journalIndexFactory) {
     if (server != null) {
       throw new IllegalStateException(
           "Settings the JournalIndexFactory makes only sense when the RaftPartition is not already opened!");
@@ -127,7 +127,7 @@ public class RaftPartition implements Partition {
 
   /** Opens the partition. */
   CompletableFuture<Partition> open(
-      PartitionMetadata metadata, PartitionManagementService managementService) {
+      final PartitionMetadata metadata, final PartitionManagementService managementService) {
     this.partitionMetadata = metadata;
     this.client = createClient(managementService);
     if (partitionMetadata
@@ -139,7 +139,7 @@ public class RaftPartition implements Partition {
     return client.start().thenApply(v -> this);
   }
 
-  private void initServer(PartitionManagementService managementService) {
+  private void initServer(final PartitionManagementService managementService) {
     server = createServer(managementService);
 
     if (!deferredRoleChangeListeners.isEmpty()) {
@@ -150,7 +150,7 @@ public class RaftPartition implements Partition {
   }
 
   /** Creates a Raft server. */
-  protected RaftPartitionServer createServer(PartitionManagementService managementService) {
+  protected RaftPartitionServer createServer(final PartitionManagementService managementService) {
     return new RaftPartitionServer(
         this,
         config,
@@ -163,7 +163,7 @@ public class RaftPartition implements Partition {
   }
 
   /** Creates a Raft client. */
-  private RaftPartitionClient createClient(PartitionManagementService managementService) {
+  private RaftPartitionClient createClient(final PartitionManagementService managementService) {
     return new RaftPartitionClient(
         this,
         managementService.getMembershipService().getLocalMember().id(),
@@ -186,7 +186,7 @@ public class RaftPartition implements Partition {
 
   /** Updates the partition with the given metadata. */
   CompletableFuture<Void> update(
-      PartitionMetadata metadata, PartitionManagementService managementService) {
+      final PartitionMetadata metadata, final PartitionManagementService managementService) {
     if (server == null
         && metadata
             .members()

@@ -26,7 +26,7 @@ public class TransferRequest extends AbstractRaftRequest {
 
   protected final MemberId member;
 
-  protected TransferRequest(MemberId member) {
+  protected TransferRequest(final MemberId member) {
     this.member = member;
   }
 
@@ -54,7 +54,7 @@ public class TransferRequest extends AbstractRaftRequest {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (this == object) {
       return true;
     }
@@ -83,7 +83,7 @@ public class TransferRequest extends AbstractRaftRequest {
      * @throws NullPointerException if {@code member} is null
      */
     @SuppressWarnings("unchecked")
-    public Builder withMember(MemberId member) {
+    public Builder withMember(final MemberId member) {
       this.member = checkNotNull(member, "member cannot be null");
       return this;
     }

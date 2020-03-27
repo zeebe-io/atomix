@@ -52,7 +52,7 @@ final class LeaderAppender extends AbstractAppender {
   private final List<TimestampedFuture<Long>> heartbeatFutures = new ArrayList<>();
   private final long heartbeatTime;
 
-  LeaderAppender(LeaderRole leader) {
+  LeaderAppender(final LeaderRole leader) {
     super(leader.raft);
     this.leaderTime = System.currentTimeMillis();
     this.leaderIndex = raft.getLogWriter().getNextIndex();
@@ -67,7 +67,7 @@ final class LeaderAppender extends AbstractAppender {
    * @param index The index for which to register the handler.
    * @return A completable future to be completed once the given log index has been committed.
    */
-  public CompletableFuture<Long> appendEntries(long index) {
+  public CompletableFuture<Long> appendEntries(final long index) {
     raft.checkThread();
 
     if (index == 0) {
@@ -93,7 +93,7 @@ final class LeaderAppender extends AbstractAppender {
     return appendFutures.computeIfAbsent(
         index,
         i -> {
-          for (RaftMemberContext member : raft.getCluster().getActiveMemberStates()) {
+          for (final RaftMemberContext member : raft.getCluster().getActiveMemberStates()) {
             appendEntries(member);
           }
           return new CompletableFuture<>();
@@ -126,14 +126,14 @@ final class LeaderAppender extends AbstractAppender {
 
     // Iterate through members and append entries. Futures will be completed on responses from
     // followers.
-    for (RaftMemberContext member : raft.getCluster().getRemoteMemberStates()) {
+    for (final RaftMemberContext member : raft.getCluster().getRemoteMemberStates()) {
       appendEntries(member);
     }
     return future;
   }
 
   /** Completes append entries attempts up to the given index. */
-  private void completeCommits(long previousCommitIndex, long commitIndex) {
+  private void completeCommits(final long previousCommitIndex, final long commitIndex) {
     for (long i = previousCommitIndex + 1; i <= commitIndex; i++) {
       final CompletableFuture<Long> future = appendFutures.remove(i);
       if (future != null) {
@@ -144,7 +144,7 @@ final class LeaderAppender extends AbstractAppender {
 
   @Override
   protected void handleAppendResponseFailure(
-      RaftMemberContext member, AppendRequest request, Throwable error) {
+      final RaftMemberContext member, final AppendRequest request, final Throwable error) {
     failHeartbeat();
     super.handleAppendResponseFailure(member, request, error);
   }
@@ -169,7 +169,7 @@ final class LeaderAppender extends AbstractAppender {
   }
 
   @Override
-  protected void failAttempt(RaftMemberContext member, RaftRequest request, Throwable error) {
+  protected void failAttempt(final RaftMemberContext member, final RaftRequest request, final Throwable error) {
     super.failAttempt(member, request, error);
 
     // Fail heartbeat futures.
@@ -198,13 +198,13 @@ final class LeaderAppender extends AbstractAppender {
 
   @Override
   protected void handleAppendResponse(
-      RaftMemberContext member, AppendRequest request, AppendResponse response, long timestamp) {
+      final RaftMemberContext member, final AppendRequest request, final AppendResponse response, final long timestamp) {
     super.handleAppendResponse(member, request, response, timestamp);
     recordHeartbeat(member, timestamp);
   }
 
   /** Records a completed heartbeat to the given member. */
-  private void recordHeartbeat(RaftMemberContext member, long timestamp) {
+  private void recordHeartbeat(final RaftMemberContext member, final long timestamp) {
     raft.checkThread();
 
     // Update the member's heartbeat time. This will be used when calculating the quorum heartbeat
@@ -269,14 +269,14 @@ final class LeaderAppender extends AbstractAppender {
 
   /** Attempts to send heartbeats to all followers. */
   private void sendHeartbeats() {
-    for (RaftMemberContext member : raft.getCluster().getRemoteMemberStates()) {
+    for (final RaftMemberContext member : raft.getCluster().getRemoteMemberStates()) {
       appendEntries(member);
     }
   }
 
   @Override
   protected void handleAppendResponseOk(
-      RaftMemberContext member, AppendRequest request, AppendResponse response) {
+      final RaftMemberContext member, final AppendRequest request, final AppendResponse response) {
     // Reset the member failure count and update the member's availability status if necessary.
     succeedAttempt(member);
 
@@ -324,7 +324,7 @@ final class LeaderAppender extends AbstractAppender {
   }
 
   @Override
-  protected void appendEntries(RaftMemberContext member) {
+  protected void appendEntries(final RaftMemberContext member) {
     // Prevent recursive, asynchronous appends from being executed if the appender has been closed.
     if (!open) {
       return;
@@ -383,7 +383,7 @@ final class LeaderAppender extends AbstractAppender {
   }
 
   @Override
-  protected boolean hasMoreEntries(RaftMemberContext member) {
+  protected boolean hasMoreEntries(final RaftMemberContext member) {
     // If the member's nextIndex is an entry in the local log then more entries can be sent.
     return member.getLogReader().hasNext();
   }
@@ -391,7 +391,7 @@ final class LeaderAppender extends AbstractAppender {
   /** Handles a {@link io.atomix.raft.protocol.RaftResponse.Status#ERROR} response. */
   @Override
   protected void handleAppendResponseError(
-      RaftMemberContext member, AppendRequest request, AppendResponse response) {
+      final RaftMemberContext member, final AppendRequest request, final AppendResponse response) {
     // If we've received a greater term, update the term and transition back to follower.
     if (response.term() > raft.getTerm()) {
       log.info(
@@ -409,17 +409,17 @@ final class LeaderAppender extends AbstractAppender {
 
   @Override
   protected void handleConfigureResponse(
-      RaftMemberContext member,
-      ConfigureRequest request,
-      ConfigureResponse response,
-      long timestamp) {
+      final RaftMemberContext member,
+      final ConfigureRequest request,
+      final ConfigureResponse response,
+      final long timestamp) {
     super.handleConfigureResponse(member, request, response, timestamp);
     recordHeartbeat(member, timestamp);
   }
 
   @Override
   protected void handleInstallResponse(
-      RaftMemberContext member, InstallRequest request, InstallResponse response, long timestamp) {
+      final RaftMemberContext member, final InstallRequest request, final InstallResponse response, final long timestamp) {
     super.handleInstallResponse(member, request, response, timestamp);
     recordHeartbeat(member, timestamp);
   }
@@ -530,7 +530,7 @@ final class LeaderAppender extends AbstractAppender {
       this(System.currentTimeMillis());
     }
 
-    TimestampedFuture(long timestamp) {
+    TimestampedFuture(final long timestamp) {
       this.timestamp = timestamp;
     }
   }

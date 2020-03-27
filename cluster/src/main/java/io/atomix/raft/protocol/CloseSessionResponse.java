@@ -21,7 +21,7 @@ import java.util.Objects;
 /** Close session response. */
 public class CloseSessionResponse extends SessionResponse {
 
-  public CloseSessionResponse(Status status, RaftError error) {
+  public CloseSessionResponse(final Status status, final RaftError error) {
     super(status, error);
   }
 
@@ -35,7 +35,7 @@ public class CloseSessionResponse extends SessionResponse {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof CloseSessionResponse) {
       final CloseSessionResponse response = (CloseSessionResponse) object;
       return response.status == status && Objects.equals(response.error, error);

@@ -65,12 +65,12 @@ public class DefaultPartitionService implements ManagedPartitionService {
 
   @SuppressWarnings("unchecked")
   public DefaultPartitionService(
-      ClusterMembershipService membershipService,
-      ClusterCommunicationService messagingService,
-      PrimitiveTypeRegistry primitiveTypeRegistry,
-      ManagedPartitionGroup systemGroup,
-      Collection<ManagedPartitionGroup> groups,
-      PartitionGroupTypeRegistry groupTypeRegistry) {
+      final ClusterMembershipService membershipService,
+      final ClusterCommunicationService messagingService,
+      final PrimitiveTypeRegistry primitiveTypeRegistry,
+      final ManagedPartitionGroup systemGroup,
+      final Collection<ManagedPartitionGroup> groups,
+      final PartitionGroupTypeRegistry groupTypeRegistry) {
     this.clusterMembershipService = membershipService;
     this.communicationService = messagingService;
     this.primitiveTypeRegistry = primitiveTypeRegistry;
@@ -89,8 +89,8 @@ public class DefaultPartitionService implements ManagedPartitionService {
 
   @Override
   @SuppressWarnings("unchecked")
-  public PartitionGroup getPartitionGroup(String name) {
-    ManagedPartitionGroup group = groups.get(name);
+  public PartitionGroup getPartitionGroup(final String name) {
+    final ManagedPartitionGroup group = groups.get(name);
     if (group != null) {
       return group;
     }
@@ -107,7 +107,7 @@ public class DefaultPartitionService implements ManagedPartitionService {
   }
 
   @SuppressWarnings("unchecked")
-  private void handleMembershipChange(PartitionGroupMembershipEvent event) {
+  private void handleMembershipChange(final PartitionGroupMembershipEvent event) {
     if (partitionManagementService == null) {
       return;
     }
@@ -195,7 +195,7 @@ public class DefaultPartitionService implements ManagedPartitionService {
         .thenCompose(
             managementService -> {
               this.partitionManagementService = (PartitionManagementService) managementService;
-              List<CompletableFuture> futures =
+              final List<CompletableFuture> futures =
                   groupMembershipService.getMemberships().stream()
                       .map(
                           membership -> {
@@ -237,12 +237,12 @@ public class DefaultPartitionService implements ManagedPartitionService {
   @SuppressWarnings("unchecked")
   public CompletableFuture<Void> stop() {
     groupMembershipService.removeListener(groupMembershipEventListener);
-    Stream<CompletableFuture<Void>> systemStream =
+    final Stream<CompletableFuture<Void>> systemStream =
         Stream.of(
             systemGroup != null ? systemGroup.close() : CompletableFuture.completedFuture(null));
-    Stream<CompletableFuture<Void>> groupStream =
+    final Stream<CompletableFuture<Void>> groupStream =
         groups.values().stream().map(ManagedPartitionGroup::close);
-    List<CompletableFuture<Void>> futures =
+    final List<CompletableFuture<Void>> futures =
         Stream.concat(systemStream, groupStream).collect(Collectors.toList());
 
     return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))

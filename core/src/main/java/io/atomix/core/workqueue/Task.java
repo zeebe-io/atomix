@@ -38,7 +38,7 @@ public class Task<E> {
    * @param taskId task identifier
    * @param payload task payload
    */
-  public Task(String taskId, E payload) {
+  public Task(final String taskId, final E payload) {
     this.taskId = taskId;
     this.payload = payload;
   }
@@ -68,7 +68,7 @@ public class Task<E> {
    * @param mapper type mapper.
    * @return mapped task.
    */
-  public <F> Task<F> map(Function<E, F> mapper) {
+  public <F> Task<F> map(final Function<E, F> mapper) {
     return new Task<>(taskId, mapper.apply(payload));
   }
 

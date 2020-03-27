@@ -44,7 +44,7 @@ public class ThreadPoolContext extends AbstractThreadContext {
   private final Executor executor =
       new Executor() {
         @Override
-        public void execute(Runnable command) {
+        public void execute(final Runnable command) {
           synchronized (tasks) {
             tasks.add(command);
             if (!running) {
@@ -60,7 +60,7 @@ public class ThreadPoolContext extends AbstractThreadContext {
    *
    * @param parent The thread pool on which to execute events.
    */
-  public ThreadPoolContext(ScheduledExecutorService parent) {
+  public ThreadPoolContext(final ScheduledExecutorService parent) {
     this.parent = checkNotNull(parent, "parent cannot be null");
 
     // This code was shamelessly stolededed from Vert.x:
@@ -80,7 +80,7 @@ public class ThreadPoolContext extends AbstractThreadContext {
 
             try {
               task.run();
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
               LOGGER.error("An uncaught exception occurred", t);
               throw t;
             }
@@ -89,20 +89,20 @@ public class ThreadPoolContext extends AbstractThreadContext {
   }
 
   @Override
-  public void execute(Runnable command) {
+  public void execute(final Runnable command) {
     executor.execute(command);
   }
 
   @Override
-  public Scheduled schedule(Duration delay, Runnable runnable) {
-    ScheduledFuture<?> future =
+  public Scheduled schedule(final Duration delay, final Runnable runnable) {
+    final ScheduledFuture<?> future =
         parent.schedule(() -> executor.execute(runnable), delay.toMillis(), TimeUnit.MILLISECONDS);
     return new ScheduledFutureImpl<>(future);
   }
 
   @Override
-  public Scheduled schedule(Duration delay, Duration interval, Runnable runnable) {
-    ScheduledFuture<?> future =
+  public Scheduled schedule(final Duration delay, final Duration interval, final Runnable runnable) {
+    final ScheduledFuture<?> future =
         parent.scheduleAtFixedRate(
             () -> executor.execute(runnable),
             delay.toMillis(),

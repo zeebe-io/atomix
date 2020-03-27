@@ -36,7 +36,7 @@ public class QueryRequest extends OperationRequest {
 
   private final long index;
 
-  public QueryRequest(long session, long sequence, PrimitiveOperation operation, long index) {
+  public QueryRequest(final long session, final long sequence, final PrimitiveOperation operation, final long index) {
     super(session, sequence, operation);
     this.index = index;
   }
@@ -65,7 +65,7 @@ public class QueryRequest extends OperationRequest {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof QueryRequest) {
       final QueryRequest request = (QueryRequest) object;
       return request.session == session
@@ -97,7 +97,7 @@ public class QueryRequest extends OperationRequest {
      * @return The request builder.
      * @throws IllegalArgumentException if {@code index} is less than {@code 0}
      */
-    public Builder withIndex(long index) {
+    public Builder withIndex(final long index) {
       checkArgument(index >= 0, "index must be positive");
       this.index = index;
       return this;

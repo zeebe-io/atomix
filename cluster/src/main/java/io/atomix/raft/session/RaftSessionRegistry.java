@@ -28,13 +28,13 @@ public class RaftSessionRegistry {
   private final Map<Long, RaftSession> sessions = new ConcurrentHashMap<>();
 
   /** Adds a session. */
-  public RaftSession addSession(RaftSession session) {
+  public RaftSession addSession(final RaftSession session) {
     final RaftSession existingSession = sessions.putIfAbsent(session.sessionId().id(), session);
     return existingSession != null ? existingSession : session;
   }
 
   /** Closes a session. */
-  public RaftSession removeSession(SessionId sessionId) {
+  public RaftSession removeSession(final SessionId sessionId) {
     return sessions.remove(sessionId.id());
   }
 
@@ -44,7 +44,7 @@ public class RaftSessionRegistry {
    * @param sessionId The session ID.
    * @return The session or {@code null} if the session doesn't exist.
    */
-  public RaftSession getSession(SessionId sessionId) {
+  public RaftSession getSession(final SessionId sessionId) {
     return getSession(sessionId.id());
   }
 
@@ -54,7 +54,7 @@ public class RaftSessionRegistry {
    * @param sessionId The session ID.
    * @return The session or {@code null} if the session doesn't exist.
    */
-  public RaftSession getSession(long sessionId) {
+  public RaftSession getSession(final long sessionId) {
     return sessions.get(sessionId);
   }
 
@@ -64,7 +64,7 @@ public class RaftSessionRegistry {
    * @param primitiveId the service identifier
    * @return a collection of sessions associated with the given service
    */
-  public Collection<RaftSession> getSessions(PrimitiveId primitiveId) {
+  public Collection<RaftSession> getSessions(final PrimitiveId primitiveId) {
     return sessions.values().stream()
         .filter(session -> session.getService().serviceId().equals(primitiveId))
         .filter(session -> session.getState().active())
@@ -76,7 +76,7 @@ public class RaftSessionRegistry {
    *
    * @param primitiveId the service identifier
    */
-  public void removeSessions(PrimitiveId primitiveId) {
+  public void removeSessions(final PrimitiveId primitiveId) {
     sessions.entrySet().removeIf(e -> e.getValue().getService().serviceId().equals(primitiveId));
   }
 

@@ -48,10 +48,10 @@ public abstract class AbstractProxyClient<S> implements ProxyClient<S> {
   private volatile PrimitiveState state = PrimitiveState.CLOSED;
 
   public AbstractProxyClient(
-      String name,
-      PrimitiveType type,
-      PrimitiveProtocol protocol,
-      Collection<ProxySession<S>> partitions) {
+      final String name,
+      final PrimitiveType type,
+      final PrimitiveProtocol protocol,
+      final Collection<ProxySession<S>> partitions) {
     this.name = checkNotNull(name, "name cannot be null");
     this.type = checkNotNull(type, "type cannot be null");
     this.protocol = checkNotNull(protocol, "protocol cannot be null");
@@ -96,17 +96,17 @@ public abstract class AbstractProxyClient<S> implements ProxyClient<S> {
   }
 
   @Override
-  public ProxySession<S> getPartition(PartitionId partitionId) {
+  public ProxySession<S> getPartition(final PartitionId partitionId) {
     return partitions.get(partitionId);
   }
 
   @Override
-  public void addStateChangeListener(Consumer<PrimitiveState> listener) {
+  public void addStateChangeListener(final Consumer<PrimitiveState> listener) {
     stateChangeListeners.add(listener);
   }
 
   @Override
-  public void removeStateChangeListener(Consumer<PrimitiveState> listener) {
+  public void removeStateChangeListener(final Consumer<PrimitiveState> listener) {
     stateChangeListeners.remove(listener);
   }
 
@@ -136,7 +136,7 @@ public abstract class AbstractProxyClient<S> implements ProxyClient<S> {
   }
 
   /** Handles a partition proxy state change. */
-  private synchronized void onStateChange(PartitionId partitionId, PrimitiveState state) {
+  private synchronized void onStateChange(final PartitionId partitionId, final PrimitiveState state) {
     states.put(partitionId, state);
     switch (state) {
       case CONNECTED:

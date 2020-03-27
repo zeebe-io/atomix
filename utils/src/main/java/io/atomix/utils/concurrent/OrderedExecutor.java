@@ -30,7 +30,7 @@ public class OrderedExecutor implements Executor {
   private final LinkedList<Runnable> tasks = new LinkedList<>();
   private boolean running;
 
-  public OrderedExecutor(Executor parent) {
+  public OrderedExecutor(final Executor parent) {
     this.parent = parent;
   }
 
@@ -49,7 +49,7 @@ public class OrderedExecutor implements Executor {
   }
 
   @Override
-  public void execute(Runnable command) {
+  public void execute(final Runnable command) {
     synchronized (tasks) {
       tasks.add(command);
       if (!running) {

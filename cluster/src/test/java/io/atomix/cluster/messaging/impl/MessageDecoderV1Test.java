@@ -48,14 +48,14 @@ public class MessageDecoderV1Test {
 
   @Test
   public void testReadStringFromHeapBuffer() throws Exception {
-    String payload = "huuhaa";
+    final String payload = "huuhaa";
     ByteBuf byteBuf = Unpooled.wrappedBuffer(payload.getBytes(StandardCharsets.UTF_8));
     try {
       assertEquals(payload, MessageDecoderV1.readString(byteBuf, payload.length()));
     } finally {
       byteBuf.release();
     }
-    byte[] bytes = payload.getBytes(StandardCharsets.UTF_8);
+    final byte[] bytes = payload.getBytes(StandardCharsets.UTF_8);
     byteBuf = Unpooled.buffer(4 + bytes.length);
     try {
       byteBuf.writeInt(1);
@@ -69,8 +69,8 @@ public class MessageDecoderV1Test {
 
   @Test
   public void testReadStringFromDirectBuffer() throws Exception {
-    String payload = "huuhaa";
-    ByteBuf byteBuf =
+    final String payload = "huuhaa";
+    final ByteBuf byteBuf =
         Unpooled.directBuffer(payload.length())
             .writeBytes(payload.getBytes(StandardCharsets.UTF_8));
     try {

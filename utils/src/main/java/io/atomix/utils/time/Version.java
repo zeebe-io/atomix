@@ -31,7 +31,7 @@ import java.util.Objects;
 public class Version implements Timestamp {
   private final long version;
 
-  public Version(long version) {
+  public Version(final long version) {
     this.version = version;
   }
 
@@ -45,9 +45,9 @@ public class Version implements Timestamp {
   }
 
   @Override
-  public int compareTo(Timestamp o) {
+  public int compareTo(final Timestamp o) {
     checkArgument(o instanceof Version, "Must be LockVersion", o);
-    Version that = (Version) o;
+    final Version that = (Version) o;
 
     return ComparisonChain.start().compare(this.version, that.version).result();
   }
@@ -58,14 +58,14 @@ public class Version implements Timestamp {
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(final Object obj) {
     if (this == obj) {
       return true;
     }
     if (!(obj instanceof Version)) {
       return false;
     }
-    Version that = (Version) obj;
+    final Version that = (Version) obj;
     return Objects.equals(this.version, that.version);
   }
 

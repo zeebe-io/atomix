@@ -49,7 +49,7 @@ public class MulticastDiscoveryConfig extends NodeDiscoveryConfig {
    * @param broadcastInterval the broadcast interval
    * @return the group membership configuration
    */
-  public MulticastDiscoveryConfig setBroadcastInterval(Duration broadcastInterval) {
+  public MulticastDiscoveryConfig setBroadcastInterval(final Duration broadcastInterval) {
     this.broadcastInterval = checkNotNull(broadcastInterval);
     return this;
   }
@@ -71,7 +71,7 @@ public class MulticastDiscoveryConfig extends NodeDiscoveryConfig {
    * @return the group membership configuration
    */
   @Deprecated
-  public MulticastDiscoveryConfig setFailureThreshold(int failureThreshold) {
+  public MulticastDiscoveryConfig setFailureThreshold(final int failureThreshold) {
     this.failureThreshold = failureThreshold;
     return this;
   }
@@ -91,7 +91,7 @@ public class MulticastDiscoveryConfig extends NodeDiscoveryConfig {
    * @param failureTimeout the base failure timeout
    * @return the group membership configuration
    */
-  public MulticastDiscoveryConfig setFailureTimeout(Duration failureTimeout) {
+  public MulticastDiscoveryConfig setFailureTimeout(final Duration failureTimeout) {
     this.failureTimeout = checkNotNull(failureTimeout);
     return this;
   }

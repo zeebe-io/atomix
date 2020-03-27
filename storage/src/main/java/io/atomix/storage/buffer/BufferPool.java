@@ -25,7 +25,7 @@ import io.atomix.utils.concurrent.ReferencePool;
  */
 public class BufferPool extends ReferencePool<Buffer> {
 
-  public BufferPool(ReferenceFactory<Buffer> factory) {
+  public BufferPool(final ReferenceFactory<Buffer> factory) {
     super(factory);
   }
 }

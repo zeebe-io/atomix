@@ -34,12 +34,12 @@ import java.util.stream.Collectors;
 /** Abstract active state. */
 public abstract class ActiveRole extends PassiveRole {
 
-  protected ActiveRole(RaftContext context) {
+  protected ActiveRole(final RaftContext context) {
     super(context);
   }
 
   @Override
-  public CompletableFuture<AppendResponse> onAppend(AppendRequest request) {
+  public CompletableFuture<AppendResponse> onAppend(final AppendRequest request) {
     raft.checkThread();
     logRequest(request);
 
@@ -59,7 +59,7 @@ public abstract class ActiveRole extends PassiveRole {
   }
 
   @Override
-  public CompletableFuture<PollResponse> onPoll(PollRequest request) {
+  public CompletableFuture<PollResponse> onPoll(final PollRequest request) {
     raft.checkThread();
     logRequest(request);
     updateTermAndLeader(request.term(), null);
@@ -67,7 +67,7 @@ public abstract class ActiveRole extends PassiveRole {
   }
 
   /** Handles a poll request. */
-  protected PollResponse handlePoll(PollRequest request) {
+  protected PollResponse handlePoll(final PollRequest request) {
     // If the request term is not as great as the current context term then don't
     // vote for the candidate. We want to vote for candidates that are at least
     // as up to date as us.
@@ -94,7 +94,7 @@ public abstract class ActiveRole extends PassiveRole {
   }
 
   /** Returns a boolean value indicating whether the given candidate's log is up-to-date. */
-  boolean isLogUpToDate(long lastIndex, long lastTerm, RaftRequest request) {
+  boolean isLogUpToDate(final long lastIndex, final long lastTerm, final RaftRequest request) {
     // Read the last entry from the log.
     final Indexed<RaftLogEntry> lastEntry = raft.getLogWriter().getLastEntry();
 
@@ -141,7 +141,7 @@ public abstract class ActiveRole extends PassiveRole {
   }
 
   @Override
-  public CompletableFuture<VoteResponse> onVote(VoteRequest request) {
+  public CompletableFuture<VoteResponse> onVote(final VoteRequest request) {
     raft.checkThread();
     logRequest(request);
 
@@ -158,7 +158,7 @@ public abstract class ActiveRole extends PassiveRole {
   }
 
   /** Handles a vote request. */
-  protected VoteResponse handleVote(VoteRequest request) {
+  protected VoteResponse handleVote(final VoteRequest request) {
     // If the request term is not as great as the current context term then don't
     // vote for the candidate. We want to vote for candidates that are at least
     // as up to date as us.
@@ -236,7 +236,7 @@ public abstract class ActiveRole extends PassiveRole {
   }
 
   @Override
-  public void onLeaderHeartbeat(LeaderHeartbeatRequest request) {
+  public void onLeaderHeartbeat(final LeaderHeartbeatRequest request) {
     raft.checkHeartbeatThread();
     logRequest(request);
 

@@ -24,14 +24,14 @@ import java.util.concurrent.ScheduledExecutorService;
 final class RemoteClientConnection extends AbstractClientConnection {
   private final Channel channel;
 
-  RemoteClientConnection(ScheduledExecutorService executorService, Channel channel) {
+  RemoteClientConnection(final ScheduledExecutorService executorService, final Channel channel) {
     super(executorService);
     this.channel = channel;
   }
 
   @Override
-  public CompletableFuture<Void> sendAsync(ProtocolRequest message) {
-    CompletableFuture<Void> future = new CompletableFuture<>();
+  public CompletableFuture<Void> sendAsync(final ProtocolRequest message) {
+    final CompletableFuture<Void> future = new CompletableFuture<>();
     channel
         .writeAndFlush(message)
         .addListener(
@@ -46,9 +46,9 @@ final class RemoteClientConnection extends AbstractClientConnection {
   }
 
   @Override
-  public CompletableFuture<byte[]> sendAndReceive(ProtocolRequest message, Duration timeout) {
-    CompletableFuture<byte[]> future = new CompletableFuture<>();
-    Callback callback = new Callback(message.id(), message.subject(), timeout, future);
+  public CompletableFuture<byte[]> sendAndReceive(final ProtocolRequest message, final Duration timeout) {
+    final CompletableFuture<byte[]> future = new CompletableFuture<>();
+    final Callback callback = new Callback(message.id(), message.subject(), timeout, future);
     channel
         .writeAndFlush(message)
         .addListener(

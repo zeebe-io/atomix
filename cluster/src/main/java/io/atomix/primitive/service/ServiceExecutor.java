@@ -104,7 +104,7 @@ public interface ServiceExecutor extends Executor, Scheduler {
    * @param callback the operation callback
    * @throws NullPointerException if the {@code operationId} or {@code callback} is null
    */
-  default void register(OperationId operationId, Runnable callback) {
+  default void register(final OperationId operationId, final Runnable callback) {
     checkNotNull(operationId, "operationId cannot be null");
     checkNotNull(callback, "callback cannot be null");
     handle(

@@ -72,7 +72,7 @@ public class DnsDiscoveryProvider
     }
 
     @Override
-    public NodeDiscoveryProvider newProvider(DnsDiscoveryConfig config) {
+    public NodeDiscoveryProvider newProvider(final DnsDiscoveryConfig config) {
       return new DnsDiscoveryProvider(config);
     }
   }
@@ -91,11 +91,11 @@ public class DnsDiscoveryProvider
   private final DnsDiscoveryConfig config;
   private final Map<NodeId, Node> nodes = Maps.newConcurrentMap();
 
-  public DnsDiscoveryProvider(String service) {
+  public DnsDiscoveryProvider(final String service) {
     this(new DnsDiscoveryConfig().setService(service));
   }
 
-  DnsDiscoveryProvider(DnsDiscoveryConfig config) {
+  DnsDiscoveryProvider(final DnsDiscoveryConfig config) {
     this.config = checkNotNull(config, "config cannot be null");
     this.service = checkNotNull(config.getService(), "service cannot be null");
     this.resolutionInterval =
@@ -122,16 +122,16 @@ public class DnsDiscoveryProvider
       final NamingEnumeration<?> resolved =
           context.getAttributes(service, ATTRIBUTES).get(ATTRIBUTE_ID).getAll();
 
-      Set<NodeId> currentNodeIds = ImmutableSet.copyOf(nodes.keySet());
-      Set<NodeId> newNodeIds = Sets.newHashSet();
+      final Set<NodeId> currentNodeIds = ImmutableSet.copyOf(nodes.keySet());
+      final Set<NodeId> newNodeIds = Sets.newHashSet();
       while (resolved.hasMore()) {
-        String record = (String) resolved.next();
-        String[] items = record.split(" ", -1);
-        String host = items[3].trim();
-        String port = items[2].trim();
-        String id = Splitter.on('.').splitToList(host).get(0);
+        final String record = (String) resolved.next();
+        final String[] items = record.split(" ", -1);
+        final String host = items[3].trim();
+        final String port = items[2].trim();
+        final String id = Splitter.on('.').splitToList(host).get(0);
 
-        Node node =
+        final Node node =
             Node.builder().withId(id).withHost(host).withPort(Integer.parseInt(port)).build();
 
         if (nodes.putIfAbsent(node.id(), node) == null) {
@@ -141,22 +141,22 @@ public class DnsDiscoveryProvider
         }
       }
 
-      for (NodeId nodeId : currentNodeIds) {
+      for (final NodeId nodeId : currentNodeIds) {
         if (!newNodeIds.contains(nodeId)) {
-          Node node = nodes.remove(nodeId);
+          final Node node = nodes.remove(nodeId);
           if (node != null) {
             LOGGER.info("Node left: {}", node);
             post(new NodeDiscoveryEvent(NodeDiscoveryEvent.Type.LEAVE, node));
           }
         }
       }
-    } catch (NamingException e) {
+    } catch (final NamingException e) {
       LOGGER.debug("Failed to resolve DNS SRV record {}", service, e);
     }
   }
 
   @Override
-  public CompletableFuture<Void> join(BootstrapService bootstrap, Node localNode) {
+  public CompletableFuture<Void> join(final BootstrapService bootstrap, final Node localNode) {
     LOGGER.info("Joined");
     resolverScheduler.scheduleAtFixedRate(
         this::resolveNodes, 0, resolutionInterval.toMillis(), TimeUnit.MILLISECONDS);
@@ -164,7 +164,7 @@ public class DnsDiscoveryProvider
   }
 
   @Override
-  public CompletableFuture<Void> leave(Node localNode) {
+  public CompletableFuture<Void> leave(final Node localNode) {
     LOGGER.info("Left");
     resolverScheduler.shutdownNow();
     return CompletableFuture.completedFuture(null);

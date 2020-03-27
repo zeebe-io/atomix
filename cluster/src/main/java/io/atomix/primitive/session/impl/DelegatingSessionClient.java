@@ -33,7 +33,7 @@ import java.util.function.Consumer;
 public class DelegatingSessionClient implements SessionClient {
   private final SessionClient session;
 
-  public DelegatingSessionClient(SessionClient session) {
+  public DelegatingSessionClient(final SessionClient session) {
     this.session = session;
   }
 
@@ -68,27 +68,27 @@ public class DelegatingSessionClient implements SessionClient {
   }
 
   @Override
-  public void addStateChangeListener(Consumer<PrimitiveState> listener) {
+  public void addStateChangeListener(final Consumer<PrimitiveState> listener) {
     session.addStateChangeListener(listener);
   }
 
   @Override
-  public void removeStateChangeListener(Consumer<PrimitiveState> listener) {
+  public void removeStateChangeListener(final Consumer<PrimitiveState> listener) {
     session.removeStateChangeListener(listener);
   }
 
   @Override
-  public CompletableFuture<byte[]> execute(PrimitiveOperation operation) {
+  public CompletableFuture<byte[]> execute(final PrimitiveOperation operation) {
     return session.execute(operation);
   }
 
   @Override
-  public void addEventListener(EventType eventType, Consumer<PrimitiveEvent> listener) {
+  public void addEventListener(final EventType eventType, final Consumer<PrimitiveEvent> listener) {
     session.addEventListener(eventType, listener);
   }
 
   @Override
-  public void removeEventListener(EventType eventType, Consumer<PrimitiveEvent> listener) {
+  public void removeEventListener(final EventType eventType, final Consumer<PrimitiveEvent> listener) {
     session.removeEventListener(eventType, listener);
   }
 

@@ -75,7 +75,7 @@ public class DefaultWorkQueueService extends AbstractPrimitiveService<WorkQueueC
   }
 
   @Override
-  public void backup(BackupOutput writer) {
+  public void backup(final BackupOutput writer) {
     writer.writeObject(registeredWorkers);
     writer.writeObject(assignments);
     writer.writeObject(unassignedTasks);
@@ -83,7 +83,7 @@ public class DefaultWorkQueueService extends AbstractPrimitiveService<WorkQueueC
   }
 
   @Override
-  public void restore(BackupInput reader) {
+  public void restore(final BackupInput reader) {
     registeredWorkers = reader.readObject();
     assignments = reader.readObject();
     unassignedTasks = reader.readObject();
@@ -118,11 +118,11 @@ public class DefaultWorkQueueService extends AbstractPrimitiveService<WorkQueueC
   }
 
   @Override
-  public void add(Collection<byte[]> items) {
-    AtomicInteger itemIndex = new AtomicInteger(0);
+  public void add(final Collection<byte[]> items) {
+    final AtomicInteger itemIndex = new AtomicInteger(0);
     items.forEach(
         item -> {
-          String taskId =
+          final String taskId =
               String.format(
                   "%d:%d:%d",
                   getCurrentSession().sessionId().id(),
@@ -139,12 +139,12 @@ public class DefaultWorkQueueService extends AbstractPrimitiveService<WorkQueueC
   }
 
   @Override
-  public Collection<Task<byte[]>> take(int maxTasks) {
+  public Collection<Task<byte[]>> take(final int maxTasks) {
     try {
       if (unassignedTasks.isEmpty()) {
         return ImmutableList.of();
       }
-      long sessionId = getCurrentSession().sessionId().id();
+      final long sessionId = getCurrentSession().sessionId().id();
       return IntStream.range(0, Math.min(maxTasks, unassignedTasks.size()))
           .mapToObj(
               i -> {
@@ -158,7 +158,7 @@ public class DefaultWorkQueueService extends AbstractPrimitiveService<WorkQueueC
                 return task;
               })
           .collect(Collectors.toCollection(ArrayList::new));
-    } catch (Exception e) {
+    } catch (final Exception e) {
       getLogger().warn("State machine update failed", e);
       throwIfUnchecked(e);
       throw new RuntimeException(e);
@@ -166,11 +166,11 @@ public class DefaultWorkQueueService extends AbstractPrimitiveService<WorkQueueC
   }
 
   @Override
-  public void complete(Collection<String> taskIds) {
+  public void complete(final Collection<String> taskIds) {
     try {
       taskIds.forEach(
           taskId -> {
-            TaskAssignment assignment = assignments.get(taskId);
+            final TaskAssignment assignment = assignments.get(taskId);
             if (assignment != null
                 && assignment.sessionId() == getCurrentSession().sessionId().id()) {
               assignments.remove(taskId);
@@ -178,7 +178,7 @@ public class DefaultWorkQueueService extends AbstractPrimitiveService<WorkQueueC
               totalCompleted.incrementAndGet();
             }
           });
-    } catch (Exception e) {
+    } catch (final Exception e) {
       getLogger().warn("State machine update failed", e);
       throwIfUnchecked(e);
       throw new RuntimeException(e);
@@ -186,23 +186,23 @@ public class DefaultWorkQueueService extends AbstractPrimitiveService<WorkQueueC
   }
 
   @Override
-  public void onExpire(Session session) {
+  public void onExpire(final Session session) {
     evictWorker(session.sessionId());
   }
 
   @Override
-  public void onClose(Session session) {
+  public void onClose(final Session session) {
     evictWorker(session.sessionId());
   }
 
-  private void evictWorker(SessionId sessionId) {
+  private void evictWorker(final SessionId sessionId) {
     registeredWorkers.remove(sessionId);
 
     // TODO: Maintain an index of tasks by session for efficient access.
-    Iterator<Map.Entry<String, TaskAssignment>> iter = assignments.entrySet().iterator();
+    final Iterator<Map.Entry<String, TaskAssignment>> iter = assignments.entrySet().iterator();
     while (iter.hasNext()) {
-      Map.Entry<String, TaskAssignment> entry = iter.next();
-      TaskAssignment assignment = entry.getValue();
+      final Map.Entry<String, TaskAssignment> entry = iter.next();
+      final TaskAssignment assignment = entry.getValue();
       if (assignment.sessionId() == sessionId.id()) {
         unassignedTasks.add(assignment.task());
         iter.remove();
@@ -214,7 +214,7 @@ public class DefaultWorkQueueService extends AbstractPrimitiveService<WorkQueueC
     private final long sessionId;
     private final Task<byte[]> task;
 
-    TaskAssignment(long sessionId, Task<byte[]> task) {
+    TaskAssignment(final long sessionId, final Task<byte[]> task) {
       this.sessionId = sessionId;
       this.task = task;
     }

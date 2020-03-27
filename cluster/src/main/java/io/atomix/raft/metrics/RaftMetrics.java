@@ -22,14 +22,14 @@ public class RaftMetrics {
   protected final String partition;
   protected final String partitionGroupName;
 
-  RaftMetrics(String partitionName) {
+  RaftMetrics(final String partitionName) {
     int partitionId;
     String groupName;
     try {
       final String[] parts = partitionName.split("-");
       partitionId = Integer.parseInt(parts[parts.length - 1]);
       groupName = parts[0];
-    } catch (Exception e) {
+    } catch (final Exception e) {
       LoggerFactory.getLogger(RaftMetrics.class)
           .debug(
               "Cannot extract partition group name and id from {}, defaulting to raft and 0",

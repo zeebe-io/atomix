@@ -50,12 +50,12 @@ public interface DistributedPrimitive {
    *
    * @param listener The listener to be called when the state changes.
    */
-  default void addStateChangeListener(Consumer<PrimitiveState> listener) {}
+  default void addStateChangeListener(final Consumer<PrimitiveState> listener) {}
 
   /**
    * Unregisters a previously registered listener to be called when the primitive's state changes.
    *
    * @param listener The listener to unregister
    */
-  default void removeStateChangeListener(Consumer<PrimitiveState> listener) {}
+  default void removeStateChangeListener(final Consumer<PrimitiveState> listener) {}
 }

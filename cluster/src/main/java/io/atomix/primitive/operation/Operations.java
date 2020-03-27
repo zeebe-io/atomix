@@ -28,10 +28,10 @@ public final class Operations {
    * @param serviceInterface the service interface
    * @return the operations provided by the given service interface
    */
-  public static Map<Method, OperationId> getMethodMap(Class<?> serviceInterface) {
+  public static Map<Method, OperationId> getMethodMap(final Class<?> serviceInterface) {
     if (!serviceInterface.isInterface()) {
-      Map<Method, OperationId> operations = new HashMap<>();
-      for (Class<?> iface : serviceInterface.getInterfaces()) {
+      final Map<Method, OperationId> operations = new HashMap<>();
+      for (final Class<?> iface : serviceInterface.getInterfaces()) {
         operations.putAll(findMethods(iface));
       }
       return operations;
@@ -45,10 +45,10 @@ public final class Operations {
    * @param type the type for which to find operations
    * @return the operations defined by the given type and its parent interfaces
    */
-  private static Map<Method, OperationId> findMethods(Class<?> type) {
-    Map<Method, OperationId> operations = new HashMap<>();
-    for (Method method : type.getDeclaredMethods()) {
-      OperationId operationId = getOperationId(method);
+  private static Map<Method, OperationId> findMethods(final Class<?> type) {
+    final Map<Method, OperationId> operations = new HashMap<>();
+    for (final Method method : type.getDeclaredMethods()) {
+      final OperationId operationId = getOperationId(method);
       if (operationId != null) {
         if (operations.values().stream()
             .anyMatch(operation -> operation.id().equals(operationId.id()))) {
@@ -57,7 +57,7 @@ public final class Operations {
         operations.put(method, operationId);
       }
     }
-    for (Class<?> iface : type.getInterfaces()) {
+    for (final Class<?> iface : type.getInterfaces()) {
       operations.putAll(findMethods(iface));
     }
     return operations;
@@ -69,12 +69,12 @@ public final class Operations {
    * @param serviceInterface the service interface
    * @return the operations provided by the given service interface
    */
-  public static Map<OperationId, Method> getOperationMap(Class<?> serviceInterface) {
+  public static Map<OperationId, Method> getOperationMap(final Class<?> serviceInterface) {
     if (!serviceInterface.isInterface()) {
       Class type = serviceInterface;
-      Map<OperationId, Method> operations = new HashMap<>();
+      final Map<OperationId, Method> operations = new HashMap<>();
       while (type != Object.class) {
-        for (Class<?> iface : type.getInterfaces()) {
+        for (final Class<?> iface : type.getInterfaces()) {
           operations.putAll(findOperations(iface));
         }
         type = type.getSuperclass();
@@ -90,10 +90,10 @@ public final class Operations {
    * @param type the type for which to find operations
    * @return the operations defined by the given type and its parent interfaces
    */
-  private static Map<OperationId, Method> findOperations(Class<?> type) {
-    Map<OperationId, Method> operations = new HashMap<>();
-    for (Method method : type.getDeclaredMethods()) {
-      OperationId operationId = getOperationId(method);
+  private static Map<OperationId, Method> findOperations(final Class<?> type) {
+    final Map<OperationId, Method> operations = new HashMap<>();
+    for (final Method method : type.getDeclaredMethods()) {
+      final OperationId operationId = getOperationId(method);
       if (operationId != null) {
         if (operations.keySet().stream()
             .anyMatch(operation -> operation.id().equals(operationId.id()))) {
@@ -102,7 +102,7 @@ public final class Operations {
         operations.put(operationId, method);
       }
     }
-    for (Class<?> iface : type.getInterfaces()) {
+    for (final Class<?> iface : type.getInterfaces()) {
       operations.putAll(findOperations(iface));
     }
     return operations;
@@ -114,20 +114,20 @@ public final class Operations {
    * @param method the method for which to lookup the operation ID
    * @return the operation ID for the given method or null if the method is not annotated
    */
-  private static OperationId getOperationId(Method method) {
-    Command command = method.getAnnotation(Command.class);
+  private static OperationId getOperationId(final Method method) {
+    final Command command = method.getAnnotation(Command.class);
     if (command != null) {
-      String name = command.value().equals("") ? method.getName() : command.value();
+      final String name = command.value().equals("") ? method.getName() : command.value();
       return OperationId.from(name, OperationType.COMMAND);
     }
-    Query query = method.getAnnotation(Query.class);
+    final Query query = method.getAnnotation(Query.class);
     if (query != null) {
-      String name = query.value().equals("") ? method.getName() : query.value();
+      final String name = query.value().equals("") ? method.getName() : query.value();
       return OperationId.from(name, OperationType.QUERY);
     }
-    Operation operation = method.getAnnotation(Operation.class);
+    final Operation operation = method.getAnnotation(Operation.class);
     if (operation != null) {
-      String name = operation.value().equals("") ? method.getName() : operation.value();
+      final String name = operation.value().equals("") ? method.getName() : operation.value();
       return OperationId.from(name, operation.type());
     }
     return null;

@@ -27,7 +27,7 @@ public class TestRaftProtocolFactory {
   private final Map<MemberId, TestRaftClientProtocol> clients = Maps.newConcurrentMap();
   private final ThreadContext context;
 
-  public TestRaftProtocolFactory(ThreadContext context) {
+  public TestRaftProtocolFactory(final ThreadContext context) {
     this.context = context;
   }
 
@@ -37,7 +37,7 @@ public class TestRaftProtocolFactory {
    * @param memberId the client member identifier
    * @return a new test client protocol
    */
-  public RaftClientProtocol newClientProtocol(MemberId memberId) {
+  public RaftClientProtocol newClientProtocol(final MemberId memberId) {
     return new TestRaftClientProtocol(memberId, servers, clients, context);
   }
 
@@ -47,7 +47,7 @@ public class TestRaftProtocolFactory {
    * @param memberId the server member identifier
    * @return a new test server protocol
    */
-  public RaftServerProtocol newServerProtocol(MemberId memberId) {
+  public RaftServerProtocol newServerProtocol(final MemberId memberId) {
     return new TestRaftServerProtocol(memberId, servers, clients, context);
   }
 }

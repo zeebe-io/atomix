@@ -37,11 +37,11 @@ public class GroupMembershipEvent extends AbstractEvent<GroupMembershipEvent.Typ
     MEMBER_REMOVED,
   }
 
-  public GroupMembershipEvent(Type type, Member subject) {
+  public GroupMembershipEvent(final Type type, final Member subject) {
     super(type, subject);
   }
 
-  public GroupMembershipEvent(Type type, Member subject, long time) {
+  public GroupMembershipEvent(final Type type, final Member subject, final long time) {
     super(type, subject, time);
   }
 
@@ -60,9 +60,9 @@ public class GroupMembershipEvent extends AbstractEvent<GroupMembershipEvent.Typ
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof GroupMembershipEvent) {
-      GroupMembershipEvent that = (GroupMembershipEvent) object;
+      final GroupMembershipEvent that = (GroupMembershipEvent) object;
       return this.type() == that.type() && this.member().equals(that.member());
     }
     return false;

@@ -21,17 +21,17 @@ import io.atomix.utils.concurrent.ReferenceManager;
 public abstract class ByteBufferBuffer extends AbstractBuffer {
   protected final ByteBufferBytes bytes;
 
-  public ByteBufferBuffer(ByteBufferBytes bytes, ReferenceManager<Buffer> referenceManager) {
+  public ByteBufferBuffer(final ByteBufferBytes bytes, final ReferenceManager<Buffer> referenceManager) {
     super(bytes, referenceManager);
     this.bytes = bytes;
   }
 
   public ByteBufferBuffer(
-      ByteBufferBytes bytes,
-      int offset,
-      int initialCapacity,
-      int maxCapacity,
-      ReferenceManager<Buffer> referenceManager) {
+      final ByteBufferBytes bytes,
+      final int offset,
+      final int initialCapacity,
+      final int maxCapacity,
+      final ReferenceManager<Buffer> referenceManager) {
     super(bytes, offset, initialCapacity, maxCapacity, referenceManager);
     this.bytes = bytes;
   }
@@ -42,11 +42,11 @@ public abstract class ByteBufferBuffer extends AbstractBuffer {
   }
 
   @Override
-  protected void compact(int from, int to, int length) {
-    byte[] bytes = new byte[1024];
+  protected void compact(final int from, final int to, final int length) {
+    final byte[] bytes = new byte[1024];
     int position = from;
     while (position < from + length) {
-      int size = Math.min((from + length) - position, 1024);
+      final int size = Math.min((from + length) - position, 1024);
       this.bytes.read(position, bytes, 0, size);
       this.bytes.write(0, bytes, 0, size);
       position += size;

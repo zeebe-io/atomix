@@ -27,32 +27,32 @@ import java.util.UUID;
 
 public abstract class FileTesting {
   public static File createFile() {
-    File file = new File("target/test-files/" + UUID.randomUUID().toString());
+    final File file = new File("target/test-files/" + UUID.randomUUID().toString());
     file.getParentFile().mkdirs();
     return file;
   }
 
   public static void cleanFiles() {
-    Path directory = Paths.get("target/test-files/");
+    final Path directory = Paths.get("target/test-files/");
     try {
       Files.walkFileTree(
           directory,
           new SimpleFileVisitor<Path>() {
             @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs)
                 throws IOException {
               Files.delete(file);
               return FileVisitResult.CONTINUE;
             }
 
             @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException exc)
+            public FileVisitResult postVisitDirectory(final Path dir, final IOException exc)
                 throws IOException {
               Files.delete(dir);
               return FileVisitResult.CONTINUE;
             }
           });
-    } catch (Exception ignore) {
+    } catch (final Exception ignore) {
     }
   }
 }

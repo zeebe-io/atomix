@@ -25,7 +25,7 @@ public final class MetadataResult {
 
   final Set<SessionMetadata> sessions;
 
-  MetadataResult(Set<SessionMetadata> sessions) {
+  MetadataResult(final Set<SessionMetadata> sessions) {
     this.sessions = sessions;
   }
 

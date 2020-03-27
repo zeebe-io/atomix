@@ -50,7 +50,7 @@ public class TlsConfig {
    * @param enabled whether TLS is enabled
    * @return the TLS configuration
    */
-  public TlsConfig setEnabled(boolean enabled) {
+  public TlsConfig setEnabled(final boolean enabled) {
     this.enabled = enabled;
     return this;
   }
@@ -70,7 +70,7 @@ public class TlsConfig {
    * @param keyStore the key store path
    * @return the TLS configuration
    */
-  public TlsConfig setKeyStore(String keyStore) {
+  public TlsConfig setKeyStore(final String keyStore) {
     this.keyStore = keyStore;
     return this;
   }
@@ -90,7 +90,7 @@ public class TlsConfig {
    * @param trustStore the trust store path
    * @return the TLS configuration
    */
-  public TlsConfig setTrustStore(String trustStore) {
+  public TlsConfig setTrustStore(final String trustStore) {
     this.trustStore = trustStore;
     return this;
   }
@@ -110,7 +110,7 @@ public class TlsConfig {
    * @param keyStorePassword the key store password
    * @return the TLS configuration
    */
-  public TlsConfig setKeyStorePassword(String keyStorePassword) {
+  public TlsConfig setKeyStorePassword(final String keyStorePassword) {
     this.keyStorePassword = keyStorePassword;
     return this;
   }
@@ -130,7 +130,7 @@ public class TlsConfig {
    * @param trustStorePassword the trust store password
    * @return the TLS configuration
    */
-  public TlsConfig setTrustStorePassword(String trustStorePassword) {
+  public TlsConfig setTrustStorePassword(final String trustStorePassword) {
     this.trustStorePassword = trustStorePassword;
     return this;
   }

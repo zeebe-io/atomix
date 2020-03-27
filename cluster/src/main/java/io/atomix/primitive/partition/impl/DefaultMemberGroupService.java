@@ -40,7 +40,7 @@ public class DefaultMemberGroupService
   private volatile Collection<MemberGroup> memberGroups;
 
   public DefaultMemberGroupService(
-      ClusterMembershipService membershipService, MemberGroupProvider memberGroupProvider) {
+      final ClusterMembershipService membershipService, final MemberGroupProvider memberGroupProvider) {
     this.membershipService = membershipService;
     this.memberGroupProvider = memberGroupProvider;
   }

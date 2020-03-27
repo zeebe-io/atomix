@@ -180,7 +180,7 @@ public interface RaftRole extends Managed<RaftRole> {
    */
   CompletableFuture<QueryResponse> onQuery(QueryRequest request);
 
-  default void onLeaderHeartbeat(LeaderHeartbeatRequest request) {
+  default void onLeaderHeartbeat(final LeaderHeartbeatRequest request) {
     // default just accepts it
   }
 }

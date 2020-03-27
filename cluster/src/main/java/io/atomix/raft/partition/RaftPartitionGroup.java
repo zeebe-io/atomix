@@ -79,7 +79,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
   private Collection<PartitionMetadata> metadata;
   private ClusterCommunicationService communicationService;
 
-  public RaftPartitionGroup(RaftPartitionGroupConfig config) {
+  public RaftPartitionGroup(final RaftPartitionGroupConfig config) {
     final Logger log =
         ContextualLoggerFactory.getLogger(
             DefaultRaftClient.class,
@@ -105,7 +105,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
   }
 
   private static Collection<RaftPartition> buildPartitions(
-      RaftPartitionGroupConfig config, ThreadContextFactory threadContextFactory) {
+      final RaftPartitionGroupConfig config, final ThreadContextFactory threadContextFactory) {
     final File partitionsDir =
         new File(config.getStorageConfig().getDirectory(config.getName()), "partitions");
     final List<RaftPartition> partitions = new ArrayList<>(config.getPartitions());
@@ -126,7 +126,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
    * @param name the partition group name
    * @return a new partition group builder
    */
-  public static Builder builder(String name) {
+  public static Builder builder(final String name) {
     return new Builder(new RaftPartitionGroupConfig().setName(name));
   }
 
@@ -154,7 +154,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
   }
 
   @Override
-  public RaftPartition getPartition(PartitionId partitionId) {
+  public RaftPartition getPartition(final PartitionId partitionId) {
     return partitions.get(partitionId);
   }
 
@@ -208,7 +208,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
 
   @Override
   public CompletableFuture<ManagedPartitionGroup> join(
-      PartitionManagementService managementService) {
+      final PartitionManagementService managementService) {
 
     // We expect to bootstrap partitions where leadership is equally distributed.
     // First member of a PartitionMetadata is the bootstrap leader
@@ -243,7 +243,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
 
   @Override
   public CompletableFuture<ManagedPartitionGroup> connect(
-      PartitionManagementService managementService) {
+      final PartitionManagementService managementService) {
     return join(managementService);
   }
 
@@ -311,7 +311,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
     }
 
     @Override
-    public ManagedPartitionGroup newPartitionGroup(RaftPartitionGroupConfig config) {
+    public ManagedPartitionGroup newPartitionGroup(final RaftPartitionGroupConfig config) {
       return new RaftPartitionGroup(config);
     }
 
@@ -324,7 +324,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
   /** Raft partition group builder. */
   public static class Builder extends PartitionGroup.Builder<RaftPartitionGroupConfig> {
 
-    protected Builder(RaftPartitionGroupConfig config) {
+    protected Builder(final RaftPartitionGroupConfig config) {
       super(config);
     }
 
@@ -335,7 +335,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
      * @return the Raft partition group builder
      * @throws NullPointerException if the members are null
      */
-    public Builder withMembers(String... members) {
+    public Builder withMembers(final String... members) {
       return withMembers(Arrays.asList(members));
     }
 
@@ -346,7 +346,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
      * @return the Raft partition group builder
      * @throws NullPointerException if the members are null
      */
-    public Builder withMembers(Collection<String> members) {
+    public Builder withMembers(final Collection<String> members) {
       config.setMembers(Sets.newHashSet(checkNotNull(members, "members cannot be null")));
       return this;
     }
@@ -358,7 +358,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
      * @return the Raft partition group builder
      * @throws NullPointerException if the members are null
      */
-    public Builder withMembers(MemberId... members) {
+    public Builder withMembers(final MemberId... members) {
       return withMembers(
           Stream.of(members).map(nodeId -> nodeId.id()).collect(Collectors.toList()));
     }
@@ -370,7 +370,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
      * @return the Raft partition group builder
      * @throws NullPointerException if the members are null
      */
-    public Builder withMembers(Member... members) {
+    public Builder withMembers(final Member... members) {
       return withMembers(
           Stream.of(members).map(node -> node.id().id()).collect(Collectors.toList()));
     }
@@ -382,7 +382,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
      * @return the Raft partition group builder
      * @throws IllegalArgumentException if the number of partitions is not positive
      */
-    public Builder withNumPartitions(int numPartitions) {
+    public Builder withNumPartitions(final int numPartitions) {
       config.setPartitions(numPartitions);
       return this;
     }
@@ -394,7 +394,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
      * @return the Raft partition group builder
      * @throws IllegalArgumentException if the partition size is not positive
      */
-    public Builder withPartitionSize(int partitionSize) {
+    public Builder withPartitionSize(final int partitionSize) {
       config.setPartitionSize(partitionSize);
       return this;
     }
@@ -405,7 +405,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
      * @param electionTimeout the leader election timeout
      * @return the Raft partition group configuration
      */
-    public Builder withElectionTimeout(Duration electionTimeout) {
+    public Builder withElectionTimeout(final Duration electionTimeout) {
       config.setElectionTimeout(electionTimeout);
       return this;
     }
@@ -416,7 +416,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
      * @param heartbeatInterval the heartbeat interval
      * @return the Raft partition group configuration
      */
-    public Builder withHeartbeatInterval(Duration heartbeatInterval) {
+    public Builder withHeartbeatInterval(final Duration heartbeatInterval) {
       config.setHeartbeatInterval(heartbeatInterval);
       return this;
     }
@@ -427,7 +427,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
      * @param defaultSessionTimeout the default session timeout
      * @return the Raft partition group configuration
      */
-    public Builder withDefaultSessionTimeout(Duration defaultSessionTimeout) {
+    public Builder withDefaultSessionTimeout(final Duration defaultSessionTimeout) {
       config.setDefaultSessionTimeout(defaultSessionTimeout);
       return this;
     }
@@ -438,7 +438,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
      * @param storageLevel the storage level
      * @return the Raft partition group builder
      */
-    public Builder withStorageLevel(StorageLevel storageLevel) {
+    public Builder withStorageLevel(final StorageLevel storageLevel) {
       config.getStorageConfig().setLevel(storageLevel);
       return this;
     }
@@ -449,7 +449,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
      * @param dataDir the path to the replica's data directory
      * @return the replica builder
      */
-    public Builder withDataDirectory(File dataDir) {
+    public Builder withDataDirectory(final File dataDir) {
       config
           .getStorageConfig()
           .setDirectory(new File("user.dir").toURI().relativize(dataDir.toURI()).getPath());
@@ -462,7 +462,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
      * @param segmentSizeBytes the segment size in bytes
      * @return the Raft partition group builder
      */
-    public Builder withSegmentSize(long segmentSizeBytes) {
+    public Builder withSegmentSize(final long segmentSizeBytes) {
       return withSegmentSize(new MemorySize(segmentSizeBytes));
     }
 
@@ -472,7 +472,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
      * @param segmentSize the segment size
      * @return the Raft partition group builder
      */
-    public Builder withSegmentSize(MemorySize segmentSize) {
+    public Builder withSegmentSize(final MemorySize segmentSize) {
       config.getStorageConfig().setSegmentSize(segmentSize);
       return this;
     }
@@ -483,7 +483,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
      * @param maxEntrySize the maximum Raft log entry size
      * @return the Raft partition group builder
      */
-    public Builder withMaxEntrySize(int maxEntrySize) {
+    public Builder withMaxEntrySize(final int maxEntrySize) {
       return withMaxEntrySize(new MemorySize(maxEntrySize));
     }
 
@@ -493,7 +493,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
      * @param maxEntrySize the maximum Raft log entry size
      * @return the Raft partition group builder
      */
-    public Builder withMaxEntrySize(MemorySize maxEntrySize) {
+    public Builder withMaxEntrySize(final MemorySize maxEntrySize) {
       config.getStorageConfig().setMaxEntrySize(maxEntrySize);
       return this;
     }
@@ -513,7 +513,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
      * @param flushOnCommit whether to flush logs to disk on commit
      * @return the Raft partition group builder
      */
-    public Builder withFlushOnCommit(boolean flushOnCommit) {
+    public Builder withFlushOnCommit(final boolean flushOnCommit) {
       config.getStorageConfig().setFlushOnCommit(flushOnCommit);
       return this;
     }
@@ -524,7 +524,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
      * @param stateMachineFactory the new state machine factory to use
      * @return the Raft partition group builder
      */
-    public Builder withStateMachineFactory(RaftStateMachineFactory stateMachineFactory) {
+    public Builder withStateMachineFactory(final RaftStateMachineFactory stateMachineFactory) {
       config.setStateMachineFactory(stateMachineFactory);
       return this;
     }
@@ -535,7 +535,7 @@ public class RaftPartitionGroup implements ManagedPartitionGroup {
      * @param snapshotStoreFactory the new snapshot store factory to use
      * @return the Raft partition group builder
      */
-    public Builder withSnapshotStoreFactory(SnapshotStoreFactory snapshotStoreFactory) {
+    public Builder withSnapshotStoreFactory(final SnapshotStoreFactory snapshotStoreFactory) {
       config.getStorageConfig().setSnapshotStoreFactory(snapshotStoreFactory);
       return this;
     }

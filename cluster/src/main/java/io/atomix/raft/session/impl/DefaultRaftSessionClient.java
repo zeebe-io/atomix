@@ -78,18 +78,18 @@ public class DefaultRaftSessionClient implements RaftSessionClient {
   private volatile RaftSessionState state;
 
   public DefaultRaftSessionClient(
-      String serviceName,
-      PrimitiveType primitiveType,
-      ServiceConfig serviceConfig,
-      PartitionId partitionId,
-      RaftClientProtocol protocol,
-      MemberSelectorManager selectorManager,
-      RaftSessionManager sessionManager,
-      ReadConsistency readConsistency,
-      CommunicationStrategy communicationStrategy,
-      ThreadContext context,
-      Duration minTimeout,
-      Duration maxTimeout) {
+      final String serviceName,
+      final PrimitiveType primitiveType,
+      final ServiceConfig serviceConfig,
+      final PartitionId partitionId,
+      final RaftClientProtocol protocol,
+      final MemberSelectorManager selectorManager,
+      final RaftSessionManager sessionManager,
+      final ReadConsistency readConsistency,
+      final CommunicationStrategy communicationStrategy,
+      final ThreadContext context,
+      final Duration minTimeout,
+      final Duration maxTimeout) {
     this.serviceName = checkNotNull(serviceName, "serviceName cannot be null");
     this.primitiveType = checkNotNull(primitiveType, "serviceType cannot be null");
     this.serviceConfig = checkNotNull(serviceConfig, "serviceConfig cannot be null");
@@ -136,7 +136,7 @@ public class DefaultRaftSessionClient implements RaftSessionClient {
   }
 
   @Override
-  public CompletableFuture<byte[]> execute(PrimitiveOperation operation) {
+  public CompletableFuture<byte[]> execute(final PrimitiveOperation operation) {
     final RaftSessionInvoker invoker = this.proxyInvoker;
     if (invoker == null) {
       return Futures.exceptionalFuture(new IllegalStateException("Session not open"));
@@ -145,28 +145,28 @@ public class DefaultRaftSessionClient implements RaftSessionClient {
   }
 
   @Override
-  public void addEventListener(EventType eventType, Consumer<PrimitiveEvent> listener) {
+  public void addEventListener(final EventType eventType, final Consumer<PrimitiveEvent> listener) {
     if (proxyListener != null) {
       proxyListener.addEventListener(eventType, listener);
     }
   }
 
   @Override
-  public void removeEventListener(EventType eventType, Consumer<PrimitiveEvent> listener) {
+  public void removeEventListener(final EventType eventType, final Consumer<PrimitiveEvent> listener) {
     if (proxyListener != null) {
       proxyListener.removeEventListener(eventType, listener);
     }
   }
 
   @Override
-  public void addStateChangeListener(Consumer<PrimitiveState> listener) {
+  public void addStateChangeListener(final Consumer<PrimitiveState> listener) {
     if (state != null) {
       state.addStateChangeListener(listener);
     }
   }
 
   @Override
-  public void removeStateChangeListener(Consumer<PrimitiveState> listener) {
+  public void removeStateChangeListener(final Consumer<PrimitiveState> listener) {
     if (state != null) {
       state.removeStateChangeListener(listener);
     }
@@ -261,7 +261,7 @@ public class DefaultRaftSessionClient implements RaftSessionClient {
     return CompletableFuture.completedFuture(null);
   }
 
-  private void onLeaderChange(MemberId memberId) {
+  private void onLeaderChange(final MemberId memberId) {
     if (memberId != null) {
       proxyInvoker.reset();
     }
@@ -273,7 +273,7 @@ public class DefaultRaftSessionClient implements RaftSessionClient {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     return object instanceof DefaultRaftSessionClient
         && ((DefaultRaftSessionClient) object).state.getSessionId() == state.getSessionId();
   }

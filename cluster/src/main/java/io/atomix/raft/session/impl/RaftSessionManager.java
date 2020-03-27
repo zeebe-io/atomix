@@ -76,11 +76,11 @@ public class RaftSessionManager {
   private final AtomicBoolean open = new AtomicBoolean();
 
   public RaftSessionManager(
-      String clientId,
-      MemberId memberId,
-      RaftClientProtocol protocol,
-      MemberSelectorManager selectorManager,
-      ThreadContextFactory threadContextFactory) {
+      final String clientId,
+      final MemberId memberId,
+      final RaftClientProtocol protocol,
+      final MemberSelectorManager selectorManager,
+      final ThreadContextFactory threadContextFactory) {
     this.clientId = checkNotNull(clientId, "clientId cannot be null");
     this.memberId = checkNotNull(memberId, "memberId cannot be null");
     this.protocol = checkNotNull(protocol, "protocol cannot be null");
@@ -102,7 +102,7 @@ public class RaftSessionManager {
   }
 
   /** Handles a heartbeat request. */
-  private CompletableFuture<HeartbeatResponse> handleHeartbeat(HeartbeatRequest request) {
+  private CompletableFuture<HeartbeatResponse> handleHeartbeat(final HeartbeatRequest request) {
     log.trace("Received {}", request);
     final boolean newLeader = !Objects.equals(selectorManager.leader(), request.leader());
     selectorManager.resetAll(request.leader(), request.members());
@@ -131,7 +131,7 @@ public class RaftSessionManager {
 
     // For each session that needs to be kept alive, populate batch request arrays.
     int i = 0;
-    for (RaftSessionState sessionState : sessions) {
+    for (final RaftSessionState sessionState : sessions) {
       sessionIds[i] = sessionState.getSessionId().id();
       commandResponses[i] = sessionState.getCommandResponse();
       eventIndexes[i] = sessionState.getEventIndex();
@@ -178,7 +178,7 @@ public class RaftSessionManager {
    * @param leader The leader address.
    * @param servers The collection of servers.
    */
-  public void resetConnections(MemberId leader, Collection<MemberId> servers) {
+  public void resetConnections(final MemberId leader, final Collection<MemberId> servers) {
     selectorManager.resetAll(leader, servers);
   }
 
@@ -203,13 +203,13 @@ public class RaftSessionManager {
    * @return A completable future to be completed once the session has been opened.
    */
   public CompletableFuture<RaftSessionState> openSession(
-      String serviceName,
-      PrimitiveType primitiveType,
-      ServiceConfig config,
-      ReadConsistency readConsistency,
-      CommunicationStrategy communicationStrategy,
-      Duration minTimeout,
-      Duration maxTimeout) {
+      final String serviceName,
+      final PrimitiveType primitiveType,
+      final ServiceConfig config,
+      final ReadConsistency readConsistency,
+      final CommunicationStrategy communicationStrategy,
+      final Duration minTimeout,
+      final Duration maxTimeout) {
     checkNotNull(serviceName, "serviceName cannot be null");
     checkNotNull(primitiveType, "serviceType cannot be null");
     checkNotNull(communicationStrategy, "communicationStrategy cannot be null");
@@ -275,7 +275,7 @@ public class RaftSessionManager {
    * @param delete whether to delete the service
    * @return A completable future to be completed once the session is closed.
    */
-  public CompletableFuture<Void> closeSession(SessionId sessionId, boolean delete) {
+  public CompletableFuture<Void> closeSession(final SessionId sessionId, final boolean delete) {
     final RaftSessionState state = sessions.get(sessionId.id());
     if (state == null) {
       return Futures.exceptionalFuture(
@@ -311,7 +311,7 @@ public class RaftSessionManager {
    * @param sessionId The session for which to reset indexes.
    * @return A completable future to be completed once the session's indexes have been reset.
    */
-  CompletableFuture<Void> resetIndexes(SessionId sessionId) {
+  CompletableFuture<Void> resetIndexes(final SessionId sessionId) {
     final RaftSessionState sessionState = sessions.get(sessionId.id());
     if (sessionState == null) {
       return Futures.exceptionalFuture(
@@ -345,7 +345,7 @@ public class RaftSessionManager {
   }
 
   /** Sends a keep-alive request to the cluster. */
-  private synchronized void keepAliveSessions(long lastKeepAliveTime, long sessionTimeout) {
+  private synchronized void keepAliveSessions(final long lastKeepAliveTime, final long sessionTimeout) {
     // Filter the list of sessions by timeout.
     final List<RaftSessionState> needKeepAlive =
         sessions.values().stream()
@@ -364,7 +364,7 @@ public class RaftSessionManager {
 
     // For each session that needs to be kept alive, populate batch request arrays.
     int i = 0;
-    for (RaftSessionState sessionState : needKeepAlive) {
+    for (final RaftSessionState sessionState : needKeepAlive) {
       sessionIds[i] = sessionState.getSessionId().id();
       commandResponses[i] = sessionState.getCommandResponse();
       eventIndexes[i] = sessionState.getEventIndex();
@@ -391,12 +391,12 @@ public class RaftSessionManager {
   }
 
   private void onKeepAliveResponse(
-      long lastKeepAliveTime,
-      long sessionTimeout,
-      List<RaftSessionState> needKeepAlive,
-      long keepAliveTime,
-      KeepAliveResponse response,
-      Throwable error) {
+      final long lastKeepAliveTime,
+      final long sessionTimeout,
+      final List<RaftSessionState> needKeepAlive,
+      final long keepAliveTime,
+      final KeepAliveResponse response,
+      final Throwable error) {
     if (open.get()) {
       final long delta = System.currentTimeMillis() - keepAliveTime;
       if (error == null) {
@@ -444,8 +444,8 @@ public class RaftSessionManager {
     }
   }
 
-  private void updateSessions(List<RaftSessionState> needKeepAlive, Set<Long> keptAliveSessions) {
-    for (RaftSessionState session : needKeepAlive) {
+  private void updateSessions(final List<RaftSessionState> needKeepAlive, final Set<Long> keptAliveSessions) {
+    for (final RaftSessionState session : needKeepAlive) {
       if (keptAliveSessions.contains(session.getSessionId().id())) {
         session.setState(PrimitiveState.CONNECTED);
       } else {
@@ -455,7 +455,7 @@ public class RaftSessionManager {
   }
 
   /** Schedules a keep-alive request. */
-  private synchronized void scheduleKeepAlive(long lastKeepAliveTime, long timeout, long delta) {
+  private synchronized void scheduleKeepAlive(final long lastKeepAliveTime, final long timeout, final long delta) {
     final Scheduled keepAliveFuture = keepAliveTimers.remove(timeout);
     if (keepAliveFuture != null) {
       keepAliveFuture.cancel();
@@ -489,7 +489,7 @@ public class RaftSessionManager {
       threadContext.execute(
           () -> {
             synchronized (this) {
-              for (Scheduled keepAliveFuture : keepAliveTimers.values()) {
+              for (final Scheduled keepAliveFuture : keepAliveTimers.values()) {
                 keepAliveFuture.cancel();
               }
               protocol.unregisterHeartbeatHandler();

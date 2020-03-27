@@ -27,7 +27,7 @@ import io.atomix.primitive.operation.PrimitiveOperation;
 public class CommandEntry extends OperationEntry {
 
   public CommandEntry(
-      long term, long timestamp, long session, long sequence, PrimitiveOperation operation) {
+      final long term, final long timestamp, final long session, final long sequence, final PrimitiveOperation operation) {
     super(term, timestamp, session, sequence, operation);
   }
 }

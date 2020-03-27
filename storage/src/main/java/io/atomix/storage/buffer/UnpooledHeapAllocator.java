@@ -28,7 +28,7 @@ public class UnpooledHeapAllocator extends UnpooledAllocator {
   }
 
   @Override
-  public Buffer allocate(int initialCapacity, int maxCapacity) {
+  public Buffer allocate(final int initialCapacity, final int maxCapacity) {
     return HeapBuffer.allocate(initialCapacity, maxCapacity);
   }
 }

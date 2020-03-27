@@ -46,11 +46,11 @@ final class RaftSessionListener {
   private final Executor executor;
 
   RaftSessionListener(
-      RaftClientProtocol protocol,
-      MemberSelector memberSelector,
-      RaftSessionState state,
-      RaftSessionSequencer sequencer,
-      Executor executor) {
+      final RaftClientProtocol protocol,
+      final MemberSelector memberSelector,
+      final RaftSessionState state,
+      final RaftSessionSequencer sequencer,
+      final Executor executor) {
     this.protocol = checkNotNull(protocol, "protocol cannot be null");
     this.memberSelector = checkNotNull(memberSelector, "nodeSelector cannot be null");
     this.state = checkNotNull(state, "state cannot be null");
@@ -73,7 +73,7 @@ final class RaftSessionListener {
    * @param request The publish request to handle.
    */
   @SuppressWarnings("unchecked")
-  private void handlePublish(PublishRequest request) {
+  private void handlePublish(final PublishRequest request) {
     log.trace("Received {}", request);
 
     // If the request is for another session ID, this may be a session that was previously opened
@@ -114,10 +114,10 @@ final class RaftSessionListener {
     sequencer.sequenceEvent(
         request,
         () -> {
-          for (PrimitiveEvent event : request.events()) {
+          for (final PrimitiveEvent event : request.events()) {
             final Set<Consumer<PrimitiveEvent>> listeners = eventListeners.get(event.type());
             if (listeners != null) {
-              for (Consumer<PrimitiveEvent> listener : listeners) {
+              for (final Consumer<PrimitiveEvent> listener : listeners) {
                 listener.accept(event);
               }
             }
@@ -130,7 +130,7 @@ final class RaftSessionListener {
    *
    * @param listener the event listener callback
    */
-  public void addEventListener(EventType eventType, Consumer<PrimitiveEvent> listener) {
+  public void addEventListener(final EventType eventType, final Consumer<PrimitiveEvent> listener) {
     executor.execute(
         () ->
             eventListeners
@@ -143,7 +143,7 @@ final class RaftSessionListener {
    *
    * @param listener the event listener callback
    */
-  public void removeEventListener(EventType eventType, Consumer<PrimitiveEvent> listener) {
+  public void removeEventListener(final EventType eventType, final Consumer<PrimitiveEvent> listener) {
     executor.execute(
         () ->
             eventListeners

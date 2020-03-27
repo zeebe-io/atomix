@@ -35,10 +35,10 @@ public final class Retries {
    * @param <V> type of function output
    */
   public static <U, V> Function<U, V> retryable(
-      Function<U, V> base,
-      Class<? extends Throwable> exceptionClass,
-      int maxRetries,
-      int maxDelayBetweenRetries) {
+      final Function<U, V> base,
+      final Class<? extends Throwable> exceptionClass,
+      final int maxRetries,
+      final int maxDelayBetweenRetries) {
     return new RetryingFunction<>(base, exceptionClass, maxRetries, maxDelayBetweenRetries);
   }
 
@@ -54,10 +54,10 @@ public final class Retries {
    * @param <V> type of supplied result
    */
   public static <V> Supplier<V> retryable(
-      Supplier<V> base,
-      Class<? extends Throwable> exceptionClass,
-      int maxRetries,
-      int maxDelayBetweenRetries) {
+      final Supplier<V> base,
+      final Class<? extends Throwable> exceptionClass,
+      final int maxRetries,
+      final int maxDelayBetweenRetries) {
     return () ->
         new RetryingFunction<>(v -> base.get(), exceptionClass, maxRetries, maxDelayBetweenRetries)
             .apply(null);
@@ -68,10 +68,10 @@ public final class Retries {
    *
    * @param ms max number of millis
    */
-  public static void randomDelay(int ms) {
+  public static void randomDelay(final int ms) {
     try {
       Thread.sleep(ThreadLocalRandom.current().nextInt(ms));
-    } catch (InterruptedException e) {
+    } catch (final InterruptedException e) {
       throw new RuntimeException("Interrupted", e);
     }
   }
@@ -82,10 +82,10 @@ public final class Retries {
    * @param ms number of millis
    * @param nanos number of nanos
    */
-  public static void delay(int ms, int nanos) {
+  public static void delay(final int ms, final int nanos) {
     try {
       Thread.sleep(ms, nanos);
-    } catch (InterruptedException e) {
+    } catch (final InterruptedException e) {
       throw new RuntimeException("Interrupted", e);
     }
   }

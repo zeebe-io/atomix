@@ -49,7 +49,7 @@ public class HeartbeatMembershipProtocolConfig extends GroupMembershipProtocolCo
    * @param heartbeatInterval the heartbeat interval
    * @return the group membership configuration
    */
-  public HeartbeatMembershipProtocolConfig setHeartbeatInterval(Duration heartbeatInterval) {
+  public HeartbeatMembershipProtocolConfig setHeartbeatInterval(final Duration heartbeatInterval) {
     this.heartbeatInterval = checkNotNull(heartbeatInterval);
     return this;
   }
@@ -69,7 +69,7 @@ public class HeartbeatMembershipProtocolConfig extends GroupMembershipProtocolCo
    * @param phiFailureThreshold the failure detector threshold
    * @return the group membership configuration
    */
-  public HeartbeatMembershipProtocolConfig setPhiFailureThreshold(int phiFailureThreshold) {
+  public HeartbeatMembershipProtocolConfig setPhiFailureThreshold(final int phiFailureThreshold) {
     this.phiFailureThreshold = phiFailureThreshold;
     return this;
   }
@@ -89,7 +89,7 @@ public class HeartbeatMembershipProtocolConfig extends GroupMembershipProtocolCo
    * @param failureTimeout the base failure timeout
    * @return the group membership configuration
    */
-  public HeartbeatMembershipProtocolConfig setFailureTimeout(Duration failureTimeout) {
+  public HeartbeatMembershipProtocolConfig setFailureTimeout(final Duration failureTimeout) {
     this.failureTimeout = checkNotNull(failureTimeout);
     return this;
   }

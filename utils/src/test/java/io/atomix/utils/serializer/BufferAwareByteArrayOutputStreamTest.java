@@ -23,7 +23,7 @@ public class BufferAwareByteArrayOutputStreamTest {
 
   @Test
   public void testBufferSize() throws Exception {
-    BufferAwareByteArrayOutputStream outputStream = new BufferAwareByteArrayOutputStream(8);
+    final BufferAwareByteArrayOutputStream outputStream = new BufferAwareByteArrayOutputStream(8);
     assertEquals(8, outputStream.getBufferSize());
     outputStream.write(new byte[] {1, 2, 3, 4, 5, 6, 7, 8});
     assertEquals(8, outputStream.getBufferSize());

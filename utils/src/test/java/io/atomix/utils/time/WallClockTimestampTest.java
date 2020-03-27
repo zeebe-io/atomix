@@ -23,11 +23,11 @@ import org.junit.Test;
 public class WallClockTimestampTest {
   @Test
   public final void testBasic() throws InterruptedException {
-    WallClockTimestamp ts1 = new WallClockTimestamp();
+    final WallClockTimestamp ts1 = new WallClockTimestamp();
     Thread.sleep(50);
-    WallClockTimestamp ts2 = new WallClockTimestamp();
-    long stamp = System.currentTimeMillis() + 10000;
-    WallClockTimestamp ts3 = new WallClockTimestamp(stamp);
+    final WallClockTimestamp ts2 = new WallClockTimestamp();
+    final long stamp = System.currentTimeMillis() + 10000;
+    final WallClockTimestamp ts3 = new WallClockTimestamp(stamp);
 
     assertTrue(ts1.compareTo(ts1) == 0);
     assertTrue(ts2.compareTo(ts1) > 0);

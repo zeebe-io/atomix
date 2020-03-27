@@ -43,10 +43,10 @@ public class DefaultRaftMetadataClient implements RaftMetadataClient {
   private final RaftSessionConnection connection;
 
   public DefaultRaftMetadataClient(
-      String clientId,
-      RaftClientProtocol protocol,
-      MemberSelectorManager selectorManager,
-      ThreadContext context) {
+      final String clientId,
+      final RaftClientProtocol protocol,
+      final MemberSelectorManager selectorManager,
+      final ThreadContext context) {
     this.selectorManager = checkNotNull(selectorManager, "selectorManager cannot be null");
     this.connection =
         new RaftSessionConnection(
@@ -57,7 +57,7 @@ public class DefaultRaftMetadataClient implements RaftMetadataClient {
   }
 
   @Override
-  public CompletableFuture<Set<SessionMetadata>> getSessions(PrimitiveType primitiveType) {
+  public CompletableFuture<Set<SessionMetadata>> getSessions(final PrimitiveType primitiveType) {
     return getMetadata()
         .thenApply(
             response ->
@@ -68,7 +68,7 @@ public class DefaultRaftMetadataClient implements RaftMetadataClient {
 
   @Override
   public CompletableFuture<Set<SessionMetadata>> getSessions(
-      PrimitiveType primitiveType, String serviceName) {
+      final PrimitiveType primitiveType, final String serviceName) {
     return getMetadata()
         .thenApply(
             response ->

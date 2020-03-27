@@ -50,12 +50,12 @@ public final class RaftMemberContext {
   private long failureTime;
   private volatile RaftLogReader reader;
 
-  RaftMemberContext(DefaultRaftMember member, RaftClusterContext cluster) {
+  RaftMemberContext(final DefaultRaftMember member, final RaftClusterContext cluster) {
     this.member = checkNotNull(member, "member cannot be null").setCluster(cluster);
   }
 
   /** Resets the member state. */
-  public void resetState(RaftLog log) {
+  public void resetState(final RaftLog log) {
     snapshotIndex = 0;
     nextSnapshotIndex = 0;
     nextSnapshotChunk = null;
@@ -116,7 +116,7 @@ public final class RaftMemberContext {
    *
    * @param succeeded Whether the last append to the member succeeded.
    */
-  private void appendSucceeded(boolean succeeded) {
+  private void appendSucceeded(final boolean succeeded) {
     this.appendSucceeded = succeeded;
   }
 
@@ -141,7 +141,7 @@ public final class RaftMemberContext {
    *
    * @param time The time in milliseconds for the append.
    */
-  public void completeAppend(long time) {
+  public void completeAppend(final long time) {
     appending--;
     timeStats.addValue(time);
   }
@@ -337,7 +337,7 @@ public final class RaftMemberContext {
    *
    * @param configIndex The member configuration index.
    */
-  public void setConfigIndex(long configIndex) {
+  public void setConfigIndex(final long configIndex) {
     this.configIndex = configIndex;
   }
 
@@ -346,7 +346,7 @@ public final class RaftMemberContext {
    *
    * @param term The member term.
    */
-  public void setConfigTerm(long term) {
+  public void setConfigTerm(final long term) {
     this.term = term;
   }
 
@@ -355,7 +355,7 @@ public final class RaftMemberContext {
    *
    * @param heartbeatTime The member heartbeat time.
    */
-  public void setHeartbeatTime(long heartbeatTime) {
+  public void setHeartbeatTime(final long heartbeatTime) {
     this.heartbeatTime = Math.max(this.heartbeatTime, heartbeatTime);
   }
 
@@ -364,7 +364,7 @@ public final class RaftMemberContext {
    *
    * @param matchIndex The member's match index.
    */
-  public void setMatchIndex(long matchIndex) {
+  public void setMatchIndex(final long matchIndex) {
     checkArgument(matchIndex >= 0, "matchIndex must be positive");
     this.matchIndex = matchIndex;
   }
@@ -374,7 +374,7 @@ public final class RaftMemberContext {
    *
    * @param nextSnapshotIndex The member's next snapshot index.
    */
-  public void setNextSnapshotIndex(long nextSnapshotIndex) {
+  public void setNextSnapshotIndex(final long nextSnapshotIndex) {
     this.nextSnapshotIndex = nextSnapshotIndex;
   }
 
@@ -383,7 +383,7 @@ public final class RaftMemberContext {
    *
    * @param nextSnapshotChunk The member's next expected snapshot chunk ID.
    */
-  public void setNextSnapshotChunk(ByteBuffer nextSnapshotChunk) {
+  public void setNextSnapshotChunk(final ByteBuffer nextSnapshotChunk) {
     this.nextSnapshotChunk = nextSnapshotChunk;
   }
 
@@ -392,7 +392,7 @@ public final class RaftMemberContext {
    *
    * @param responseTime The member response time.
    */
-  public void setResponseTime(long responseTime) {
+  public void setResponseTime(final long responseTime) {
     this.responseTime = Math.max(this.responseTime, responseTime);
   }
 
@@ -401,7 +401,7 @@ public final class RaftMemberContext {
    *
    * @param snapshotIndex The member's current snapshot index.
    */
-  public void setSnapshotIndex(long snapshotIndex) {
+  public void setSnapshotIndex(final long snapshotIndex) {
     this.snapshotIndex = snapshotIndex;
   }
 }

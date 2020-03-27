@@ -29,7 +29,7 @@ public class DefaultOperationId extends AbstractIdentifier<String> implements Op
     this.type = null;
   }
 
-  public DefaultOperationId(String id, OperationType type) {
+  public DefaultOperationId(final String id, final OperationType type) {
     super(id);
     this.type = type;
   }

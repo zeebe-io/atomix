@@ -59,10 +59,10 @@ public abstract class AbstractJournalTest {
   private final int cacheSize;
   protected final int entriesPerSegment;
 
-  protected AbstractJournalTest(int maxSegmentSize, int cacheSize) {
+  protected AbstractJournalTest(final int maxSegmentSize, final int cacheSize) {
     this.maxSegmentSize = maxSegmentSize;
     this.cacheSize = cacheSize;
-    int entryLength = (NAMESPACE.serialize(ENTRY).length + 8);
+    final int entryLength = (NAMESPACE.serialize(ENTRY).length + 8);
     this.entriesPerSegment = (maxSegmentSize - 64) / entryLength;
   }
 
@@ -70,7 +70,7 @@ public abstract class AbstractJournalTest {
 
   @Parameterized.Parameters
   public static Collection primeNumbers() {
-    List<Object[]> runs = new ArrayList<>();
+    final List<Object[]> runs = new ArrayList<>();
     for (int i = 1; i <= 10; i++) {
       for (int j = 1; j <= 10; j++) {
         runs.add(new Object[] {64 + (i * (NAMESPACE.serialize(ENTRY).length + 8) + j), j});
@@ -162,8 +162,8 @@ public abstract class AbstractJournalTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testWriteRead() throws Exception {
-    try (Journal<TestEntry> journal = createJournal()) {
-      JournalWriter<TestEntry> writer = journal.writer();
+    try (final Journal<TestEntry> journal = createJournal()) {
+      final JournalWriter<TestEntry> writer = journal.writer();
       JournalReader<TestEntry> reader = journal.openReader(1);
 
       // Append a couple entries.
@@ -260,9 +260,9 @@ public abstract class AbstractJournalTest {
 
   @Test
   public void testResetTruncateZero() throws Exception {
-    try (SegmentedJournal<TestEntry> journal = createJournal()) {
-      JournalWriter<TestEntry> writer = journal.writer();
-      JournalReader<TestEntry> reader = journal.openReader(1);
+    try (final SegmentedJournal<TestEntry> journal = createJournal()) {
+      final JournalWriter<TestEntry> writer = journal.writer();
+      final JournalReader<TestEntry> reader = journal.openReader(1);
 
       assertEquals(0, writer.getLastIndex());
       writer.append(ENTRY);
@@ -294,10 +294,10 @@ public abstract class AbstractJournalTest {
 
   @Test
   public void testTruncateRead() throws Exception {
-    int i = 10;
-    try (Journal<TestEntry> journal = createJournal()) {
-      JournalWriter<TestEntry> writer = journal.writer();
-      JournalReader<TestEntry> reader = journal.openReader(1);
+    final int i = 10;
+    try (final Journal<TestEntry> journal = createJournal()) {
+      final JournalWriter<TestEntry> writer = journal.writer();
+      final JournalReader<TestEntry> reader = journal.openReader(1);
 
       for (int j = 1; j <= i; j++) {
         assertEquals(j, writer.append(new TestEntry(32)).index());
@@ -326,9 +326,9 @@ public abstract class AbstractJournalTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testWriteReadEntries() throws Exception {
-    try (Journal<TestEntry> journal = createJournal()) {
-      JournalWriter<TestEntry> writer = journal.writer();
-      JournalReader<TestEntry> reader = journal.openReader(1);
+    try (final Journal<TestEntry> journal = createJournal()) {
+      final JournalWriter<TestEntry> writer = journal.writer();
+      final JournalReader<TestEntry> reader = journal.openReader(1);
 
       for (int i = 1; i <= entriesPerSegment * 5; i++) {
         writer.append(ENTRY);
@@ -367,9 +367,9 @@ public abstract class AbstractJournalTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testWriteReadCommittedEntries() throws Exception {
-    try (Journal<TestEntry> journal = createJournal()) {
-      JournalWriter<TestEntry> writer = journal.writer();
-      JournalReader<TestEntry> reader = journal.openReader(1, JournalReader.Mode.COMMITS);
+    try (final Journal<TestEntry> journal = createJournal()) {
+      final JournalWriter<TestEntry> writer = journal.writer();
+      final JournalReader<TestEntry> reader = journal.openReader(1, JournalReader.Mode.COMMITS);
 
       for (int i = 1; i <= entriesPerSegment * 5; i++) {
         writer.append(ENTRY);
@@ -390,10 +390,10 @@ public abstract class AbstractJournalTest {
 
   @Test
   public void testReadAfterCompact() throws Exception {
-    try (SegmentedJournal<TestEntry> journal = createJournal()) {
-      JournalWriter<TestEntry> writer = journal.writer();
-      JournalReader<TestEntry> uncommittedReader = journal.openReader(1, JournalReader.Mode.ALL);
-      JournalReader<TestEntry> committedReader = journal.openReader(1, JournalReader.Mode.COMMITS);
+    try (final SegmentedJournal<TestEntry> journal = createJournal()) {
+      final JournalWriter<TestEntry> writer = journal.writer();
+      final JournalReader<TestEntry> uncommittedReader = journal.openReader(1, JournalReader.Mode.ALL);
+      final JournalReader<TestEntry> committedReader = journal.openReader(1, JournalReader.Mode.COMMITS);
 
       for (int i = 1; i <= entriesPerSegment * 10; i++) {
         assertEquals(i, writer.append(ENTRY).index());
@@ -438,14 +438,14 @@ public abstract class AbstractJournalTest {
           PATH,
           new SimpleFileVisitor<Path>() {
             @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs)
                 throws IOException {
               Files.delete(file);
               return FileVisitResult.CONTINUE;
             }
 
             @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException exc)
+            public FileVisitResult postVisitDirectory(final Path dir, final IOException exc)
                 throws IOException {
               Files.delete(dir);
               return FileVisitResult.CONTINUE;

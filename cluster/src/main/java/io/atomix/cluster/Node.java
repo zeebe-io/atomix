@@ -37,12 +37,12 @@ public class Node implements Configured<NodeConfig> {
   private final NodeId id;
   private final Address address;
 
-  public Node(NodeConfig config) {
+  public Node(final NodeConfig config) {
     this.id = config.getId();
     this.address = checkNotNull(config.getAddress(), "address cannot be null");
   }
 
-  protected Node(NodeId id, Address address) {
+  protected Node(final NodeId id, final Address address) {
     this.id = checkNotNull(id, "id cannot be null");
     this.address = checkNotNull(address, "address cannot be null");
   }
@@ -76,9 +76,9 @@ public class Node implements Configured<NodeConfig> {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof Node) {
-      Node member = (Node) object;
+      final Node member = (Node) object;
       return member.id().equals(id()) && member.address().equals(address());
     }
     return false;

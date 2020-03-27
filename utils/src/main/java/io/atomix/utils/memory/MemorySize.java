@@ -26,13 +26,13 @@ public class MemorySize {
    * @param bytes the number of bytes
    * @return the memory size
    */
-  public static MemorySize from(long bytes) {
+  public static MemorySize from(final long bytes) {
     return new MemorySize(bytes);
   }
 
   private final long bytes;
 
-  public MemorySize(long bytes) {
+  public MemorySize(final long bytes) {
     this.bytes = bytes;
   }
 
@@ -51,7 +51,7 @@ public class MemorySize {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     return object instanceof MemorySize && ((MemorySize) object).bytes == bytes;
   }
 

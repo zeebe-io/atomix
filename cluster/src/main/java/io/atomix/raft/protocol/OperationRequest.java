@@ -34,7 +34,7 @@ public abstract class OperationRequest extends SessionRequest {
   protected final long sequence;
   protected final PrimitiveOperation operation;
 
-  protected OperationRequest(long session, long sequence, PrimitiveOperation operation) {
+  protected OperationRequest(final long session, final long sequence, final PrimitiveOperation operation) {
     super(session);
     this.sequence = sequence;
     this.operation = operation;
@@ -73,7 +73,7 @@ public abstract class OperationRequest extends SessionRequest {
      * @throws IllegalArgumentException If the request sequence number is not positive.
      */
     @SuppressWarnings("unchecked")
-    public T withSequence(long sequence) {
+    public T withSequence(final long sequence) {
       checkArgument(sequence >= 0, "sequence must be positive");
       this.sequence = sequence;
       return (T) this;
@@ -87,7 +87,7 @@ public abstract class OperationRequest extends SessionRequest {
      * @throws NullPointerException if the request {@code operation} is {@code null}
      */
     @SuppressWarnings("unchecked")
-    public T withOperation(PrimitiveOperation operation) {
+    public T withOperation(final PrimitiveOperation operation) {
       this.operation = checkNotNull(operation, "operation cannot be null");
       return (T) this;
     }

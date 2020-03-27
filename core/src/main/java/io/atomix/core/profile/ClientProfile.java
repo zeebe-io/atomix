@@ -36,7 +36,7 @@ public class ClientProfile implements Profile {
     }
 
     @Override
-    public Profile newProfile(ClientProfileConfig config) {
+    public Profile newProfile(final ClientProfileConfig config) {
       return new ClientProfile();
     }
   }
@@ -47,7 +47,7 @@ public class ClientProfile implements Profile {
     this(new ClientProfileConfig());
   }
 
-  ClientProfile(ClientProfileConfig config) {
+  ClientProfile(final ClientProfileConfig config) {
     this.config = config;
   }
 
@@ -57,7 +57,7 @@ public class ClientProfile implements Profile {
   }
 
   @Override
-  public void configure(AtomixConfig config) {
+  public void configure(final AtomixConfig config) {
     // Do nothing! This profile is just for code readability.
   }
 }

@@ -84,7 +84,7 @@ public interface Snapshot extends AutoCloseable, Comparable<Snapshot> {
   Path getPath();
 
   @Override
-  default int compareTo(Snapshot other) {
+  default int compareTo(final Snapshot other) {
     return Comparator.comparingLong(Snapshot::index)
         .thenComparingLong(Snapshot::term)
         .thenComparing(Snapshot::timestamp)

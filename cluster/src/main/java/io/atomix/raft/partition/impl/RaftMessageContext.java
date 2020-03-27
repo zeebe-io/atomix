@@ -37,7 +37,7 @@ class RaftMessageContext {
   final String leaderHeartbeatSubject;
   private final String prefix;
 
-  RaftMessageContext(String prefix) {
+  RaftMessageContext(final String prefix) {
     this.prefix = prefix;
     this.heartbeatSubject = getSubject(prefix, "heartbeat");
     this.openSessionSubject = getSubject(prefix, "open");
@@ -58,7 +58,7 @@ class RaftMessageContext {
     this.leaderHeartbeatSubject = getSubject(prefix, "leaderHeartbeat");
   }
 
-  private static String getSubject(String prefix, String type) {
+  private static String getSubject(final String prefix, final String type) {
     if (prefix == null) {
       return type;
     } else {
@@ -72,7 +72,7 @@ class RaftMessageContext {
    * @param sessionId the session for which to return the publish subject
    * @return the publish subject for the given session
    */
-  String publishSubject(long sessionId) {
+  String publishSubject(final long sessionId) {
     if (prefix == null) {
       return String.format("publish-%d", sessionId);
     } else {
@@ -86,7 +86,7 @@ class RaftMessageContext {
    * @param sessionId the session for which to return the reset subject
    * @return the reset subject for the given session
    */
-  String resetSubject(long sessionId) {
+  String resetSubject(final long sessionId) {
     if (prefix == null) {
       return String.format("reset-%d", sessionId);
     } else {

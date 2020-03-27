@@ -27,7 +27,7 @@ public class MultiRaftProtocolBuilder
     extends PrimitiveProtocolBuilder<
         MultiRaftProtocolBuilder, MultiRaftProtocolConfig, MultiRaftProtocol> {
 
-  protected MultiRaftProtocolBuilder(MultiRaftProtocolConfig config) {
+  protected MultiRaftProtocolBuilder(final MultiRaftProtocolConfig config) {
     super(config);
   }
 
@@ -37,7 +37,7 @@ public class MultiRaftProtocolBuilder
    * @param partitioner the protocol partitioner
    * @return the protocol builder
    */
-  public MultiRaftProtocolBuilder withPartitioner(Partitioner<String> partitioner) {
+  public MultiRaftProtocolBuilder withPartitioner(final Partitioner<String> partitioner) {
     config.setPartitioner(partitioner);
     return this;
   }
@@ -48,7 +48,7 @@ public class MultiRaftProtocolBuilder
    * @param minTimeout the minimum session timeout
    * @return the Raft protocol builder
    */
-  public MultiRaftProtocolBuilder withMinTimeout(Duration minTimeout) {
+  public MultiRaftProtocolBuilder withMinTimeout(final Duration minTimeout) {
     config.setMinTimeout(minTimeout);
     return this;
   }
@@ -59,7 +59,7 @@ public class MultiRaftProtocolBuilder
    * @param maxTimeout the maximum session timeout
    * @return the Raft protocol builder
    */
-  public MultiRaftProtocolBuilder withMaxTimeout(Duration maxTimeout) {
+  public MultiRaftProtocolBuilder withMaxTimeout(final Duration maxTimeout) {
     config.setMaxTimeout(maxTimeout);
     return this;
   }
@@ -70,7 +70,7 @@ public class MultiRaftProtocolBuilder
    * @param readConsistency the read consistency level
    * @return the Raft protocol builder
    */
-  public MultiRaftProtocolBuilder withReadConsistency(ReadConsistency readConsistency) {
+  public MultiRaftProtocolBuilder withReadConsistency(final ReadConsistency readConsistency) {
     config.setReadConsistency(readConsistency);
     return this;
   }
@@ -82,7 +82,7 @@ public class MultiRaftProtocolBuilder
    * @return the Raft protocol builder
    */
   public MultiRaftProtocolBuilder withCommunicationStrategy(
-      CommunicationStrategy communicationStrategy) {
+      final CommunicationStrategy communicationStrategy) {
     config.setCommunicationStrategy(communicationStrategy);
     return this;
   }
@@ -93,7 +93,7 @@ public class MultiRaftProtocolBuilder
    * @param recoveryStrategy the recovery strategy
    * @return the Raft protocol builder
    */
-  public MultiRaftProtocolBuilder withRecoveryStrategy(Recovery recoveryStrategy) {
+  public MultiRaftProtocolBuilder withRecoveryStrategy(final Recovery recoveryStrategy) {
     config.setRecoveryStrategy(recoveryStrategy);
     return this;
   }
@@ -104,7 +104,7 @@ public class MultiRaftProtocolBuilder
    * @param maxRetries the maximum number of retries before an operation can be failed
    * @return the proxy builder
    */
-  public MultiRaftProtocolBuilder withMaxRetries(int maxRetries) {
+  public MultiRaftProtocolBuilder withMaxRetries(final int maxRetries) {
     config.setMaxRetries(maxRetries);
     return this;
   }
@@ -115,7 +115,7 @@ public class MultiRaftProtocolBuilder
    * @param retryDelayMillis the delay between operation retries in milliseconds
    * @return the proxy builder
    */
-  public MultiRaftProtocolBuilder withRetryDelayMillis(long retryDelayMillis) {
+  public MultiRaftProtocolBuilder withRetryDelayMillis(final long retryDelayMillis) {
     return withRetryDelay(Duration.ofMillis(retryDelayMillis));
   }
 
@@ -126,7 +126,7 @@ public class MultiRaftProtocolBuilder
    * @return the proxy builder
    * @throws NullPointerException if the delay is null
    */
-  public MultiRaftProtocolBuilder withRetryDelay(Duration retryDelay) {
+  public MultiRaftProtocolBuilder withRetryDelay(final Duration retryDelay) {
     config.setRetryDelay(retryDelay);
     return this;
   }
@@ -139,7 +139,7 @@ public class MultiRaftProtocolBuilder
    * @return the proxy builder
    * @throws NullPointerException if the time unit is null
    */
-  public MultiRaftProtocolBuilder withRetryDelay(long retryDelay, TimeUnit timeUnit) {
+  public MultiRaftProtocolBuilder withRetryDelay(final long retryDelay, final TimeUnit timeUnit) {
     return withRetryDelay(Duration.ofMillis(timeUnit.toMillis(retryDelay)));
   }
 

@@ -18,7 +18,7 @@ package io.atomix.raft.storage.log.entry;
 /** Metadata entry. */
 public class MetadataEntry extends SessionEntry {
 
-  public MetadataEntry(long term, long timestamp, long session) {
+  public MetadataEntry(final long term, final long timestamp, final long session) {
     super(term, timestamp, session);
   }
 }

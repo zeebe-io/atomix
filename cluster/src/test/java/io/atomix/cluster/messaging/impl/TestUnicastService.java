@@ -36,7 +36,7 @@ public class TestUnicastService implements ManagedUnicastService {
   private final AtomicBoolean started = new AtomicBoolean();
   private final Set<Address> partitions = Sets.newConcurrentHashSet();
 
-  public TestUnicastService(Address address, Map<Address, TestUnicastService> services) {
+  public TestUnicastService(final Address address, final Map<Address, TestUnicastService> services) {
     this.address = address;
     this.services = services;
   }
@@ -51,12 +51,12 @@ public class TestUnicastService implements ManagedUnicastService {
   }
 
   /** Partitions the node from the given address. */
-  void partition(Address address) {
+  void partition(final Address address) {
     partitions.add(address);
   }
 
   /** Heals the partition from the given address. */
-  void heal(Address address) {
+  void heal(final Address address) {
     partitions.remove(address);
   }
 
@@ -66,19 +66,19 @@ public class TestUnicastService implements ManagedUnicastService {
    * @param address the address to check
    * @return whether this node is partitioned from the given address
    */
-  boolean isPartitioned(Address address) {
+  boolean isPartitioned(final Address address) {
     return partitions.contains(address);
   }
 
   @Override
-  public void unicast(Address address, String subject, byte[] message) {
+  public void unicast(final Address address, final String subject, final byte[] message) {
     if (isPartitioned(address)) {
       return;
     }
 
-    TestUnicastService service = services.get(address);
+    final TestUnicastService service = services.get(address);
     if (service != null) {
-      Map<BiConsumer<Address, byte[]>, Executor> listeners = service.listeners.get(subject);
+      final Map<BiConsumer<Address, byte[]>, Executor> listeners = service.listeners.get(subject);
       if (listeners != null) {
         listeners.forEach(
             (listener, executor) -> executor.execute(() -> listener.accept(this.address, message)));
@@ -88,13 +88,13 @@ public class TestUnicastService implements ManagedUnicastService {
 
   @Override
   public synchronized void addListener(
-      String subject, BiConsumer<Address, byte[]> listener, Executor executor) {
+      final String subject, final BiConsumer<Address, byte[]> listener, final Executor executor) {
     listeners.computeIfAbsent(subject, s -> Maps.newConcurrentMap()).put(listener, executor);
   }
 
   @Override
-  public synchronized void removeListener(String subject, BiConsumer<Address, byte[]> listener) {
-    Map<BiConsumer<Address, byte[]>, Executor> listeners = this.listeners.get(subject);
+  public synchronized void removeListener(final String subject, final BiConsumer<Address, byte[]> listener) {
+    final Map<BiConsumer<Address, byte[]>, Executor> listeners = this.listeners.get(subject);
     if (listeners != null) {
       listeners.remove(listener);
       if (listeners.isEmpty()) {

@@ -39,42 +39,42 @@ public class BlockingAwareSessionClient extends DelegatingSessionClient {
   private volatile CompletableFuture<SessionClient> connectFuture;
   private volatile CompletableFuture<Void> closeFuture;
 
-  public BlockingAwareSessionClient(SessionClient session, ThreadContext context) {
+  public BlockingAwareSessionClient(final SessionClient session, final ThreadContext context) {
     super(session);
     this.context = context;
   }
 
   @Override
-  public void addStateChangeListener(Consumer<PrimitiveState> listener) {
-    Consumer<PrimitiveState> wrappedListener =
+  public void addStateChangeListener(final Consumer<PrimitiveState> listener) {
+    final Consumer<PrimitiveState> wrappedListener =
         state -> context.execute(() -> listener.accept(state));
     stateChangeListeners.put(listener, wrappedListener);
     super.addStateChangeListener(wrappedListener);
   }
 
   @Override
-  public void removeStateChangeListener(Consumer<PrimitiveState> listener) {
-    Consumer<PrimitiveState> wrappedListener = stateChangeListeners.remove(listener);
+  public void removeStateChangeListener(final Consumer<PrimitiveState> listener) {
+    final Consumer<PrimitiveState> wrappedListener = stateChangeListeners.remove(listener);
     if (wrappedListener != null) {
       super.removeStateChangeListener(wrappedListener);
     }
   }
 
   @Override
-  public CompletableFuture<byte[]> execute(PrimitiveOperation operation) {
+  public CompletableFuture<byte[]> execute(final PrimitiveOperation operation) {
     return asyncFuture(super.execute(operation), context);
   }
 
   @Override
-  public void addEventListener(EventType eventType, Consumer<PrimitiveEvent> listener) {
-    Consumer<PrimitiveEvent> wrappedListener = e -> context.execute(() -> listener.accept(e));
+  public void addEventListener(final EventType eventType, final Consumer<PrimitiveEvent> listener) {
+    final Consumer<PrimitiveEvent> wrappedListener = e -> context.execute(() -> listener.accept(e));
     eventListeners.put(listener, wrappedListener);
     super.addEventListener(eventType, wrappedListener);
   }
 
   @Override
-  public void removeEventListener(EventType eventType, Consumer<PrimitiveEvent> listener) {
-    Consumer<PrimitiveEvent> wrappedListener = eventListeners.remove(listener);
+  public void removeEventListener(final EventType eventType, final Consumer<PrimitiveEvent> listener) {
+    final Consumer<PrimitiveEvent> wrappedListener = eventListeners.remove(listener);
     if (wrappedListener != null) {
       super.removeEventListener(eventType, wrappedListener);
     }

@@ -102,20 +102,20 @@ public class LogProxySession<S> implements ProxySession<S> {
 
   @SuppressWarnings("unchecked")
   public LogProxySession(
-      String name,
-      PrimitiveType type,
-      Class<S> serviceType,
-      ServiceConfig serviceConfig,
-      Serializer serializer,
-      LogSession session) {
+      final String name,
+      final PrimitiveType type,
+      final Class<S> serviceType,
+      final ServiceConfig serviceConfig,
+      final Serializer serializer,
+      final LogSession session) {
     this.name = checkNotNull(name, "name cannot be null");
     this.type = checkNotNull(type, "type cannot be null");
     this.service = type.newService(serviceConfig);
     this.serviceConfig = serviceConfig;
     this.userSerializer = checkNotNull(serializer, "serializer cannot be null");
     this.session = checkNotNull(session, "session cannot be null");
-    ServiceProxyHandler serviceProxyHandler = new ServiceProxyHandler(serviceType);
-    S serviceProxy =
+    final ServiceProxyHandler serviceProxyHandler = new ServiceProxyHandler(serviceType);
+    final S serviceProxy =
         (S)
             java.lang.reflect.Proxy.newProxyInstance(
                 serviceType.getClassLoader(), new Class[] {serviceType}, serviceProxyHandler);
@@ -148,14 +148,14 @@ public class LogProxySession<S> implements ProxySession<S> {
   }
 
   @Override
-  public void register(Object client) {
+  public void register(final Object client) {
     this.client = client;
     Events.getEventMap(client.getClass())
         .forEach((eventType, method) -> eventMethods.put(eventType, method));
   }
 
   @Override
-  public CompletableFuture<Void> accept(Consumer<S> operation) {
+  public CompletableFuture<Void> accept(final Consumer<S> operation) {
     if (session.getState() == PrimitiveState.CLOSED) {
       return Futures.exceptionalFuture(new PrimitiveException.ClosedSession());
     }
@@ -163,7 +163,7 @@ public class LogProxySession<S> implements ProxySession<S> {
   }
 
   @Override
-  public <R> CompletableFuture<R> apply(Function<S, R> operation) {
+  public <R> CompletableFuture<R> apply(final Function<S, R> operation) {
     if (session.getState() == PrimitiveState.CLOSED) {
       return Futures.exceptionalFuture(new PrimitiveException.ClosedSession());
     }
@@ -176,7 +176,7 @@ public class LogProxySession<S> implements ProxySession<S> {
    * @param sessionId the session identifier
    * @return the session
    */
-  private Session getOrCreateSession(SessionId sessionId) {
+  private Session getOrCreateSession(final SessionId sessionId) {
     Session session = sessions.get(sessionId);
     if (session == null) {
       session = new LocalSession(sessionId, name(), type(), null, service.serializer());
@@ -192,9 +192,9 @@ public class LogProxySession<S> implements ProxySession<S> {
    * @param record the record to consume
    */
   @SuppressWarnings("unchecked")
-  private void consume(LogRecord record) {
+  private void consume(final LogRecord record) {
     // Decode the raw log operation from the record.
-    LogOperation operation = decodeInternal(record.value());
+    final LogOperation operation = decodeInternal(record.value());
 
     // If this operation is not destined for this primitive, ignore it.
     // TODO: If multiple primitives of different types are created and destroyed on the same
@@ -226,7 +226,7 @@ public class LogProxySession<S> implements ProxySession<S> {
 
     // If the operation session matches the local session, complete the write future.
     if (operation.sessionId().equals(this.session.sessionId())) {
-      CompletableFuture future = writeFutures.remove(operation.operationIndex());
+      final CompletableFuture future = writeFutures.remove(operation.operationIndex());
       if (future != null) {
         future.complete(decode(output));
       }
@@ -249,7 +249,7 @@ public class LogProxySession<S> implements ProxySession<S> {
                     session,
                     currentTimestamp));
         pendingRead.future.complete(output);
-      } catch (Exception e) {
+      } catch (final Exception e) {
         pendingRead.future.completeExceptionally(new PrimitiveException.ServiceException());
       }
       pendingReads.remove();
@@ -258,12 +258,12 @@ public class LogProxySession<S> implements ProxySession<S> {
   }
 
   @Override
-  public void addStateChangeListener(Consumer<PrimitiveState> listener) {
+  public void addStateChangeListener(final Consumer<PrimitiveState> listener) {
     session.addStateChangeListener(listener);
   }
 
   @Override
-  public void removeStateChangeListener(Consumer<PrimitiveState> listener) {
+  public void removeStateChangeListener(final Consumer<PrimitiveState> listener) {
     session.removeStateChangeListener(listener);
   }
 
@@ -298,7 +298,7 @@ public class LogProxySession<S> implements ProxySession<S> {
    * @param <T> the object type
    * @return the encoded bytes
    */
-  protected <T> byte[] encode(T object) {
+  protected <T> byte[] encode(final T object) {
     return object != null ? userSerializer.encode(object) : null;
   }
 
@@ -309,7 +309,7 @@ public class LogProxySession<S> implements ProxySession<S> {
    * @param <T> the object type
    * @return the decoded object
    */
-  protected <T> T decode(byte[] bytes) {
+  protected <T> T decode(final byte[] bytes) {
     return bytes != null ? userSerializer.decode(bytes) : null;
   }
 
@@ -320,7 +320,7 @@ public class LogProxySession<S> implements ProxySession<S> {
    * @param <T> the object type
    * @return the encoded bytes
    */
-  private <T> byte[] encodeInternal(T object) {
+  private <T> byte[] encodeInternal(final T object) {
     return INTERNAL_SERIALIZER.encode(object);
   }
 
@@ -331,7 +331,7 @@ public class LogProxySession<S> implements ProxySession<S> {
    * @param <T> the object type
    * @return the internal object
    */
-  private <T> T decodeInternal(byte[] bytes) {
+  private <T> T decodeInternal(final byte[] bytes) {
     return INTERNAL_SERIALIZER.decode(bytes);
   }
 
@@ -402,11 +402,11 @@ public class LogProxySession<S> implements ProxySession<S> {
   /** Local session. */
   private class LocalSession extends AbstractSession {
     LocalSession(
-        SessionId sessionId,
-        String primitiveName,
-        PrimitiveType primitiveType,
-        MemberId memberId,
-        Serializer serializer) {
+        final SessionId sessionId,
+        final String primitiveName,
+        final PrimitiveType primitiveType,
+        final MemberId memberId,
+        final Serializer serializer) {
       super(sessionId, primitiveName, primitiveType, memberId, serializer);
     }
 
@@ -416,13 +416,13 @@ public class LogProxySession<S> implements ProxySession<S> {
     }
 
     @Override
-    public void publish(PrimitiveEvent event) {
+    public void publish(final PrimitiveEvent event) {
       if (sessionId().equals(session.sessionId())) {
-        Method method = eventMethods.get(event.type());
+        final Method method = eventMethods.get(event.type());
         if (method != null) {
           try {
             method.invoke(client, (Object[]) decode(event.value()));
-          } catch (IllegalAccessException | InvocationTargetException e) {
+          } catch (final IllegalAccessException | InvocationTargetException e) {
             log.warn("Failed to handle event", e);
           }
         }
@@ -435,7 +435,7 @@ public class LogProxySession<S> implements ProxySession<S> {
     private final S proxy;
     private final ServiceProxyHandler handler;
 
-    ServiceProxy(S proxy, ServiceProxyHandler handler) {
+    ServiceProxy(final S proxy, final ServiceProxyHandler handler) {
       this.proxy = proxy;
       this.handler = handler;
     }
@@ -446,7 +446,7 @@ public class LogProxySession<S> implements ProxySession<S> {
      * @param operation the operation to perform on the proxy
      * @return the resulting void future
      */
-    CompletableFuture<Void> accept(Consumer<S> operation) {
+    CompletableFuture<Void> accept(final Consumer<S> operation) {
       operation.accept(proxy);
       return handler.getResultFuture();
     }
@@ -458,7 +458,7 @@ public class LogProxySession<S> implements ProxySession<S> {
      * @param <T> the operation return type
      * @return the future result
      */
-    <T> CompletableFuture<T> apply(Function<S, T> operation) {
+    <T> CompletableFuture<T> apply(final Function<S, T> operation) {
       operation.apply(proxy);
       return handler.getResultFuture();
     }
@@ -473,23 +473,23 @@ public class LogProxySession<S> implements ProxySession<S> {
     private final ThreadLocal<CompletableFuture> future = new ThreadLocal<>();
     private final Map<Method, OperationId> operations = new ConcurrentHashMap<>();
 
-    private ServiceProxyHandler(Class<?> type) {
+    private ServiceProxyHandler(final Class<?> type) {
       this.operations.putAll(Operations.getMethodMap(type));
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public Object invoke(Object object, Method method, Object[] args) throws Throwable {
-      OperationId operationId = operations.get(method);
+    public Object invoke(final Object object, final Method method, final Object[] args) throws Throwable {
+      final OperationId operationId = operations.get(method);
       if (operationId != null) {
-        CompletableFuture future = new CompletableFuture();
+        final CompletableFuture future = new CompletableFuture();
         this.future.set(future);
-        byte[] bytes = encode(args);
+        final byte[] bytes = encode(args);
 
         if (operationId.type() == OperationType.COMMAND) {
-          long index = operationIndex.incrementAndGet();
+          final long index = operationIndex.incrementAndGet();
           writeFutures.put(index, future);
-          LogOperation operation =
+          final LogOperation operation =
               new LogOperation(session.sessionId(), name, index, operationId, bytes);
           session
               .producer()
@@ -506,9 +506,9 @@ public class LogProxySession<S> implements ProxySession<S> {
               .execute(
                   () -> {
                     if (currentIndex >= lastIndex) {
-                      SessionId sessionId = session.sessionId();
-                      Session session = getOrCreateSession(sessionId);
-                      byte[] output =
+                      final SessionId sessionId = session.sessionId();
+                      final Session session = getOrCreateSession(sessionId);
+                      final byte[] output =
                           service.apply(
                               new DefaultCommit<>(
                                   currentIndex, operationId, bytes, session, currentTimestamp));
@@ -544,7 +544,7 @@ public class LogProxySession<S> implements ProxySession<S> {
     private final byte[] bytes;
     private final CompletableFuture future;
 
-    PendingRead(long index, OperationId operationId, byte[] bytes, CompletableFuture future) {
+    PendingRead(final long index, final OperationId operationId, final byte[] bytes, final CompletableFuture future) {
       this.index = index;
       this.operationId = operationId;
       this.bytes = bytes;

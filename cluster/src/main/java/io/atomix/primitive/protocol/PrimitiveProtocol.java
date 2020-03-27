@@ -33,7 +33,7 @@ public interface PrimitiveProtocol {
     PrimitiveProtocol newProtocol(C config);
 
     @Override
-    default int compareTo(Type<C> o) {
+    default int compareTo(final Type<C> o) {
       return name().compareTo(o.name());
     }
   }

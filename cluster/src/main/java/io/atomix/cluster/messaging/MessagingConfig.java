@@ -43,7 +43,7 @@ public class MessagingConfig implements Config {
    * @param interfaces the local interfaces to which to bind the node
    * @return the local cluster configuration
    */
-  public MessagingConfig setInterfaces(List<String> interfaces) {
+  public MessagingConfig setInterfaces(final List<String> interfaces) {
     this.interfaces = interfaces;
     return this;
   }
@@ -63,7 +63,7 @@ public class MessagingConfig implements Config {
    * @param port the local port to which to bind the node
    * @return the local cluster configuration
    */
-  public MessagingConfig setPort(Integer port) {
+  public MessagingConfig setPort(final Integer port) {
     this.port = port;
     return this;
   }
@@ -83,7 +83,7 @@ public class MessagingConfig implements Config {
    * @param connectionPoolSize the connection pool size
    * @return the messaging configuration
    */
-  public MessagingConfig setConnectionPoolSize(int connectionPoolSize) {
+  public MessagingConfig setConnectionPoolSize(final int connectionPoolSize) {
     this.connectionPoolSize = connectionPoolSize;
     return this;
   }
@@ -103,7 +103,7 @@ public class MessagingConfig implements Config {
    * @param connectTimeout the Netty connection timeout
    * @return the messaging configuration
    */
-  public MessagingConfig setConnectTimeout(Duration connectTimeout) {
+  public MessagingConfig setConnectTimeout(final Duration connectTimeout) {
     this.connectTimeout = connectTimeout;
     return this;
   }
@@ -123,7 +123,7 @@ public class MessagingConfig implements Config {
    * @param tlsConfig the TLS configuration
    * @return the messaging configuration
    */
-  public MessagingConfig setTlsConfig(TlsConfig tlsConfig) {
+  public MessagingConfig setTlsConfig(final TlsConfig tlsConfig) {
     this.tlsConfig = tlsConfig;
     return this;
   }

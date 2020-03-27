@@ -90,8 +90,8 @@ public interface PartitionGroup extends Configured<PartitionGroupConfig> {
    * @param key the key for which to return the partition
    * @return the partition for the given key
    */
-  default Partition getPartition(String key) {
-    int hashCode = Hashing.sha256().hashString(key, StandardCharsets.UTF_8).asInt();
+  default Partition getPartition(final String key) {
+    final int hashCode = Hashing.sha256().hashString(key, StandardCharsets.UTF_8).asInt();
     return getPartition(getPartitionIds().get(Math.abs(hashCode) % getPartitionIds().size()));
   }
 
@@ -114,7 +114,7 @@ public interface PartitionGroup extends Configured<PartitionGroupConfig> {
       implements io.atomix.utils.Builder<ManagedPartitionGroup> {
     protected final C config;
 
-    protected Builder(C config) {
+    protected Builder(final C config) {
       this.config = config;
     }
   }

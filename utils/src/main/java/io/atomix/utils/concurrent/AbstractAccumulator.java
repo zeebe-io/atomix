@@ -56,7 +56,7 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
    *     is triggered
    * @param maxIdleMillis maximum number millis between items before processing is triggered
    */
-  protected AbstractAccumulator(Timer timer, int maxItems, int maxBatchMillis, int maxIdleMillis) {
+  protected AbstractAccumulator(final Timer timer, final int maxItems, final int maxBatchMillis, final int maxIdleMillis) {
     this.timer = checkNotNull(timer, "Timer cannot be null");
 
     checkArgument(maxItems > 1, "Maximum number of items must be > 1");
@@ -71,7 +71,7 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
   }
 
   @Override
-  public void add(T item) {
+  public void add(final T item) {
     final int sizeAtTimeOfAdd;
     synchronized (items) {
       items.add(item);
@@ -112,8 +112,8 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
    * @param taskRef task reference
    * @param millis delay in milliseconds
    */
-  private void rescheduleTask(AtomicReference<TimerTask> taskRef, long millis) {
-    ProcessorTask newTask = new ProcessorTask();
+  private void rescheduleTask(final AtomicReference<TimerTask> taskRef, final long millis) {
+    final ProcessorTask newTask = new ProcessorTask();
     timer.schedule(newTask, millis);
     swapAndCancelTask(taskRef, newTask);
   }
@@ -123,7 +123,7 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
    *
    * @param taskRef task reference
    */
-  private void cancelTask(AtomicReference<TimerTask> taskRef) {
+  private void cancelTask(final AtomicReference<TimerTask> taskRef) {
     swapAndCancelTask(taskRef, null);
   }
 
@@ -133,8 +133,8 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
    * @param taskRef task reference
    * @param newTask new task
    */
-  private void swapAndCancelTask(AtomicReference<TimerTask> taskRef, TimerTask newTask) {
-    TimerTask oldTask = taskRef.getAndSet(newTask);
+  private void swapAndCancelTask(final AtomicReference<TimerTask> taskRef, final TimerTask newTask) {
+    final TimerTask oldTask = taskRef.getAndSet(newTask);
     if (oldTask != null) {
       oldTask.cancel();
     }
@@ -147,14 +147,14 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
       try {
         if (isReady()) {
 
-          List<T> batch = finalizeCurrentBatch();
+          final List<T> batch = finalizeCurrentBatch();
           if (!batch.isEmpty()) {
             processItems(batch);
           }
         } else {
           rescheduleTask(idleTask, maxIdleMillis);
         }
-      } catch (Exception e) {
+      } catch (final Exception e) {
         log.warn("Unable to process batch due to", e);
       }
     }
@@ -166,7 +166,7 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
    * @return list of existing items
    */
   private List<T> finalizeCurrentBatch() {
-    List<T> finalizedList;
+    final List<T> finalizedList;
     synchronized (items) {
       finalizedList = ImmutableList.copyOf(items);
       items.clear();

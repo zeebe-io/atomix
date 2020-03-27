@@ -48,21 +48,21 @@ public class PrimaryElectorServiceTest {
 
   @Test
   public void testEnterSinglePartition() {
-    PartitionId partition = new PartitionId("test", 1);
-    PrimaryElectorService elector = newService();
+    final PartitionId partition = new PartitionId("test", 1);
+    final PrimaryElectorService elector = newService();
     PrimaryTerm term;
 
     // 1st member to enter should be primary.
-    GroupMember m1 = createGroupMember("node1", "group1");
-    Session<?> s1 = createSession(m1);
+    final GroupMember m1 = createGroupMember("node1", "group1");
+    final Session<?> s1 = createSession(m1);
     term = elector.enter(createEnterOp(partition, m1, s1));
     assertEquals(1L, term.term());
     assertEquals(m1, term.primary());
     assertEquals(1, term.candidates().size());
 
     // 2nd member to enter should be added to candidates.
-    GroupMember m2 = createGroupMember("node2", "group1");
-    Session<?> s2 = createSession(m2);
+    final GroupMember m2 = createGroupMember("node2", "group1");
+    final Session<?> s2 = createSession(m2);
     term = elector.enter(createEnterOp(partition, m2, s2));
     assertEquals(1L, term.term());
     assertEquals(m1, term.primary());
@@ -72,22 +72,22 @@ public class PrimaryElectorServiceTest {
 
   @Test
   public void testEnterSeveralPartitions() {
-    PrimaryElectorService elector = newService();
+    final PrimaryElectorService elector = newService();
     PrimaryTerm term = null;
-    int numParts = 10;
-    int numMembers = 20;
+    final int numParts = 10;
+    final int numMembers = 20;
 
-    List<List<GroupMember>> allMembers = new ArrayList<>();
-    List<PrimaryTerm> terms = new ArrayList<>();
+    final List<List<GroupMember>> allMembers = new ArrayList<>();
+    final List<PrimaryTerm> terms = new ArrayList<>();
     for (int p = 0; p < numParts; p++) {
-      PartitionId partId = new PartitionId("test", p);
+      final PartitionId partId = new PartitionId("test", p);
       allMembers.add(new ArrayList<>());
 
       // Add all members in same group.
       for (int i = 0; i < numMembers; i++) {
-        GroupMember m = createGroupMember("node" + i, "group1");
+        final GroupMember m = createGroupMember("node" + i, "group1");
         allMembers.get(p).add(m);
-        Session<?> s = createSession(m);
+        final Session<?> s = createSession(m);
         term = elector.enter(createEnterOp(partId, m, s));
       }
 
@@ -109,17 +109,17 @@ public class PrimaryElectorServiceTest {
 
   @Test
   public void testEnterSinglePartitionWithGroups() {
-    PrimaryElectorService elector = newService();
-    PartitionId partId = new PartitionId("test", 1);
+    final PrimaryElectorService elector = newService();
+    final PartitionId partId = new PartitionId("test", 1);
     PrimaryTerm term = null;
-    int numMembers = 9;
+    final int numMembers = 9;
 
     // Add 9 members in 3 different groups.
-    List<GroupMember> members = new ArrayList<>();
+    final List<GroupMember> members = new ArrayList<>();
     for (int i = 0; i < numMembers; i++) {
-      GroupMember m = createGroupMember("node" + i, "group" + (i / 3));
+      final GroupMember m = createGroupMember("node" + i, "group" + (i / 3));
       members.add(m);
-      Session<?> s = createSession(m);
+      final Session<?> s = createSession(m);
       term = elector.enter(createEnterOp(partId, m, s));
     }
 
@@ -129,11 +129,11 @@ public class PrimaryElectorServiceTest {
     assertEquals(numMembers, term.candidates().size());
 
     // Check backups are selected in different groups.
-    List<GroupMember> backups2 = term.backups(2);
+    final List<GroupMember> backups2 = term.backups(2);
     assertEquals(members.get(3), backups2.get(0));
     assertEquals(members.get(6), backups2.get(1));
 
-    List<GroupMember> backups3 = term.backups(3);
+    final List<GroupMember> backups3 = term.backups(3);
     assertEquals(members.get(3), backups3.get(0));
     assertEquals(members.get(6), backups3.get(1));
     assertEquals(members.get(1), backups3.get(2));
@@ -141,18 +141,18 @@ public class PrimaryElectorServiceTest {
 
   @Test
   public void testEnterAndExpireSessions() {
-    PrimaryElectorService elector = newService();
-    PartitionId partId = new PartitionId("test", 1);
+    final PrimaryElectorService elector = newService();
+    final PartitionId partId = new PartitionId("test", 1);
     PrimaryTerm term = null;
-    int numMembers = 9;
+    final int numMembers = 9;
 
     // Add 9 members in 3 different groups.
-    List<Session<?>> sessions = new ArrayList<>();
-    List<GroupMember> members = new ArrayList<>();
+    final List<Session<?>> sessions = new ArrayList<>();
+    final List<GroupMember> members = new ArrayList<>();
     for (int i = 0; i < numMembers; i++) {
-      GroupMember m = createGroupMember("node" + i, "group" + (i / 3));
+      final GroupMember m = createGroupMember("node" + i, "group" + (i / 3));
       members.add(m);
-      Session<?> s = createSession(m);
+      final Session<?> s = createSession(m);
       sessions.add(s);
       term = elector.enter(createEnterOp(partId, m, s));
     }
@@ -161,7 +161,7 @@ public class PrimaryElectorServiceTest {
     assertEquals(1L, term.term());
     assertEquals(members.get(0), term.primary());
     assertEquals(numMembers, term.candidates().size());
-    List<GroupMember> backups1 = term.backups(2);
+    final List<GroupMember> backups1 = term.backups(2);
     assertEquals(members.get(3), backups1.get(0));
     assertEquals(members.get(6), backups1.get(1));
 
@@ -172,7 +172,7 @@ public class PrimaryElectorServiceTest {
     assertEquals(2L, term.term());
     assertEquals(members.get(3), term.primary());
     assertEquals(numMembers - 1, term.candidates().size());
-    List<GroupMember> backups2 = term.backups(2);
+    final List<GroupMember> backups2 = term.backups(2);
     assertEquals(members.get(6), backups2.get(0));
     assertEquals(members.get(1), backups2.get(1));
 
@@ -182,14 +182,14 @@ public class PrimaryElectorServiceTest {
     assertEquals(2L, term.term());
     assertEquals(members.get(3), term.primary());
     assertEquals(numMembers - 2, term.candidates().size());
-    List<GroupMember> backups3 = term.backups(2);
+    final List<GroupMember> backups3 = term.backups(2);
     assertEquals(members.get(1), backups3.get(0));
     assertEquals(members.get(4), backups3.get(1));
   }
 
   @Test
   public void testSortCandidatesByGroup() {
-    PrimaryElectorService elector = newService();
+    final PrimaryElectorService elector = newService();
     PrimaryTerm term = null;
 
     term = enter("node1", "group1", elector);
@@ -238,7 +238,7 @@ public class PrimaryElectorServiceTest {
 
   @Test
   public void testSortCandidatesWithoutGroup() {
-    PrimaryElectorService elector = newService();
+    final PrimaryElectorService elector = newService();
     PrimaryTerm term = null;
 
     term = enter("node1", "node1", elector);
@@ -256,29 +256,29 @@ public class PrimaryElectorServiceTest {
     assertEquals("node6", term.candidates().get(5).memberId().id());
   }
 
-  private PrimaryTerm enter(String nodeId, String groupId, PrimaryElectorService elector) {
-    PartitionId partId = new PartitionId("test", 1);
-    GroupMember member = createGroupMember(nodeId, groupId);
-    Session session = createSession(member);
+  private PrimaryTerm enter(final String nodeId, final String groupId, final PrimaryElectorService elector) {
+    final PartitionId partId = new PartitionId("test", 1);
+    final GroupMember member = createGroupMember(nodeId, groupId);
+    final Session session = createSession(member);
     return elector.enter(createEnterOp(partId, member, session));
   }
 
-  Commit<Enter> createEnterOp(PartitionId partition, GroupMember member, Session<?> session) {
-    Enter enter = new Enter(partition, member);
+  Commit<Enter> createEnterOp(final PartitionId partition, final GroupMember member, final Session<?> session) {
+    final Enter enter = new Enter(partition, member);
     return new DefaultCommit<>(0, null, enter, session, System.currentTimeMillis());
   }
 
-  Commit<GetTerm> createGetTermOp(PartitionId partition, GroupMember member, Session<?> session) {
-    GetTerm getTerm = new GetTerm(partition);
+  Commit<GetTerm> createGetTermOp(final PartitionId partition, final GroupMember member, final Session<?> session) {
+    final GetTerm getTerm = new GetTerm(partition);
     return new DefaultCommit<>(0, null, getTerm, session, System.currentTimeMillis());
   }
 
-  GroupMember createGroupMember(String id, String groupId) {
+  GroupMember createGroupMember(final String id, final String groupId) {
     return new GroupMember(MemberId.from(id), groupId != null ? MemberGroupId.from(groupId) : null);
   }
 
   PrimaryElectorService newService() {
-    PrimaryElectorService elector = new PrimaryElectorService();
+    final PrimaryElectorService elector = new PrimaryElectorService();
     elector.init(
         new ServiceContext() {
           @Override
@@ -367,17 +367,17 @@ public class PrimaryElectorServiceTest {
       }
 
       @Override
-      public void publish(EventType eventType, Object event) {
+      public void publish(final EventType eventType, final Object event) {
         // not used in test
       }
 
       @Override
-      public void publish(PrimitiveEvent event) {
+      public void publish(final PrimitiveEvent event) {
         // not used in test
       }
 
       @Override
-      public void accept(Consumer event) {
+      public void accept(final Consumer event) {
         // not used in test
       }
 

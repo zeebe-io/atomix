@@ -43,7 +43,7 @@ public class SnapshotWriter implements BufferOutput<SnapshotWriter> {
   private final Buffer buffer;
   private final Snapshot snapshot;
 
-  public SnapshotWriter(Buffer buffer, Snapshot snapshot) {
+  public SnapshotWriter(final Buffer buffer, final Snapshot snapshot) {
     this.buffer = checkNotNull(buffer, "buffer cannot be null");
     this.snapshot = checkNotNull(snapshot, "snapshot cannot be null");
   }
@@ -67,13 +67,13 @@ public class SnapshotWriter implements BufferOutput<SnapshotWriter> {
   }
 
   @Override
-  public SnapshotWriter write(Bytes bytes) {
+  public SnapshotWriter write(final Bytes bytes) {
     buffer.write(bytes);
     return this;
   }
 
   @Override
-  public SnapshotWriter write(byte[] bytes) {
+  public SnapshotWriter write(final byte[] bytes) {
     buffer.write(bytes);
     return this;
   }
@@ -92,115 +92,115 @@ public class SnapshotWriter implements BufferOutput<SnapshotWriter> {
   }
 
   @Override
-  public SnapshotWriter write(Bytes bytes, int offset, int length) {
+  public SnapshotWriter write(final Bytes bytes, final int offset, final int length) {
     buffer.write(bytes, offset, length);
     return this;
   }
 
   @Override
-  public SnapshotWriter write(byte[] bytes, int offset, int length) {
+  public SnapshotWriter write(final byte[] bytes, final int offset, final int length) {
     buffer.write(bytes, offset, length);
     return this;
   }
 
   @Override
-  public SnapshotWriter write(Buffer buffer) {
+  public SnapshotWriter write(final Buffer buffer) {
     this.buffer.write(buffer);
     return this;
   }
 
   @Override
-  public SnapshotWriter writeByte(int b) {
+  public SnapshotWriter writeByte(final int b) {
     buffer.writeByte(b);
     return this;
   }
 
   @Override
-  public SnapshotWriter writeUnsignedByte(int b) {
+  public SnapshotWriter writeUnsignedByte(final int b) {
     buffer.writeUnsignedByte(b);
     return this;
   }
 
   @Override
-  public SnapshotWriter writeChar(char c) {
+  public SnapshotWriter writeChar(final char c) {
     buffer.writeChar(c);
     return this;
   }
 
   @Override
-  public SnapshotWriter writeShort(short s) {
+  public SnapshotWriter writeShort(final short s) {
     buffer.writeShort(s);
     return this;
   }
 
   @Override
-  public SnapshotWriter writeUnsignedShort(int s) {
+  public SnapshotWriter writeUnsignedShort(final int s) {
     buffer.writeUnsignedShort(s);
     return this;
   }
 
   @Override
-  public SnapshotWriter writeMedium(int m) {
+  public SnapshotWriter writeMedium(final int m) {
     buffer.writeMedium(m);
     return this;
   }
 
   @Override
-  public SnapshotWriter writeUnsignedMedium(int m) {
+  public SnapshotWriter writeUnsignedMedium(final int m) {
     buffer.writeUnsignedMedium(m);
     return this;
   }
 
   @Override
-  public SnapshotWriter writeInt(int i) {
+  public SnapshotWriter writeInt(final int i) {
     buffer.writeInt(i);
     return this;
   }
 
   @Override
-  public SnapshotWriter writeUnsignedInt(long i) {
+  public SnapshotWriter writeUnsignedInt(final long i) {
     buffer.writeUnsignedInt(i);
     return this;
   }
 
   @Override
-  public SnapshotWriter writeLong(long l) {
+  public SnapshotWriter writeLong(final long l) {
     buffer.writeLong(l);
     return this;
   }
 
   @Override
-  public SnapshotWriter writeFloat(float f) {
+  public SnapshotWriter writeFloat(final float f) {
     buffer.writeFloat(f);
     return this;
   }
 
   @Override
-  public SnapshotWriter writeDouble(double d) {
+  public SnapshotWriter writeDouble(final double d) {
     buffer.writeDouble(d);
     return this;
   }
 
   @Override
-  public SnapshotWriter writeBoolean(boolean b) {
+  public SnapshotWriter writeBoolean(final boolean b) {
     buffer.writeBoolean(b);
     return this;
   }
 
   @Override
-  public SnapshotWriter writeString(String s) {
+  public SnapshotWriter writeString(final String s) {
     buffer.writeString(s);
     return this;
   }
 
   @Override
-  public SnapshotWriter writeString(String s, Charset charset) {
+  public SnapshotWriter writeString(final String s, final Charset charset) {
     buffer.writeString(s, charset);
     return this;
   }
 
   @Override
-  public SnapshotWriter writeUTF8(String s) {
+  public SnapshotWriter writeUTF8(final String s) {
     buffer.writeUTF8(s);
     return this;
   }

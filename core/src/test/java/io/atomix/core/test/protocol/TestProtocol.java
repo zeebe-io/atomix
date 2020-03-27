@@ -65,7 +65,7 @@ public class TestProtocol implements ProxyProtocol {
     }
 
     @Override
-    public PrimitiveProtocol newProtocol(TestProtocolConfig config) {
+    public PrimitiveProtocol newProtocol(final TestProtocolConfig config) {
       return new TestProtocol(config);
     }
   }
@@ -78,7 +78,7 @@ public class TestProtocol implements ProxyProtocol {
   private final TestProtocolServiceRegistry registry;
   private final AtomicLong sessionIds = new AtomicLong();
 
-  TestProtocol(TestProtocolConfig config) {
+  TestProtocol(final TestProtocolConfig config) {
     this.config = config;
     this.registry = new TestProtocolServiceRegistry(threadPool);
   }
@@ -95,12 +95,12 @@ public class TestProtocol implements ProxyProtocol {
 
   @Override
   public <S> ProxyClient<S> newProxy(
-      String primitiveName,
-      PrimitiveType primitiveType,
-      Class<S> serviceType,
-      ServiceConfig serviceConfig,
-      PartitionService partitionService) {
-    Collection<SessionClient> partitions =
+      final String primitiveName,
+      final PrimitiveType primitiveType,
+      final Class<S> serviceType,
+      final ServiceConfig serviceConfig,
+      final PartitionService partitionService) {
+    final Collection<SessionClient> partitions =
         IntStream.range(0, config.getPartitions())
             .mapToObj(
                 partition -> {

@@ -33,7 +33,7 @@ public class PollResponse extends AbstractRaftResponse {
   private final long term;
   private final boolean accepted;
 
-  public PollResponse(Status status, RaftError error, long term, boolean accepted) {
+  public PollResponse(final Status status, final RaftError error, final long term, final boolean accepted) {
     super(status, error);
     this.term = term;
     this.accepted = accepted;
@@ -72,7 +72,7 @@ public class PollResponse extends AbstractRaftResponse {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof PollResponse) {
       final PollResponse response = (PollResponse) object;
       return response.status == status && response.term == term && response.accepted == accepted;
@@ -106,7 +106,7 @@ public class PollResponse extends AbstractRaftResponse {
      * @return The poll response builder.
      * @throws IllegalArgumentException if {@code term} is not positive
      */
-    public Builder withTerm(long term) {
+    public Builder withTerm(final long term) {
       checkArgument(term >= 0, "term must be positive");
       this.term = term;
       return this;
@@ -118,7 +118,7 @@ public class PollResponse extends AbstractRaftResponse {
      * @param accepted Whether the poll was granted.
      * @return The poll response builder.
      */
-    public Builder withAccepted(boolean accepted) {
+    public Builder withAccepted(final boolean accepted) {
       this.accepted = accepted;
       return this;
     }

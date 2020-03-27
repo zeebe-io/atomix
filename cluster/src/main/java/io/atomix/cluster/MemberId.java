@@ -35,11 +35,11 @@ public class MemberId extends NodeId {
    * @param id string identifier
    * @return node id
    */
-  public static MemberId from(String id) {
+  public static MemberId from(final String id) {
     return new MemberId(id);
   }
 
-  public MemberId(String id) {
+  public MemberId(final String id) {
     super(id);
   }
 }

@@ -41,19 +41,19 @@ public class MappedMemoryAllocator implements MemoryAllocator<MappedMemory> {
   private final FileChannel.MapMode mode;
   private final long offset;
 
-  public MappedMemoryAllocator(File file) {
+  public MappedMemoryAllocator(final File file) {
     this(file, DEFAULT_MAP_MODE, 0);
   }
 
-  public MappedMemoryAllocator(File file, FileChannel.MapMode mode) {
+  public MappedMemoryAllocator(final File file, final FileChannel.MapMode mode) {
     this(file, mode, 0);
   }
 
-  public MappedMemoryAllocator(File file, FileChannel.MapMode mode, long offset) {
+  public MappedMemoryAllocator(final File file, final FileChannel.MapMode mode, final long offset) {
     this(createFile(file, mode), mode, offset);
   }
 
-  public MappedMemoryAllocator(RandomAccessFile file, FileChannel.MapMode mode, long offset) {
+  public MappedMemoryAllocator(final RandomAccessFile file, final FileChannel.MapMode mode, final long offset) {
     if (file == null) {
       throw new NullPointerException("file cannot be null");
     }
@@ -69,7 +69,7 @@ public class MappedMemoryAllocator implements MemoryAllocator<MappedMemory> {
     this.offset = offset;
   }
 
-  private static RandomAccessFile createFile(File file, FileChannel.MapMode mode) {
+  private static RandomAccessFile createFile(final File file, FileChannel.MapMode mode) {
     if (file == null) {
       throw new NullPointerException("file cannot be null");
     }
@@ -78,12 +78,12 @@ public class MappedMemoryAllocator implements MemoryAllocator<MappedMemory> {
     }
     try {
       return new RandomAccessFile(file, parseMode(mode));
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new RuntimeException(e);
     }
   }
 
-  private static String parseMode(FileChannel.MapMode mode) {
+  private static String parseMode(final FileChannel.MapMode mode) {
     if (mode == FileChannel.MapMode.READ_ONLY) {
       return "r";
     } else if (mode == FileChannel.MapMode.READ_WRITE) {
@@ -93,21 +93,21 @@ public class MappedMemoryAllocator implements MemoryAllocator<MappedMemory> {
   }
 
   @Override
-  public MappedMemory allocate(int size) {
+  public MappedMemory allocate(final int size) {
     try {
       if (file.length() < size) {
         file.setLength(size);
       }
       referenceCount.incrementAndGet();
       return new MappedMemory(channel.map(mode, offset, size), this);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new RuntimeException(e);
     }
   }
 
   @Override
-  public MappedMemory reallocate(MappedMemory memory, int size) {
-    MappedMemory newMemory = allocate(size);
+  public MappedMemory reallocate(final MappedMemory memory, final int size) {
+    final MappedMemory newMemory = allocate(size);
     memory.free();
     return newMemory;
   }
@@ -115,7 +115,7 @@ public class MappedMemoryAllocator implements MemoryAllocator<MappedMemory> {
   public void close() {
     try {
       file.close();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new RuntimeException(e);
     }
   }

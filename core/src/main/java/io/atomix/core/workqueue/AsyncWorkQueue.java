@@ -107,7 +107,7 @@ public interface AsyncWorkQueue<E> extends AsyncPrimitive {
    * @param taskIds var arg list of task ids
    * @return future that is completed when the operation completes
    */
-  default CompletableFuture<Void> complete(String... taskIds) {
+  default CompletableFuture<Void> complete(final String... taskIds) {
     return complete(Arrays.asList(taskIds));
   }
 
@@ -117,7 +117,7 @@ public interface AsyncWorkQueue<E> extends AsyncPrimitive {
    * @param item task item
    * @return future that is completed when the operation completes
    */
-  default CompletableFuture<Void> addOne(E item) {
+  default CompletableFuture<Void> addOne(final E item) {
     return addMultiple(ImmutableList.of(item));
   }
 

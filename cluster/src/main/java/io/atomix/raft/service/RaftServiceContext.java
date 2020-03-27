@@ -88,13 +88,13 @@ public class RaftServiceContext implements ServiceContext {
   private boolean deleted;
 
   public RaftServiceContext(
-      PrimitiveId primitiveId,
-      String serviceName,
-      PrimitiveType primitiveType,
-      ServiceConfig config,
-      PrimitiveService service,
-      RaftContext raft,
-      ThreadContextFactory threadContextFactory) {
+      final PrimitiveId primitiveId,
+      final String serviceName,
+      final PrimitiveType primitiveType,
+      final ServiceConfig config,
+      final PrimitiveService service,
+      final RaftContext raft,
+      final ThreadContextFactory threadContextFactory) {
     this.primitiveId = checkNotNull(primitiveId);
     this.serviceName = checkNotNull(serviceName);
     this.primitiveType = checkNotNull(primitiveType);
@@ -128,13 +128,13 @@ public class RaftServiceContext implements ServiceContext {
   }
 
   /** Installs a snapshot. */
-  public void installSnapshot(SnapshotReader reader) {
+  public void installSnapshot(final SnapshotReader reader) {
     log.debug("Installing snapshot {}", reader.snapshot().index());
     reader.skip(Bytes.LONG); // Skip the service ID
     final PrimitiveType primitiveType;
     try {
       primitiveType = raft.getPrimitiveTypes().getPrimitiveType(reader.readString());
-    } catch (ConfigurationException e) {
+    } catch (final ConfigurationException e) {
       log.error(e.getMessage(), e);
       return;
     }
@@ -186,7 +186,7 @@ public class RaftServiceContext implements ServiceContext {
   }
 
   /** Takes a snapshot of the service state. */
-  public void takeSnapshot(SnapshotWriter writer) {
+  public void takeSnapshot(final SnapshotWriter writer) {
     log.debug("Taking snapshot {}", writer.snapshot().index());
 
     // Serialize sessions to the in-memory snapshot and request a snapshot from the state machine.
@@ -198,7 +198,7 @@ public class RaftServiceContext implements ServiceContext {
     writer.writeLong(timestampDelta);
 
     writer.writeInt(sessions.getSessions().size());
-    for (RaftSession session : sessions.getSessions()) {
+    for (final RaftSession session : sessions.getSessions()) {
       writer.writeLong(session.sessionId().id());
       writer.writeString(session.memberId().id());
       writer.writeString(session.readConsistency().name());
@@ -220,7 +220,7 @@ public class RaftServiceContext implements ServiceContext {
    * @param timestamp The timestamp of the registration.
    * @param session The session to register.
    */
-  public long openSession(long index, long timestamp, RaftSession session) {
+  public long openSession(final long index, final long timestamp, final RaftSession session) {
     log.debug("Opening session {}", session.sessionId());
 
     // Update the state machine index/timestamp.
@@ -244,7 +244,7 @@ public class RaftServiceContext implements ServiceContext {
   }
 
   /** Executes scheduled callbacks based on the provided time. */
-  private void tick(long index, long timestamp) {
+  private void tick(final long index, final long timestamp) {
     this.currentIndex = index;
 
     // If the entry timestamp is less than the current state machine timestamp
@@ -275,12 +275,12 @@ public class RaftServiceContext implements ServiceContext {
    *
    * @param operation the current state machine operation type
    */
-  private void setOperation(OperationType operation) {
+  private void setOperation(final OperationType operation) {
     this.currentOperation = operation;
   }
 
   /** Expires sessions that have timed out. */
-  private void expireSessions(long timestamp) {
+  private void expireSessions(final long timestamp) {
     // Iterate through registered sessions.
     for (RaftSession session : sessions.getSessions(primitiveId)) {
       if (session.isTimedOut(timestamp)) {
@@ -301,7 +301,7 @@ public class RaftServiceContext implements ServiceContext {
   @SuppressWarnings("unchecked")
   private void commit() {
     final long index = this.currentIndex;
-    for (RaftSession session : sessions.getSessions(primitiveId)) {
+    for (final RaftSession session : sessions.getSessions(primitiveId)) {
       session.commit(index);
     }
   }
@@ -316,7 +316,7 @@ public class RaftServiceContext implements ServiceContext {
    * @param eventIndex The session event index.
    */
   public boolean keepAlive(
-      long index, long timestamp, RaftSession session, long commandSequence, long eventIndex) {
+      final long index, final long timestamp, final RaftSession session, final long commandSequence, final long eventIndex) {
     // If the service has been deleted, just return false to ignore the keep-alive.
     if (deleted) {
       return false;
@@ -371,7 +371,7 @@ public class RaftServiceContext implements ServiceContext {
    * @param index the keep-alive index
    * @param timestamp the keep-alive timestamp
    */
-  public void completeKeepAlive(long index, long timestamp) {
+  public void completeKeepAlive(final long index, final long timestamp) {
     // Update the state machine index/timestamp.
     tick(index, timestamp);
 
@@ -388,13 +388,13 @@ public class RaftServiceContext implements ServiceContext {
    * @param index the index of the timestamp
    * @param timestamp the timestamp with which to reset session timeouts
    */
-  public void keepAliveSessions(long index, long timestamp) {
+  public void keepAliveSessions(final long index, final long timestamp) {
     log.debug("Resetting session timeouts");
 
     this.currentIndex = index;
     this.currentTimestamp = Math.max(currentTimestamp, timestamp);
 
-    for (RaftSession session : sessions.getSessions(primitiveId)) {
+    for (final RaftSession session : sessions.getSessions(primitiveId)) {
       session.setLastUpdated(timestamp);
     }
   }
@@ -407,7 +407,7 @@ public class RaftServiceContext implements ServiceContext {
    * @param session The session to unregister.
    * @param expired Whether the session was expired by the leader.
    */
-  public void closeSession(long index, long timestamp, RaftSession session, boolean expired) {
+  public void closeSession(final long index, final long timestamp, RaftSession session, final boolean expired) {
     log.debug("Closing session {}", session.sessionId());
 
     // Update the session's timestamp to prevent it from being expired.
@@ -449,11 +449,11 @@ public class RaftServiceContext implements ServiceContext {
    * @return A future to be completed with the command result.
    */
   public OperationResult executeCommand(
-      long index,
-      long sequence,
-      long timestamp,
-      RaftSession session,
-      PrimitiveOperation operation) {
+      final long index,
+      final long sequence,
+      final long timestamp,
+      final RaftSession session,
+      final PrimitiveOperation operation) {
     // If the service has been deleted then throw an unknown service exception.
     if (deleted) {
       log.warn("Service {} has been deleted by another process", serviceName);
@@ -497,7 +497,7 @@ public class RaftServiceContext implements ServiceContext {
   }
 
   /** Loads and returns a cached command result according to the sequence number. */
-  private OperationResult sequenceCommand(long index, long sequence, RaftSession session) {
+  private OperationResult sequenceCommand(final long index, final long sequence, final RaftSession session) {
     final OperationResult result = session.getResult(sequence);
     if (result == null) {
       log.debug("Missing command result at index {}", index);
@@ -507,11 +507,11 @@ public class RaftServiceContext implements ServiceContext {
 
   /** Applies the given commit to the state machine. */
   private OperationResult applyCommand(
-      long index,
-      long sequence,
-      long timestamp,
-      PrimitiveOperation operation,
-      RaftSession session) {
+      final long index,
+      final long sequence,
+      final long timestamp,
+      final PrimitiveOperation operation,
+      final RaftSession session) {
     final long eventIndex = session.getEventIndex();
 
     final Commit<byte[]> commit =
@@ -526,7 +526,7 @@ public class RaftServiceContext implements ServiceContext {
 
       // Store the result for linearizability and complete the command.
       result = OperationResult.succeeded(index, eventIndex, output);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       // If an exception occurs during execution of the command, store the exception.
       result = OperationResult.failed(index, eventIndex, e);
     } finally {
@@ -559,11 +559,11 @@ public class RaftServiceContext implements ServiceContext {
    * @return A future to be completed with the query result.
    */
   public CompletableFuture<OperationResult> executeQuery(
-      long index,
-      long sequence,
-      long timestamp,
-      RaftSession session,
-      PrimitiveOperation operation) {
+      final long index,
+      final long sequence,
+      final long timestamp,
+      final RaftSession session,
+      final PrimitiveOperation operation) {
     final CompletableFuture<OperationResult> future = new CompletableFuture<>();
     executeQuery(index, sequence, timestamp, session, operation, future);
     return future;
@@ -571,12 +571,12 @@ public class RaftServiceContext implements ServiceContext {
 
   /** Executes a query on the state machine thread. */
   private void executeQuery(
-      long index,
-      long sequence,
-      long timestamp,
-      RaftSession session,
-      PrimitiveOperation operation,
-      CompletableFuture<OperationResult> future) {
+      final long index,
+      final long sequence,
+      final long timestamp,
+      final RaftSession session,
+      final PrimitiveOperation operation,
+      final CompletableFuture<OperationResult> future) {
     // If the service has been deleted then throw an unknown service exception.
     if (deleted) {
       log.warn("Service {} has been deleted by another process", serviceName);
@@ -599,12 +599,12 @@ public class RaftServiceContext implements ServiceContext {
 
   /** Sequences the given query. */
   private void sequenceQuery(
-      long index,
-      long sequence,
-      long timestamp,
-      RaftSession session,
-      PrimitiveOperation operation,
-      CompletableFuture<OperationResult> future) {
+      final long index,
+      final long sequence,
+      final long timestamp,
+      final RaftSession session,
+      final PrimitiveOperation operation,
+      final CompletableFuture<OperationResult> future) {
     // If the query's sequence number is greater than the session's current sequence number, queue
     // the request for
     // handling once the state machine is caught up.
@@ -620,11 +620,11 @@ public class RaftServiceContext implements ServiceContext {
 
   /** Ensures the given query is applied after the appropriate index. */
   private void indexQuery(
-      long index,
-      long timestamp,
-      RaftSession session,
-      PrimitiveOperation operation,
-      CompletableFuture<OperationResult> future) {
+      final long index,
+      final long timestamp,
+      final RaftSession session,
+      final PrimitiveOperation operation,
+      final CompletableFuture<OperationResult> future) {
     // If the query index is greater than the session's last applied index, queue the request for
     // handling once the
     // state machine is caught up.
@@ -638,10 +638,10 @@ public class RaftServiceContext implements ServiceContext {
 
   /** Applies a query to the state machine. */
   private void applyQuery(
-      long timestamp,
-      RaftSession session,
-      PrimitiveOperation operation,
-      CompletableFuture<OperationResult> future) {
+      final long timestamp,
+      final RaftSession session,
+      final PrimitiveOperation operation,
+      final CompletableFuture<OperationResult> future) {
     // If the service has been deleted then throw an unknown service exception.
     if (deleted) {
       log.warn("Service {} has been deleted by another process", serviceName);
@@ -670,7 +670,7 @@ public class RaftServiceContext implements ServiceContext {
     try {
       currentSession = session;
       result = OperationResult.succeeded(currentIndex, eventIndex, service.apply(commit));
-    } catch (Exception e) {
+    } catch (final Exception e) {
       result = OperationResult.failed(currentIndex, eventIndex, e);
     } finally {
       currentSession = null;
@@ -680,7 +680,7 @@ public class RaftServiceContext implements ServiceContext {
 
   /** Closes the service context. */
   public void close() {
-    for (RaftSession serviceSession : sessions.getSessions(serviceId())) {
+    for (final RaftSession serviceSession : sessions.getSessions(serviceId())) {
       sessions.removeSession(serviceSession.sessionId());
       serviceSession.close();
       service.close(serviceSession.sessionId());

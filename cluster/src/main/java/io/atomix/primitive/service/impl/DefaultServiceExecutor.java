@@ -56,7 +56,7 @@ public class DefaultServiceExecutor implements ServiceExecutor {
   private OperationType operationType;
   private long timestamp;
 
-  public DefaultServiceExecutor(ServiceContext context, Serializer serializer) {
+  public DefaultServiceExecutor(final ServiceContext context, final Serializer serializer) {
     this.serializer = checkNotNull(serializer);
     this.context = checkNotNull(context);
     this.log =
@@ -76,7 +76,7 @@ public class DefaultServiceExecutor implements ServiceExecutor {
    * @param <T> the object type
    * @return the encoded bytes
    */
-  protected <T> byte[] encode(T object) {
+  protected <T> byte[] encode(final T object) {
     return object != null ? serializer.encode(object) : null;
   }
 
@@ -87,20 +87,20 @@ public class DefaultServiceExecutor implements ServiceExecutor {
    * @param <T> the object type
    * @return the decoded object
    */
-  protected <T> T decode(byte[] bytes) {
+  protected <T> T decode(final byte[] bytes) {
     return bytes != null ? serializer.decode(bytes) : null;
   }
 
   @Override
-  public void tick(WallClockTimestamp timestamp) {
-    long unixTimestamp = timestamp.unixTimestamp();
+  public void tick(final WallClockTimestamp timestamp) {
+    final long unixTimestamp = timestamp.unixTimestamp();
     this.operationType = OperationType.COMMAND;
     if (!scheduledTasks.isEmpty()) {
       // Iterate through scheduled tasks until we reach a task that has not met its scheduled time.
       // The tasks list is sorted by time on insertion.
-      Iterator<ScheduledTask> iterator = scheduledTasks.iterator();
+      final Iterator<ScheduledTask> iterator = scheduledTasks.iterator();
       while (iterator.hasNext()) {
-        ScheduledTask task = iterator.next();
+        final ScheduledTask task = iterator.next();
         if (task.isRunnable(unixTimestamp)) {
           this.timestamp = task.time;
           this.operationType = OperationType.COMMAND;
@@ -114,7 +114,7 @@ public class DefaultServiceExecutor implements ServiceExecutor {
       }
 
       // Iterate through tasks that were completed and reschedule them.
-      for (ScheduledTask task : complete) {
+      for (final ScheduledTask task : complete) {
         task.reschedule(this.timestamp);
       }
       complete.clear();
@@ -127,12 +127,12 @@ public class DefaultServiceExecutor implements ServiceExecutor {
    * @param type the operation type
    * @param message the message to print if the current operation does not match the given type
    */
-  private void checkOperation(OperationType type, String message) {
+  private void checkOperation(final OperationType type, final String message) {
     checkState(operationType == type, message);
   }
 
   @Override
-  public void handle(OperationId operationId, Function<Commit<byte[]>, byte[]> callback) {
+  public void handle(final OperationId operationId, final Function<Commit<byte[]>, byte[]> callback) {
     checkNotNull(operationId, "operationId cannot be null");
     checkNotNull(callback, "callback cannot be null");
     operations.put(operationId.id(), callback);
@@ -140,14 +140,14 @@ public class DefaultServiceExecutor implements ServiceExecutor {
   }
 
   @Override
-  public <R> void register(OperationId operationId, Supplier<R> callback) {
+  public <R> void register(final OperationId operationId, final Supplier<R> callback) {
     checkNotNull(operationId, "operationId cannot be null");
     checkNotNull(callback, "callback cannot be null");
     handle(operationId, commit -> encode(callback.get()));
   }
 
   @Override
-  public <T> void register(OperationId operationId, Consumer<Commit<T>> callback) {
+  public <T> void register(final OperationId operationId, final Consumer<Commit<T>> callback) {
     checkNotNull(operationId, "operationId cannot be null");
     checkNotNull(callback, "callback cannot be null");
     handle(
@@ -159,21 +159,21 @@ public class DefaultServiceExecutor implements ServiceExecutor {
   }
 
   @Override
-  public <T, R> void register(OperationId operationId, Function<Commit<T>, R> callback) {
+  public <T, R> void register(final OperationId operationId, final Function<Commit<T>, R> callback) {
     checkNotNull(operationId, "operationId cannot be null");
     checkNotNull(callback, "callback cannot be null");
     handle(operationId, commit -> encode(callback.apply(commit.map(this::decode))));
   }
 
   @Override
-  public byte[] apply(Commit<byte[]> commit) {
+  public byte[] apply(final Commit<byte[]> commit) {
     log.trace("Executing {}", commit);
 
     this.operationType = commit.operation().type();
     this.timestamp = commit.wallClockTime().unixTimestamp();
 
     // Look up the registered callback for the operation.
-    Function<Commit<byte[]>, byte[]> operation = operations.get(commit.operation().id());
+    final Function<Commit<byte[]>, byte[]> operation = operations.get(commit.operation().id());
 
     if (operation == null) {
       throw new IllegalStateException("Unknown state machine operation: " + commit.operation());
@@ -182,7 +182,7 @@ public class DefaultServiceExecutor implements ServiceExecutor {
       // otherwise immediately complete the execution future.
       try {
         return operation.apply(commit);
-      } catch (Exception e) {
+      } catch (final Exception e) {
         log.warn("State machine operation failed: {}", e.getMessage());
         throw new PrimitiveException.ServiceException(e);
       } finally {
@@ -195,7 +195,7 @@ public class DefaultServiceExecutor implements ServiceExecutor {
   private void runTasks() {
     // Execute any tasks that were queue during execution of the command.
     if (!tasks.isEmpty()) {
-      for (Runnable task : tasks) {
+      for (final Runnable task : tasks) {
         log.trace("Executing task {}", task);
         task.run();
       }
@@ -204,7 +204,7 @@ public class DefaultServiceExecutor implements ServiceExecutor {
   }
 
   @Override
-  public void execute(Runnable callback) {
+  public void execute(final Runnable callback) {
     checkOperation(
         OperationType.COMMAND, "callbacks can only be scheduled during command execution");
     checkNotNull(callback, "callback cannot be null");
@@ -212,7 +212,7 @@ public class DefaultServiceExecutor implements ServiceExecutor {
   }
 
   @Override
-  public Scheduled schedule(Duration delay, Runnable callback) {
+  public Scheduled schedule(final Duration delay, final Runnable callback) {
     checkOperation(
         OperationType.COMMAND, "callbacks can only be scheduled during command execution");
     checkArgument(!delay.isNegative(), "delay cannot be negative");
@@ -222,7 +222,7 @@ public class DefaultServiceExecutor implements ServiceExecutor {
   }
 
   @Override
-  public Scheduled schedule(Duration initialDelay, Duration interval, Runnable callback) {
+  public Scheduled schedule(final Duration initialDelay, final Duration interval, final Runnable callback) {
     checkOperation(
         OperationType.COMMAND, "callbacks can only be scheduled during command execution");
     checkArgument(!initialDelay.isNegative(), "initialDelay cannot be negative");
@@ -242,11 +242,11 @@ public class DefaultServiceExecutor implements ServiceExecutor {
     private final Runnable callback;
     private long time;
 
-    private ScheduledTask(Runnable callback, long delay) {
+    private ScheduledTask(final Runnable callback, final long delay) {
       this(callback, delay, 0);
     }
 
-    private ScheduledTask(Runnable callback, long delay, long interval) {
+    private ScheduledTask(final Runnable callback, final long delay, final long interval) {
       this.interval = interval;
       this.callback = callback;
       this.time = timestamp + delay;
@@ -263,7 +263,7 @@ public class DefaultServiceExecutor implements ServiceExecutor {
         int i;
         while (true) {
           i = (u + l) / 2;
-          long t = scheduledTasks.get(i).time;
+          final long t = scheduledTasks.get(i).time;
           if (t == time) {
             scheduledTasks.add(i, this);
             return this;
@@ -286,7 +286,7 @@ public class DefaultServiceExecutor implements ServiceExecutor {
     }
 
     /** Reschedules the task. */
-    private void reschedule(long timestamp) {
+    private void reschedule(final long timestamp) {
       if (interval > 0) {
         time = timestamp + interval;
         schedule();
@@ -294,7 +294,7 @@ public class DefaultServiceExecutor implements ServiceExecutor {
     }
 
     /** Returns a boolean value indicating whether the task delay has been met. */
-    private boolean isRunnable(long timestamp) {
+    private boolean isRunnable(final long timestamp) {
       return timestamp > time;
     }
 
@@ -302,7 +302,7 @@ public class DefaultServiceExecutor implements ServiceExecutor {
     private synchronized void execute() {
       try {
         callback.run();
-      } catch (Exception e) {
+      } catch (final Exception e) {
         log.error("An exception occurred in a scheduled task", e);
       }
     }

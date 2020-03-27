@@ -20,7 +20,7 @@ import io.atomix.raft.RaftError;
 /** Client heartbeat response. */
 public class HeartbeatResponse extends AbstractRaftResponse {
 
-  public HeartbeatResponse(Status status, RaftError error) {
+  public HeartbeatResponse(final Status status, final RaftError error) {
     super(status, error);
   }
 

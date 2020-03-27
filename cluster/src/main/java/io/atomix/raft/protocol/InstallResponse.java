@@ -26,7 +26,7 @@ import io.atomix.raft.RaftError;
  */
 public class InstallResponse extends AbstractRaftResponse {
 
-  public InstallResponse(Status status, RaftError error) {
+  public InstallResponse(final Status status, final RaftError error) {
     super(status, error);
   }
 

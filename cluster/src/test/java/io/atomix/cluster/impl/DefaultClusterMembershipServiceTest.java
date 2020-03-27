@@ -49,14 +49,14 @@ import org.junit.Test;
 /** Default cluster service test. */
 public class DefaultClusterMembershipServiceTest {
 
-  private Member buildMember(int memberId) {
+  private Member buildMember(final int memberId) {
     return Member.builder(String.valueOf(memberId))
         .withHost("localhost")
         .withPort(memberId)
         .build();
   }
 
-  private Collection<Node> buildBootstrapNodes(int nodes) {
+  private Collection<Node> buildBootstrapNodes(final int nodes) {
     return IntStream.range(1, nodes + 1)
         .mapToObj(
             id ->
@@ -69,19 +69,19 @@ public class DefaultClusterMembershipServiceTest {
 
   @Test
   public void testClusterService() throws Exception {
-    TestMessagingServiceFactory messagingServiceFactory = new TestMessagingServiceFactory();
-    TestUnicastServiceFactory unicastServiceFactory = new TestUnicastServiceFactory();
-    TestBroadcastServiceFactory broadcastServiceFactory = new TestBroadcastServiceFactory();
+    final TestMessagingServiceFactory messagingServiceFactory = new TestMessagingServiceFactory();
+    final TestUnicastServiceFactory unicastServiceFactory = new TestUnicastServiceFactory();
+    final TestBroadcastServiceFactory broadcastServiceFactory = new TestBroadcastServiceFactory();
 
-    Collection<Node> bootstrapLocations = buildBootstrapNodes(3);
+    final Collection<Node> bootstrapLocations = buildBootstrapNodes(3);
 
-    Member localMember1 = buildMember(1);
-    BootstrapService bootstrapService1 =
+    final Member localMember1 = buildMember(1);
+    final BootstrapService bootstrapService1 =
         new TestBootstrapService(
             messagingServiceFactory.newMessagingService(localMember1.address()).start().join(),
             unicastServiceFactory.newUnicastService(localMember1.address()).start().join(),
             broadcastServiceFactory.newBroadcastService().start().join());
-    ManagedClusterMembershipService clusterService1 =
+    final ManagedClusterMembershipService clusterService1 =
         new DefaultClusterMembershipService(
             localMember1,
             Version.from("1.0.0"),
@@ -93,13 +93,13 @@ public class DefaultClusterMembershipServiceTest {
             new HeartbeatMembershipProtocol(
                 new HeartbeatMembershipProtocolConfig().setFailureTimeout(Duration.ofSeconds(2))));
 
-    Member localMember2 = buildMember(2);
-    BootstrapService bootstrapService2 =
+    final Member localMember2 = buildMember(2);
+    final BootstrapService bootstrapService2 =
         new TestBootstrapService(
             messagingServiceFactory.newMessagingService(localMember2.address()).start().join(),
             unicastServiceFactory.newUnicastService(localMember2.address()).start().join(),
             broadcastServiceFactory.newBroadcastService().start().join());
-    ManagedClusterMembershipService clusterService2 =
+    final ManagedClusterMembershipService clusterService2 =
         new DefaultClusterMembershipService(
             localMember2,
             Version.from("1.0.0"),
@@ -111,13 +111,13 @@ public class DefaultClusterMembershipServiceTest {
             new HeartbeatMembershipProtocol(
                 new HeartbeatMembershipProtocolConfig().setFailureTimeout(Duration.ofSeconds(2))));
 
-    Member localMember3 = buildMember(3);
-    BootstrapService bootstrapService3 =
+    final Member localMember3 = buildMember(3);
+    final BootstrapService bootstrapService3 =
         new TestBootstrapService(
             messagingServiceFactory.newMessagingService(localMember3.address()).start().join(),
             unicastServiceFactory.newUnicastService(localMember3.address()).start().join(),
             broadcastServiceFactory.newBroadcastService().start().join());
-    ManagedClusterMembershipService clusterService3 =
+    final ManagedClusterMembershipService clusterService3 =
         new DefaultClusterMembershipService(
             localMember3,
             Version.from("1.0.1"),
@@ -154,13 +154,13 @@ public class DefaultClusterMembershipServiceTest {
     assertEquals("1.0.0", clusterService1.getMember("2").version().toString());
     assertEquals("1.0.1", clusterService1.getMember("3").version().toString());
 
-    Member anonymousMember = buildMember(4);
-    BootstrapService ephemeralBootstrapService =
+    final Member anonymousMember = buildMember(4);
+    final BootstrapService ephemeralBootstrapService =
         new TestBootstrapService(
             messagingServiceFactory.newMessagingService(anonymousMember.address()).start().join(),
             unicastServiceFactory.newUnicastService(anonymousMember.address()).start().join(),
             broadcastServiceFactory.newBroadcastService().start().join());
-    ManagedClusterMembershipService ephemeralClusterService =
+    final ManagedClusterMembershipService ephemeralClusterService =
         new DefaultClusterMembershipService(
             anonymousMember,
             Version.from("1.1.0"),
@@ -224,7 +224,7 @@ public class DefaultClusterMembershipServiceTest {
     assertTrue(clusterService2.getMember(MemberId.from("3")).isActive());
     assertNull(clusterService2.getMember(MemberId.from("4")));
 
-    TestClusterMembershipEventListener eventListener = new TestClusterMembershipEventListener();
+    final TestClusterMembershipEventListener eventListener = new TestClusterMembershipEventListener();
     clusterService2.addListener(eventListener);
 
     ClusterMembershipEvent event;
@@ -252,14 +252,14 @@ public class DefaultClusterMembershipServiceTest {
         new ArrayBlockingQueue<ClusterMembershipEvent>(10);
 
     @Override
-    public void event(ClusterMembershipEvent event) {
+    public void event(final ClusterMembershipEvent event) {
       queue.add(event);
     }
 
     ClusterMembershipEvent nextEvent() {
       try {
         return queue.poll(5, TimeUnit.SECONDS);
-      } catch (InterruptedException e) {
+      } catch (final InterruptedException e) {
         return null;
       }
     }

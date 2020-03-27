@@ -59,7 +59,7 @@ public class AtomixBuilder extends AtomixClusterBuilder {
   private final AtomixConfig config;
   private final AtomixRegistry registry;
 
-  protected AtomixBuilder(AtomixConfig config, AtomixRegistry registry) {
+  protected AtomixBuilder(final AtomixConfig config, final AtomixRegistry registry) {
     super(config.getClusterConfig());
     this.config = checkNotNull(config);
     this.registry = checkNotNull(registry);
@@ -84,7 +84,7 @@ public class AtomixBuilder extends AtomixClusterBuilder {
    * @param enabled if <code>true</code> a shutdown hook will be registered
    * @return the Atomix builder
    */
-  public AtomixBuilder withShutdownHook(boolean enabled) {
+  public AtomixBuilder withShutdownHook(final boolean enabled) {
     config.setEnableShutdownHook(enabled);
     return this;
   }
@@ -99,7 +99,7 @@ public class AtomixBuilder extends AtomixClusterBuilder {
    * @return the Atomix builder
    * @throws NullPointerException if the profiles are null
    */
-  public AtomixBuilder withProfiles(Profile... profiles) {
+  public AtomixBuilder withProfiles(final Profile... profiles) {
     return withProfiles(Arrays.asList(checkNotNull(profiles)));
   }
 
@@ -113,7 +113,7 @@ public class AtomixBuilder extends AtomixClusterBuilder {
    * @return the Atomix builder
    * @throws NullPointerException if the profiles are null
    */
-  public AtomixBuilder withProfiles(Collection<Profile> profiles) {
+  public AtomixBuilder withProfiles(final Collection<Profile> profiles) {
     profiles.forEach(profile -> config.addProfile(profile.config()));
     return this;
   }
@@ -128,7 +128,7 @@ public class AtomixBuilder extends AtomixClusterBuilder {
    * @return the Atomix builder
    * @throws NullPointerException if the profile is null
    */
-  public AtomixBuilder addProfile(Profile profile) {
+  public AtomixBuilder addProfile(final Profile profile) {
     config.addProfile(profile.config());
     return this;
   }
@@ -159,7 +159,7 @@ public class AtomixBuilder extends AtomixClusterBuilder {
    * @param systemManagementGroup the system management partition group
    * @return the Atomix builder
    */
-  public AtomixBuilder withManagementGroup(ManagedPartitionGroup systemManagementGroup) {
+  public AtomixBuilder withManagementGroup(final ManagedPartitionGroup systemManagementGroup) {
     config.setManagementGroup(systemManagementGroup.config());
     return this;
   }
@@ -195,7 +195,7 @@ public class AtomixBuilder extends AtomixClusterBuilder {
    * @return the Atomix builder
    * @throws NullPointerException if the partition groups are null
    */
-  public AtomixBuilder withPartitionGroups(ManagedPartitionGroup... partitionGroups) {
+  public AtomixBuilder withPartitionGroups(final ManagedPartitionGroup... partitionGroups) {
     return withPartitionGroups(
         Arrays.asList(checkNotNull(partitionGroups, "partitionGroups cannot be null")));
   }
@@ -231,7 +231,7 @@ public class AtomixBuilder extends AtomixClusterBuilder {
    * @return the Atomix builder
    * @throws NullPointerException if the partition groups are null
    */
-  public AtomixBuilder withPartitionGroups(Collection<ManagedPartitionGroup> partitionGroups) {
+  public AtomixBuilder withPartitionGroups(final Collection<ManagedPartitionGroup> partitionGroups) {
     partitionGroups.forEach(group -> config.addPartitionGroup(group.config()));
     return this;
   }
@@ -268,7 +268,7 @@ public class AtomixBuilder extends AtomixClusterBuilder {
    * @return the Atomix builder
    * @throws NullPointerException if the partition group is null
    */
-  public AtomixBuilder addPartitionGroup(ManagedPartitionGroup partitionGroup) {
+  public AtomixBuilder addPartitionGroup(final ManagedPartitionGroup partitionGroup) {
     config.addPartitionGroup(partitionGroup.config());
     return this;
   }
@@ -288,7 +288,7 @@ public class AtomixBuilder extends AtomixClusterBuilder {
    * @param required whether serializable type registration is required for user types
    * @return the Atomix builder
    */
-  public AtomixBuilder withTypeRegistrationRequired(boolean required) {
+  public AtomixBuilder withTypeRegistrationRequired(final boolean required) {
     config.setTypeRegistrationRequired(required);
     return this;
   }
@@ -308,138 +308,138 @@ public class AtomixBuilder extends AtomixClusterBuilder {
    * @param enabled whether compatible serialization is enabled for user types
    * @return the Atomix builder
    */
-  public AtomixBuilder withCompatibleSerialization(boolean enabled) {
+  public AtomixBuilder withCompatibleSerialization(final boolean enabled) {
     config.setCompatibleSerialization(enabled);
     return this;
   }
 
   @Override
-  public AtomixBuilder withClusterId(String clusterId) {
+  public AtomixBuilder withClusterId(final String clusterId) {
     super.withClusterId(clusterId);
     return this;
   }
 
   @Override
-  public AtomixBuilder withMemberId(String localMemberId) {
+  public AtomixBuilder withMemberId(final String localMemberId) {
     super.withMemberId(localMemberId);
     return this;
   }
 
   @Override
-  public AtomixBuilder withMemberId(MemberId localMemberId) {
+  public AtomixBuilder withMemberId(final MemberId localMemberId) {
     super.withMemberId(localMemberId);
     return this;
   }
 
   @Override
-  public AtomixBuilder withHost(String host) {
+  public AtomixBuilder withHost(final String host) {
     super.withHost(host);
     return this;
   }
 
   @Override
-  public AtomixBuilder withPort(int port) {
+  public AtomixBuilder withPort(final int port) {
     super.withPort(port);
     return this;
   }
 
   @Override
   @Deprecated
-  public AtomixBuilder withAddress(String address) {
+  public AtomixBuilder withAddress(final String address) {
     super.withAddress(address);
     return this;
   }
 
   @Override
   @Deprecated
-  public AtomixBuilder withAddress(String host, int port) {
+  public AtomixBuilder withAddress(final String host, final int port) {
     super.withAddress(host, port);
     return this;
   }
 
   @Override
   @Deprecated
-  public AtomixBuilder withAddress(int port) {
+  public AtomixBuilder withAddress(final int port) {
     super.withAddress(port);
     return this;
   }
 
   @Override
-  public AtomixBuilder withAddress(Address address) {
+  public AtomixBuilder withAddress(final Address address) {
     super.withAddress(address);
     return this;
   }
 
   @Override
   @Deprecated
-  public AtomixBuilder withZone(String zone) {
+  public AtomixBuilder withZone(final String zone) {
     super.withZone(zone);
     return this;
   }
 
   @Override
-  public AtomixBuilder withZoneId(String zoneId) {
+  public AtomixBuilder withZoneId(final String zoneId) {
     super.withZoneId(zoneId);
     return this;
   }
 
   @Override
   @Deprecated
-  public AtomixBuilder withRack(String rack) {
+  public AtomixBuilder withRack(final String rack) {
     super.withRack(rack);
     return this;
   }
 
   @Override
-  public AtomixBuilder withRackId(String rackId) {
+  public AtomixBuilder withRackId(final String rackId) {
     super.withRackId(rackId);
     return this;
   }
 
   @Override
-  public AtomixBuilder withHostId(String hostId) {
+  public AtomixBuilder withHostId(final String hostId) {
     super.withHostId(hostId);
     return this;
   }
 
   @Override
-  public AtomixBuilder withProperties(Properties properties) {
+  public AtomixBuilder withProperties(final Properties properties) {
     super.withProperties(properties);
     return this;
   }
 
   @Override
-  public AtomixBuilder withProperty(String key, String value) {
+  public AtomixBuilder withProperty(final String key, final String value) {
     super.withProperty(key, value);
     return this;
   }
 
   @Override
-  public AtomixBuilder withMessagingInterface(String iface) {
+  public AtomixBuilder withMessagingInterface(final String iface) {
     super.withMessagingInterface(iface);
     return this;
   }
 
   @Override
-  public AtomixBuilder withMessagingInterfaces(String... ifaces) {
+  public AtomixBuilder withMessagingInterfaces(final String... ifaces) {
     super.withMessagingInterfaces(ifaces);
     return this;
   }
 
   @Override
-  public AtomixBuilder withMessagingInterfaces(Collection<String> ifaces) {
+  public AtomixBuilder withMessagingInterfaces(final Collection<String> ifaces) {
     super.withMessagingInterfaces(ifaces);
     return this;
   }
 
   @Override
-  public AtomixBuilder withMessagingPort(int bindPort) {
+  public AtomixBuilder withMessagingPort(final int bindPort) {
     super.withMessagingPort(bindPort);
     return this;
   }
 
   @Override
-  public AtomixBuilder withConnectionPoolSize(int connectionPoolSize) {
+  public AtomixBuilder withConnectionPoolSize(final int connectionPoolSize) {
     super.withConnectionPoolSize(connectionPoolSize);
     return this;
   }
@@ -451,43 +451,43 @@ public class AtomixBuilder extends AtomixClusterBuilder {
   }
 
   @Override
-  public AtomixBuilder withMulticastEnabled(boolean multicastEnabled) {
+  public AtomixBuilder withMulticastEnabled(final boolean multicastEnabled) {
     super.withMulticastEnabled(multicastEnabled);
     return this;
   }
 
   @Override
-  public AtomixBuilder withMulticastAddress(Address address) {
+  public AtomixBuilder withMulticastAddress(final Address address) {
     super.withMulticastAddress(address);
     return this;
   }
 
   @Override
-  public AtomixBuilder withMembershipProtocol(GroupMembershipProtocol protocol) {
+  public AtomixBuilder withMembershipProtocol(final GroupMembershipProtocol protocol) {
     super.withMembershipProtocol(protocol);
     return this;
   }
 
   @Override
-  public AtomixBuilder withMembershipProvider(NodeDiscoveryProvider locationProvider) {
+  public AtomixBuilder withMembershipProvider(final NodeDiscoveryProvider locationProvider) {
     super.withMembershipProvider(locationProvider);
     return this;
   }
 
   @Override
-  public AtomixBuilder setBroadcastInterval(Duration interval) {
+  public AtomixBuilder setBroadcastInterval(final Duration interval) {
     super.setBroadcastInterval(interval);
     return this;
   }
 
   @Override
-  public AtomixBuilder setReachabilityThreshold(int threshold) {
+  public AtomixBuilder setReachabilityThreshold(final int threshold) {
     super.setReachabilityThreshold(threshold);
     return this;
   }
 
   @Override
-  public AtomixBuilder withReachabilityTimeout(Duration timeout) {
+  public AtomixBuilder withReachabilityTimeout(final Duration timeout) {
     super.withReachabilityTimeout(timeout);
     return this;
   }
@@ -499,31 +499,31 @@ public class AtomixBuilder extends AtomixClusterBuilder {
   }
 
   @Override
-  public AtomixBuilder withTlsEnabled(boolean tlsEnabled) {
+  public AtomixBuilder withTlsEnabled(final boolean tlsEnabled) {
     super.withTlsEnabled(tlsEnabled);
     return this;
   }
 
   @Override
-  public AtomixBuilder withKeyStore(String keyStore) {
+  public AtomixBuilder withKeyStore(final String keyStore) {
     super.withKeyStore(keyStore);
     return this;
   }
 
   @Override
-  public AtomixBuilder withKeyStorePassword(String keyStorePassword) {
+  public AtomixBuilder withKeyStorePassword(final String keyStorePassword) {
     super.withKeyStorePassword(keyStorePassword);
     return this;
   }
 
   @Override
-  public AtomixBuilder withTrustStore(String trustStore) {
+  public AtomixBuilder withTrustStore(final String trustStore) {
     super.withTrustStore(trustStore);
     return this;
   }
 
   @Override
-  public AtomixBuilder withTrustStorePassword(String trustStorePassword) {
+  public AtomixBuilder withTrustStorePassword(final String trustStorePassword) {
     super.withTrustStorePassword(trustStorePassword);
     return this;
   }

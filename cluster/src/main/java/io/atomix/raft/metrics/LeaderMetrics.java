@@ -27,11 +27,11 @@ public class LeaderMetrics extends RaftMetrics {
           .labelNames("follower", "partitionGroupName", "partition")
           .register();
 
-  public LeaderMetrics(String partitionName) {
+  public LeaderMetrics(final String partitionName) {
     super(partitionName);
   }
 
-  public void appendComplete(long latencyms, String memberId) {
+  public void appendComplete(final long latencyms, final String memberId) {
     APPEND_LATENCY.labels(memberId, partitionGroupName, partition).observe(latencyms / 1000f);
   }
 }

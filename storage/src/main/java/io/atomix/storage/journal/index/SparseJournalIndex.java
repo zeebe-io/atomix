@@ -26,12 +26,12 @@ public class SparseJournalIndex implements JournalIndex {
   private final int density;
   private final TreeMap<Long, Integer> positions = new TreeMap<>();
 
-  public SparseJournalIndex(int density) {
+  public SparseJournalIndex(final int density) {
     this.density = density;
   }
 
   @Override
-  public void index(Indexed indexedEntry, int position) {
+  public void index(final Indexed indexedEntry, final int position) {
     final long index = indexedEntry.index();
     if (index % density == 0) {
       positions.put(index, position);
@@ -39,18 +39,18 @@ public class SparseJournalIndex implements JournalIndex {
   }
 
   @Override
-  public Position lookup(long index) {
+  public Position lookup(final long index) {
     final Map.Entry<Long, Integer> entry = positions.floorEntry(index);
     return entry != null ? new Position(entry.getKey(), entry.getValue()) : null;
   }
 
   @Override
-  public void truncate(long index) {
+  public void truncate(final long index) {
     positions.tailMap(index, false).clear();
   }
 
   @Override
-  public void compact(long index) {
+  public void compact(final long index) {
     final Entry<Long, Integer> floorEntry = positions.floorEntry(index);
 
     if (floorEntry != null) {

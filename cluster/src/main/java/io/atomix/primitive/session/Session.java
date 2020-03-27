@@ -91,7 +91,7 @@ public interface Session<C> {
    *
    * @param eventType the event type
    */
-  default void publish(EventType eventType) {
+  default void publish(final EventType eventType) {
     publish(eventType, null);
   }
 
@@ -127,7 +127,7 @@ public interface Session<C> {
 
     private final boolean active;
 
-    State(boolean active) {
+    State(final boolean active) {
       this.active = active;
     }
 

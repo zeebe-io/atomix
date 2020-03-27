@@ -54,11 +54,11 @@ public class DefaultClusterMembershipService
   private final GroupMembershipEventListener membershipEventListener = this::handleMembershipEvent;
 
   public DefaultClusterMembershipService(
-      Member localMember,
-      Version version,
-      ManagedNodeDiscoveryService discoveryService,
-      BootstrapService bootstrapService,
-      GroupMembershipProtocol protocol) {
+      final Member localMember,
+      final Version version,
+      final ManagedNodeDiscoveryService discoveryService,
+      final BootstrapService bootstrapService,
+      final GroupMembershipProtocol protocol) {
     this.discoveryService = checkNotNull(discoveryService, "discoveryService cannot be null");
     this.bootstrapService = checkNotNull(bootstrapService, "bootstrapService cannot be null");
     this.protocol = checkNotNull(protocol, "protocol cannot be null");
@@ -84,12 +84,12 @@ public class DefaultClusterMembershipService
   }
 
   @Override
-  public Member getMember(MemberId memberId) {
+  public Member getMember(final MemberId memberId) {
     return protocol.getMember(memberId);
   }
 
   /** Handles a group membership event. */
-  private void handleMembershipEvent(GroupMembershipEvent event) {
+  private void handleMembershipEvent(final GroupMembershipEvent event) {
     post(
         new ClusterMembershipEvent(
             ClusterMembershipEvent.Type.valueOf(event.type().name()), event.member()));

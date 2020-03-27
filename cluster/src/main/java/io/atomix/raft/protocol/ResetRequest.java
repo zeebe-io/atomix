@@ -30,7 +30,7 @@ public class ResetRequest extends SessionRequest {
 
   private final long index;
 
-  public ResetRequest(long session, long index) {
+  public ResetRequest(final long session, final long index) {
     super(session);
     this.index = index;
   }
@@ -59,7 +59,7 @@ public class ResetRequest extends SessionRequest {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof ResetRequest) {
       final ResetRequest request = (ResetRequest) object;
       return request.session == session && request.index == index;
@@ -84,7 +84,7 @@ public class ResetRequest extends SessionRequest {
      * @return The response builder.
      * @throws IllegalArgumentException if {@code index} is less than {@code 1}
      */
-    public Builder withIndex(long index) {
+    public Builder withIndex(final long index) {
       checkArgument(index >= 0, "index must be positive");
       this.index = index;
       return this;

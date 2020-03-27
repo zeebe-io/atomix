@@ -31,7 +31,7 @@ public class AbstractEvent<T extends Enum, S> implements Event<T, S> {
    * @param type event type
    * @param subject event subject
    */
-  protected AbstractEvent(T type, S subject) {
+  protected AbstractEvent(final T type, final S subject) {
     this(type, subject, System.currentTimeMillis());
   }
 
@@ -42,7 +42,7 @@ public class AbstractEvent<T extends Enum, S> implements Event<T, S> {
    * @param subject event subject
    * @param time occurrence time
    */
-  protected AbstractEvent(T type, S subject, long time) {
+  protected AbstractEvent(final T type, final S subject, final long time) {
     this.type = type;
     this.subject = subject;
     this.time = time;

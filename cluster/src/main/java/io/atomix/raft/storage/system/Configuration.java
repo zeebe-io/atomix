@@ -31,7 +31,7 @@ public class Configuration {
   private final long time;
   private final Collection<RaftMember> members;
 
-  public Configuration(long index, long term, long time, Collection<RaftMember> members) {
+  public Configuration(final long index, final long term, final long time, final Collection<RaftMember> members) {
     checkArgument(time > 0, "time must be positive");
     checkNotNull(members, "members cannot be null");
     this.index = index;

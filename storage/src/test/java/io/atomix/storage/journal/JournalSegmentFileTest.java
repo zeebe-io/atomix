@@ -33,7 +33,7 @@ public class JournalSegmentFileTest {
 
   @Test
   public void testCreateSegmentFile() throws Exception {
-    File file =
+    final File file =
         JournalSegmentFile.createSegmentFile("foo", new File(System.getProperty("user.dir")), 1);
     assertTrue(JournalSegmentFile.isSegmentFile("foo", file));
   }

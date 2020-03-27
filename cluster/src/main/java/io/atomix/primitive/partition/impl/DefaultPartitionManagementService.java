@@ -31,11 +31,11 @@ public class DefaultPartitionManagementService implements PartitionManagementSer
   private final SessionIdService sessionIdService;
 
   public DefaultPartitionManagementService(
-      ClusterMembershipService membershipService,
-      ClusterCommunicationService communicationService,
-      PrimitiveTypeRegistry primitiveTypes,
-      PrimaryElectionService electionService,
-      SessionIdService sessionIdService) {
+      final ClusterMembershipService membershipService,
+      final ClusterCommunicationService communicationService,
+      final PrimitiveTypeRegistry primitiveTypes,
+      final PrimaryElectionService electionService,
+      final SessionIdService sessionIdService) {
     this.membershipService = membershipService;
     this.communicationService = communicationService;
     this.primitiveTypes = primitiveTypes;

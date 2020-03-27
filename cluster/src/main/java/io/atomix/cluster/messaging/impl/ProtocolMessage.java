@@ -25,7 +25,7 @@ public abstract class ProtocolMessage {
 
     private final int id;
 
-    Type(int id) {
+    Type(final int id) {
       this.id = id;
     }
 
@@ -44,7 +44,7 @@ public abstract class ProtocolMessage {
      * @param id the type ID.
      * @return the type enum for the given ID.
      */
-    public static Type forId(int id) {
+    public static Type forId(final int id) {
       switch (id) {
         case 1:
           return REQUEST;
@@ -59,7 +59,7 @@ public abstract class ProtocolMessage {
   private final long id;
   private final byte[] payload;
 
-  protected ProtocolMessage(long id, byte[] payload) {
+  protected ProtocolMessage(final long id, final byte[] payload) {
     this.id = id;
     this.payload = payload;
   }

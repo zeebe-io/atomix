@@ -50,9 +50,9 @@ public class HashBasedPrimaryElectionService
   private final AtomicBoolean started = new AtomicBoolean();
 
   public HashBasedPrimaryElectionService(
-      ClusterMembershipService clusterMembershipService,
-      PartitionGroupMembershipService groupMembershipService,
-      ClusterCommunicationService messagingService) {
+      final ClusterMembershipService clusterMembershipService,
+      final PartitionGroupMembershipService groupMembershipService,
+      final ClusterCommunicationService messagingService) {
     this.clusterMembershipService = clusterMembershipService;
     this.groupMembershipService = groupMembershipService;
     this.messagingService = messagingService;
@@ -62,11 +62,11 @@ public class HashBasedPrimaryElectionService
   }
 
   @Override
-  public PrimaryElection getElectionFor(PartitionId partitionId) {
+  public PrimaryElection getElectionFor(final PartitionId partitionId) {
     return elections.computeIfAbsent(
         partitionId,
         id -> {
-          HashBasedPrimaryElection election =
+          final HashBasedPrimaryElection election =
               new HashBasedPrimaryElection(
                   partitionId,
                   clusterMembershipService,

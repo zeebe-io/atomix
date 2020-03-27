@@ -61,7 +61,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
     this(new ClusterConfig());
   }
 
-  protected AtomixClusterBuilder(ClusterConfig config) {
+  protected AtomixClusterBuilder(final ClusterConfig config) {
     this.config = checkNotNull(config);
   }
 
@@ -75,7 +75,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @param clusterId the cluster identifier
    * @return the cluster builder
    */
-  public AtomixClusterBuilder withClusterId(String clusterId) {
+  public AtomixClusterBuilder withClusterId(final String clusterId) {
     config.setClusterId(clusterId);
     return this;
   }
@@ -90,7 +90,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @param localMemberId the local member identifier
    * @return the cluster builder
    */
-  public AtomixClusterBuilder withMemberId(String localMemberId) {
+  public AtomixClusterBuilder withMemberId(final String localMemberId) {
     config.getNodeConfig().setId(localMemberId);
     return this;
   }
@@ -105,7 +105,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @param localMemberId the local member identifier
    * @return the cluster builder
    */
-  public AtomixClusterBuilder withMemberId(MemberId localMemberId) {
+  public AtomixClusterBuilder withMemberId(final MemberId localMemberId) {
     config.getNodeConfig().setId(localMemberId);
     return this;
   }
@@ -116,7 +116,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @param host the member host
    * @return the cluster builder
    */
-  public AtomixClusterBuilder withHost(String host) {
+  public AtomixClusterBuilder withHost(final String host) {
     config.getNodeConfig().setHost(host);
     return this;
   }
@@ -127,7 +127,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @param port the member port
    * @return the cluster builder
    */
-  public AtomixClusterBuilder withPort(int port) {
+  public AtomixClusterBuilder withPort(final int port) {
     config.getNodeConfig().setPort(port);
     return this;
   }
@@ -145,7 +145,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @deprecated since 3.1. Use {@link #withHost(String)} and/or {@link #withPort(int)} instead
    */
   @Deprecated
-  public AtomixClusterBuilder withAddress(String address) {
+  public AtomixClusterBuilder withAddress(final String address) {
     return withAddress(Address.from(address));
   }
 
@@ -163,7 +163,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @deprecated since 3.1. Use {@link #withHost(String)} and {@link #withPort(int)} instead
    */
   @Deprecated
-  public AtomixClusterBuilder withAddress(String host, int port) {
+  public AtomixClusterBuilder withAddress(final String host, final int port) {
     return withAddress(Address.from(host, port));
   }
 
@@ -180,7 +180,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @deprecated since 3.1. Use {@link #withPort(int)} instead
    */
   @Deprecated
-  public AtomixClusterBuilder withAddress(int port) {
+  public AtomixClusterBuilder withAddress(final int port) {
     return withAddress(Address.from(port));
   }
 
@@ -193,7 +193,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @param address the member address
    * @return the cluster builder
    */
-  public AtomixClusterBuilder withAddress(Address address) {
+  public AtomixClusterBuilder withAddress(final Address address) {
     config.getNodeConfig().setAddress(address);
     return this;
   }
@@ -208,7 +208,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @param zoneId the zone to which the member belongs
    * @return the cluster builder
    */
-  public AtomixClusterBuilder withZoneId(String zoneId) {
+  public AtomixClusterBuilder withZoneId(final String zoneId) {
     config.getNodeConfig().setZoneId(zoneId);
     return this;
   }
@@ -225,7 +225,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @deprecated since 3.1. Use {@link #withZoneId(String)} instead
    */
   @Deprecated
-  public AtomixClusterBuilder withZone(String zone) {
+  public AtomixClusterBuilder withZone(final String zone) {
     config.getNodeConfig().setZoneId(zone);
     return this;
   }
@@ -240,7 +240,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @param rackId the rack to which the member belongs
    * @return the cluster builder
    */
-  public AtomixClusterBuilder withRackId(String rackId) {
+  public AtomixClusterBuilder withRackId(final String rackId) {
     config.getNodeConfig().setRackId(rackId);
     return this;
   }
@@ -257,7 +257,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @deprecated since 3.1. Use {@link #withRackId(String)} instead
    */
   @Deprecated
-  public AtomixClusterBuilder withRack(String rack) {
+  public AtomixClusterBuilder withRack(final String rack) {
     config.getNodeConfig().setRackId(rack);
     return this;
   }
@@ -272,7 +272,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @param hostId the host to which the member belongs
    * @return the cluster builder
    */
-  public AtomixClusterBuilder withHostId(String hostId) {
+  public AtomixClusterBuilder withHostId(final String hostId) {
     config.getNodeConfig().setHostId(hostId);
     return this;
   }
@@ -288,7 +288,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @return the cluster builder
    * @throws NullPointerException if the properties are null
    */
-  public AtomixClusterBuilder withProperties(Properties properties) {
+  public AtomixClusterBuilder withProperties(final Properties properties) {
     config.getNodeConfig().setProperties(properties);
     return this;
   }
@@ -305,7 +305,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @return the cluster builder
    * @throws NullPointerException if the property is null
    */
-  public AtomixClusterBuilder withProperty(String key, String value) {
+  public AtomixClusterBuilder withProperty(final String key, final String value) {
     config.getNodeConfig().setProperty(key, value);
     return this;
   }
@@ -316,7 +316,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @param iface the interface to which to bind the instance
    * @return the cluster builder
    */
-  public AtomixClusterBuilder withMessagingInterface(String iface) {
+  public AtomixClusterBuilder withMessagingInterface(final String iface) {
     return withMessagingInterfaces(Lists.newArrayList(iface));
   }
 
@@ -326,7 +326,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @param ifaces the interface(s) to which to bind the instance
    * @return the cluster builder
    */
-  public AtomixClusterBuilder withMessagingInterfaces(String... ifaces) {
+  public AtomixClusterBuilder withMessagingInterfaces(final String... ifaces) {
     return withMessagingInterfaces(Lists.newArrayList(ifaces));
   }
 
@@ -336,7 +336,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @param ifaces the interface(s) to which to bind the instance
    * @return the cluster builder
    */
-  public AtomixClusterBuilder withMessagingInterfaces(Collection<String> ifaces) {
+  public AtomixClusterBuilder withMessagingInterfaces(final Collection<String> ifaces) {
     config.getMessagingConfig().setInterfaces(Lists.newArrayList(ifaces));
     return this;
   }
@@ -347,7 +347,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @param bindPort the local port to which to bind the node
    * @return the cluster builder
    */
-  public AtomixClusterBuilder withMessagingPort(int bindPort) {
+  public AtomixClusterBuilder withMessagingPort(final int bindPort) {
     config.getMessagingConfig().setPort(bindPort);
     return this;
   }
@@ -363,7 +363,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @param connectionPoolSize the connection pool size
    * @return the cluster builder
    */
-  public AtomixClusterBuilder withConnectionPoolSize(int connectionPoolSize) {
+  public AtomixClusterBuilder withConnectionPoolSize(final int connectionPoolSize) {
     config.getMessagingConfig().setConnectionPoolSize(connectionPoolSize);
     return this;
   }
@@ -391,7 +391,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @return the cluster builder
    * @see #withMulticastAddress(Address)
    */
-  public AtomixClusterBuilder withMulticastEnabled(boolean multicastEnabled) {
+  public AtomixClusterBuilder withMulticastEnabled(final boolean multicastEnabled) {
     config.getMulticastConfig().setEnabled(multicastEnabled);
     return this;
   }
@@ -405,7 +405,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @param address the multicast address
    * @return the cluster builder
    */
-  public AtomixClusterBuilder withMulticastAddress(Address address) {
+  public AtomixClusterBuilder withMulticastAddress(final Address address) {
     config.getMulticastConfig().setGroup(address.address());
     config.getMulticastConfig().setPort(address.port());
     return this;
@@ -421,8 +421,8 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @deprecated since 3.0.2
    */
   @Deprecated
-  public AtomixClusterBuilder setBroadcastInterval(Duration interval) {
-    GroupMembershipProtocolConfig protocolConfig = config.getProtocolConfig();
+  public AtomixClusterBuilder setBroadcastInterval(final Duration interval) {
+    final GroupMembershipProtocolConfig protocolConfig = config.getProtocolConfig();
     if (protocolConfig instanceof HeartbeatMembershipProtocolConfig) {
       ((HeartbeatMembershipProtocolConfig) protocolConfig).setHeartbeatInterval(interval);
     }
@@ -438,8 +438,8 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @return the cluster builder
    */
   @Deprecated
-  public AtomixClusterBuilder withBroadcastInterval(Duration interval) {
-    GroupMembershipProtocolConfig protocolConfig = config.getProtocolConfig();
+  public AtomixClusterBuilder withBroadcastInterval(final Duration interval) {
+    final GroupMembershipProtocolConfig protocolConfig = config.getProtocolConfig();
     if (protocolConfig instanceof HeartbeatMembershipProtocolConfig) {
       ((HeartbeatMembershipProtocolConfig) protocolConfig).setHeartbeatInterval(interval);
     }
@@ -458,8 +458,8 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @deprecated since 3.0.2
    */
   @Deprecated
-  public AtomixClusterBuilder setReachabilityThreshold(int threshold) {
-    GroupMembershipProtocolConfig protocolConfig = config.getProtocolConfig();
+  public AtomixClusterBuilder setReachabilityThreshold(final int threshold) {
+    final GroupMembershipProtocolConfig protocolConfig = config.getProtocolConfig();
     if (protocolConfig instanceof HeartbeatMembershipProtocolConfig) {
       ((HeartbeatMembershipProtocolConfig) protocolConfig).setPhiFailureThreshold(threshold);
     }
@@ -477,8 +477,8 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @return the cluster builder
    */
   @Deprecated
-  public AtomixClusterBuilder withReachabilityThreshold(int threshold) {
-    GroupMembershipProtocolConfig protocolConfig = config.getProtocolConfig();
+  public AtomixClusterBuilder withReachabilityThreshold(final int threshold) {
+    final GroupMembershipProtocolConfig protocolConfig = config.getProtocolConfig();
     if (protocolConfig instanceof HeartbeatMembershipProtocolConfig) {
       ((HeartbeatMembershipProtocolConfig) protocolConfig).setPhiFailureThreshold(threshold);
     }
@@ -495,8 +495,8 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @return the cluster builder
    */
   @Deprecated
-  public AtomixClusterBuilder withReachabilityTimeout(Duration timeout) {
-    GroupMembershipProtocolConfig protocolConfig = config.getProtocolConfig();
+  public AtomixClusterBuilder withReachabilityTimeout(final Duration timeout) {
+    final GroupMembershipProtocolConfig protocolConfig = config.getProtocolConfig();
     if (protocolConfig instanceof HeartbeatMembershipProtocolConfig) {
       ((HeartbeatMembershipProtocolConfig) protocolConfig).setFailureTimeout(timeout);
     }
@@ -515,7 +515,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @see HeartbeatMembershipProtocol
    * @see io.atomix.cluster.protocol.SwimMembershipProtocol
    */
-  public AtomixClusterBuilder withMembershipProtocol(GroupMembershipProtocol protocol) {
+  public AtomixClusterBuilder withMembershipProtocol(final GroupMembershipProtocol protocol) {
     config.setProtocolConfig(protocol.config());
     return this;
   }
@@ -530,7 +530,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @see io.atomix.cluster.discovery.BootstrapDiscoveryProvider
    * @see io.atomix.cluster.discovery.MulticastDiscoveryProvider
    */
-  public AtomixClusterBuilder withMembershipProvider(NodeDiscoveryProvider locationProvider) {
+  public AtomixClusterBuilder withMembershipProvider(final NodeDiscoveryProvider locationProvider) {
     config.setDiscoveryConfig(locationProvider.config());
     return this;
   }
@@ -563,7 +563,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @see #withKeyStore(String)
    * @see #withTrustStore(String)
    */
-  public AtomixClusterBuilder withTlsEnabled(boolean tlsEnabled) {
+  public AtomixClusterBuilder withTlsEnabled(final boolean tlsEnabled) {
     config.getMessagingConfig().getTlsConfig().setEnabled(tlsEnabled);
     return this;
   }
@@ -574,7 +574,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @param keyStore the key store path
    * @return the cluster builder
    */
-  public AtomixClusterBuilder withKeyStore(String keyStore) {
+  public AtomixClusterBuilder withKeyStore(final String keyStore) {
     config.getMessagingConfig().getTlsConfig().setKeyStore(keyStore);
     return this;
   }
@@ -585,7 +585,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @param keyStorePassword the key store password
    * @return the cluster builder
    */
-  public AtomixClusterBuilder withKeyStorePassword(String keyStorePassword) {
+  public AtomixClusterBuilder withKeyStorePassword(final String keyStorePassword) {
     config.getMessagingConfig().getTlsConfig().setKeyStorePassword(keyStorePassword);
     return this;
   }
@@ -596,7 +596,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @param trustStore the trust store path
    * @return the cluster builder
    */
-  public AtomixClusterBuilder withTrustStore(String trustStore) {
+  public AtomixClusterBuilder withTrustStore(final String trustStore) {
     config.getMessagingConfig().getTlsConfig().setTrustStore(trustStore);
     return this;
   }
@@ -607,7 +607,7 @@ public class AtomixClusterBuilder implements Builder<AtomixCluster> {
    * @param trustStorePassword the trust store password
    * @return the cluster builder
    */
-  public AtomixClusterBuilder withTrustStorePassword(String trustStorePassword) {
+  public AtomixClusterBuilder withTrustStorePassword(final String trustStorePassword) {
     config.getMessagingConfig().getTlsConfig().setTrustStorePassword(trustStorePassword);
     return this;
   }

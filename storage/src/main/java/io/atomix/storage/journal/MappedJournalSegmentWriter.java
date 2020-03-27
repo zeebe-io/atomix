@@ -55,11 +55,11 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
   private Indexed<E> lastEntry;
 
   MappedJournalSegmentWriter(
-      MappedByteBuffer buffer,
-      JournalSegment<E> segment,
-      int maxEntrySize,
-      JournalIndex index,
-      Namespace namespace) {
+      final MappedByteBuffer buffer,
+      final JournalSegment<E> segment,
+      final int maxEntrySize,
+      final JournalIndex index,
+      final Namespace namespace) {
     this.mappedBuffer = buffer;
     this.buffer = buffer.slice();
     this.segment = segment;
@@ -80,7 +80,7 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
   }
 
   @Override
-  public void reset(long index) {
+  public void reset(final long index) {
     long nextIndex = firstIndex;
 
     // Clear the buffer indexes.
@@ -103,7 +103,7 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
 
         // Compute the checksum for the entry bytes.
         final CRC32 crc32 = new CRC32();
-        ByteBuffer slice = buffer.slice();
+        final ByteBuffer slice = buffer.slice();
         slice.limit(length);
         crc32.update(slice);
 
@@ -128,7 +128,7 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
 
       // Reset the buffer to the previous mark.
       buffer.reset();
-    } catch (BufferUnderflowException e) {
+    } catch (final BufferUnderflowException e) {
       buffer.reset();
     }
   }
@@ -172,7 +172,7 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
 
   @Override
   @SuppressWarnings("unchecked")
-  public void append(Indexed<E> entry) {
+  public void append(final Indexed<E> entry) {
     final long nextIndex = getNextIndex();
 
     // If the entry's index is greater than the next index in the segment, skip some entries.
@@ -189,12 +189,12 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T extends E> Indexed<T> append(T entry) {
+  public <T extends E> Indexed<T> append(final T entry) {
     // Store the entry index.
     final long index = getNextIndex();
 
     // Serialize the entry.
-    int position = buffer.position();
+    final int position = buffer.position();
     if (position + Integer.BYTES + Integer.BYTES > buffer.limit()) {
       throw new BufferOverflowException();
     }
@@ -203,7 +203,7 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
 
     try {
       namespace.serialize(entry, buffer);
-    } catch (KryoException e) {
+    } catch (final KryoException e) {
       throw new BufferOverflowException();
     }
 
@@ -221,7 +221,7 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
     // Compute the checksum for the entry.
     final CRC32 crc32 = new CRC32();
     buffer.position(position + Integer.BYTES + Integer.BYTES);
-    ByteBuffer slice = buffer.slice();
+    final ByteBuffer slice = buffer.slice();
     slice.limit(length);
     crc32.update(slice);
     final long checksum = crc32.getValue();
@@ -234,18 +234,18 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
     buffer.position(position + Integer.BYTES + Integer.BYTES + length);
 
     // Update the last entry with the correct index/term/length.
-    Indexed<E> indexedEntry = new Indexed<>(index, entry, length);
+    final Indexed<E> indexedEntry = new Indexed<>(index, entry, length);
     this.lastEntry = indexedEntry;
     this.index.index(lastEntry, position);
     return (Indexed<T>) indexedEntry;
   }
 
   @Override
-  public void commit(long index) {}
+  public void commit(final long index) {}
 
   @Override
   @SuppressWarnings("unchecked")
-  public void truncate(long index) {
+  public void truncate(final long index) {
     // If the index is greater than or equal to the last index, skip the truncate.
     if (index >= getLastIndex()) {
       return;
@@ -267,7 +267,7 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
       reset(index);
 
       // Zero entries after the given index.
-      int position = buffer.position();
+      final int position = buffer.position();
       buffer.putInt(0);
       buffer.putInt(0);
       buffer.position(position);
@@ -284,7 +284,7 @@ class MappedJournalSegmentWriter<E> implements JournalWriter<E> {
     flush();
     try {
       BufferCleaner.freeBuffer(mappedBuffer);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new StorageException(e);
     }
   }

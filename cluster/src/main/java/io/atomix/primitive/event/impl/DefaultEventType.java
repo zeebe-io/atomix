@@ -22,7 +22,7 @@ import io.atomix.utils.AbstractIdentifier;
 public class DefaultEventType extends AbstractIdentifier<String> implements EventType {
   private DefaultEventType() {}
 
-  public DefaultEventType(String value) {
+  public DefaultEventType(final String value) {
     super(value);
   }
 }

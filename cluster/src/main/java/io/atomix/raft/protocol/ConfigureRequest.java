@@ -41,7 +41,7 @@ public class ConfigureRequest extends AbstractRaftRequest {
   private final Collection<RaftMember> members;
 
   public ConfigureRequest(
-      long term, String leader, long index, long timestamp, Collection<RaftMember> members) {
+      final long term, final String leader, final long index, final long timestamp, final Collection<RaftMember> members) {
     this.term = term;
     this.leader = leader;
     this.index = index;
@@ -109,7 +109,7 @@ public class ConfigureRequest extends AbstractRaftRequest {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof ConfigureRequest) {
       final ConfigureRequest request = (ConfigureRequest) object;
       return request.term == term
@@ -148,7 +148,7 @@ public class ConfigureRequest extends AbstractRaftRequest {
      * @return The append request builder.
      * @throws IllegalArgumentException if the {@code term} is not positive
      */
-    public Builder withTerm(long term) {
+    public Builder withTerm(final long term) {
       checkArgument(term > 0, "term must be positive");
       this.term = term;
       return this;
@@ -161,7 +161,7 @@ public class ConfigureRequest extends AbstractRaftRequest {
      * @return The append request builder.
      * @throws IllegalArgumentException if the {@code leader} is not positive
      */
-    public Builder withLeader(MemberId leader) {
+    public Builder withLeader(final MemberId leader) {
       this.leader = checkNotNull(leader, "leader cannot be null").id();
       return this;
     }
@@ -172,7 +172,7 @@ public class ConfigureRequest extends AbstractRaftRequest {
      * @param index The request index.
      * @return The request builder.
      */
-    public Builder withIndex(long index) {
+    public Builder withIndex(final long index) {
       checkArgument(index >= 0, "index must be positive");
       this.index = index;
       return this;
@@ -184,7 +184,7 @@ public class ConfigureRequest extends AbstractRaftRequest {
      * @param timestamp The request timestamp.
      * @return The request builder.
      */
-    public Builder withTime(long timestamp) {
+    public Builder withTime(final long timestamp) {
       checkArgument(timestamp > 0, "timestamp must be positive");
       this.timestamp = timestamp;
       return this;
@@ -197,7 +197,7 @@ public class ConfigureRequest extends AbstractRaftRequest {
      * @return The request builder.
      * @throws NullPointerException if {@code member} is null
      */
-    public Builder withMembers(Collection<RaftMember> members) {
+    public Builder withMembers(final Collection<RaftMember> members) {
       this.members = checkNotNull(members, "members cannot be null");
       return this;
     }

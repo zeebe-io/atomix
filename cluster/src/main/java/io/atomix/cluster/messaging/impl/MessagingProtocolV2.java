@@ -23,7 +23,7 @@ import io.netty.handler.codec.MessageToByteEncoder;
 public class MessagingProtocolV2 implements MessagingProtocol {
   private final Address address;
 
-  MessagingProtocolV2(Address address) {
+  MessagingProtocolV2(final Address address) {
     this.address = address;
   }
 

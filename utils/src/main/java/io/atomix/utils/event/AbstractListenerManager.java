@@ -22,12 +22,12 @@ public abstract class AbstractListenerManager<E extends Event, L extends EventLi
   protected final ListenerRegistry<E, L> listenerRegistry = new ListenerRegistry<>();
 
   @Override
-  public void addListener(L listener) {
+  public void addListener(final L listener) {
     listenerRegistry.addListener(listener);
   }
 
   @Override
-  public void removeListener(L listener) {
+  public void removeListener(final L listener) {
     listenerRegistry.removeListener(listener);
   }
 
@@ -36,7 +36,7 @@ public abstract class AbstractListenerManager<E extends Event, L extends EventLi
    *
    * @param event event to be posted; may be null
    */
-  protected void post(E event) {
+  protected void post(final E event) {
     listenerRegistry.process(event);
   }
 }

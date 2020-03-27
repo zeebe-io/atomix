@@ -26,12 +26,12 @@ import java.util.Collection;
 public class JoinResponse extends ConfigurationResponse {
 
   public JoinResponse(
-      Status status,
-      RaftError error,
-      long index,
-      long term,
-      long timestamp,
-      Collection<RaftMember> members) {
+      final Status status,
+      final RaftError error,
+      final long index,
+      final long term,
+      final long timestamp,
+      final Collection<RaftMember> members) {
     super(status, error, index, term, timestamp, members);
   }
 

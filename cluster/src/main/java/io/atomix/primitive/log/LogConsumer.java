@@ -27,7 +27,7 @@ public interface LogConsumer {
    * @param consumer the consumer to add
    * @return a future to be completed once the consumer has been added
    */
-  default CompletableFuture<Void> consume(Consumer<LogRecord> consumer) {
+  default CompletableFuture<Void> consume(final Consumer<LogRecord> consumer) {
     return consume(1, consumer);
   }
 

@@ -73,7 +73,7 @@ public final class Match<T> {
    * @param <T> match type
    * @return new instance
    */
-  public static <T> Match<T> ifValue(T value) {
+  public static <T> Match<T> ifValue(final T value) {
     return new Match<>(value, false);
   }
 
@@ -84,7 +84,7 @@ public final class Match<T> {
    * @param <T> match type
    * @return new instance
    */
-  public static <T> Match<T> ifNotValue(T value) {
+  public static <T> Match<T> ifNotValue(final T value) {
     return new Match<>(value, true);
   }
 
@@ -94,7 +94,7 @@ public final class Match<T> {
     value = null;
   }
 
-  private Match(T value, boolean negation) {
+  private Match(final T value, final boolean negation) {
     matchAny = false;
     this.value = value;
     this.negation = negation;
@@ -107,7 +107,7 @@ public final class Match<T> {
    * @param <V> new match type
    * @return new instance
    */
-  public <V> Match<V> map(Function<T, V> mapper) {
+  public <V> Match<V> map(final Function<T, V> mapper) {
     if (matchAny) {
       return any();
     } else if (value == null) {
@@ -123,14 +123,14 @@ public final class Match<T> {
    * @param other other value
    * @return true if matches; false otherwise
    */
-  public boolean matches(T other) {
+  public boolean matches(final T other) {
     if (matchAny) {
       return true;
     } else if (other == null) {
       return negation ? value != null : value == null;
     } else {
       if (value instanceof byte[]) {
-        boolean equal = Arrays.equals((byte[]) value, (byte[]) other);
+        final boolean equal = Arrays.equals((byte[]) value, (byte[]) other);
         return negation ? !equal : equal;
       }
       return negation ? !Objects.equals(value, other) : Objects.equals(value, other);
@@ -143,11 +143,11 @@ public final class Match<T> {
   }
 
   @Override
-  public boolean equals(Object other) {
+  public boolean equals(final Object other) {
     if (!(other instanceof Match)) {
       return false;
     }
-    Match<T> that = (Match<T>) other;
+    final Match<T> that = (Match<T>) other;
     return this.matchAny == that.matchAny
         && Objects.equals(this.value, that.value)
         && this.negation == that.negation;

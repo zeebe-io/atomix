@@ -95,7 +95,7 @@ public interface SnapshotStore extends AutoCloseable {
   PendingSnapshot newPendingSnapshot(long index, long term, WallClockTimestamp timestamp);
 
   default PendingSnapshot newPendingSnapshot(
-      long index, long term, WallClockTimestamp timestamp, Path directory) {
+      final long index, final long term, final WallClockTimestamp timestamp, final Path directory) {
     return newPendingSnapshot(index, term, timestamp);
   }
 
@@ -108,7 +108,7 @@ public interface SnapshotStore extends AutoCloseable {
    * @param directory the snapshot directory
    */
   default Snapshot newSnapshot(
-      long index, long term, WallClockTimestamp timestamp, Path directory) {
+      final long index, final long term, final WallClockTimestamp timestamp, final Path directory) {
     return newSnapshot(index, term, timestamp);
   }
 

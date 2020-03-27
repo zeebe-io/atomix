@@ -42,7 +42,7 @@ public interface MemberGroupService
    * @param member the node for which to return the group
    * @return the group for the given node
    */
-  default MemberGroup getMemberGroup(Member member) {
+  default MemberGroup getMemberGroup(final Member member) {
     return getMemberGroups().stream()
         .filter(group -> group.isMember(member))
         .findAny()

@@ -41,10 +41,10 @@ public final class MemberSelector implements Iterator<MemberId>, AutoCloseable {
   private Iterator<MemberId> selectionsIterator;
 
   public MemberSelector(
-      MemberId leader,
-      Collection<MemberId> members,
-      CommunicationStrategy strategy,
-      MemberSelectorManager selectors) {
+      final MemberId leader,
+      final Collection<MemberId> members,
+      final CommunicationStrategy strategy,
+      final MemberSelectorManager selectors) {
     this.leader = leader;
     this.members = new LinkedHashSet<>(members);
     this.strategy = checkNotNull(strategy, "strategy cannot be null");
@@ -128,7 +128,7 @@ public final class MemberSelector implements Iterator<MemberId>, AutoCloseable {
    * @param members The collection of members.
    * @return The member selector.
    */
-  public MemberSelector reset(MemberId leader, Collection<MemberId> members) {
+  public MemberSelector reset(final MemberId leader, final Collection<MemberId> members) {
     if (changed(leader, members)) {
       this.leader = leader != null && members.contains(leader) ? leader : null;
       this.members = Sets.newLinkedHashSet(members);
@@ -142,7 +142,7 @@ public final class MemberSelector implements Iterator<MemberId>, AutoCloseable {
    * Returns a boolean value indicating whether the selector state would be changed by the given
    * members.
    */
-  private boolean changed(MemberId leader, Collection<MemberId> members) {
+  private boolean changed(MemberId leader, final Collection<MemberId> members) {
     checkNotNull(members, "members");
     checkArgument(!members.isEmpty(), "members cannot be empty");
     if (leader != null && !members.contains(leader)) {
@@ -159,12 +159,12 @@ public final class MemberSelector implements Iterator<MemberId>, AutoCloseable {
    * Returns a boolean value indicating whether the servers in the first list match the servers in
    * the second list.
    */
-  private boolean matches(Collection<MemberId> left, Collection<MemberId> right) {
+  private boolean matches(final Collection<MemberId> left, final Collection<MemberId> right) {
     if (left.size() != right.size()) {
       return false;
     }
 
-    for (MemberId address : left) {
+    for (final MemberId address : left) {
       if (!right.contains(address)) {
         return false;
       }

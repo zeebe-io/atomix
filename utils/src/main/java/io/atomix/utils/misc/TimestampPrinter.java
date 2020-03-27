@@ -29,7 +29,7 @@ public class TimestampPrinter {
    * @param timestamp the timestamp to print
    * @return the timestamp printer
    */
-  public static TimestampPrinter of(long timestamp) {
+  public static TimestampPrinter of(final long timestamp) {
     return new TimestampPrinter(timestamp);
   }
 
@@ -38,7 +38,7 @@ public class TimestampPrinter {
 
   private final long timestamp;
 
-  public TimestampPrinter(long timestamp) {
+  public TimestampPrinter(final long timestamp) {
     this.timestamp = timestamp;
   }
 

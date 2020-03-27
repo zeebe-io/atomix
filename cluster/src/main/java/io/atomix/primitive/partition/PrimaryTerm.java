@@ -36,7 +36,7 @@ public class PrimaryTerm {
   private final GroupMember primary;
   private final List<GroupMember> candidates;
 
-  public PrimaryTerm(long term, GroupMember primary, List<GroupMember> candidates) {
+  public PrimaryTerm(final long term, final GroupMember primary, final List<GroupMember> candidates) {
     this.term = term;
     this.primary = primary;
     this.candidates = candidates;
@@ -88,7 +88,7 @@ public class PrimaryTerm {
    * @param numBackups the number of backups to return
    * @return an ordered list of backup members
    */
-  public List<GroupMember> backups(int numBackups) {
+  public List<GroupMember> backups(final int numBackups) {
     if (primary == null || candidates.isEmpty()) {
       return Collections.emptyList();
     }
@@ -101,9 +101,9 @@ public class PrimaryTerm {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof PrimaryTerm) {
-      PrimaryTerm term = (PrimaryTerm) object;
+      final PrimaryTerm term = (PrimaryTerm) object;
       return term.term == this.term
           && Objects.equals(term.primary, primary)
           && Objects.equals(term.candidates, candidates);

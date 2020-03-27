@@ -96,7 +96,7 @@ public interface WorkQueue<E> extends SyncPrimitive {
    *
    * @param taskIds var arg list of task ids
    */
-  default void complete(String... taskIds) {
+  default void complete(final String... taskIds) {
     complete(Arrays.asList(taskIds));
   }
 
@@ -105,7 +105,7 @@ public interface WorkQueue<E> extends SyncPrimitive {
    *
    * @param item task item
    */
-  default void addOne(E item) {
+  default void addOne(final E item) {
     addMultiple(ImmutableList.of(item));
   }
 
@@ -120,7 +120,7 @@ public interface WorkQueue<E> extends SyncPrimitive {
    *     tasks in the work queue
    */
   default Task<E> take() {
-    Collection<Task<E>> tasks = take(1);
+    final Collection<Task<E>> tasks = take(1);
     return tasks.isEmpty() ? null : tasks.iterator().next();
   }
 

@@ -90,10 +90,10 @@ public interface PrimitiveFactory {
    * @return the primitive instance
    */
   default <P extends SyncPrimitive> P getPrimitive(
-      String name, PrimitiveType<?, ?, P> primitiveType) {
+      final String name, final PrimitiveType<?, ?, P> primitiveType) {
     try {
       return getPrimitiveAsync(name, primitiveType).get(30, TimeUnit.SECONDS);
-    } catch (InterruptedException | ExecutionException | TimeoutException e) {
+    } catch (final InterruptedException | ExecutionException | TimeoutException e) {
       throw new AtomixRuntimeException(e);
     }
   }
@@ -126,10 +126,10 @@ public interface PrimitiveFactory {
    * @return the primitive instance
    */
   default <C extends PrimitiveConfig<C>, P extends SyncPrimitive> P getPrimitive(
-      String name, PrimitiveType<?, C, P> primitiveType, C primitiveConfig) {
+      final String name, final PrimitiveType<?, C, P> primitiveType, final C primitiveConfig) {
     try {
       return getPrimitiveAsync(name, primitiveType, primitiveConfig).get(30, TimeUnit.SECONDS);
-    } catch (InterruptedException | ExecutionException | TimeoutException e) {
+    } catch (final InterruptedException | ExecutionException | TimeoutException e) {
       throw new AtomixRuntimeException(e);
     }
   }

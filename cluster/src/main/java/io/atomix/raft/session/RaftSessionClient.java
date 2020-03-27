@@ -44,7 +44,7 @@ public interface RaftSessionClient extends SessionClient {
      * @param minTimeout the minimum session timeout
      * @return the Raft protocol builder
      */
-    public Builder withMinTimeout(Duration minTimeout) {
+    public Builder withMinTimeout(final Duration minTimeout) {
       this.minTimeout = checkNotNull(minTimeout, "minTimeout cannot be null");
       return this;
     }
@@ -55,7 +55,7 @@ public interface RaftSessionClient extends SessionClient {
      * @param maxTimeout the maximum session timeout
      * @return the Raft protocol builder
      */
-    public Builder withMaxTimeout(Duration maxTimeout) {
+    public Builder withMaxTimeout(final Duration maxTimeout) {
       this.maxTimeout = checkNotNull(maxTimeout, "maxTimeout cannot be null");
       return this;
     }
@@ -66,7 +66,7 @@ public interface RaftSessionClient extends SessionClient {
      * @param readConsistency the read consistency level
      * @return the Raft protocol builder
      */
-    public Builder withReadConsistency(ReadConsistency readConsistency) {
+    public Builder withReadConsistency(final ReadConsistency readConsistency) {
       this.readConsistency = checkNotNull(readConsistency, "readConsistency cannot be null");
       return this;
     }
@@ -77,7 +77,7 @@ public interface RaftSessionClient extends SessionClient {
      * @param communicationStrategy the communication strategy
      * @return the Raft protocol builder
      */
-    public Builder withCommunicationStrategy(CommunicationStrategy communicationStrategy) {
+    public Builder withCommunicationStrategy(final CommunicationStrategy communicationStrategy) {
       this.communicationStrategy =
           checkNotNull(communicationStrategy, "communicationStrategy cannot be null");
       return this;
@@ -89,7 +89,7 @@ public interface RaftSessionClient extends SessionClient {
      * @param recoveryStrategy the recovery strategy
      * @return the Raft protocol builder
      */
-    public Builder withRecoveryStrategy(Recovery recoveryStrategy) {
+    public Builder withRecoveryStrategy(final Recovery recoveryStrategy) {
       this.recoveryStrategy = checkNotNull(recoveryStrategy, "recoveryStrategy cannot be null");
       return this;
     }
@@ -100,7 +100,7 @@ public interface RaftSessionClient extends SessionClient {
      * @param maxRetries the maximum number of retries before an operation can be failed
      * @return the proxy builder
      */
-    public Builder withMaxRetries(int maxRetries) {
+    public Builder withMaxRetries(final int maxRetries) {
       checkArgument(maxRetries >= 0, "maxRetries must be positive");
       this.maxRetries = maxRetries;
       return this;
@@ -112,7 +112,7 @@ public interface RaftSessionClient extends SessionClient {
      * @param retryDelayMillis the delay between operation retries in milliseconds
      * @return the proxy builder
      */
-    public Builder withRetryDelayMillis(long retryDelayMillis) {
+    public Builder withRetryDelayMillis(final long retryDelayMillis) {
       return withRetryDelay(Duration.ofMillis(retryDelayMillis));
     }
 
@@ -123,7 +123,7 @@ public interface RaftSessionClient extends SessionClient {
      * @return the proxy builder
      * @throws NullPointerException if the delay is null
      */
-    public Builder withRetryDelay(Duration retryDelay) {
+    public Builder withRetryDelay(final Duration retryDelay) {
       this.retryDelay = checkNotNull(retryDelay, "retryDelay cannot be null");
       return this;
     }
@@ -136,7 +136,7 @@ public interface RaftSessionClient extends SessionClient {
      * @return the proxy builder
      * @throws NullPointerException if the time unit is null
      */
-    public Builder withRetryDelay(long retryDelay, TimeUnit timeUnit) {
+    public Builder withRetryDelay(final long retryDelay, final TimeUnit timeUnit) {
       return withRetryDelay(Duration.ofMillis(timeUnit.toMillis(retryDelay)));
     }
   }

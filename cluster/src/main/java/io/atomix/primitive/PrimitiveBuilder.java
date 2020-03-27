@@ -54,7 +54,7 @@ public abstract class PrimitiveBuilder<
   protected final PrimitiveManagementService managementService;
 
   public PrimitiveBuilder(
-      PrimitiveType type, String name, C config, PrimitiveManagementService managementService) {
+      final PrimitiveType type, final String name, final C config, final PrimitiveManagementService managementService) {
     this.type = checkNotNull(type, "type cannot be null");
     this.name = checkNotNull(name, "name cannot be null");
     this.config = checkNotNull(config, "config cannot be null");
@@ -68,7 +68,7 @@ public abstract class PrimitiveBuilder<
    * @return the primitive builder
    */
   @SuppressWarnings("unchecked")
-  protected B withProtocol(PrimitiveProtocol protocol) {
+  protected B withProtocol(final PrimitiveProtocol protocol) {
     this.protocol = protocol;
     return (B) this;
   }
@@ -80,7 +80,7 @@ public abstract class PrimitiveBuilder<
    * @return the primitive builder
    */
   @SuppressWarnings("unchecked")
-  public B withSerializer(Serializer serializer) {
+  public B withSerializer(final Serializer serializer) {
     this.serializer = checkNotNull(serializer);
     return (B) this;
   }
@@ -103,7 +103,7 @@ public abstract class PrimitiveBuilder<
    * @return the primitive builder
    */
   @SuppressWarnings("unchecked")
-  public B withReadOnly(boolean readOnly) {
+  public B withReadOnly(final boolean readOnly) {
     config.setReadOnly(readOnly);
     return (B) this;
   }
@@ -116,14 +116,14 @@ public abstract class PrimitiveBuilder<
   protected PrimitiveProtocol protocol() {
     PrimitiveProtocol protocol = this.protocol;
     if (protocol == null) {
-      PrimitiveProtocolConfig<?> protocolConfig = config.getProtocolConfig();
+      final PrimitiveProtocolConfig<?> protocolConfig = config.getProtocolConfig();
       if (protocolConfig == null) {
-        Collection<PartitionGroup> partitionGroups =
+        final Collection<PartitionGroup> partitionGroups =
             managementService.getPartitionService().getPartitionGroups();
         if (partitionGroups.size() == 1) {
           protocol = partitionGroups.iterator().next().newProtocol();
         } else {
-          String groups =
+          final String groups =
               Joiner.on(", ")
                   .join(
                       partitionGroups.stream()
@@ -152,7 +152,7 @@ public abstract class PrimitiveBuilder<
       synchronized (this) {
         serializer = this.serializer;
         if (serializer == null) {
-          NamespaceConfig config = this.config.getNamespaceConfig();
+          final NamespaceConfig config = this.config.getNamespaceConfig();
           if (config == null) {
             serializer = Serializer.using(Namespaces.BASIC);
           } else {
@@ -172,15 +172,15 @@ public abstract class PrimitiveBuilder<
   }
 
   protected <S> CompletableFuture<ProxyClient<S>> newProxy(
-      Class<S> serviceType, ServiceConfig config) {
-    PrimitiveProtocol protocol = protocol();
+      final Class<S> serviceType, final ServiceConfig config) {
+    final PrimitiveProtocol protocol = protocol();
     if (protocol instanceof ProxyProtocol) {
       try {
         return CompletableFuture.completedFuture(
             ((ProxyProtocol) protocol)
                 .newProxy(
                     name, type, serviceType, config, managementService.getPartitionService()));
-      } catch (Exception e) {
+      } catch (final Exception e) {
         return Futures.exceptionalFuture(e);
       }
     }
@@ -199,7 +199,7 @@ public abstract class PrimitiveBuilder<
   public P build() {
     try {
       return buildAsync().join();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       if (e instanceof CompletionException && e.getCause() instanceof RuntimeException) {
         throw (RuntimeException) e.getCause();
       } else {
@@ -230,7 +230,7 @@ public abstract class PrimitiveBuilder<
   public P get() {
     try {
       return getAsync().join();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       if (e instanceof CompletionException && e.getCause() instanceof RuntimeException) {
         throw (RuntimeException) e.getCause();
       } else {

@@ -499,17 +499,17 @@ public class RaftSessionInvokerTest {
   private static class TestContext implements ThreadContext {
 
     @Override
-    public Scheduled schedule(Duration delay, Runnable callback) {
+    public Scheduled schedule(final Duration delay, final Runnable callback) {
       return null;
     }
 
     @Override
-    public Scheduled schedule(Duration initialDelay, Duration interval, Runnable callback) {
+    public Scheduled schedule(final Duration initialDelay, final Duration interval, final Runnable callback) {
       return null;
     }
 
     @Override
-    public void execute(Runnable command) {
+    public void execute(final Runnable command) {
       command.run();
     }
 

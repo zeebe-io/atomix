@@ -28,7 +28,7 @@ public class LoggerContext {
    * @param name the logger name
    * @return the logger builder
    */
-  public static Builder builder(String name) {
+  public static Builder builder(final String name) {
     return new Builder(name);
   }
 
@@ -38,13 +38,13 @@ public class LoggerContext {
    * @param clazz the logger class
    * @return the logger builder
    */
-  public static Builder builder(Class clazz) {
+  public static Builder builder(final Class clazz) {
     return new Builder(clazz.getSimpleName());
   }
 
   private final Supplier<String> stringProvider;
 
-  public LoggerContext(Supplier<String> stringProvider) {
+  public LoggerContext(final Supplier<String> stringProvider) {
     this.stringProvider = stringProvider;
   }
 
@@ -59,7 +59,7 @@ public class LoggerContext {
     private MoreObjects.ToStringHelper argsStringHelper;
     private boolean omitNullValues = false;
 
-    public Builder(String name) {
+    public Builder(final String name) {
       this.identityStringHelper = MoreObjects.toStringHelper(name);
     }
 
@@ -87,7 +87,7 @@ public class LoggerContext {
      * called, in which case this name/value pair will not be added.
      */
     @CanIgnoreReturnValue
-    public Builder add(String name, Object value) {
+    public Builder add(final String name, final Object value) {
       initializeArgs();
       argsStringHelper.add(name, value);
       return this;
@@ -95,7 +95,7 @@ public class LoggerContext {
 
     /** Adds a name/value pair to the formatted output in {@code name=value} format. */
     @CanIgnoreReturnValue
-    public Builder add(String name, boolean value) {
+    public Builder add(final String name, final boolean value) {
       initializeArgs();
       argsStringHelper.add(name, value);
       return this;
@@ -103,7 +103,7 @@ public class LoggerContext {
 
     /** Adds a name/value pair to the formatted output in {@code name=value} format. */
     @CanIgnoreReturnValue
-    public Builder add(String name, char value) {
+    public Builder add(final String name, final char value) {
       initializeArgs();
       argsStringHelper.add(name, value);
       return this;
@@ -111,7 +111,7 @@ public class LoggerContext {
 
     /** Adds a name/value pair to the formatted output in {@code name=value} format. */
     @CanIgnoreReturnValue
-    public Builder add(String name, double value) {
+    public Builder add(final String name, final double value) {
       initializeArgs();
       argsStringHelper.add(name, value);
       return this;
@@ -119,7 +119,7 @@ public class LoggerContext {
 
     /** Adds a name/value pair to the formatted output in {@code name=value} format. */
     @CanIgnoreReturnValue
-    public Builder add(String name, float value) {
+    public Builder add(final String name, final float value) {
       initializeArgs();
       argsStringHelper.add(name, value);
       return this;
@@ -127,7 +127,7 @@ public class LoggerContext {
 
     /** Adds a name/value pair to the formatted output in {@code name=value} format. */
     @CanIgnoreReturnValue
-    public Builder add(String name, int value) {
+    public Builder add(final String name, final int value) {
       initializeArgs();
       argsStringHelper.add(name, value);
       return this;
@@ -135,7 +135,7 @@ public class LoggerContext {
 
     /** Adds a name/value pair to the formatted output in {@code name=value} format. */
     @CanIgnoreReturnValue
-    public Builder add(String name, long value) {
+    public Builder add(final String name, final long value) {
       initializeArgs();
       argsStringHelper.add(name, value);
       return this;
@@ -148,7 +148,7 @@ public class LoggerContext {
      * readable name.
      */
     @CanIgnoreReturnValue
-    public Builder addValue(Object value) {
+    public Builder addValue(final Object value) {
       identityStringHelper.addValue(value);
       return this;
     }
@@ -160,7 +160,7 @@ public class LoggerContext {
      * readable name.
      */
     @CanIgnoreReturnValue
-    public Builder addValue(boolean value) {
+    public Builder addValue(final boolean value) {
       identityStringHelper.addValue(value);
       return this;
     }
@@ -172,7 +172,7 @@ public class LoggerContext {
      * readable name.
      */
     @CanIgnoreReturnValue
-    public Builder addValue(char value) {
+    public Builder addValue(final char value) {
       identityStringHelper.addValue(value);
       return this;
     }
@@ -184,7 +184,7 @@ public class LoggerContext {
      * readable name.
      */
     @CanIgnoreReturnValue
-    public Builder addValue(double value) {
+    public Builder addValue(final double value) {
       identityStringHelper.addValue(value);
       return this;
     }
@@ -196,7 +196,7 @@ public class LoggerContext {
      * readable name.
      */
     @CanIgnoreReturnValue
-    public Builder addValue(float value) {
+    public Builder addValue(final float value) {
       identityStringHelper.addValue(value);
       return this;
     }
@@ -208,7 +208,7 @@ public class LoggerContext {
      * readable name.
      */
     @CanIgnoreReturnValue
-    public Builder addValue(int value) {
+    public Builder addValue(final int value) {
       identityStringHelper.addValue(value);
       return this;
     }
@@ -220,15 +220,15 @@ public class LoggerContext {
      * readable name.
      */
     @CanIgnoreReturnValue
-    public Builder addValue(long value) {
+    public Builder addValue(final long value) {
       identityStringHelper.addValue(value);
       return this;
     }
 
     @Override
     public LoggerContext build() {
-      MoreObjects.ToStringHelper identityStringHelper = this.identityStringHelper;
-      MoreObjects.ToStringHelper argsStringHelper = this.argsStringHelper;
+      final MoreObjects.ToStringHelper identityStringHelper = this.identityStringHelper;
+      final MoreObjects.ToStringHelper argsStringHelper = this.argsStringHelper;
       if (omitNullValues) {
         identityStringHelper.omitNullValues();
         if (argsStringHelper != null) {

@@ -75,7 +75,7 @@ public class BootstrapDiscoveryProvider
     }
 
     @Override
-    public NodeDiscoveryProvider newProvider(BootstrapDiscoveryConfig config) {
+    public NodeDiscoveryProvider newProvider(final BootstrapDiscoveryConfig config) {
       return new BootstrapDiscoveryProvider(config);
     }
   }
@@ -85,11 +85,11 @@ public class BootstrapDiscoveryProvider
   private final ImmutableSet<Node> bootstrapNodes;
   private final BootstrapDiscoveryConfig config;
 
-  public BootstrapDiscoveryProvider(Node... bootstrapNodes) {
+  public BootstrapDiscoveryProvider(final Node... bootstrapNodes) {
     this(Arrays.asList(bootstrapNodes));
   }
 
-  public BootstrapDiscoveryProvider(Collection<Node> bootstrapNodes) {
+  public BootstrapDiscoveryProvider(final Collection<Node> bootstrapNodes) {
     this(
         new BootstrapDiscoveryConfig()
             .setNodes(
@@ -98,7 +98,7 @@ public class BootstrapDiscoveryProvider
                     .collect(Collectors.toList())));
   }
 
-  BootstrapDiscoveryProvider(BootstrapDiscoveryConfig config) {
+  BootstrapDiscoveryProvider(final BootstrapDiscoveryConfig config) {
     this.config = checkNotNull(config);
     this.bootstrapNodes =
         ImmutableSet.copyOf(config.getNodes().stream().map(Node::new).collect(Collectors.toList()));
@@ -115,13 +115,13 @@ public class BootstrapDiscoveryProvider
   }
 
   @Override
-  public CompletableFuture<Void> join(BootstrapService bootstrap, Node localNode) {
+  public CompletableFuture<Void> join(final BootstrapService bootstrap, final Node localNode) {
     LOGGER.info("Joined");
     return CompletableFuture.completedFuture(null);
   }
 
   @Override
-  public CompletableFuture<Void> leave(Node localNode) {
+  public CompletableFuture<Void> leave(final Node localNode) {
     LOGGER.info("Left");
     return CompletableFuture.completedFuture(null);
   }

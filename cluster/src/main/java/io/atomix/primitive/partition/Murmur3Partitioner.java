@@ -21,8 +21,8 @@ import java.util.List;
 /** Murmur 3 partitioner. */
 public class Murmur3Partitioner implements Partitioner<String> {
   @Override
-  public PartitionId partition(String key, List<PartitionId> partitions) {
-    int hash = Math.abs(Hashing.murmur3_32().hashUnencodedChars(key).asInt());
+  public PartitionId partition(final String key, final List<PartitionId> partitions) {
+    final int hash = Math.abs(Hashing.murmur3_32().hashUnencodedChars(key).asInt());
     return partitions.get(Hashing.consistentHash(hash, partitions.size()));
   }
 }

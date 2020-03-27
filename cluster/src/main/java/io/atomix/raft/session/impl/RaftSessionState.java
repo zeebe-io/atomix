@@ -41,11 +41,11 @@ public final class RaftSessionState {
   private volatile long eventIndex;
 
   RaftSessionState(
-      String clientId,
-      SessionId sessionId,
-      String serviceName,
-      PrimitiveType primitiveType,
-      long timeout) {
+      final String clientId,
+      final SessionId sessionId,
+      final String serviceName,
+      final PrimitiveType primitiveType,
+      final long timeout) {
     this.clientId = clientId;
     this.sessionId = sessionId;
     this.serviceName = serviceName;
@@ -60,7 +60,7 @@ public final class RaftSessionState {
    *
    * @param listener The state change listener callback.
    */
-  public void addStateChangeListener(Consumer<PrimitiveState> listener) {
+  public void addStateChangeListener(final Consumer<PrimitiveState> listener) {
     changeListeners.add(checkNotNull(listener));
   }
 
@@ -69,7 +69,7 @@ public final class RaftSessionState {
    *
    * @param listener the listener to remove
    */
-  public void removeStateChangeListener(Consumer<PrimitiveState> listener) {
+  public void removeStateChangeListener(final Consumer<PrimitiveState> listener) {
     changeListeners.remove(checkNotNull(listener));
   }
 
@@ -177,7 +177,7 @@ public final class RaftSessionState {
    *
    * @param commandRequest The last command request sequence number.
    */
-  public void setCommandRequest(long commandRequest) {
+  public void setCommandRequest(final long commandRequest) {
     this.commandRequest = commandRequest;
   }
 
@@ -186,7 +186,7 @@ public final class RaftSessionState {
    *
    * @param commandResponse The last command sequence number for which a response has been received.
    */
-  public void setCommandResponse(long commandResponse) {
+  public void setCommandResponse(final long commandResponse) {
     this.commandResponse = commandResponse;
   }
 
@@ -195,7 +195,7 @@ public final class RaftSessionState {
    *
    * @param eventIndex The highest index for which an event has been received in sequence.
    */
-  public void setEventIndex(long eventIndex) {
+  public void setEventIndex(final long eventIndex) {
     this.eventIndex = eventIndex;
   }
 
@@ -204,7 +204,7 @@ public final class RaftSessionState {
    *
    * @param responseIndex The highest index for which a command or query response has been received.
    */
-  public void setResponseIndex(long responseIndex) {
+  public void setResponseIndex(final long responseIndex) {
     this.responseIndex = Math.max(this.responseIndex, responseIndex);
   }
 
@@ -213,7 +213,7 @@ public final class RaftSessionState {
    *
    * @param state The updates session state.
    */
-  public void setState(PrimitiveState state) {
+  public void setState(final PrimitiveState state) {
     if (this.state != state) {
       if (this.state != PrimitiveState.EXPIRED && this.state != PrimitiveState.CLOSED) {
         this.state = state;
@@ -227,7 +227,7 @@ public final class RaftSessionState {
     }
   }
 
-  private void updateSuspendTime(PrimitiveState state) {
+  private void updateSuspendTime(final PrimitiveState state) {
     if (state == PrimitiveState.SUSPENDED) {
       if (suspendedTime == null) {
         suspendedTime = System.currentTimeMillis();

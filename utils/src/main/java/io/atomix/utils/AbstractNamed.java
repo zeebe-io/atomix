@@ -23,7 +23,7 @@ public abstract class AbstractNamed implements Named {
     this(null);
   }
 
-  protected AbstractNamed(String name) {
+  protected AbstractNamed(final String name) {
     this.name = name;
   }
 

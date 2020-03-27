@@ -35,7 +35,7 @@ public abstract class UnpooledAllocator implements BufferAllocator {
   }
 
   @Override
-  public Buffer allocate(int capacity) {
+  public Buffer allocate(final int capacity) {
     return allocate(capacity, capacity);
   }
 }

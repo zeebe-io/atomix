@@ -135,16 +135,16 @@ public class RaftContext implements AutoCloseable {
 
   @SuppressWarnings("unchecked")
   public RaftContext(
-      String name,
-      MemberId localMemberId,
-      ClusterMembershipService membershipService,
-      RaftServerProtocol protocol,
-      RaftStorage storage,
-      PrimitiveTypeRegistry primitiveTypes,
-      ThreadContextFactory threadContextFactory,
-      boolean closeOnStop,
-      RaftStateMachineFactory stateMachineFactory,
-      LoadMonitorFactory loadMonitorFactory) {
+      final String name,
+      final MemberId localMemberId,
+      final ClusterMembershipService membershipService,
+      final RaftServerProtocol protocol,
+      final RaftStorage storage,
+      final PrimitiveTypeRegistry primitiveTypes,
+      final ThreadContextFactory threadContextFactory,
+      final boolean closeOnStop,
+      final RaftStateMachineFactory stateMachineFactory,
+      final LoadMonitorFactory loadMonitorFactory) {
     this.name = checkNotNull(name, "name cannot be null");
     this.membershipService = checkNotNull(membershipService, "membershipService cannot be null");
     this.protocol = checkNotNull(protocol, "protocol cannot be null");
@@ -205,12 +205,12 @@ public class RaftContext implements AutoCloseable {
     started = true;
   }
 
-  private void onUncaughtException(Throwable error) {
+  private void onUncaughtException(final Throwable error) {
     log.error("An uncaught exception occurred, transition to inactive role", error);
     try {
       // to prevent further operations submitted to the threadcontext to execute
       transition(Role.INACTIVE);
-    } catch (Throwable e) {
+    } catch (final Throwable e) {
       log.error(
           "An error occurred when transitioning to {}, closing the raft context",
           Role.INACTIVE,
@@ -223,13 +223,13 @@ public class RaftContext implements AutoCloseable {
   private void notifyFailureListeners() {
     try {
       failureListeners.forEach(Runnable::run);
-    } catch (Exception exception) {
+    } catch (final Exception exception) {
       log.error("Could not notify failure listeners", exception);
     }
   }
 
   /** Registers server handlers on the configured protocol. */
-  private void registerHandlers(RaftServerProtocol protocol) {
+  private void registerHandlers(final RaftServerProtocol protocol) {
     protocol.registerOpenSessionHandler(
         request ->
             runOnContextIfReady(() -> role.onOpenSession(request), OpenSessionResponse::builder));
@@ -259,8 +259,8 @@ public class RaftContext implements AutoCloseable {
   }
 
   private <R extends RaftResponse> CompletableFuture<R> runOnContextIfReady(
-      Supplier<CompletableFuture<R>> function,
-      Supplier<RaftResponse.Builder<?, R>> builderSupplier) {
+      final Supplier<CompletableFuture<R>> function,
+      final Supplier<RaftResponse.Builder<?, R>> builderSupplier) {
     if (state == State.READY) {
       return runOnContext(function);
     } else {
@@ -274,7 +274,7 @@ public class RaftContext implements AutoCloseable {
   }
 
   private <R extends RaftResponse> CompletableFuture<R> runOnContext(
-      Supplier<CompletableFuture<R>> function) {
+      final Supplier<CompletableFuture<R>> function) {
     final CompletableFuture<R> future = new CompletableFuture<>();
     threadContext.execute(
         () -> {
@@ -292,7 +292,7 @@ public class RaftContext implements AutoCloseable {
     return future;
   }
 
-  public void runOnHeartbeatContext(Runnable runnable) {
+  public void runOnHeartbeatContext(final Runnable runnable) {
     heartBeatThread.execute(runnable);
   }
 
@@ -305,7 +305,7 @@ public class RaftContext implements AutoCloseable {
    *
    * @param listener The role change listener.
    */
-  public void addRoleChangeListener(RaftRoleChangeListener listener) {
+  public void addRoleChangeListener(final RaftRoleChangeListener listener) {
     roleChangeListeners.add(listener);
   }
 
@@ -314,7 +314,7 @@ public class RaftContext implements AutoCloseable {
    *
    * @param listener The role change listener.
    */
-  public void removeRoleChangeListener(RaftRoleChangeListener listener) {
+  public void removeRoleChangeListener(final RaftRoleChangeListener listener) {
     roleChangeListeners.remove(listener);
   }
 
@@ -323,7 +323,7 @@ public class RaftContext implements AutoCloseable {
    *
    * @param failureListener
    */
-  public void addFailureListener(Runnable failureListener) {
+  public void addFailureListener(final Runnable failureListener) {
     failureListeners.add(failureListener);
   }
 
@@ -332,7 +332,7 @@ public class RaftContext implements AutoCloseable {
    *
    * @param failureListener
    */
-  public void removeFailureListener(Runnable failureListener) {
+  public void removeFailureListener(final Runnable failureListener) {
     failureListeners.remove(failureListener);
   }
 
@@ -342,14 +342,14 @@ public class RaftContext implements AutoCloseable {
    * @param state the state for which to wait
    * @param listener the listener to call when the next state change occurs
    */
-  public void awaitState(State state, Consumer<State> listener) {
+  public void awaitState(final State state, final Consumer<State> listener) {
     if (this.state == state) {
       listener.accept(this.state);
     } else {
       addStateChangeListener(
           new Consumer<State>() {
             @Override
-            public void accept(State state) {
+            public void accept(final State state) {
               listener.accept(state);
               removeStateChangeListener(this);
             }
@@ -362,7 +362,7 @@ public class RaftContext implements AutoCloseable {
    *
    * @param listener The state change listener.
    */
-  public void addStateChangeListener(Consumer<State> listener) {
+  public void addStateChangeListener(final Consumer<State> listener) {
     stateChangeListeners.add(listener);
   }
 
@@ -371,7 +371,7 @@ public class RaftContext implements AutoCloseable {
    *
    * @param listener The state change listener.
    */
-  public void removeStateChangeListener(Consumer<State> listener) {
+  public void removeStateChangeListener(final Consumer<State> listener) {
     stateChangeListeners.remove(listener);
   }
 
@@ -382,7 +382,7 @@ public class RaftContext implements AutoCloseable {
    *
    * @param commitListener the listener to add
    */
-  public void addCommitListener(RaftCommitListener commitListener) {
+  public void addCommitListener(final RaftCommitListener commitListener) {
     commitListeners.add(commitListener);
   }
 
@@ -391,7 +391,7 @@ public class RaftContext implements AutoCloseable {
    *
    * @param commitListener the listener to remove
    */
-  public void removeCommitListener(RaftCommitListener commitListener) {
+  public void removeCommitListener(final RaftCommitListener commitListener) {
     commitListeners.remove(commitListener);
   }
 
@@ -400,7 +400,7 @@ public class RaftContext implements AutoCloseable {
    *
    * @param latestEntry latest committed entry
    */
-  public <T extends RaftLogEntry> void notifyCommitListeners(Indexed<T> latestEntry) {
+  public <T extends RaftLogEntry> void notifyCommitListeners(final Indexed<T> latestEntry) {
     commitListeners.forEach(listener -> listener.onCommit(latestEntry));
   }
 
@@ -410,7 +410,7 @@ public class RaftContext implements AutoCloseable {
    * @param commitIndex The commit index.
    * @return the previous commit index
    */
-  public long setCommitIndex(long commitIndex) {
+  public long setCommitIndex(final long commitIndex) {
     checkArgument(commitIndex >= 0, "commitIndex must be positive");
     final long previousCommitIndex = this.commitIndex;
     if (commitIndex > previousCommitIndex) {
@@ -430,7 +430,7 @@ public class RaftContext implements AutoCloseable {
    *
    * @param lastApplied the last applied index and the last applied term
    */
-  public void setLastApplied(long lastApplied, long lastAppliedTerm) {
+  public void setLastApplied(final long lastApplied, final long lastAppliedTerm) {
     this.lastApplied = Math.max(this.lastApplied, lastApplied);
     this.lastAppliedTerm = Math.max(this.lastAppliedTerm, lastAppliedTerm);
     if (state == State.ACTIVE) {
@@ -473,7 +473,7 @@ public class RaftContext implements AutoCloseable {
           final Consumer<RaftMember> electionListener =
               new Consumer<RaftMember>() {
                 @Override
-                public void accept(RaftMember member) {
+                public void accept(final RaftMember member) {
                   if (member.memberId().equals(cluster.getMember().memberId())) {
                     future.complete(null);
                   } else {
@@ -518,7 +518,7 @@ public class RaftContext implements AutoCloseable {
    *
    * @param listener The leader election listener.
    */
-  public void addLeaderElectionListener(Consumer<RaftMember> listener) {
+  public void addLeaderElectionListener(final Consumer<RaftMember> listener) {
     electionListeners.add(listener);
   }
 
@@ -527,7 +527,7 @@ public class RaftContext implements AutoCloseable {
    *
    * @param listener The leader election listener.
    */
-  public void removeLeaderElectionListener(Consumer<RaftMember> listener) {
+  public void removeLeaderElectionListener(final Consumer<RaftMember> listener) {
     electionListeners.remove(listener);
   }
 
@@ -552,7 +552,7 @@ public class RaftContext implements AutoCloseable {
   }
 
   /** Transition handler. */
-  public void transition(RaftServer.Role role) {
+  public void transition(final RaftServer.Role role) {
     checkThread();
     checkNotNull(role);
 
@@ -565,7 +565,7 @@ public class RaftContext implements AutoCloseable {
     // Close the old state.
     try {
       this.role.stop().get();
-    } catch (InterruptedException | ExecutionException e) {
+    } catch (final InterruptedException | ExecutionException e) {
       throw new IllegalStateException("failed to close Raft state", e);
     }
 
@@ -573,7 +573,7 @@ public class RaftContext implements AutoCloseable {
     try {
       this.role = createRole(role);
       this.role.start().get();
-    } catch (InterruptedException | ExecutionException e) {
+    } catch (final InterruptedException | ExecutionException e) {
       throw new IllegalStateException("failed to initialize Raft state", e);
     }
 
@@ -597,7 +597,7 @@ public class RaftContext implements AutoCloseable {
   private void notifyRoleChangeListeners() {
     try {
       roleChangeListeners.forEach(l -> l.onNewRole(this.role.role(), getTerm()));
-    } catch (Exception exception) {
+    } catch (final Exception exception) {
       log.error("Unexpected error on calling role change listeners.", exception);
     }
   }
@@ -608,7 +608,7 @@ public class RaftContext implements AutoCloseable {
   }
 
   /** Creates an internal state for the given state type. */
-  private RaftRole createRole(RaftServer.Role role) {
+  private RaftRole createRole(final RaftServer.Role role) {
     switch (role) {
       case INACTIVE:
         return new InactiveRole(this);
@@ -631,7 +631,7 @@ public class RaftContext implements AutoCloseable {
   }
 
   /** Transitions the server to the base state for the given member type. */
-  public void transition(RaftMember.Type type) {
+  public void transition(final RaftMember.Type type) {
     switch (type) {
       case ACTIVE:
         if (!(role instanceof ActiveRole)) {
@@ -674,21 +674,21 @@ public class RaftContext implements AutoCloseable {
     // Close the log.
     try {
       raftLog.close();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       log.error("Failed to close raft log", e);
     }
 
     // Close the metastore.
     try {
       meta.close();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       log.error("Failed to close metastore", e);
     }
 
     // Close the snapshot store.
     try {
       snapshotStore.close();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       log.error("Failed to close snapshot store", e);
     }
 
@@ -703,7 +703,7 @@ public class RaftContext implements AutoCloseable {
   }
 
   /** Unregisters server handlers on the configured protocol. */
-  private void unregisterHandlers(RaftServerProtocol protocol) {
+  private void unregisterHandlers(final RaftServerProtocol protocol) {
     protocol.unregisterOpenSessionHandler();
     protocol.unregisterCloseSessionHandler();
     protocol.unregisterKeepAliveHandler();
@@ -764,7 +764,7 @@ public class RaftContext implements AutoCloseable {
    *
    * @param electionTimeout The election timeout.
    */
-  public void setElectionTimeout(Duration electionTimeout) {
+  public void setElectionTimeout(final Duration electionTimeout) {
     this.electionTimeout = electionTimeout;
   }
 
@@ -782,7 +782,7 @@ public class RaftContext implements AutoCloseable {
    *
    * @param firstCommitIndex The first commit index.
    */
-  public void setFirstCommitIndex(long firstCommitIndex) {
+  public void setFirstCommitIndex(final long firstCommitIndex) {
     if (this.firstCommitIndex == 0) {
       this.firstCommitIndex = firstCommitIndex;
     }
@@ -802,7 +802,7 @@ public class RaftContext implements AutoCloseable {
    *
    * @param heartbeatInterval The Raft heartbeat interval.
    */
-  public void setHeartbeatInterval(Duration heartbeatInterval) {
+  public void setHeartbeatInterval(final Duration heartbeatInterval) {
     this.heartbeatInterval = checkNotNull(heartbeatInterval, "heartbeatInterval cannot be null");
   }
 
@@ -842,7 +842,7 @@ public class RaftContext implements AutoCloseable {
    *
    * @param candidate The candidate that was voted for.
    */
-  public void setLastVotedFor(MemberId candidate) {
+  public void setLastVotedFor(final MemberId candidate) {
     // If we've already voted for another candidate in this term then the last voted for candidate
     // cannot be overridden.
     checkState(!(lastVotedFor != null && candidate != null), "Already voted for another candidate");
@@ -993,7 +993,7 @@ public class RaftContext implements AutoCloseable {
    *
    * @param sessionTimeout The session timeout.
    */
-  public void setSessionTimeout(Duration sessionTimeout) {
+  public void setSessionTimeout(final Duration sessionTimeout) {
     this.sessionTimeout = checkNotNull(sessionTimeout, "sessionTimeout cannot be null");
   }
 
@@ -1047,7 +1047,7 @@ public class RaftContext implements AutoCloseable {
    *
    * @param term The state term.
    */
-  public void setTerm(long term) {
+  public void setTerm(final long term) {
     if (term > this.term) {
       this.term = term;
       this.leader = null;
@@ -1082,7 +1082,7 @@ public class RaftContext implements AutoCloseable {
    *
    * @param leader The state leader.
    */
-  public void setLeader(MemberId leader) {
+  public void setLeader(final MemberId leader) {
     if (!Objects.equals(this.leader, leader)) {
       if (leader == null) {
         this.leader = null;

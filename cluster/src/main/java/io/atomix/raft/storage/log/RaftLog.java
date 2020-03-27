@@ -32,7 +32,7 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
   private final RaftLogWriter writer;
   private volatile long commitIndex;
 
-  protected RaftLog(SegmentedJournal<RaftLogEntry> journal) {
+  protected RaftLog(final SegmentedJournal<RaftLogEntry> journal) {
     super(journal);
     this.journal = journal;
     this.writer = new RaftLogWriter(journal.writer());
@@ -53,12 +53,12 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
   }
 
   @Override
-  public RaftLogReader openReader(long index) {
+  public RaftLogReader openReader(final long index) {
     return openReader(index, JournalReader.Mode.ALL);
   }
 
   @Override
-  public RaftLogReader openReader(long index, JournalReader.Mode mode) {
+  public RaftLogReader openReader(final long index, final JournalReader.Mode mode) {
     return new RaftLogReader(journal.openReader(index, mode));
   }
 
@@ -69,7 +69,7 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
    * @param index the index from which to remove segments
    * @return indicates whether a segment can be removed from the journal
    */
-  public boolean isCompactable(long index) {
+  public boolean isCompactable(final long index) {
     return journal.isCompactable(index);
   }
 
@@ -79,7 +79,7 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
    * @param index the compaction index
    * @return the starting index of the last segment in the log
    */
-  public long getCompactableIndex(long index) {
+  public long getCompactableIndex(final long index) {
     return journal.getCompactableIndex(index);
   }
 
@@ -90,7 +90,7 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
    *
    * @param index The index up to which to compact the journal.
    */
-  public void compact(long index) {
+  public void compact(final long index) {
     journal.compact(index);
   }
 
@@ -108,7 +108,7 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
    *
    * @param index The index up to which to commit entries.
    */
-  void setCommitIndex(long index) {
+  void setCommitIndex(final long index) {
     this.commitIndex = index;
   }
 
@@ -126,7 +126,7 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
      * @param name The storage name.
      * @return The storage builder.
      */
-    public Builder withName(String name) {
+    public Builder withName(final String name) {
       journalBuilder.withName(name);
       return this;
     }
@@ -139,7 +139,7 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
      * @param storageLevel The log storage level.
      * @return The storage builder.
      */
-    public Builder withStorageLevel(StorageLevel storageLevel) {
+    public Builder withStorageLevel(final StorageLevel storageLevel) {
       journalBuilder.withStorageLevel(storageLevel);
       return this;
     }
@@ -153,7 +153,7 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
      * @return The storage builder.
      * @throws NullPointerException If the {@code directory} is {@code null}
      */
-    public Builder withDirectory(String directory) {
+    public Builder withDirectory(final String directory) {
       journalBuilder.withDirectory(directory);
       return this;
     }
@@ -167,7 +167,7 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
      * @return The storage builder.
      * @throws NullPointerException If the {@code directory} is {@code null}
      */
-    public Builder withDirectory(File directory) {
+    public Builder withDirectory(final File directory) {
       journalBuilder.withDirectory(directory);
       return this;
     }
@@ -178,7 +178,7 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
      * @param namespace The journal namespace.
      * @return The journal builder.
      */
-    public Builder withNamespace(Namespace namespace) {
+    public Builder withNamespace(final Namespace namespace) {
       journalBuilder.withNamespace(namespace);
       return this;
     }
@@ -197,7 +197,7 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
      * @return The storage builder.
      * @throws IllegalArgumentException If the {@code maxSegmentSize} is not positive
      */
-    public Builder withMaxSegmentSize(int maxSegmentSize) {
+    public Builder withMaxSegmentSize(final int maxSegmentSize) {
       journalBuilder.withMaxSegmentSize(maxSegmentSize);
       return this;
     }
@@ -209,7 +209,7 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
      * @return the storage builder
      * @throws IllegalArgumentException if the {@code maxEntrySize} is not positive
      */
-    public Builder withMaxEntrySize(int maxEntrySize) {
+    public Builder withMaxEntrySize(final int maxEntrySize) {
       journalBuilder.withMaxEntrySize(maxEntrySize);
       return this;
     }
@@ -232,7 +232,7 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
      * @deprecated since 3.0.2
      */
     @Deprecated
-    public Builder withMaxEntriesPerSegment(int maxEntriesPerSegment) {
+    public Builder withMaxEntriesPerSegment(final int maxEntriesPerSegment) {
       journalBuilder.withMaxEntriesPerSegment(maxEntriesPerSegment);
       return this;
     }
@@ -248,7 +248,7 @@ public class RaftLog extends DelegatingJournal<RaftLogEntry> {
      *     segment.
      * @return The storage builder.
      */
-    public Builder withFlushOnCommit(boolean flushOnCommit) {
+    public Builder withFlushOnCommit(final boolean flushOnCommit) {
       journalBuilder.withFlushOnCommit(flushOnCommit);
       return this;
     }

@@ -76,22 +76,22 @@ public class HashBasedPrimaryElection
   private final PartitionGroupMembershipEventListener groupMembershipEventListener =
       new PartitionGroupMembershipEventListener() {
         @Override
-        public void event(PartitionGroupMembershipEvent event) {
+        public void event(final PartitionGroupMembershipEvent event) {
           recomputeTerm(event.membership());
         }
 
         @Override
-        public boolean isRelevant(PartitionGroupMembershipEvent event) {
+        public boolean isRelevant(final PartitionGroupMembershipEvent event) {
           return event.membership().group().equals(partitionId.group());
         }
       };
 
   public HashBasedPrimaryElection(
-      PartitionId partitionId,
-      ClusterMembershipService clusterMembershipService,
-      PartitionGroupMembershipService groupMembershipService,
-      ClusterCommunicationService communicationService,
-      ScheduledExecutorService executor) {
+      final PartitionId partitionId,
+      final ClusterMembershipService clusterMembershipService,
+      final PartitionGroupMembershipService groupMembershipService,
+      final ClusterCommunicationService communicationService,
+      final ScheduledExecutorService executor) {
     this.partitionId = partitionId;
     this.clusterMembershipService = clusterMembershipService;
     this.groupMembershipService = groupMembershipService;
@@ -108,7 +108,7 @@ public class HashBasedPrimaryElection
   }
 
   @Override
-  public CompletableFuture<PrimaryTerm> enter(GroupMember member) {
+  public CompletableFuture<PrimaryTerm> enter(final GroupMember member) {
     return CompletableFuture.completedFuture(currentTerm);
   }
 
@@ -118,7 +118,7 @@ public class HashBasedPrimaryElection
   }
 
   /** Handles a cluster membership event. */
-  private void handleClusterMembershipEvent(ClusterMembershipEvent event) {
+  private void handleClusterMembershipEvent(final ClusterMembershipEvent event) {
     if (event.type() == ClusterMembershipEvent.Type.MEMBER_ADDED
         || event.type() == ClusterMembershipEvent.Type.MEMBER_REMOVED) {
       recomputeTerm(groupMembershipService.getMembership(partitionId.group()));
@@ -147,8 +147,8 @@ public class HashBasedPrimaryElection
     return currentTerm();
   }
 
-  private void updateCounters(Map<MemberId, Integer> counters) {
-    for (Map.Entry<MemberId, Integer> entry : counters.entrySet()) {
+  private void updateCounters(final Map<MemberId, Integer> counters) {
+    for (final Map.Entry<MemberId, Integer> entry : counters.entrySet()) {
       this.counters.compute(
           entry.getKey(),
           (key, value) -> {
@@ -165,22 +165,22 @@ public class HashBasedPrimaryElection
     communicationService.broadcast(subject, counters, SERIALIZER::encode);
   }
 
-  private void updateTerm(long term) {
+  private void updateTerm(final long term) {
     if (term > currentTerm.term()) {
       recomputeTerm(groupMembershipService.getMembership(partitionId.group()));
     }
   }
 
   /** Recomputes the current term. */
-  private synchronized void recomputeTerm(PartitionGroupMembership membership) {
+  private synchronized void recomputeTerm(final PartitionGroupMembership membership) {
     if (membership == null) {
       return;
     }
 
     // Create a list of candidates based on the availability of members in the group.
     List<GroupMember> candidates = new ArrayList<>();
-    for (MemberId memberId : membership.members()) {
-      Member member = clusterMembershipService.getMember(memberId);
+    for (final MemberId memberId : membership.members()) {
+      final Member member = clusterMembershipService.getMember(memberId);
       if (member != null && member.isReachable()) {
         candidates.add(new GroupMember(memberId, MemberGroupId.from(memberId.id())));
       }
@@ -189,20 +189,20 @@ public class HashBasedPrimaryElection
     // Sort the candidates by a hash of their member ID.
     candidates.sort(
         (a, b) -> {
-          int aoffset =
+          final int aoffset =
               Hashing.murmur3_32().hashString(a.memberId().id(), StandardCharsets.UTF_8).asInt()
                   % partitionId.id();
-          int boffset =
+          final int boffset =
               Hashing.murmur3_32().hashString(b.memberId().id(), StandardCharsets.UTF_8).asInt()
                   % partitionId.id();
           return aoffset - boffset;
         });
 
     // Store the current term in a local variable avoid repeated volatile reads.
-    PrimaryTerm currentTerm = this.currentTerm;
+    final PrimaryTerm currentTerm = this.currentTerm;
 
     // Compute the primary from the sorted candidates list.
-    GroupMember primary = candidates.isEmpty() ? null : candidates.get(0);
+    final GroupMember primary = candidates.isEmpty() ? null : candidates.get(0);
 
     // Remove the primary from the candidates list.
     candidates =
@@ -210,7 +210,7 @@ public class HashBasedPrimaryElection
 
     // If the primary has changed, increment the term. Otherwise, use the current term from the
     // replicated counter.
-    long term =
+    final long term =
         currentTerm != null
                 && Objects.equals(currentTerm.primary(), primary)
                 && Objects.equals(currentTerm.candidates(), candidates)
@@ -218,7 +218,7 @@ public class HashBasedPrimaryElection
             : incrementTerm();
 
     // Create the new primary term. If the term has changed update the term and trigger an event.
-    PrimaryTerm newTerm = new PrimaryTerm(term, primary, candidates);
+    final PrimaryTerm newTerm = new PrimaryTerm(term, primary, candidates);
     if (!Objects.equals(currentTerm, newTerm)) {
       this.currentTerm = newTerm;
       LOGGER.debug(

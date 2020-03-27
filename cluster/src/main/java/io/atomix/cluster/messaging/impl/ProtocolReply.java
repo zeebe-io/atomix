@@ -40,7 +40,7 @@ public final class ProtocolReply extends ProtocolMessage {
 
     private final int id;
 
-    Status(int id) {
+    Status(final int id) {
       this.id = id;
     }
 
@@ -59,7 +59,7 @@ public final class ProtocolReply extends ProtocolMessage {
      * @param id the status ID.
      * @return the status enum for the given ID.
      */
-    public static Status forId(int id) {
+    public static Status forId(final int id) {
       switch (id) {
         case 0:
           return OK;
@@ -77,7 +77,7 @@ public final class ProtocolReply extends ProtocolMessage {
 
   private final Status status;
 
-  public ProtocolReply(long id, byte[] payload, Status status) {
+  public ProtocolReply(final long id, final byte[] payload, final Status status) {
     super(id, payload);
     this.status = status;
   }

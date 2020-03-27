@@ -27,7 +27,7 @@ public interface OperationId extends Identifier<String> {
    * @param id the command identifier
    * @return the operation identifier
    */
-  static OperationId command(String id) {
+  static OperationId command(final String id) {
     return from(id, OperationType.COMMAND);
   }
 
@@ -37,7 +37,7 @@ public interface OperationId extends Identifier<String> {
    * @param id the query identifier
    * @return the operation identifier
    */
-  static OperationId query(String id) {
+  static OperationId query(final String id) {
     return from(id, OperationType.QUERY);
   }
 
@@ -48,7 +48,7 @@ public interface OperationId extends Identifier<String> {
    * @param type the operation type
    * @return the operation identifier
    */
-  static OperationId from(String id, OperationType type) {
+  static OperationId from(final String id, final OperationType type) {
     return new DefaultOperationId(id, type);
   }
 
@@ -58,7 +58,7 @@ public interface OperationId extends Identifier<String> {
    * @param operationId the operation identifier to simplify
    * @return the simplified operation identifier
    */
-  static OperationId simplify(OperationId operationId) {
+  static OperationId simplify(final OperationId operationId) {
     return new DefaultOperationId(operationId.id(), operationId.type());
   }
 

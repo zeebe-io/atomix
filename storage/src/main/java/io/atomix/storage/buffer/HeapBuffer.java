@@ -48,7 +48,7 @@ public class HeapBuffer extends ByteBufferBuffer {
    * @see HeapBuffer#allocate()
    * @see HeapBuffer#allocate(int, int)
    */
-  public static HeapBuffer allocate(int initialCapacity) {
+  public static HeapBuffer allocate(final int initialCapacity) {
     return allocate(initialCapacity, MAX_SIZE);
   }
 
@@ -63,7 +63,7 @@ public class HeapBuffer extends ByteBufferBuffer {
    * @see HeapBuffer#allocate()
    * @see HeapBuffer#allocate(int)
    */
-  public static HeapBuffer allocate(int initialCapacity, int maxCapacity) {
+  public static HeapBuffer allocate(final int initialCapacity, final int maxCapacity) {
     checkArgument(
         initialCapacity <= maxCapacity, "initial capacity cannot be greater than maximum capacity");
     return new HeapBuffer(
@@ -82,13 +82,13 @@ public class HeapBuffer extends ByteBufferBuffer {
    * @param bytes The bytes to wrap.
    * @return The wrapped bytes.
    */
-  public static HeapBuffer wrap(byte[] bytes) {
+  public static HeapBuffer wrap(final byte[] bytes) {
     return new HeapBuffer(HeapBytes.wrap(bytes), 0, bytes.length, bytes.length);
   }
 
   private final HeapBytes bytes;
 
-  protected HeapBuffer(HeapBytes bytes, int offset, int initialCapacity, int maxCapacity) {
+  protected HeapBuffer(final HeapBytes bytes, final int offset, final int initialCapacity, final int maxCapacity) {
     super(bytes, offset, initialCapacity, maxCapacity, null);
     this.bytes = bytes;
   }

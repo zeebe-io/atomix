@@ -47,7 +47,7 @@ public class MappedBytes extends ByteBufferBytes {
    * @throws IllegalArgumentException If {@code count} is greater than {@link MappedBytes#MAX_SIZE}
    * @see #allocate(File, FileChannel.MapMode, int)
    */
-  public static MappedBytes allocate(File file, int size) {
+  public static MappedBytes allocate(final File file, final int size) {
     return allocate(file, FileChannel.MapMode.READ_WRITE, size);
   }
 
@@ -67,7 +67,7 @@ public class MappedBytes extends ByteBufferBytes {
    * @throws IllegalArgumentException If {@code count} is greater than {@link Integer#MAX_VALUE}
    * @see #allocate(File, int)
    */
-  public static MappedBytes allocate(File file, FileChannel.MapMode mode, int size) {
+  public static MappedBytes allocate(final File file, final FileChannel.MapMode mode, final int size) {
     return FileBytes.allocate(file, size).map(0, size, mode);
   }
 
@@ -76,10 +76,10 @@ public class MappedBytes extends ByteBufferBytes {
   private final FileChannel.MapMode mode;
 
   protected MappedBytes(
-      File file,
-      RandomAccessFile randomAccessFile,
-      MappedByteBuffer buffer,
-      FileChannel.MapMode mode) {
+      final File file,
+      final RandomAccessFile randomAccessFile,
+      final MappedByteBuffer buffer,
+      final FileChannel.MapMode mode) {
     super(buffer);
     this.file = file;
     this.randomAccessFile = randomAccessFile;
@@ -87,10 +87,10 @@ public class MappedBytes extends ByteBufferBytes {
   }
 
   @Override
-  protected ByteBuffer newByteBuffer(int size) {
+  protected ByteBuffer newByteBuffer(final int size) {
     try {
       return randomAccessFile.getChannel().map(mode, 0, size);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new AtomixIOException(e);
     }
   }
@@ -110,14 +110,14 @@ public class MappedBytes extends ByteBufferBytes {
   public void close() {
     try {
       BufferCleaner.freeBuffer(buffer);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       if (LOGGER.isDebugEnabled()) {
         LOGGER.debug("Failed to unmap direct buffer", e);
       }
     }
     try {
       randomAccessFile.close();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new RuntimeException(e);
     }
     super.close();
@@ -128,12 +128,12 @@ public class MappedBytes extends ByteBufferBytes {
     try {
       close();
       Files.delete(file.toPath());
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new RuntimeException(e);
     }
   }
 
-  private static String parseMode(FileChannel.MapMode mode) {
+  private static String parseMode(final FileChannel.MapMode mode) {
     if (mode == FileChannel.MapMode.READ_ONLY) {
       return "r";
     } else if (mode == FileChannel.MapMode.READ_WRITE) {

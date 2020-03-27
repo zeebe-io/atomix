@@ -43,7 +43,7 @@ public class ClusterMembershipEvent extends AbstractEvent<ClusterMembershipEvent
    * @param type cluster event type
    * @param instance cluster device subject
    */
-  public ClusterMembershipEvent(Type type, Member instance) {
+  public ClusterMembershipEvent(final Type type, final Member instance) {
     super(type, instance);
   }
 
@@ -54,7 +54,7 @@ public class ClusterMembershipEvent extends AbstractEvent<ClusterMembershipEvent
    * @param instance event device subject
    * @param time occurrence time
    */
-  public ClusterMembershipEvent(Type type, Member instance, long time) {
+  public ClusterMembershipEvent(final Type type, final Member instance, final long time) {
     super(type, instance, time);
   }
 
@@ -64,7 +64,7 @@ public class ClusterMembershipEvent extends AbstractEvent<ClusterMembershipEvent
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(final Object obj) {
     if (this == obj) {
       return true;
     }

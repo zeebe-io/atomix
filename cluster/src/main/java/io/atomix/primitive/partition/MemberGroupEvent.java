@@ -27,11 +27,11 @@ public class MemberGroupEvent
     GROUPS_CHANGED
   }
 
-  public MemberGroupEvent(Type type, Collection<MemberGroup> subject) {
+  public MemberGroupEvent(final Type type, final Collection<MemberGroup> subject) {
     super(type, subject);
   }
 
-  public MemberGroupEvent(Type type, Collection<MemberGroup> subject, long time) {
+  public MemberGroupEvent(final Type type, final Collection<MemberGroup> subject, final long time) {
     super(type, subject, time);
   }
 }

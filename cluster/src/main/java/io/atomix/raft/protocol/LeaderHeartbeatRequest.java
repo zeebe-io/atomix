@@ -27,7 +27,7 @@ public class LeaderHeartbeatRequest extends AbstractRaftRequest {
   private final String leader;
   private final long commitIndex;
 
-  public LeaderHeartbeatRequest(long term, String leader, long commitIndex) {
+  public LeaderHeartbeatRequest(final long term, final String leader, final long commitIndex) {
     this.term = term;
     this.leader = leader;
     this.commitIndex = commitIndex;
@@ -75,7 +75,7 @@ public class LeaderHeartbeatRequest extends AbstractRaftRequest {
   }
 
   @Override
-  public boolean equals(Object o) {
+  public boolean equals(final Object o) {
     if (this == o) {
       return true;
     }
@@ -114,7 +114,7 @@ public class LeaderHeartbeatRequest extends AbstractRaftRequest {
      * @return The append request builder.
      * @throws IllegalArgumentException if the {@code term} is not positive
      */
-    public LeaderHeartbeatRequest.Builder withTerm(long term) {
+    public LeaderHeartbeatRequest.Builder withTerm(final long term) {
       checkArgument(term > 0, "term must be positive");
       this.term = term;
       return this;
@@ -127,7 +127,7 @@ public class LeaderHeartbeatRequest extends AbstractRaftRequest {
      * @return The append request builder.
      * @throws IllegalArgumentException if the {@code leader} is not positive
      */
-    public LeaderHeartbeatRequest.Builder withLeader(MemberId leader) {
+    public LeaderHeartbeatRequest.Builder withLeader(final MemberId leader) {
       this.leader = checkNotNull(leader, "leader cannot be null").id();
       return this;
     }
@@ -139,7 +139,7 @@ public class LeaderHeartbeatRequest extends AbstractRaftRequest {
      * @return The append request builder.
      * @throws IllegalArgumentException if index is not positive
      */
-    public LeaderHeartbeatRequest.Builder withCommitIndex(long commitIndex) {
+    public LeaderHeartbeatRequest.Builder withCommitIndex(final long commitIndex) {
       checkArgument(commitIndex >= 0, "commitIndex must be positive");
       this.commitIndex = commitIndex;
       return this;

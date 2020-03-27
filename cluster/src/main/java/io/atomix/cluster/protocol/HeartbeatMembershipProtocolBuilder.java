@@ -27,7 +27,7 @@ public class HeartbeatMembershipProtocolBuilder extends GroupMembershipProtocolB
    * @param heartbeatInterval the failure detection heartbeat interval
    * @return the location provider builder
    */
-  public HeartbeatMembershipProtocolBuilder withHeartbeatInterval(Duration heartbeatInterval) {
+  public HeartbeatMembershipProtocolBuilder withHeartbeatInterval(final Duration heartbeatInterval) {
     config.setHeartbeatInterval(heartbeatInterval);
     return this;
   }
@@ -38,7 +38,7 @@ public class HeartbeatMembershipProtocolBuilder extends GroupMembershipProtocolB
    * @param failureThreshold the phi accrual failure threshold
    * @return the location provider builder
    */
-  public HeartbeatMembershipProtocolBuilder withFailureThreshold(int failureThreshold) {
+  public HeartbeatMembershipProtocolBuilder withFailureThreshold(final int failureThreshold) {
     config.setPhiFailureThreshold(failureThreshold);
     return this;
   }
@@ -49,7 +49,7 @@ public class HeartbeatMembershipProtocolBuilder extends GroupMembershipProtocolB
    * @param failureTimeout the failure timeout
    * @return the location provider builder
    */
-  public HeartbeatMembershipProtocolBuilder withFailureTimeout(Duration failureTimeout) {
+  public HeartbeatMembershipProtocolBuilder withFailureTimeout(final Duration failureTimeout) {
     config.setFailureTimeout(failureTimeout);
     return this;
   }

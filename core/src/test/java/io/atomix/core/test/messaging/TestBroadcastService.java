@@ -31,15 +31,15 @@ public class TestBroadcastService implements ManagedBroadcastService {
   private final Map<String, Set<Consumer<byte[]>>> listeners = Maps.newConcurrentMap();
   private final AtomicBoolean started = new AtomicBoolean();
 
-  public TestBroadcastService(Set<TestBroadcastService> services) {
+  public TestBroadcastService(final Set<TestBroadcastService> services) {
     this.services = services;
   }
 
   @Override
-  public void broadcast(String subject, byte[] message) {
+  public void broadcast(final String subject, final byte[] message) {
     services.forEach(
         service -> {
-          Set<Consumer<byte[]>> listeners = service.listeners.get(subject);
+          final Set<Consumer<byte[]>> listeners = service.listeners.get(subject);
           if (listeners != null) {
             listeners.forEach(
                 listener -> {
@@ -50,13 +50,13 @@ public class TestBroadcastService implements ManagedBroadcastService {
   }
 
   @Override
-  public synchronized void addListener(String subject, Consumer<byte[]> listener) {
+  public synchronized void addListener(final String subject, final Consumer<byte[]> listener) {
     listeners.computeIfAbsent(subject, s -> Sets.newCopyOnWriteArraySet()).add(listener);
   }
 
   @Override
-  public synchronized void removeListener(String subject, Consumer<byte[]> listener) {
-    Set<Consumer<byte[]>> listeners = this.listeners.get(subject);
+  public synchronized void removeListener(final String subject, final Consumer<byte[]> listener) {
+    final Set<Consumer<byte[]>> listeners = this.listeners.get(subject);
     if (listeners != null) {
       listeners.remove(listener);
       if (listeners.isEmpty()) {

@@ -27,7 +27,7 @@ import io.atomix.raft.cluster.RaftMember;
  */
 public class LeaveRequest extends ConfigurationRequest {
 
-  public LeaveRequest(RaftMember member) {
+  public LeaveRequest(final RaftMember member) {
     super(member);
   }
 

@@ -53,7 +53,7 @@ class MessageDecoderV1 extends AbstractMessageDecoder {
 
   @Override
   @SuppressWarnings("squid:S128") // suppress switch fall through warning
-  protected void decode(ChannelHandlerContext context, ByteBuf buffer, List<Object> out)
+  protected void decode(final ChannelHandlerContext context, final ByteBuf buffer, final List<Object> out)
       throws Exception {
 
     switch (currentState) {
@@ -62,13 +62,13 @@ class MessageDecoderV1 extends AbstractMessageDecoder {
           return;
         }
         buffer.markReaderIndex();
-        int octetsLength = buffer.readByte();
+        final int octetsLength = buffer.readByte();
         if (buffer.readableBytes() < octetsLength) {
           buffer.resetReaderIndex();
           return;
         }
 
-        byte[] octets = new byte[octetsLength];
+        final byte[] octets = new byte[octetsLength];
         buffer.readBytes(octets);
         senderIp = InetAddress.getByAddress(octets);
         currentState = DecoderState.READ_SENDER_PORT;
@@ -88,14 +88,14 @@ class MessageDecoderV1 extends AbstractMessageDecoder {
       case READ_MESSAGE_ID:
         try {
           messageId = readLong(buffer);
-        } catch (Escape e) {
+        } catch (final Escape e) {
           return;
         }
         currentState = DecoderState.READ_CONTENT_LENGTH;
       case READ_CONTENT_LENGTH:
         try {
           contentLength = readInt(buffer);
-        } catch (Escape e) {
+        } catch (final Escape e) {
           return;
         }
         currentState = DecoderState.READ_CONTENT;
@@ -140,7 +140,7 @@ class MessageDecoderV1 extends AbstractMessageDecoder {
               return;
             }
             final String subject = readString(buffer, subjectLength);
-            ProtocolRequest message =
+            final ProtocolRequest message =
                 new ProtocolRequest(messageId, senderAddress, subject, content);
             out.add(message);
             currentState = DecoderState.READ_TYPE;
@@ -155,8 +155,8 @@ class MessageDecoderV1 extends AbstractMessageDecoder {
             if (buffer.readableBytes() < Byte.BYTES) {
               return;
             }
-            ProtocolReply.Status status = ProtocolReply.Status.forId(buffer.readByte());
-            ProtocolReply message = new ProtocolReply(messageId, content, status);
+            final ProtocolReply.Status status = ProtocolReply.Status.forId(buffer.readByte());
+            final ProtocolReply message = new ProtocolReply(messageId, content, status);
             out.add(message);
             currentState = DecoderState.READ_TYPE;
             break;

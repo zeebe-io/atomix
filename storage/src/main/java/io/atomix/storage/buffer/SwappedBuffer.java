@@ -26,17 +26,17 @@ import java.nio.ByteOrder;
 public class SwappedBuffer extends AbstractBuffer {
   private final Buffer root;
 
-  SwappedBuffer(Buffer root, Bytes bytes, ReferenceManager<Buffer> referenceManager) {
+  SwappedBuffer(final Buffer root, final Bytes bytes, final ReferenceManager<Buffer> referenceManager) {
     super(bytes, referenceManager);
     this.root = root;
   }
 
   public SwappedBuffer(
-      Buffer buffer,
-      int offset,
-      int initialCapacity,
-      int maxCapacity,
-      ReferenceManager<Buffer> referenceManager) {
+      final Buffer buffer,
+      final int offset,
+      final int initialCapacity,
+      final int maxCapacity,
+      final ReferenceManager<Buffer> referenceManager) {
     super(
         buffer
             .bytes()
@@ -77,7 +77,7 @@ public class SwappedBuffer extends AbstractBuffer {
   }
 
   @Override
-  protected void compact(int from, int to, int length) {
+  protected void compact(final int from, final int to, final int length) {
     if (root instanceof AbstractBuffer) {
       ((AbstractBuffer) root).compact(from, to, length);
     }

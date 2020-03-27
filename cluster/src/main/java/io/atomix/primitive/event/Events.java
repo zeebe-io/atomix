@@ -28,10 +28,10 @@ public final class Events {
    * @param serviceInterface the client service interface
    * @return the events provided by the given service interface
    */
-  public static Map<Method, EventType> getMethodMap(Class<?> serviceInterface) {
+  public static Map<Method, EventType> getMethodMap(final Class<?> serviceInterface) {
     if (!serviceInterface.isInterface()) {
-      Map<Method, EventType> events = new HashMap<>();
-      for (Class<?> iface : serviceInterface.getInterfaces()) {
+      final Map<Method, EventType> events = new HashMap<>();
+      for (final Class<?> iface : serviceInterface.getInterfaces()) {
         events.putAll(findMethods(iface));
       }
       return events;
@@ -45,16 +45,16 @@ public final class Events {
    * @param type the type for which to find events
    * @return the events defined by the given type and its parent interfaces
    */
-  private static Map<Method, EventType> findMethods(Class<?> type) {
-    Map<Method, EventType> events = new HashMap<>();
-    for (Method method : type.getDeclaredMethods()) {
-      Event event = method.getAnnotation(Event.class);
+  private static Map<Method, EventType> findMethods(final Class<?> type) {
+    final Map<Method, EventType> events = new HashMap<>();
+    for (final Method method : type.getDeclaredMethods()) {
+      final Event event = method.getAnnotation(Event.class);
       if (event != null) {
-        String name = event.value().equals("") ? method.getName() : event.value();
+        final String name = event.value().equals("") ? method.getName() : event.value();
         events.put(method, EventType.from(name));
       }
     }
-    for (Class<?> iface : type.getInterfaces()) {
+    for (final Class<?> iface : type.getInterfaces()) {
       events.putAll(findMethods(iface));
     }
     return events;
@@ -66,12 +66,12 @@ public final class Events {
    * @param serviceInterface the service interface
    * @return the events provided by the given service interface
    */
-  public static Map<EventType, Method> getEventMap(Class<?> serviceInterface) {
+  public static Map<EventType, Method> getEventMap(final Class<?> serviceInterface) {
     if (!serviceInterface.isInterface()) {
       Class type = serviceInterface;
-      Map<EventType, Method> events = new HashMap<>();
+      final Map<EventType, Method> events = new HashMap<>();
       while (type != Object.class) {
-        for (Class<?> iface : type.getInterfaces()) {
+        for (final Class<?> iface : type.getInterfaces()) {
           events.putAll(findEvents(iface));
         }
         type = type.getSuperclass();
@@ -87,16 +87,16 @@ public final class Events {
    * @param type the type for which to find events
    * @return the events defined by the given type and its parent interfaces
    */
-  private static Map<EventType, Method> findEvents(Class<?> type) {
-    Map<EventType, Method> events = new HashMap<>();
-    for (Method method : type.getDeclaredMethods()) {
-      Event event = method.getAnnotation(Event.class);
+  private static Map<EventType, Method> findEvents(final Class<?> type) {
+    final Map<EventType, Method> events = new HashMap<>();
+    for (final Method method : type.getDeclaredMethods()) {
+      final Event event = method.getAnnotation(Event.class);
       if (event != null) {
-        String name = event.value().equals("") ? method.getName() : event.value();
+        final String name = event.value().equals("") ? method.getName() : event.value();
         events.put(EventType.from(name), method);
       }
     }
-    for (Class<?> iface : type.getInterfaces()) {
+    for (final Class<?> iface : type.getInterfaces()) {
       events.putAll(findEvents(iface));
     }
     return events;

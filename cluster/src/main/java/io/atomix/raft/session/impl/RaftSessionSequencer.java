@@ -71,7 +71,7 @@ final class RaftSessionSequencer {
   private final Queue<EventCallback> eventCallbacks = new ArrayDeque<>();
   private final Map<Long, ResponseCallback> responseCallbacks = new HashMap<>();
 
-  RaftSessionSequencer(RaftSessionState state) {
+  RaftSessionSequencer(final RaftSessionState state) {
     this.state = state;
     this.log =
         ContextualLoggerFactory.getLogger(
@@ -104,7 +104,7 @@ final class RaftSessionSequencer {
    * @param request The publish request.
    * @param callback The callback to sequence.
    */
-  public void sequenceEvent(PublishRequest request, Runnable callback) {
+  public void sequenceEvent(final PublishRequest request, final Runnable callback) {
     if (requestSequence == responseSequence) {
       log.trace("Completing {}", request);
       callback.run();
@@ -144,7 +144,7 @@ final class RaftSessionSequencer {
   }
 
   /** Completes a sequenced response if possible. */
-  private boolean completeResponse(OperationResponse response, Runnable callback) {
+  private boolean completeResponse(final OperationResponse response, final Runnable callback) {
     // If the response is null, that indicates an exception occurred. The best we can do is complete
     // the response in sequential order.
     if (response == null) {
@@ -199,7 +199,7 @@ final class RaftSessionSequencer {
    * @param response The response to sequence.
    * @param callback The callback to sequence.
    */
-  public void sequenceResponse(long sequence, OperationResponse response, Runnable callback) {
+  public void sequenceResponse(final long sequence, final OperationResponse response, final Runnable callback) {
     // If the request sequence number is equal to the next response sequence number, attempt to
     // complete the response.
     if (sequence == responseSequence + 1) {
@@ -223,7 +223,7 @@ final class RaftSessionSequencer {
     private final OperationResponse response;
     private final Runnable callback;
 
-    private ResponseCallback(OperationResponse response, Runnable callback) {
+    private ResponseCallback(final OperationResponse response, final Runnable callback) {
       this.response = response;
       this.callback = callback;
     }
@@ -240,7 +240,7 @@ final class RaftSessionSequencer {
     private final PublishRequest request;
     private final Runnable callback;
 
-    private EventCallback(PublishRequest request, Runnable callback) {
+    private EventCallback(final PublishRequest request, final Runnable callback) {
       this.request = request;
       this.callback = callback;
     }

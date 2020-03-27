@@ -24,7 +24,7 @@ public abstract class TimestampedEntry extends RaftLogEntry {
 
   protected final long timestamp;
 
-  public TimestampedEntry(long term, long timestamp) {
+  public TimestampedEntry(final long term, final long timestamp) {
     super(term);
     this.timestamp = timestamp;
   }

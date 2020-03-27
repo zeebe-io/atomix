@@ -28,7 +28,7 @@ public class DefaultConfigService implements ConfigService {
   private final Map<String, PrimitiveConfig> configs = Maps.newConcurrentMap();
 
   public DefaultConfigService(
-      Collection<PrimitiveConfig> defaultConfigs, Collection<PrimitiveConfig> configs) {
+      final Collection<PrimitiveConfig> defaultConfigs, final Collection<PrimitiveConfig> configs) {
     defaultConfigs.forEach(
         config -> this.defaultConfigs.put(((PrimitiveType) config.getType()).name(), config));
     configs.forEach(config -> this.configs.put(config.getName(), config));
@@ -37,7 +37,7 @@ public class DefaultConfigService implements ConfigService {
   @Override
   @SuppressWarnings("unchecked")
   public <C extends PrimitiveConfig<C>> C getConfig(
-      String primitiveName, PrimitiveType primitiveType) {
+      final String primitiveName, final PrimitiveType primitiveType) {
     C config = (C) configs.get(primitiveName);
     if (config != null) {
       return config;

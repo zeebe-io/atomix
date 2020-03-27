@@ -24,15 +24,15 @@ final class RemoteServerConnection extends AbstractServerConnection {
 
   private final Channel channel;
 
-  RemoteServerConnection(HandlerRegistry handlers, Channel channel) {
+  RemoteServerConnection(final HandlerRegistry handlers, final Channel channel) {
     super(handlers);
     this.channel = channel;
   }
 
   @Override
   public void reply(
-      ProtocolRequest message, ProtocolReply.Status status, Optional<byte[]> payload) {
-    ProtocolReply response = new ProtocolReply(message.id(), payload.orElse(EMPTY_PAYLOAD), status);
+      final ProtocolRequest message, final ProtocolReply.Status status, final Optional<byte[]> payload) {
+    final ProtocolReply response = new ProtocolReply(message.id(), payload.orElse(EMPTY_PAYLOAD), status);
     channel.writeAndFlush(response, channel.voidPromise());
   }
 }

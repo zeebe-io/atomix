@@ -37,7 +37,7 @@ public interface AtomixRegistry {
    * @param classLoader the registry class loader
    * @return the registry instance
    */
-  static AtomixRegistry registry(ClassLoader classLoader) {
+  static AtomixRegistry registry(final ClassLoader classLoader) {
     return ClasspathScanningRegistry.builder().withClassLoader(classLoader).build();
   }
 

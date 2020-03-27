@@ -21,12 +21,12 @@ import java.net.InetAddress;
 
 /** V1 message encoder. */
 class MessageEncoderV1 extends AbstractMessageEncoder {
-  MessageEncoderV1(Address address) {
+  MessageEncoderV1(final Address address) {
     super(address);
   }
 
   @Override
-  protected void encodeAddress(ProtocolMessage message, ByteBuf buffer) {
+  protected void encodeAddress(final ProtocolMessage message, final ByteBuf buffer) {
     final InetAddress senderIp = address.address();
     final byte[] senderIpBytes = senderIp.getAddress();
     buffer.writeByte(senderIpBytes.length);
@@ -35,7 +35,7 @@ class MessageEncoderV1 extends AbstractMessageEncoder {
   }
 
   @Override
-  protected void encodeMessage(ProtocolMessage message, ByteBuf buffer) {
+  protected void encodeMessage(final ProtocolMessage message, final ByteBuf buffer) {
     buffer.writeByte(message.type().id());
     writeLong(buffer, message.id());
 
@@ -45,12 +45,12 @@ class MessageEncoderV1 extends AbstractMessageEncoder {
   }
 
   @Override
-  protected void encodeRequest(ProtocolRequest request, ByteBuf out) {
+  protected void encodeRequest(final ProtocolRequest request, final ByteBuf out) {
     writeString(out, request.subject());
   }
 
   @Override
-  protected void encodeReply(ProtocolReply reply, ByteBuf out) {
+  protected void encodeReply(final ProtocolReply reply, final ByteBuf out) {
     out.writeByte(reply.status().id());
   }
 }

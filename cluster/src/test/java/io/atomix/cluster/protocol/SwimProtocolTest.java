@@ -70,7 +70,7 @@ public class SwimProtocolTest extends ConcurrentTestCase {
   private Map<MemberId, SwimMembershipProtocol> protocols = Maps.newConcurrentMap();
   private Map<MemberId, TestGroupMembershipEventListener> listeners = Maps.newConcurrentMap();
 
-  private Member member(String id, String host, int port, Version version) {
+  private Member member(final String id, final String host, final int port, final Version version) {
     return new SwimMembershipProtocol.SwimMember(
         MemberId.from(id),
         new Address(host, port),
@@ -181,7 +181,7 @@ public class SwimProtocolTest extends ConcurrentTestCase {
 
     // Stop member 3 and change its version.
     stopProtocol(member3);
-    Member member =
+    final Member member =
         member(member3.id().id(), member3.address().host(), member3.address().port(), version2);
     startProtocol(member);
 
@@ -258,92 +258,92 @@ public class SwimProtocolTest extends ConcurrentTestCase {
     assertEquals(1, protocol3.getMember(member1.id()).properties().get("newProperty"));
   }
 
-  private SwimMembershipProtocol startProtocol(Member member) {
+  private SwimMembershipProtocol startProtocol(final Member member) {
     return startProtocol(member, UnaryOperator.identity());
   }
 
   private SwimMembershipProtocol startProtocol(
-      Member member, UnaryOperator<SwimMembershipProtocolConfig> configurator) {
-    SwimMembershipProtocol protocol =
+      final Member member, final UnaryOperator<SwimMembershipProtocolConfig> configurator) {
+    final SwimMembershipProtocol protocol =
         new SwimMembershipProtocol(
             configurator.apply(
                 new SwimMembershipProtocolConfig().setFailureTimeout(Duration.ofSeconds(2))));
-    TestGroupMembershipEventListener listener = new TestGroupMembershipEventListener();
+    final TestGroupMembershipEventListener listener = new TestGroupMembershipEventListener();
     listeners.put(member.id(), listener);
     protocol.addListener(listener);
-    BootstrapService bootstrap =
+    final BootstrapService bootstrap =
         new TestBootstrapService(
             messagingServiceFactory.newMessagingService(member.address()).start().join(),
             unicastServiceFactory.newUnicastService(member.address()).start().join(),
             broadcastServiceFactory.newBroadcastService().start().join());
-    NodeDiscoveryProvider provider = new BootstrapDiscoveryProvider(nodes);
+    final NodeDiscoveryProvider provider = new BootstrapDiscoveryProvider(nodes);
     provider.join(bootstrap, member).join();
-    NodeDiscoveryService discovery =
+    final NodeDiscoveryService discovery =
         new DefaultNodeDiscoveryService(bootstrap, member, provider).start().join();
     protocol.join(bootstrap, discovery, member).join();
     protocols.put(member.id(), protocol);
     return protocol;
   }
 
-  private void stopProtocol(Member member) {
-    SwimMembershipProtocol protocol = protocols.remove(member.id());
+  private void stopProtocol(final Member member) {
+    final SwimMembershipProtocol protocol = protocols.remove(member.id());
     if (protocol != null) {
       protocol.leave(member).join();
     }
   }
 
-  private void partition(Member member) {
+  private void partition(final Member member) {
     unicastServiceFactory.partition(member.address());
     messagingServiceFactory.partition(member.address());
   }
 
-  private void partition(Member member1, Member member2) {
+  private void partition(final Member member1, final Member member2) {
     unicastServiceFactory.partition(member1.address(), member2.address());
     messagingServiceFactory.partition(member1.address(), member2.address());
   }
 
-  private void heal(Member member) {
+  private void heal(final Member member) {
     unicastServiceFactory.heal(member.address());
     messagingServiceFactory.heal(member.address());
   }
 
-  private void heal(Member member1, Member member2) {
+  private void heal(final Member member1, final Member member2) {
     unicastServiceFactory.heal(member1.address(), member2.address());
     messagingServiceFactory.heal(member1.address(), member2.address());
   }
 
-  private void checkMembers(Member member, Member... members) {
-    SwimMembershipProtocol protocol = protocols.get(member.id());
+  private void checkMembers(final Member member, final Member... members) {
+    final SwimMembershipProtocol protocol = protocols.get(member.id());
     assertEquals(Sets.newHashSet(members), protocol.getMembers());
   }
 
-  private void checkEvents(Member member, GroupMembershipEvent... types)
+  private void checkEvents(final Member member, final GroupMembershipEvent... types)
       throws InterruptedException {
-    Multiset<GroupMembershipEvent> events = HashMultiset.create(Arrays.asList(types));
+    final Multiset<GroupMembershipEvent> events = HashMultiset.create(Arrays.asList(types));
     for (int i = 0; i < types.length; i++) {
-      GroupMembershipEvent event = nextEvent(member);
+      final GroupMembershipEvent event = nextEvent(member);
       if (!events.remove(event)) {
         throw new AssertionError("Unexpected event " + event);
       }
     }
   }
 
-  private void checkEvent(Member member, GroupMembershipEvent.Type type)
+  private void checkEvent(final Member member, final GroupMembershipEvent.Type type)
       throws InterruptedException {
     checkEvent(member, type, null);
   }
 
-  private void checkEvent(Member member, GroupMembershipEvent.Type type, Member value)
+  private void checkEvent(final Member member, final GroupMembershipEvent.Type type, final Member value)
       throws InterruptedException {
-    GroupMembershipEvent event = nextEvent(member);
+    final GroupMembershipEvent event = nextEvent(member);
     assertEquals(type, event.type());
     if (value != null) {
       assertEquals(value, event.member());
     }
   }
 
-  private GroupMembershipEvent nextEvent(Member member) throws InterruptedException {
-    TestGroupMembershipEventListener listener = listeners.get(member.id());
+  private GroupMembershipEvent nextEvent(final Member member) throws InterruptedException {
+    final TestGroupMembershipEventListener listener = listeners.get(member.id());
     return listener != null ? listener.nextEvent() : null;
   }
 
@@ -351,7 +351,7 @@ public class SwimProtocolTest extends ConcurrentTestCase {
     private BlockingQueue<GroupMembershipEvent> queue = new ArrayBlockingQueue<>(10);
 
     @Override
-    public void event(GroupMembershipEvent event) {
+    public void event(final GroupMembershipEvent event) {
       queue.add(event);
     }
 

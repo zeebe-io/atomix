@@ -42,10 +42,10 @@ public class RaftPartitionClient implements PartitionClient, Managed<RaftPartiti
   private RaftClient client;
 
   public RaftPartitionClient(
-      RaftPartition partition,
-      MemberId localMemberId,
-      RaftClientProtocol protocol,
-      ThreadContextFactory threadContextFactory) {
+      final RaftPartition partition,
+      final MemberId localMemberId,
+      final RaftClientProtocol protocol,
+      final ThreadContextFactory threadContextFactory) {
     this.partition = partition;
     this.localMemberId = localMemberId;
     this.protocol = protocol;
@@ -72,7 +72,7 @@ public class RaftPartitionClient implements PartitionClient, Managed<RaftPartiti
 
   @Override
   public RaftSessionClient.Builder sessionBuilder(
-      String primitiveName, PrimitiveType primitiveType, ServiceConfig serviceConfig) {
+      final String primitiveName, final PrimitiveType primitiveType, final ServiceConfig serviceConfig) {
     return client.sessionBuilder(primitiveName, primitiveType, serviceConfig);
   }
 
@@ -104,7 +104,7 @@ public class RaftPartitionClient implements PartitionClient, Managed<RaftPartiti
     return client != null ? client.close() : CompletableFuture.completedFuture(null);
   }
 
-  private RaftClient newRaftClient(RaftClientProtocol protocol) {
+  private RaftClient newRaftClient(final RaftClientProtocol protocol) {
     return RaftClient.builder()
         .withClientId(partition.name())
         .withPartitionId(partition.id())

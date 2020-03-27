@@ -30,7 +30,7 @@ import java.util.function.Consumer;
 public abstract class DelegatingAsyncPrimitive<T extends AsyncPrimitive> implements AsyncPrimitive {
   private final T primitive;
 
-  public DelegatingAsyncPrimitive(T primitive) {
+  public DelegatingAsyncPrimitive(final T primitive) {
     this.primitive = checkNotNull(primitive);
   }
 
@@ -64,12 +64,12 @@ public abstract class DelegatingAsyncPrimitive<T extends AsyncPrimitive> impleme
   }
 
   @Override
-  public void addStateChangeListener(Consumer<PrimitiveState> listener) {
+  public void addStateChangeListener(final Consumer<PrimitiveState> listener) {
     primitive.addStateChangeListener(listener);
   }
 
   @Override
-  public void removeStateChangeListener(Consumer<PrimitiveState> listener) {
+  public void removeStateChangeListener(final Consumer<PrimitiveState> listener) {
     primitive.removeStateChangeListener(listener);
   }
 
@@ -89,7 +89,7 @@ public abstract class DelegatingAsyncPrimitive<T extends AsyncPrimitive> impleme
   }
 
   @Override
-  public boolean equals(Object other) {
+  public boolean equals(final Object other) {
     return other instanceof DelegatingAsyncPrimitive
         && primitive.equals(((DelegatingAsyncPrimitive) other).primitive);
   }

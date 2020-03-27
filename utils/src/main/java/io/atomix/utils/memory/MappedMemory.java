@@ -44,7 +44,7 @@ public class MappedMemory implements Memory {
    * @return The mapped memory.
    * @throws IllegalArgumentException If {@code count} is greater than {@link MappedMemory#MAX_SIZE}
    */
-  public static MappedMemory allocate(File file, int size) {
+  public static MappedMemory allocate(final File file, final int size) {
     return new MappedMemoryAllocator(file).allocate(size);
   }
 
@@ -57,7 +57,7 @@ public class MappedMemory implements Memory {
    * @return The mapped memory.
    * @throws IllegalArgumentException If {@code count} is greater than {@link MappedMemory#MAX_SIZE}
    */
-  public static MappedMemory allocate(File file, FileChannel.MapMode mode, int size) {
+  public static MappedMemory allocate(final File file, final FileChannel.MapMode mode, final int size) {
     if (size > MAX_SIZE) {
       throw new IllegalArgumentException("size cannot be greater than " + MAX_SIZE);
     }
@@ -68,7 +68,7 @@ public class MappedMemory implements Memory {
   private final MappedMemoryAllocator allocator;
   private final int size;
 
-  public MappedMemory(MappedByteBuffer buffer, MappedMemoryAllocator allocator) {
+  public MappedMemory(final MappedByteBuffer buffer, final MappedMemoryAllocator allocator) {
     this.buffer = buffer;
     this.allocator = allocator;
     this.size = buffer.capacity();
@@ -88,7 +88,7 @@ public class MappedMemory implements Memory {
   public void free() {
     try {
       BufferCleaner.freeBuffer(buffer);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       if (LOGGER.isDebugEnabled()) {
         LOGGER.debug("Failed to unmap direct buffer", e);
       }

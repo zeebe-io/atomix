@@ -61,7 +61,7 @@ public interface RaftClient {
    * @param cluster The cluster to which to connect.
    * @return The client builder.
    */
-  static Builder builder(Collection<MemberId> cluster) {
+  static Builder builder(final Collection<MemberId> cluster) {
     return new DefaultRaftClient.Builder(cluster);
   }
 
@@ -75,7 +75,7 @@ public interface RaftClient {
    * @param cluster The cluster to which to connect.
    * @return The client builder.
    */
-  static Builder builder(MemberId... cluster) {
+  static Builder builder(final MemberId... cluster) {
     return builder(Arrays.asList(cluster));
   }
 
@@ -127,7 +127,7 @@ public interface RaftClient {
    * @param members A set of server addresses to which to connect.
    * @return A completable future to be completed once the client is registered.
    */
-  default CompletableFuture<RaftClient> connect(MemberId... members) {
+  default CompletableFuture<RaftClient> connect(final MemberId... members) {
     if (members == null || members.length == 0) {
       return connect();
     } else {
@@ -193,7 +193,7 @@ public interface RaftClient {
         Math.max(Math.min(Runtime.getRuntime().availableProcessors() * 2, 16), 4);
     protected ThreadContextFactory threadContextFactory;
 
-    protected Builder(Collection<MemberId> cluster) {
+    protected Builder(final Collection<MemberId> cluster) {
       this.cluster = checkNotNull(cluster, "cluster cannot be null");
     }
 
@@ -207,7 +207,7 @@ public interface RaftClient {
      * @return The client builder.
      * @throws NullPointerException if {@code clientId} is null
      */
-    public Builder withClientId(String clientId) {
+    public Builder withClientId(final String clientId) {
       this.clientId = checkNotNull(clientId, "clientId cannot be null");
       return this;
     }
@@ -219,7 +219,7 @@ public interface RaftClient {
      * @return The client builder.
      * @throws NullPointerException if {@code partitionId} is null
      */
-    public Builder withPartitionId(PartitionId partitionId) {
+    public Builder withPartitionId(final PartitionId partitionId) {
       this.partitionId = checkNotNull(partitionId, "partitionId cannot be null");
       return this;
     }
@@ -231,7 +231,7 @@ public interface RaftClient {
      * @return The client builder.
      * @throws NullPointerException if {@code memberId} is null
      */
-    public Builder withMemberId(MemberId memberId) {
+    public Builder withMemberId(final MemberId memberId) {
       this.memberId = checkNotNull(memberId, "memberId cannot be null");
       return this;
     }
@@ -243,7 +243,7 @@ public interface RaftClient {
      * @return the client builder
      * @throws NullPointerException if the protocol is null
      */
-    public Builder withProtocol(RaftClientProtocol protocol) {
+    public Builder withProtocol(final RaftClientProtocol protocol) {
       this.protocol = checkNotNull(protocol, "protocol cannot be null");
       return this;
     }
@@ -255,7 +255,7 @@ public interface RaftClient {
      * @return the client builder
      * @throws NullPointerException if the thread model is null
      */
-    public Builder withThreadModel(ThreadModel threadModel) {
+    public Builder withThreadModel(final ThreadModel threadModel) {
       this.threadModel = checkNotNull(threadModel, "threadModel cannot be null");
       return this;
     }
@@ -267,7 +267,7 @@ public interface RaftClient {
      * @return The client builder.
      * @throws IllegalArgumentException if the thread pool size is not positive
      */
-    public Builder withThreadPoolSize(int threadPoolSize) {
+    public Builder withThreadPoolSize(final int threadPoolSize) {
       checkArgument(threadPoolSize > 0, "threadPoolSize must be positive");
       this.threadPoolSize = threadPoolSize;
       return this;
@@ -280,7 +280,7 @@ public interface RaftClient {
      * @return the client builder
      * @throws NullPointerException if the factory is null
      */
-    public Builder withThreadContextFactory(ThreadContextFactory threadContextFactory) {
+    public Builder withThreadContextFactory(final ThreadContextFactory threadContextFactory) {
       this.threadContextFactory =
           checkNotNull(threadContextFactory, "threadContextFactory cannot be null");
       return this;

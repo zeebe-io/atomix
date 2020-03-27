@@ -31,7 +31,7 @@ public abstract class PartitionGroupConfig<C extends PartitionGroupConfig<C>>
 
   @Override
   @SuppressWarnings("unchecked")
-  public C setName(String name) {
+  public C setName(final String name) {
     this.name = name;
     return (C) this;
   }
@@ -52,7 +52,7 @@ public abstract class PartitionGroupConfig<C extends PartitionGroupConfig<C>>
    * @return the partition group configuration
    */
   @SuppressWarnings("unchecked")
-  public C setPartitions(int partitions) {
+  public C setPartitions(final int partitions) {
     this.partitions = partitions;
     return (C) this;
   }

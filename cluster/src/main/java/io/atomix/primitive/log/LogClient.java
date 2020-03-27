@@ -75,7 +75,7 @@ public interface LogClient {
    * @param key the key for which to return the partition
    * @return the partition for the given key
    */
-  default LogSession getPartition(String key) {
+  default LogSession getPartition(final String key) {
     return getPartition(getPartitionId(key));
   }
 

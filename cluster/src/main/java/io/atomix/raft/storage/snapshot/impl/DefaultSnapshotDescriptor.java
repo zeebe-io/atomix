@@ -56,7 +56,7 @@ public final class DefaultSnapshotDescriptor implements AutoCloseable {
   private final int version;
 
   /** @throws NullPointerException if {@code buffer} is null */
-  public DefaultSnapshotDescriptor(Buffer buffer) {
+  public DefaultSnapshotDescriptor(final Buffer buffer) {
     this.buffer = checkNotNull(buffer, "buffer cannot be null");
     this.index = buffer.readLong();
     this.timestamp = buffer.readLong();
@@ -84,7 +84,7 @@ public final class DefaultSnapshotDescriptor implements AutoCloseable {
    * @return The descriptor builder.
    * @throws NullPointerException if {@code buffer} is null
    */
-  public static Builder builder(Buffer buffer) {
+  public static Builder builder(final Buffer buffer) {
     return new Builder(buffer);
   }
 
@@ -126,7 +126,7 @@ public final class DefaultSnapshotDescriptor implements AutoCloseable {
   }
 
   /** Copies the snapshot to a new buffer. */
-  DefaultSnapshotDescriptor copyTo(Buffer buffer) {
+  DefaultSnapshotDescriptor copyTo(final Buffer buffer) {
     this.buffer =
         buffer
             .writeLong(index)
@@ -167,7 +167,7 @@ public final class DefaultSnapshotDescriptor implements AutoCloseable {
 
     private final Buffer buffer;
 
-    private Builder(Buffer buffer) {
+    private Builder(final Buffer buffer) {
       this.buffer = checkNotNull(buffer, "buffer cannot be null");
     }
 
@@ -177,12 +177,12 @@ public final class DefaultSnapshotDescriptor implements AutoCloseable {
      * @param index The snapshot index.
      * @return The snapshot builder.
      */
-    public Builder withIndex(long index) {
+    public Builder withIndex(final long index) {
       buffer.writeLong(INDEX_POSITION, index);
       return this;
     }
 
-    public Builder withTerm(long term) {
+    public Builder withTerm(final long term) {
       buffer.writeLong(TERM_POSITION, term);
       return this;
     }
@@ -193,7 +193,7 @@ public final class DefaultSnapshotDescriptor implements AutoCloseable {
      * @param timestamp The snapshot timestamp.
      * @return The snapshot builder.
      */
-    public Builder withTimestamp(long timestamp) {
+    public Builder withTimestamp(final long timestamp) {
       buffer.writeLong(TIMESTAMP_POSITION, timestamp);
       return this;
     }

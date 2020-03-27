@@ -47,7 +47,7 @@ public abstract class AbstractAtomixTest {
   }
 
   /** Creates an Atomix instance. */
-  protected static AtomixBuilder buildAtomix(int id, Properties properties) {
+  protected static AtomixBuilder buildAtomix(final int id, final Properties properties) {
     return Atomix.builder()
         .withClusterId("test")
         .withMemberId(String.valueOf(id))
@@ -60,8 +60,8 @@ public abstract class AbstractAtomixTest {
 
   /** Creates an Atomix instance. */
   protected static AtomixBuilder buildAtomix(
-      int id, List<Integer> memberIds, Properties properties) {
-    Collection<Node> nodes =
+      final int id, final List<Integer> memberIds, final Properties properties) {
+    final Collection<Node> nodes =
         memberIds.stream()
             .map(
                 memberId ->
@@ -85,28 +85,28 @@ public abstract class AbstractAtomixTest {
   }
 
   /** Creates an Atomix instance. */
-  protected static Atomix createAtomix(int id, List<Integer> bootstrapIds, Profile... profiles) {
+  protected static Atomix createAtomix(final int id, final List<Integer> bootstrapIds, final Profile... profiles) {
     return createAtomix(id, bootstrapIds, new Properties(), profiles);
   }
 
   /** Creates an Atomix instance. */
   protected static Atomix createAtomix(
-      int id, List<Integer> bootstrapIds, Properties properties, Profile... profiles) {
+      final int id, final List<Integer> bootstrapIds, final Properties properties, final Profile... profiles) {
     return createAtomix(id, bootstrapIds, properties, b -> b.withProfiles(profiles).build());
   }
 
   /** Creates an Atomix instance. */
   protected static Atomix createAtomix(
-      int id, List<Integer> bootstrapIds, Function<AtomixBuilder, Atomix> builderFunction) {
+      final int id, final List<Integer> bootstrapIds, final Function<AtomixBuilder, Atomix> builderFunction) {
     return createAtomix(id, bootstrapIds, new Properties(), builderFunction);
   }
 
   /** Creates an Atomix instance. */
   protected static Atomix createAtomix(
-      int id,
-      List<Integer> bootstrapIds,
-      Properties properties,
-      Function<AtomixBuilder, Atomix> builderFunction) {
+      final int id,
+      final List<Integer> bootstrapIds,
+      final Properties properties,
+      final Function<AtomixBuilder, Atomix> builderFunction) {
     return builderFunction.apply(buildAtomix(id, bootstrapIds, properties));
   }
 
@@ -115,34 +115,34 @@ public abstract class AbstractAtomixTest {
     deleteData();
   }
 
-  protected static int findAvailablePort(int defaultPort) {
+  protected static int findAvailablePort(final int defaultPort) {
     try {
-      ServerSocket socket = new ServerSocket(0);
+      final ServerSocket socket = new ServerSocket(0);
       socket.setReuseAddress(true);
-      int port = socket.getLocalPort();
+      final int port = socket.getLocalPort();
       socket.close();
       return port;
-    } catch (IOException ex) {
+    } catch (final IOException ex) {
       return defaultPort;
     }
   }
 
   /** Deletes data from the test data directory. */
   protected static void deleteData() throws Exception {
-    Path directory = DATA_DIR.toPath();
+    final Path directory = DATA_DIR.toPath();
     if (Files.exists(directory)) {
       Files.walkFileTree(
           directory,
           new SimpleFileVisitor<Path>() {
             @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs)
                 throws IOException {
               Files.delete(file);
               return FileVisitResult.CONTINUE;
             }
 
             @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException exc)
+            public FileVisitResult postVisitDirectory(final Path dir, final IOException exc)
                 throws IOException {
               Files.delete(dir);
               return FileVisitResult.CONTINUE;

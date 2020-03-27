@@ -33,16 +33,16 @@ public class ImmutableMapSerializer extends Serializer<ImmutableMap<?, ?>> {
   }
 
   @Override
-  public void write(Kryo kryo, Output output, ImmutableMap<?, ?> object) {
+  public void write(final Kryo kryo, final Output output, final ImmutableMap<?, ?> object) {
     output.writeInt(object.size());
-    for (Entry<?, ?> e : object.entrySet()) {
+    for (final Entry<?, ?> e : object.entrySet()) {
       kryo.writeClassAndObject(output, e.getKey());
       kryo.writeClassAndObject(output, e.getValue());
     }
   }
 
   @Override
-  public ImmutableMap<?, ?> read(Kryo kryo, Input input, Class<ImmutableMap<?, ?>> type) {
+  public ImmutableMap<?, ?> read(final Kryo kryo, final Input input, final Class<ImmutableMap<?, ?>> type) {
     final int size = input.readInt();
     switch (size) {
       case 0:
@@ -51,7 +51,7 @@ public class ImmutableMapSerializer extends Serializer<ImmutableMap<?, ?>> {
         return ImmutableMap.of(kryo.readClassAndObject(input), kryo.readClassAndObject(input));
 
       default:
-        Builder<Object, Object> builder = ImmutableMap.builder();
+        final Builder<Object, Object> builder = ImmutableMap.builder();
         for (int i = 0; i < size; ++i) {
           builder.put(kryo.readClassAndObject(input), kryo.readClassAndObject(input));
         }

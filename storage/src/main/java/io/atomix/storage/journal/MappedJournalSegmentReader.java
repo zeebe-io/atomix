@@ -38,11 +38,11 @@ class MappedJournalSegmentReader<E> implements JournalReader<E> {
   private Indexed<E> nextEntry;
 
   MappedJournalSegmentReader(
-      ByteBuffer buffer,
-      JournalSegment<E> segment,
-      int maxEntrySize,
-      JournalIndex index,
-      Namespace namespace) {
+      final ByteBuffer buffer,
+      final JournalSegment<E> segment,
+      final int maxEntrySize,
+      final JournalIndex index,
+      final Namespace namespace) {
     this.buffer = buffer.slice();
     this.maxEntrySize = maxEntrySize;
     this.index = index;
@@ -82,7 +82,7 @@ class MappedJournalSegmentReader<E> implements JournalReader<E> {
   }
 
   @Override
-  public void reset(long index) {
+  public void reset(final long index) {
     final long firstIndex = segment.index();
     final long lastIndex = segment.lastIndex();
 
@@ -159,25 +159,25 @@ class MappedJournalSegmentReader<E> implements JournalReader<E> {
       }
 
       // Read the checksum of the entry.
-      long checksum = buffer.getInt() & 0xFFFFFFFFL;
+      final long checksum = buffer.getInt() & 0xFFFFFFFFL;
 
       // Compute the checksum for the entry bytes.
       final CRC32 crc32 = new CRC32();
-      ByteBuffer slice = buffer.slice();
+      final ByteBuffer slice = buffer.slice();
       slice.limit(length);
       crc32.update(slice);
 
       // If the stored checksum equals the computed checksum, return the entry.
       if (checksum == crc32.getValue()) {
         slice.rewind();
-        E entry = namespace.deserialize(slice);
+        final E entry = namespace.deserialize(slice);
         nextEntry = new Indexed<>(index, entry, length);
         buffer.position(buffer.position() + length);
       } else {
         buffer.reset();
         nextEntry = null;
       }
-    } catch (BufferUnderflowException e) {
+    } catch (final BufferUnderflowException e) {
       buffer.reset();
       nextEntry = null;
     }

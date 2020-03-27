@@ -76,18 +76,18 @@ public class RaftSession extends AbstractSession {
   private volatile EventHolder currentEventList;
 
   public RaftSession(
-      SessionId sessionId,
-      MemberId member,
-      String name,
-      PrimitiveType primitiveType,
-      ReadConsistency readConsistency,
-      long minTimeout,
-      long maxTimeout,
-      long lastUpdated,
-      Serializer serializer,
-      RaftServiceContext context,
-      RaftContext server,
-      ThreadContextFactory threadContextFactory) {
+      final SessionId sessionId,
+      final MemberId member,
+      final String name,
+      final PrimitiveType primitiveType,
+      final ReadConsistency readConsistency,
+      final long minTimeout,
+      final long maxTimeout,
+      final long lastUpdated,
+      final Serializer serializer,
+      final RaftServiceContext context,
+      final RaftContext server,
+      final ThreadContextFactory threadContextFactory) {
     super(sessionId, name, primitiveType, member, serializer);
     this.readConsistency = readConsistency;
     this.minTimeout = minTimeout;
@@ -144,7 +144,7 @@ public class RaftSession extends AbstractSession {
    * @param timestamp the current timestamp
    * @return indicates whether the session is timed out
    */
-  public boolean isTimedOut(long timestamp) {
+  public boolean isTimedOut(final long timestamp) {
     final long lastUpdated = this.lastUpdated;
     return lastUpdated > 0 && timestamp - lastUpdated > maxTimeout;
   }
@@ -163,7 +163,7 @@ public class RaftSession extends AbstractSession {
    *
    * @param requestSequence The request sequence number.
    */
-  public void resetRequestSequence(long requestSequence) {
+  public void resetRequestSequence(final long requestSequence) {
     // If the request sequence number is less than the applied sequence number, update the request
     // sequence number. This is necessary to ensure that if the local server is a follower that is
     // later elected leader, its sequences are consistent for commands.
@@ -187,7 +187,7 @@ public class RaftSession extends AbstractSession {
    * @param sequence The session sequence number at which to execute the query.
    * @param query The query to execute.
    */
-  public void registerSequenceQuery(long sequence, Runnable query) {
+  public void registerSequenceQuery(final long sequence, final Runnable query) {
     // Add a query to be run once the session's sequence number reaches the given sequence number.
     final List<Runnable> queries =
         this.sequenceQueries.computeIfAbsent(sequence, v -> new LinkedList<Runnable>());
@@ -200,7 +200,7 @@ public class RaftSession extends AbstractSession {
    * @param index The state machine index at which to execute the query.
    * @param query The query to execute.
    */
-  public void registerIndexQuery(long index, Runnable query) {
+  public void registerIndexQuery(final long index, final Runnable query) {
     // Add a query to be run once the session's index reaches the given index.
     final List<Runnable> queries =
         this.indexQueries.computeIfAbsent(index, v -> new LinkedList<>());
@@ -213,7 +213,7 @@ public class RaftSession extends AbstractSession {
    * @param sequence the pending command sequence number
    * @param pendingCommand the pending command to register
    */
-  public void registerCommand(long sequence, PendingCommand pendingCommand) {
+  public void registerCommand(final long sequence, final PendingCommand pendingCommand) {
     pendingCommands.put(sequence, pendingCommand);
   }
 
@@ -223,7 +223,7 @@ public class RaftSession extends AbstractSession {
    * @param sequence the pending command sequence number
    * @return the pending command or {@code null} if no command is pending for this sequence number
    */
-  public PendingCommand getCommand(long sequence) {
+  public PendingCommand getCommand(final long sequence) {
     return pendingCommands.get(sequence);
   }
 
@@ -233,7 +233,7 @@ public class RaftSession extends AbstractSession {
    * @param sequence the pending command sequence number
    * @return the pending command or {@code null} if no command is pending for this sequence number
    */
-  public PendingCommand removeCommand(long sequence) {
+  public PendingCommand removeCommand(final long sequence) {
     return pendingCommands.remove(sequence);
   }
 
@@ -259,7 +259,7 @@ public class RaftSession extends AbstractSession {
    * @param sequence The result sequence number.
    * @param result The result.
    */
-  public void registerResult(long sequence, OperationResult result) {
+  public void registerResult(final long sequence, final OperationResult result) {
     setRequestSequence(sequence);
     results.put(sequence, result);
   }
@@ -269,7 +269,7 @@ public class RaftSession extends AbstractSession {
    *
    * @param requestSequence the current request sequence number
    */
-  public void setRequestSequence(long requestSequence) {
+  public void setRequestSequence(final long requestSequence) {
     this.requestSequence.accumulate(requestSequence);
   }
 
@@ -282,7 +282,7 @@ public class RaftSession extends AbstractSession {
    *
    * @param sequence The sequence to clear.
    */
-  public void clearResults(long sequence) {
+  public void clearResults(final long sequence) {
     if (sequence > commandLowWaterMark) {
       for (long i = commandLowWaterMark + 1; i <= sequence; i++) {
         results.remove(i);
@@ -297,12 +297,12 @@ public class RaftSession extends AbstractSession {
    * @param sequence The response sequence.
    * @return The response.
    */
-  public OperationResult getResult(long sequence) {
+  public OperationResult getResult(final long sequence) {
     return results.get(sequence);
   }
 
   @Override
-  public void publish(PrimitiveEvent event) {
+  public void publish(final PrimitiveEvent event) {
     // Store volatile state in a local variable.
     final State state = this.state;
 
@@ -335,7 +335,7 @@ public class RaftSession extends AbstractSession {
   }
 
   /** Commits events for the given index. */
-  public void commit(long index) {
+  public void commit(final long index) {
     if (currentEventList != null && currentEventList.eventIndex == index) {
       events.add(currentEventList);
       sendEvents(currentEventList);
@@ -349,7 +349,7 @@ public class RaftSession extends AbstractSession {
    *
    * @param index The session index.
    */
-  public void setLastApplied(long index) {
+  public void setLastApplied(final long index) {
     // Query callbacks for this session are added to the indexQueries map to be executed once the
     // required index
     // for the query is reached. For each increment of the index, trigger query callbacks that are
@@ -359,7 +359,7 @@ public class RaftSession extends AbstractSession {
       lastApplied = i;
       final List<Runnable> queries = this.indexQueries.remove(lastApplied);
       if (queries != null) {
-        for (Runnable query : queries) {
+        for (final Runnable query : queries) {
           query.run();
         }
       }
@@ -367,7 +367,7 @@ public class RaftSession extends AbstractSession {
   }
 
   /** Sends an event to the session. */
-  private void sendEvents(EventHolder event) {
+  private void sendEvents(final EventHolder event) {
     // Only send events to the client if this server is the leader.
     if (server.isLeader()) {
       eventExecutor.execute(
@@ -400,7 +400,7 @@ public class RaftSession extends AbstractSession {
    *
    * @param state The session state.
    */
-  private void setState(State state) {
+  private void setState(final State state) {
     if (this.state != state) {
       this.state = state;
       log.debug("State changed: {}", state);
@@ -412,9 +412,9 @@ public class RaftSession extends AbstractSession {
    *
    * @param index The index from which to resend events.
    */
-  public void resendEvents(long index) {
+  public void resendEvents(final long index) {
     clearEvents(index);
-    for (EventHolder event : events) {
+    for (final EventHolder event : events) {
       sendEvents(event);
     }
   }
@@ -424,7 +424,7 @@ public class RaftSession extends AbstractSession {
    *
    * @param index The index to clear.
    */
-  private void clearEvents(long index) {
+  private void clearEvents(final long index) {
     if (index > completeIndex) {
       EventHolder event = events.peek();
       while (event != null && event.eventIndex <= index) {
@@ -454,7 +454,7 @@ public class RaftSession extends AbstractSession {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     return object instanceof Session && ((Session) object).sessionId() == sessionId();
   }
 
@@ -555,14 +555,14 @@ public class RaftSession extends AbstractSession {
    *
    * @param sequence The session operation sequence number.
    */
-  public void setCommandSequence(long sequence) {
+  public void setCommandSequence(final long sequence) {
     // For each increment of the sequence number, trigger query callbacks that are dependent on the
     // specific sequence.
     for (long i = commandSequence + 1; i <= sequence; i++) {
       commandSequence = i;
       final List<Runnable> queries = this.sequenceQueries.remove(commandSequence);
       if (queries != null) {
-        for (Runnable query : queries) {
+        for (final Runnable query : queries) {
           query.run();
         }
       }
@@ -574,7 +574,7 @@ public class RaftSession extends AbstractSession {
    *
    * @param eventIndex the session event index
    */
-  public void setEventIndex(long eventIndex) {
+  public void setEventIndex(final long eventIndex) {
     this.eventIndex = eventIndex;
   }
 
@@ -583,7 +583,7 @@ public class RaftSession extends AbstractSession {
    *
    * @param lastCompleted the last completed index
    */
-  public void setLastCompleted(long lastCompleted) {
+  public void setLastCompleted(final long lastCompleted) {
     this.completeIndex = lastCompleted;
   }
 
@@ -592,7 +592,7 @@ public class RaftSession extends AbstractSession {
    *
    * @param lastUpdated The session timestamp.
    */
-  public void setLastUpdated(long lastUpdated) {
+  public void setLastUpdated(final long lastUpdated) {
     this.lastUpdated = Math.max(this.lastUpdated, lastUpdated);
   }
 
@@ -603,7 +603,7 @@ public class RaftSession extends AbstractSession {
     private final long previousIndex;
     private final List<PrimitiveEvent> events = new LinkedList<>();
 
-    private EventHolder(long eventIndex, long previousIndex) {
+    private EventHolder(final long eventIndex, final long previousIndex) {
       this.eventIndex = eventIndex;
       this.previousIndex = previousIndex;
     }

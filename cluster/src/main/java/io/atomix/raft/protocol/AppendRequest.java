@@ -42,12 +42,12 @@ public class AppendRequest extends AbstractRaftRequest {
   private final long commitIndex;
 
   public AppendRequest(
-      long term,
-      String leader,
-      long prevLogIndex,
-      long prevLogTerm,
-      List<RaftLogEntry> entries,
-      long commitIndex) {
+      final long term,
+      final String leader,
+      final long prevLogIndex,
+      final long prevLogTerm,
+      final List<RaftLogEntry> entries,
+      final long commitIndex) {
     this.term = term;
     this.leader = leader;
     this.prevLogIndex = prevLogIndex;
@@ -125,7 +125,7 @@ public class AppendRequest extends AbstractRaftRequest {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof AppendRequest) {
       final AppendRequest request = (AppendRequest) object;
       return request.term == term
@@ -167,7 +167,7 @@ public class AppendRequest extends AbstractRaftRequest {
      * @return The append request builder.
      * @throws IllegalArgumentException if the {@code term} is not positive
      */
-    public Builder withTerm(long term) {
+    public Builder withTerm(final long term) {
       checkArgument(term > 0, "term must be positive");
       this.term = term;
       return this;
@@ -180,7 +180,7 @@ public class AppendRequest extends AbstractRaftRequest {
      * @return The append request builder.
      * @throws IllegalArgumentException if the {@code leader} is not positive
      */
-    public Builder withLeader(MemberId leader) {
+    public Builder withLeader(final MemberId leader) {
       this.leader = checkNotNull(leader, "leader cannot be null").id();
       return this;
     }
@@ -192,7 +192,7 @@ public class AppendRequest extends AbstractRaftRequest {
      * @return The append request builder.
      * @throws IllegalArgumentException if the {@code index} is not positive
      */
-    public Builder withPrevLogIndex(long prevLogIndex) {
+    public Builder withPrevLogIndex(final long prevLogIndex) {
       checkArgument(prevLogIndex >= 0, "prevLogIndex must be positive");
       this.logIndex = prevLogIndex;
       return this;
@@ -205,7 +205,7 @@ public class AppendRequest extends AbstractRaftRequest {
      * @return The append request builder.
      * @throws IllegalArgumentException if the {@code term} is not positive
      */
-    public Builder withPrevLogTerm(long prevLogTerm) {
+    public Builder withPrevLogTerm(final long prevLogTerm) {
       checkArgument(prevLogTerm >= 0, "prevLogTerm must be positive");
       this.logTerm = prevLogTerm;
       return this;
@@ -218,7 +218,7 @@ public class AppendRequest extends AbstractRaftRequest {
      * @return The append request builder.
      * @throws NullPointerException if {@code entries} is null
      */
-    public Builder withEntries(RaftLogEntry... entries) {
+    public Builder withEntries(final RaftLogEntry... entries) {
       return withEntries(Arrays.asList(checkNotNull(entries, "entries cannot be null")));
     }
 
@@ -230,7 +230,7 @@ public class AppendRequest extends AbstractRaftRequest {
      * @throws NullPointerException if {@code entries} is null
      */
     @SuppressWarnings("unchecked")
-    public Builder withEntries(List<RaftLogEntry> entries) {
+    public Builder withEntries(final List<RaftLogEntry> entries) {
       this.entries = checkNotNull(entries, "entries cannot be null");
       return this;
     }
@@ -242,7 +242,7 @@ public class AppendRequest extends AbstractRaftRequest {
      * @return The request builder.
      * @throws NullPointerException if {@code entry} is {@code null}
      */
-    public Builder addEntry(RaftLogEntry entry) {
+    public Builder addEntry(final RaftLogEntry entry) {
       this.entries.add(checkNotNull(entry, "entry"));
       return this;
     }
@@ -254,7 +254,7 @@ public class AppendRequest extends AbstractRaftRequest {
      * @return The append request builder.
      * @throws IllegalArgumentException if index is not positive
      */
-    public Builder withCommitIndex(long commitIndex) {
+    public Builder withCommitIndex(final long commitIndex) {
       checkArgument(commitIndex >= 0, "commitIndex must be positive");
       this.commitIndex = commitIndex;
       return this;

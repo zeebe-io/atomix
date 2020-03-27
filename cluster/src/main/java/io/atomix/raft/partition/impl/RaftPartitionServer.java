@@ -206,7 +206,7 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
     }
   }
 
-  public void addFailureListener(Runnable failureListener) {
+  public void addFailureListener(final Runnable failureListener) {
     if (server == null) {
       deferredFailureListeners.add(failureListener);
     } else {
@@ -214,7 +214,7 @@ public class RaftPartitionServer implements Managed<RaftPartitionServer> {
     }
   }
 
-  public void removeFailureListener(Runnable failureListener) {
+  public void removeFailureListener(final Runnable failureListener) {
     server.removeFailureListener(failureListener);
   }
 

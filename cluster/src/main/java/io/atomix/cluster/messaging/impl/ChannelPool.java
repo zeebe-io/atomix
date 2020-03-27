@@ -35,7 +35,7 @@ class ChannelPool {
   private final int size;
   private final Map<Address, List<CompletableFuture<Channel>>> channels = Maps.newConcurrentMap();
 
-  ChannelPool(Function<Address, CompletableFuture<Channel>> factory, int size) {
+  ChannelPool(final Function<Address, CompletableFuture<Channel>> factory, final int size) {
     this.factory = factory;
     this.size = size;
   }
@@ -46,15 +46,15 @@ class ChannelPool {
    * @param address the address for which to return the channel pool
    * @return the channel pool for the given address
    */
-  private List<CompletableFuture<Channel>> getChannelPool(Address address) {
-    List<CompletableFuture<Channel>> channelPool = channels.get(address);
+  private List<CompletableFuture<Channel>> getChannelPool(final Address address) {
+    final List<CompletableFuture<Channel>> channelPool = channels.get(address);
     if (channelPool != null) {
       return channelPool;
     }
     return channels.computeIfAbsent(
         address,
         e -> {
-          List<CompletableFuture<Channel>> defaultList = new ArrayList<>(size);
+          final List<CompletableFuture<Channel>> defaultList = new ArrayList<>(size);
           for (int i = 0; i < size; i++) {
             defaultList.add(null);
           }
@@ -68,7 +68,7 @@ class ChannelPool {
    * @param messageType the message type for which to return the channel offset
    * @return the channel offset for the given message type
    */
-  private int getChannelOffset(String messageType) {
+  private int getChannelOffset(final String messageType) {
     return Math.abs(messageType.hashCode() % size);
   }
 
@@ -79,9 +79,9 @@ class ChannelPool {
    * @param messageType the message type for which to get the channel
    * @return a future to be completed with a channel from the pool
    */
-  CompletableFuture<Channel> getChannel(Address address, String messageType) {
-    List<CompletableFuture<Channel>> channelPool = getChannelPool(address);
-    int offset = getChannelOffset(messageType);
+  CompletableFuture<Channel> getChannel(final Address address, final String messageType) {
+    final List<CompletableFuture<Channel>> channelPool = getChannelPool(address);
+    final int offset = getChannelOffset(messageType);
 
     CompletableFuture<Channel> channelFuture = channelPool.get(offset);
     if (channelFuture == null || channelFuture.isCompletedExceptionally()) {

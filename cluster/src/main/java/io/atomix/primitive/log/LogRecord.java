@@ -31,7 +31,7 @@ public class LogRecord {
   private final long timestamp;
   private final byte[] value;
 
-  public LogRecord(long index, long timestamp, byte[] value) {
+  public LogRecord(final long index, final long timestamp, final byte[] value) {
     this.index = index;
     this.timestamp = timestamp;
     this.value = value;

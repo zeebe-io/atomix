@@ -34,32 +34,32 @@ public class DefaultProxyClient<S> extends AbstractProxyClient<S> {
   private final Serializer serializer;
 
   public DefaultProxyClient(
-      String name,
-      PrimitiveType type,
-      PrimitiveProtocol protocol,
-      Class<S> serviceType,
-      Collection<SessionClient> partitions,
-      Partitioner<String> partitioner) {
+      final String name,
+      final PrimitiveType type,
+      final PrimitiveProtocol protocol,
+      final Class<S> serviceType,
+      final Collection<SessionClient> partitions,
+      final Partitioner<String> partitioner) {
     super(name, type, protocol, createSessions(type, serviceType, partitions));
     this.partitioner = checkNotNull(partitioner);
     this.serializer = Serializer.using(type.namespace());
   }
 
   private static <S> Collection<ProxySession<S>> createSessions(
-      PrimitiveType primitiveType, Class<S> serviceType, Collection<SessionClient> partitions) {
-    Serializer serializer = Serializer.using(primitiveType.namespace());
+      final PrimitiveType primitiveType, final Class<S> serviceType, final Collection<SessionClient> partitions) {
+    final Serializer serializer = Serializer.using(primitiveType.namespace());
     return partitions.stream()
         .map(partition -> new DefaultProxySession<>(partition, serviceType, serializer))
         .collect(Collectors.toList());
   }
 
   @Override
-  public PartitionId getPartitionId(String key) {
+  public PartitionId getPartitionId(final String key) {
     return partitioner.partition(key, getPartitionIds());
   }
 
   @Override
-  public PartitionId getPartitionId(Object key) {
+  public PartitionId getPartitionId(final Object key) {
     return partitioner.partition(
         BaseEncoding.base16().encode(serializer.encode(key)), getPartitionIds());
   }

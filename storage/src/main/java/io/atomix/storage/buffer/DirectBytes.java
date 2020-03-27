@@ -28,7 +28,7 @@ public class DirectBytes extends ByteBufferBytes {
    * @throws IllegalArgumentException If {@code count} is greater than the maximum allowed count for
    *     an array on the Java heap - {@code Integer.MAX_VALUE - 5}
    */
-  public static DirectBytes allocate(int size) {
+  public static DirectBytes allocate(final int size) {
     if (size > MAX_SIZE) {
       throw new IllegalArgumentException(
           "size cannot for DirectBytes cannot be greater than " + MAX_SIZE);
@@ -36,12 +36,12 @@ public class DirectBytes extends ByteBufferBytes {
     return new DirectBytes(ByteBuffer.allocateDirect((int) size));
   }
 
-  protected DirectBytes(ByteBuffer buffer) {
+  protected DirectBytes(final ByteBuffer buffer) {
     super(buffer);
   }
 
   @Override
-  protected ByteBuffer newByteBuffer(int size) {
+  protected ByteBuffer newByteBuffer(final int size) {
     return ByteBuffer.allocateDirect((int) size);
   }
 

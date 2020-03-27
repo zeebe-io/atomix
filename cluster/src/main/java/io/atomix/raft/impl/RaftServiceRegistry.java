@@ -32,7 +32,7 @@ public class RaftServiceRegistry implements Iterable<RaftServiceContext> {
    *
    * @param service the service to register
    */
-  public void registerService(RaftServiceContext service) {
+  public void registerService(final RaftServiceContext service) {
     services.put(service.serviceName(), service);
   }
 
@@ -41,7 +41,7 @@ public class RaftServiceRegistry implements Iterable<RaftServiceContext> {
    *
    * @param service the service to unregister
    */
-  public void unregisterService(RaftServiceContext service) {
+  public void unregisterService(final RaftServiceContext service) {
     services.remove(service.serviceName());
   }
 
@@ -51,7 +51,7 @@ public class RaftServiceRegistry implements Iterable<RaftServiceContext> {
    * @param name the service name
    * @return the registered service
    */
-  public RaftServiceContext getService(String name) {
+  public RaftServiceContext getService(final String name) {
     return services.get(name);
   }
 

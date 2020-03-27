@@ -25,7 +25,7 @@ import java.util.Map;
 public class DefaultPartitionGroupTypeRegistry implements PartitionGroupTypeRegistry {
   private final Map<String, PartitionGroup.Type> partitionGroupTypes = Maps.newConcurrentMap();
 
-  public DefaultPartitionGroupTypeRegistry(Collection<PartitionGroup.Type> partitionGroupTypes) {
+  public DefaultPartitionGroupTypeRegistry(final Collection<PartitionGroup.Type> partitionGroupTypes) {
     partitionGroupTypes.forEach(type -> this.partitionGroupTypes.put(type.name(), type));
   }
 
@@ -35,7 +35,7 @@ public class DefaultPartitionGroupTypeRegistry implements PartitionGroupTypeRegi
   }
 
   @Override
-  public PartitionGroup.Type getGroupType(String name) {
+  public PartitionGroup.Type getGroupType(final String name) {
     return partitionGroupTypes.get(name);
   }
 }

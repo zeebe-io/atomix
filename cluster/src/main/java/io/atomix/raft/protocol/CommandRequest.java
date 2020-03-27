@@ -37,7 +37,7 @@ import java.util.Objects;
  */
 public class CommandRequest extends OperationRequest {
 
-  public CommandRequest(long session, long sequence, PrimitiveOperation operation) {
+  public CommandRequest(final long session, final long sequence, final PrimitiveOperation operation) {
     super(session, sequence, operation);
   }
 
@@ -56,7 +56,7 @@ public class CommandRequest extends OperationRequest {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof CommandRequest) {
       final CommandRequest request = (CommandRequest) object;
       return request.session == session

@@ -22,13 +22,13 @@ import java.util.stream.Stream;
 public enum ProtocolVersion {
   V1(1) {
     @Override
-    public MessagingProtocol createProtocol(Address address) {
+    public MessagingProtocol createProtocol(final Address address) {
       return new MessagingProtocolV1(address);
     }
   },
   V2(2) {
     @Override
-    public MessagingProtocol createProtocol(Address address) {
+    public MessagingProtocol createProtocol(final Address address) {
       return new MessagingProtocolV2(address);
     }
   };
@@ -39,7 +39,7 @@ public enum ProtocolVersion {
    * @param version the version number for which to return the protocol version
    * @return the protocol version for the given version number
    */
-  public static ProtocolVersion valueOf(int version) {
+  public static ProtocolVersion valueOf(final int version) {
     return Stream.of(values()).filter(v -> v.version() == version).findFirst().orElse(null);
   }
 
@@ -54,7 +54,7 @@ public enum ProtocolVersion {
 
   private final short version;
 
-  ProtocolVersion(int version) {
+  ProtocolVersion(final int version) {
     this.version = (short) version;
   }
 

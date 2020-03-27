@@ -27,7 +27,7 @@ public interface EventType extends Identifier<String> {
    * @param name the event name
    * @return the event identifier
    */
-  static EventType from(String name) {
+  static EventType from(final String name) {
     return new DefaultEventType(name);
   }
 
@@ -37,7 +37,7 @@ public interface EventType extends Identifier<String> {
    * @param eventType the event type to simplify
    * @return the simplified event type
    */
-  static EventType canonical(EventType eventType) {
+  static EventType canonical(final EventType eventType) {
     return new DefaultEventType(eventType.id());
   }
 

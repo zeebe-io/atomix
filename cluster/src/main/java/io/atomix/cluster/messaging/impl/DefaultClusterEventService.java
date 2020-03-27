@@ -90,20 +90,20 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
   private final AtomicBoolean started = new AtomicBoolean();
 
   public DefaultClusterEventService(
-      ClusterMembershipService membershipService, MessagingService messagingService) {
+      final ClusterMembershipService membershipService, final MessagingService messagingService) {
     this.membershipService = membershipService;
     this.messagingService = messagingService;
     this.localMemberId = membershipService.getLocalMember().id();
   }
 
   @Override
-  public <M> void broadcast(String topic, M message, Function<M, byte[]> encoder) {
-    byte[] payload =
+  public <M> void broadcast(final String topic, final M message, final Function<M, byte[]> encoder) {
+    final byte[] payload =
         SERIALIZER.encode(new InternalMessage(InternalMessage.Type.ALL, encoder.apply(message)));
     getSubscriberNodes(topic)
         .forEach(
             memberId -> {
-              Member member = membershipService.getMember(memberId);
+              final Member member = membershipService.getMember(memberId);
               if (member != null && member.isReachable()) {
                 messagingService.sendAsync(member.address(), topic, payload);
               }
@@ -111,12 +111,12 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
   }
 
   @Override
-  public <M> CompletableFuture<Void> unicast(String topic, M message, Function<M, byte[]> encoder) {
-    MemberId memberId = getNextMemberId(topic);
+  public <M> CompletableFuture<Void> unicast(final String topic, final M message, final Function<M, byte[]> encoder) {
+    final MemberId memberId = getNextMemberId(topic);
     if (memberId != null) {
-      Member member = membershipService.getMember(memberId);
+      final Member member = membershipService.getMember(memberId);
       if (member != null && member.isReachable()) {
-        byte[] payload =
+        final byte[] payload =
             SERIALIZER.encode(
                 new InternalMessage(InternalMessage.Type.DIRECT, encoder.apply(message)));
         return messagingService.sendAsync(member.address(), topic, payload);
@@ -127,16 +127,16 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
 
   @Override
   public <M, R> CompletableFuture<R> send(
-      String topic,
-      M message,
-      Function<M, byte[]> encoder,
-      Function<byte[], R> decoder,
-      Duration timeout) {
-    MemberId memberId = getNextMemberId(topic);
+      final String topic,
+      final M message,
+      final Function<M, byte[]> encoder,
+      final Function<byte[], R> decoder,
+      final Duration timeout) {
+    final MemberId memberId = getNextMemberId(topic);
     if (memberId != null) {
-      Member member = membershipService.getMember(memberId);
+      final Member member = membershipService.getMember(memberId);
       if (member != null && member.isReachable()) {
-        byte[] payload =
+        final byte[] payload =
             SERIALIZER.encode(
                 new InternalMessage(InternalMessage.Type.DIRECT, encoder.apply(message)));
         return messagingService
@@ -153,8 +153,8 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
    * @param topicName the topic for which to return the collection of subscriber nodes
    * @return the collection of subscribers for the given topic
    */
-  private Stream<MemberId> getSubscriberNodes(String topicName) {
-    InternalTopic topic = topics.get(topicName);
+  private Stream<MemberId> getSubscriberNodes(final String topicName) {
+    final InternalTopic topic = topics.get(topicName);
     if (topic == null) {
       return Stream.empty();
     }
@@ -170,13 +170,13 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
    * @param topicName the topic for which to return the next node ID
    * @return the next node ID for the given message topic
    */
-  private MemberId getNextMemberId(String topicName) {
-    InternalTopic topic = topics.get(topicName);
+  private MemberId getNextMemberId(final String topicName) {
+    final InternalTopic topic = topics.get(topicName);
     if (topic == null) {
       return null;
     }
 
-    TopicIterator iterator = topic.iterator();
+    final TopicIterator iterator = topic.iterator();
     if (iterator.hasNext()) {
       return iterator.next().memberId();
     }
@@ -185,11 +185,11 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
 
   @Override
   public <M, R> CompletableFuture<Subscription> subscribe(
-      String topic,
-      Function<byte[], M> decoder,
-      Function<M, R> handler,
-      Function<R, byte[]> encoder,
-      Executor executor) {
+      final String topic,
+      final Function<byte[], M> decoder,
+      final Function<M, R> handler,
+      final Function<R, byte[]> encoder,
+      final Executor executor) {
     return topics
         .computeIfAbsent(topic, t -> new InternalTopic(topic))
         .subscribe(decoder, handler, encoder, executor);
@@ -197,10 +197,10 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
 
   @Override
   public <M, R> CompletableFuture<Subscription> subscribe(
-      String topic,
-      Function<byte[], M> decoder,
-      Function<M, CompletableFuture<R>> handler,
-      Function<R, byte[]> encoder) {
+      final String topic,
+      final Function<byte[], M> decoder,
+      final Function<M, CompletableFuture<R>> handler,
+      final Function<R, byte[]> encoder) {
     return topics
         .computeIfAbsent(topic, t -> new InternalTopic(topic))
         .subscribe(decoder, handler, encoder);
@@ -208,15 +208,15 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
 
   @Override
   public <M> CompletableFuture<Subscription> subscribe(
-      String topic, Function<byte[], M> decoder, Consumer<M> handler, Executor executor) {
+      final String topic, final Function<byte[], M> decoder, final Consumer<M> handler, final Executor executor) {
     return topics
         .computeIfAbsent(topic, t -> new InternalTopic(topic))
         .subscribe(decoder, handler, executor);
   }
 
   @Override
-  public List<Subscription> getSubscriptions(String topicName) {
-    InternalTopic topic = topics.get(topicName);
+  public List<Subscription> getSubscriptions(final String topicName) {
+    final InternalTopic topic = topics.get(topicName);
     if (topic == null) {
       return ImmutableList.of();
     }
@@ -228,10 +228,10 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
    *
    * @param subscriptions a collection of subscriptions provided by the sender
    */
-  private void update(Collection<InternalSubscriptionInfo> subscriptions) {
-    for (InternalSubscriptionInfo subscription : subscriptions) {
-      InternalTopic topic = topics.computeIfAbsent(subscription.topic, InternalTopic::new);
-      InternalSubscriptionInfo matchingSubscription =
+  private void update(final Collection<InternalSubscriptionInfo> subscriptions) {
+    for (final InternalSubscriptionInfo subscription : subscriptions) {
+      final InternalTopic topic = topics.computeIfAbsent(subscription.topic, InternalTopic::new);
+      final InternalSubscriptionInfo matchingSubscription =
           topic.remoteSubscriptions().stream()
               .filter(
                   s ->
@@ -249,7 +249,7 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
 
   /** Sends a gossip message to an active peer. */
   private void gossip() {
-    List<Member> members =
+    final List<Member> members =
         membershipService.getMembers().stream()
             .filter(node -> !localMemberId.equals(node.id()))
             .filter(node -> node.isReachable())
@@ -257,14 +257,14 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
 
     if (!members.isEmpty()) {
       Collections.shuffle(members);
-      Member member = members.get(0);
+      final Member member = members.get(0);
       updateNode(member);
     }
   }
 
   /** Updates all active peers with a given subscription. */
   private CompletableFuture<Void> updateNodes() {
-    List<CompletableFuture<Void>> futures =
+    final List<CompletableFuture<Void>> futures =
         membershipService.getMembers().stream()
             .filter(node -> !localMemberId.equals(node.id()))
             .map(this::updateNode)
@@ -277,11 +277,11 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
    *
    * @param member the node to which to send the update
    */
-  private CompletableFuture<Void> updateNode(Member member) {
-    long updateTime = System.currentTimeMillis();
-    long lastUpdateTime = updateTimes.getOrDefault(member.id(), 0L);
+  private CompletableFuture<Void> updateNode(final Member member) {
+    final long updateTime = System.currentTimeMillis();
+    final long lastUpdateTime = updateTimes.getOrDefault(member.id(), 0L);
 
-    Collection<InternalSubscriptionInfo> subscriptions =
+    final Collection<InternalSubscriptionInfo> subscriptions =
         topics.values().stream()
             .flatMap(
                 t ->
@@ -290,7 +290,7 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
                             subscriber -> subscriber.timestamp().unixTimestamp() >= lastUpdateTime))
             .collect(Collectors.toList());
 
-    CompletableFuture<Void> future = new CompletableFuture<>();
+    final CompletableFuture<Void> future = new CompletableFuture<>();
     messagingService
         .sendAndReceive(member.address(), GOSSIP_MESSAGE_SUBJECT, SERIALIZER.encode(subscriptions))
         .whenComplete(
@@ -305,12 +305,12 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
 
   /** Purges tombstones from the subscription list. */
   private void purgeTombstones() {
-    long minTombstoneTime =
+    final long minTombstoneTime =
         membershipService.getMembers().stream()
             .map(node -> updateTimes.getOrDefault(node.id(), 0L))
             .reduce(Math::min)
             .orElse(0L);
-    for (InternalTopic topic : topics.values()) {
+    for (final InternalTopic topic : topics.values()) {
       topic.purgeTombstones(minTombstoneTime);
     }
   }
@@ -366,7 +366,7 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
     private final Type type;
     private final byte[] payload;
 
-    InternalMessage(Type type, byte[] payload) {
+    InternalMessage(final Type type, final byte[] payload) {
       this.type = type;
       this.payload = payload;
     }
@@ -397,7 +397,7 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
     private final List<InternalSubscriptionInfo> subscriptions = Lists.newCopyOnWriteArrayList();
     private TopicIterator iterator;
 
-    InternalTopic(String topic) {
+    InternalTopic(final String topic) {
       this.topic = topic;
     }
 
@@ -430,20 +430,20 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
 
     /** Subscribes to messages from the topic. */
     <M, R> CompletableFuture<Subscription> subscribe(
-        Function<byte[], M> decoder,
-        Function<M, R> handler,
-        Function<R, byte[]> encoder,
-        Executor executor) {
+        final Function<byte[], M> decoder,
+        final Function<M, R> handler,
+        final Function<R, byte[]> encoder,
+        final Executor executor) {
       return addLocalSubscription(
           new InternalSubscription(
               this,
               payload -> {
-                CompletableFuture<byte[]> future = new CompletableFuture<>();
+                final CompletableFuture<byte[]> future = new CompletableFuture<>();
                 executor.execute(
                     () -> {
                       try {
                         future.complete(encoder.apply(handler.apply(decoder.apply(payload))));
-                      } catch (Exception e) {
+                      } catch (final Exception e) {
                         future.completeExceptionally(e);
                       }
                     });
@@ -453,9 +453,9 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
 
     /** Subscribes to messages from the topic. */
     <M, R> CompletableFuture<Subscription> subscribe(
-        Function<byte[], M> decoder,
-        Function<M, CompletableFuture<R>> handler,
-        Function<R, byte[]> encoder) {
+        final Function<byte[], M> decoder,
+        final Function<M, CompletableFuture<R>> handler,
+        final Function<R, byte[]> encoder) {
       return addLocalSubscription(
           new InternalSubscription(
               this,
@@ -466,7 +466,7 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
 
     /** Subscribes to messages from the topic. */
     <M> CompletableFuture<Subscription> subscribe(
-        Function<byte[], M> decoder, Consumer<M> handler, Executor executor) {
+        final Function<byte[], M> decoder, final Consumer<M> handler, final Executor executor) {
       return addLocalSubscription(
           new InternalSubscription(
               this,
@@ -476,14 +476,14 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
                       final M decoded;
                       try {
                         decoded = decoder.apply(payload);
-                      } catch (RuntimeException e) {
+                      } catch (final RuntimeException e) {
                         LOGGER.error("Failed to decode message payload for topic {}", topic, e);
                         return;
                       }
 
                       try {
                         handler.accept(decoded);
-                      } catch (RuntimeException e) {
+                      } catch (final RuntimeException e) {
                         LOGGER.error("Failed to handle message {} for topic {}", decoded, topic, e);
                       }
                     });
@@ -497,7 +497,7 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
      * @param subscription the subscription to register
      */
     private synchronized CompletableFuture<Subscription> addLocalSubscription(
-        InternalSubscription subscription) {
+        final InternalSubscription subscription) {
       subscribers.add(subscription);
       subscriptions.add(subscription.metadata);
       iterator = new TopicIterator(subscriptions);
@@ -511,7 +511,7 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
      * @param subscription the subscription to unregister
      */
     private synchronized CompletableFuture<Void> removeLocalSubscription(
-        InternalSubscription subscription) {
+        final InternalSubscription subscription) {
       subscribers.remove(subscription);
       subscriptions.remove(subscription.metadata);
       subscriptions.add(subscription.metadata.asTombstone());
@@ -527,7 +527,7 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
      *
      * @param subscription the subscription to add
      */
-    synchronized void addRemoteSubscription(InternalSubscriptionInfo subscription) {
+    synchronized void addRemoteSubscription(final InternalSubscriptionInfo subscription) {
       subscriptions.add(subscription);
       iterator = new TopicIterator(subscriptions);
     }
@@ -537,7 +537,7 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
      *
      * @param subscription the subscription to update
      */
-    synchronized void removeRemoteSubscription(InternalSubscriptionInfo subscription) {
+    synchronized void removeRemoteSubscription(final InternalSubscriptionInfo subscription) {
       subscriptions.remove(subscription);
       subscriptions.add(subscription);
       iterator = new TopicIterator(subscriptions);
@@ -548,8 +548,8 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
      *
      * @param minTombstoneTime the time before which tombstones can be removed
      */
-    synchronized void purgeTombstones(long minTombstoneTime) {
-      int startSize = subscriptions.size();
+    synchronized void purgeTombstones(final long minTombstoneTime) {
+      final int startSize = subscriptions.size();
       subscriptions.removeIf(
           subscription -> {
             return subscription.isTombstone()
@@ -566,8 +566,8 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
     private final AtomicInteger counter = new AtomicInteger();
     private final InternalSubscriptionInfo[] subscribers;
 
-    TopicIterator(List<InternalSubscriptionInfo> subscribers) {
-      List<InternalSubscriptionInfo> filteredSubscribers =
+    TopicIterator(final List<InternalSubscriptionInfo> subscribers) {
+      final List<InternalSubscriptionInfo> filteredSubscribers =
           subscribers.stream().filter(s -> !s.isTombstone()).collect(Collectors.toList());
       Collections.reverse(filteredSubscribers);
       this.subscribers =
@@ -606,20 +606,20 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
      * @return the next subscription
      */
     private InternalSubscription next() {
-      InternalSubscription[] subscriptions = this.subscriptions;
+      final InternalSubscription[] subscriptions = this.subscriptions;
       return subscriptions[counter.incrementAndGet() % subscriptions.length];
     }
 
     @Override
-    public CompletableFuture<byte[]> apply(Address address, byte[] payload) {
-      InternalMessage message = SERIALIZER.decode(payload);
+    public CompletableFuture<byte[]> apply(final Address address, final byte[] payload) {
+      final InternalMessage message = SERIALIZER.decode(payload);
       switch (message.type()) {
         case DIRECT:
-          InternalSubscription subscription = next();
+          final InternalSubscription subscription = next();
           return subscription.callback.apply(message.payload());
         case ALL:
         default:
-          for (InternalSubscription s : subscriptions) {
+          for (final InternalSubscription s : subscriptions) {
             s.callback.apply(message.payload());
           }
           return CompletableFuture.completedFuture(null);
@@ -631,8 +631,8 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
      *
      * @param subscription the subscription to add
      */
-    void add(InternalSubscription subscription) {
-      List<InternalSubscription> subscriptions = new ArrayList<>(this.subscriptions.length + 1);
+    void add(final InternalSubscription subscription) {
+      final List<InternalSubscription> subscriptions = new ArrayList<>(this.subscriptions.length + 1);
       subscriptions.addAll(Arrays.asList(this.subscriptions));
       subscriptions.add(subscription);
       this.subscriptions = subscriptions.toArray(new InternalSubscription[subscriptions.size()]);
@@ -643,8 +643,8 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
      *
      * @param subscription the subscription to remove
      */
-    void remove(InternalSubscription subscription) {
-      List<InternalSubscription> subscriptions = Lists.newArrayList(this.subscriptions);
+    void remove(final InternalSubscription subscription) {
+      final List<InternalSubscription> subscriptions = Lists.newArrayList(this.subscriptions);
       subscriptions.remove(subscription);
       this.subscriptions = subscriptions.toArray(new InternalSubscription[subscriptions.size()]);
     }
@@ -657,7 +657,7 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
     private final Function<byte[], CompletableFuture<byte[]>> callback;
 
     InternalSubscription(
-        InternalTopic topic, Function<byte[], CompletableFuture<byte[]>> callback) {
+        final InternalTopic topic, final Function<byte[], CompletableFuture<byte[]>> callback) {
       this.topic = topic;
       this.metadata =
           new InternalSubscriptionInfo(
@@ -684,12 +684,12 @@ public class DefaultClusterEventService implements ManagedClusterEventService {
     private final boolean tombstone;
     private final WallClockTimestamp timestamp = new WallClockTimestamp();
 
-    InternalSubscriptionInfo(MemberId memberId, String topic, LogicalTimestamp logicalTimestamp) {
+    InternalSubscriptionInfo(final MemberId memberId, final String topic, final LogicalTimestamp logicalTimestamp) {
       this(memberId, topic, logicalTimestamp, false);
     }
 
     InternalSubscriptionInfo(
-        MemberId memberId, String topic, LogicalTimestamp logicalTimestamp, boolean tombstone) {
+        final MemberId memberId, final String topic, final LogicalTimestamp logicalTimestamp, final boolean tombstone) {
       this.memberId = memberId;
       this.topic = topic;
       this.logicalTimestamp = logicalTimestamp;

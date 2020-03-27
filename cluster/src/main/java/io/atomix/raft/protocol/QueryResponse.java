@@ -30,12 +30,12 @@ import io.atomix.raft.RaftError;
 public class QueryResponse extends OperationResponse {
 
   public QueryResponse(
-      Status status,
-      RaftError error,
-      long index,
-      long eventIndex,
-      byte[] result,
-      long lastSequence) {
+      final Status status,
+      final RaftError error,
+      final long index,
+      final long eventIndex,
+      final byte[] result,
+      final long lastSequence) {
     super(status, error, index, eventIndex, result, lastSequence);
   }
 

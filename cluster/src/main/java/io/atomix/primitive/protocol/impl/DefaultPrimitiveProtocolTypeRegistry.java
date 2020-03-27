@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DefaultPrimitiveProtocolTypeRegistry implements PrimitiveProtocolTypeRegistry {
   private final Map<String, PrimitiveProtocol.Type> protocolTypes = new ConcurrentHashMap<>();
 
-  public DefaultPrimitiveProtocolTypeRegistry(Collection<PrimitiveProtocol.Type> protocolTypes) {
+  public DefaultPrimitiveProtocolTypeRegistry(final Collection<PrimitiveProtocol.Type> protocolTypes) {
     protocolTypes.forEach(type -> this.protocolTypes.put(type.name(), type));
   }
 
@@ -35,7 +35,7 @@ public class DefaultPrimitiveProtocolTypeRegistry implements PrimitiveProtocolTy
   }
 
   @Override
-  public PrimitiveProtocol.Type getProtocolType(String type) {
+  public PrimitiveProtocol.Type getProtocolType(final String type) {
     return protocolTypes.get(type);
   }
 }

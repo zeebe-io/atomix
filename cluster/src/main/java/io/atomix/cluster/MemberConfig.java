@@ -42,12 +42,12 @@ public class MemberConfig extends NodeConfig {
    * @param id the member identifier
    * @return the member configuration
    */
-  public MemberConfig setId(String id) {
+  public MemberConfig setId(final String id) {
     return setId(id != null ? MemberId.from(id) : null);
   }
 
   @Override
-  public MemberConfig setId(NodeId id) {
+  public MemberConfig setId(final NodeId id) {
     return setId(id != null ? MemberId.from(id.id()) : null);
   }
 
@@ -57,25 +57,25 @@ public class MemberConfig extends NodeConfig {
    * @param id the member identifier
    * @return the member configuration
    */
-  public MemberConfig setId(MemberId id) {
+  public MemberConfig setId(final MemberId id) {
     this.id = id != null ? id : MemberId.anonymous();
     return this;
   }
 
   @Override
-  public MemberConfig setPort(int port) {
+  public MemberConfig setPort(final int port) {
     super.setPort(port);
     return this;
   }
 
   @Override
-  public MemberConfig setAddress(String address) {
+  public MemberConfig setAddress(final String address) {
     super.setAddress(address);
     return this;
   }
 
   @Override
-  public MemberConfig setAddress(Address address) {
+  public MemberConfig setAddress(final Address address) {
     super.setAddress(address);
     return this;
   }
@@ -95,7 +95,7 @@ public class MemberConfig extends NodeConfig {
    * @param zoneId the member zone
    * @return the member configuration
    */
-  public MemberConfig setZoneId(String zoneId) {
+  public MemberConfig setZoneId(final String zoneId) {
     this.zoneId = zoneId;
     return this;
   }
@@ -106,7 +106,7 @@ public class MemberConfig extends NodeConfig {
    * @param zone the member zone
    * @return the member configuration
    */
-  public MemberConfig setZone(String zone) {
+  public MemberConfig setZone(final String zone) {
     return setZoneId(zone);
   }
 
@@ -125,7 +125,7 @@ public class MemberConfig extends NodeConfig {
    * @param rackId the member rack
    * @return the member configuration
    */
-  public MemberConfig setRackId(String rackId) {
+  public MemberConfig setRackId(final String rackId) {
     this.rackId = rackId;
     return this;
   }
@@ -136,7 +136,7 @@ public class MemberConfig extends NodeConfig {
    * @param rack the member rack
    * @return the member configuration
    */
-  public MemberConfig setRack(String rack) {
+  public MemberConfig setRack(final String rack) {
     return setRackId(rack);
   }
 
@@ -155,13 +155,13 @@ public class MemberConfig extends NodeConfig {
    * @param hostId the member host
    * @return the member configuration
    */
-  public MemberConfig setHostId(String hostId) {
+  public MemberConfig setHostId(final String hostId) {
     this.hostId = hostId;
     return this;
   }
 
   @Override
-  public MemberConfig setHost(String host) {
+  public MemberConfig setHost(final String host) {
     super.setHost(host);
     setHostId(host);
     return this;
@@ -182,8 +182,8 @@ public class MemberConfig extends NodeConfig {
    * @param map the member properties
    * @return the member configuration
    */
-  public MemberConfig setProperties(Map<String, String> map) {
-    Properties properties = new Properties();
+  public MemberConfig setProperties(final Map<String, String> map) {
+    final Properties properties = new Properties();
     properties.putAll(map);
     return setProperties(properties);
   }
@@ -194,7 +194,7 @@ public class MemberConfig extends NodeConfig {
    * @param properties the member properties
    * @return the member configuration
    */
-  public MemberConfig setProperties(Properties properties) {
+  public MemberConfig setProperties(final Properties properties) {
     this.properties = properties;
     return this;
   }
@@ -206,7 +206,7 @@ public class MemberConfig extends NodeConfig {
    * @param value the property value to et
    * @return the member configuration
    */
-  public MemberConfig setProperty(String key, String value) {
+  public MemberConfig setProperty(final String key, final String value) {
     this.properties.put(key, value);
     return this;
   }

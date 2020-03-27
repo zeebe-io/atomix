@@ -41,7 +41,7 @@ public interface MessagingService {
    * @param payload message payload bytes.
    * @return future that is completed when the message is sent
    */
-  default CompletableFuture<Void> sendAsync(Address address, String type, byte[] payload) {
+  default CompletableFuture<Void> sendAsync(final Address address, final String type, final byte[] payload) {
     return sendAsync(address, type, payload, true);
   }
 
@@ -66,7 +66,7 @@ public interface MessagingService {
    * @param payload message payload.
    * @return a response future
    */
-  default CompletableFuture<byte[]> sendAndReceive(Address address, String type, byte[] payload) {
+  default CompletableFuture<byte[]> sendAndReceive(final Address address, final String type, final byte[] payload) {
     return sendAndReceive(address, type, payload, true);
   }
 
@@ -92,7 +92,7 @@ public interface MessagingService {
    * @return a response future
    */
   default CompletableFuture<byte[]> sendAndReceive(
-      Address address, String type, byte[] payload, Executor executor) {
+      final Address address, final String type, final byte[] payload, final Executor executor) {
     return sendAndReceive(address, type, payload, true, executor);
   }
 
@@ -119,7 +119,7 @@ public interface MessagingService {
    * @return a response future
    */
   default CompletableFuture<byte[]> sendAndReceive(
-      Address address, String type, byte[] payload, Duration timeout) {
+      final Address address, final String type, final byte[] payload, final Duration timeout) {
     return sendAndReceive(address, type, payload, true, timeout);
   }
 
@@ -147,7 +147,7 @@ public interface MessagingService {
    * @return a response future
    */
   default CompletableFuture<byte[]> sendAndReceive(
-      Address address, String type, byte[] payload, Duration timeout, Executor executor) {
+      final Address address, final String type, final byte[] payload, final Duration timeout, final Executor executor) {
     return sendAndReceive(address, type, payload, true, timeout, executor);
   }
 

@@ -26,9 +26,9 @@ public class PolymorphicTypeMapper {
   private final Class<? extends ConfiguredType> typeClass;
 
   public PolymorphicTypeMapper(
-      String typePath,
-      Class<? extends TypedConfig> configClass,
-      Class<? extends ConfiguredType> typeClass) {
+      final String typePath,
+      final Class<? extends TypedConfig> configClass,
+      final Class<? extends ConfiguredType> typeClass) {
     this.typePath = typePath;
     this.configClass = configClass;
     this.typeClass = typeClass;
@@ -70,8 +70,8 @@ public class PolymorphicTypeMapper {
    */
   @SuppressWarnings("unchecked")
   public Class<? extends TypedConfig<?>> getConcreteClass(
-      AtomixRegistry registry, String typeName) {
-    ConfiguredType type = registry.getType(typeClass, typeName);
+      final AtomixRegistry registry, final String typeName) {
+    final ConfiguredType type = registry.getType(typeClass, typeName);
     if (type == null) {
       return null;
     }

@@ -98,7 +98,7 @@ public class RaftServiceManager implements RaftStateMachine {
   private long lastCompacted;
 
   public RaftServiceManager(
-      RaftContext raft, ThreadContext stateContext, ThreadContextFactory threadContextFactory) {
+      final RaftContext raft, final ThreadContext stateContext, final ThreadContextFactory threadContextFactory) {
     this.raft = checkNotNull(raft, "state cannot be null");
     this.log = raft.getLog();
     this.reader = log.openReader(1, RaftLogReader.Mode.COMMITS);
@@ -141,7 +141,7 @@ public class RaftServiceManager implements RaftStateMachine {
    * @param index The index up to which to apply commits.
    */
   @Override
-  public void applyAll(long index) {
+  public void applyAll(final long index) {
     enqueueBatch(index);
   }
 
@@ -157,7 +157,7 @@ public class RaftServiceManager implements RaftStateMachine {
    */
   @Override
   @SuppressWarnings("unchecked")
-  public <T> CompletableFuture<T> apply(long index) {
+  public <T> CompletableFuture<T> apply(final long index) {
     final CompletableFuture<T> future =
         futures.computeIfAbsent(index, i -> new CompletableFuture<T>());
     enqueueBatch(index);
@@ -176,7 +176,7 @@ public class RaftServiceManager implements RaftStateMachine {
    */
   @Override
   @SuppressWarnings("unchecked")
-  public <T> CompletableFuture<T> apply(Indexed<? extends RaftLogEntry> entry) {
+  public <T> CompletableFuture<T> apply(final Indexed<? extends RaftLogEntry> entry) {
     final CompletableFuture<T> future = new CompletableFuture<>();
     raft.notifyCommitListeners(entry);
 
@@ -230,7 +230,7 @@ public class RaftServiceManager implements RaftStateMachine {
                     new RaftException.ProtocolException("Unknown entry type"));
               }
             }
-          } catch (Exception e) {
+          } catch (final Exception e) {
             future.completeExceptionally(e);
           }
         });
@@ -242,9 +242,9 @@ public class RaftServiceManager implements RaftStateMachine {
    *
    * @param snapshot the snapshot to install
    */
-  void install(Snapshot snapshot) {
+  void install(final Snapshot snapshot) {
     logger.debug("Installing snapshot {}", snapshot);
-    try (SnapshotReader reader = snapshot.openReader()) {
+    try (final SnapshotReader reader = snapshot.openReader()) {
       while (reader.hasRemaining()) {
         final int length = reader.readInt();
         if (length > 0) {
@@ -254,7 +254,7 @@ public class RaftServiceManager implements RaftStateMachine {
           reader.skip(length);
         }
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       logger.error(SNAPSHOT_FAILURE_ERROR_MESSAGE, e);
 
       // block the current thread to avoid an inconsistent state
@@ -262,7 +262,7 @@ public class RaftServiceManager implements RaftStateMachine {
       while (true) {
         try {
           new CountDownLatch(1).await();
-        } catch (InterruptedException ex) {
+        } catch (final InterruptedException ex) {
           // still blocking
         }
       }
@@ -274,7 +274,7 @@ public class RaftServiceManager implements RaftStateMachine {
    *
    * @param reader the snapshot reader
    */
-  private void installService(SnapshotReader reader) {
+  private void installService(final SnapshotReader reader) {
     final PrimitiveId primitiveId = PrimitiveId.from(reader.readLong());
     final PrimitiveType primitiveType =
         raft.getPrimitiveTypes().getPrimitiveType(reader.readString());
@@ -287,7 +287,7 @@ public class RaftServiceManager implements RaftStateMachine {
         initializeService(primitiveId, primitiveType, serviceName, serviceConfig);
     try {
       service.installSnapshot(reader);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       logger.error("Failed to install snapshot for service {}", serviceName, e);
       throw e;
     }
@@ -296,7 +296,7 @@ public class RaftServiceManager implements RaftStateMachine {
   /** Initializes a new service. */
   @SuppressWarnings("unchecked")
   private RaftServiceContext initializeService(
-      PrimitiveId primitiveId, PrimitiveType primitiveType, String serviceName, byte[] config) {
+      final PrimitiveId primitiveId, final PrimitiveType primitiveType, final String serviceName, final byte[] config) {
     final RaftServiceContext oldService = raft.getServices().getService(serviceName);
     final ServiceConfig serviceConfig =
         config == null
@@ -326,8 +326,8 @@ public class RaftServiceManager implements RaftStateMachine {
    * <p>Initialize entries are used only at the beginning of a new leader's term to force the
    * commitment of entries from prior terms, therefore no logic needs to take place.
    */
-  private CompletableFuture<Void> applyInitialize(Indexed<InitializeEntry> entry) {
-    for (RaftServiceContext service : raft.getServices()) {
+  private CompletableFuture<Void> applyInitialize(final Indexed<InitializeEntry> entry) {
+    for (final RaftServiceContext service : raft.getServices()) {
       service.keepAliveSessions(entry.index(), entry.entry().timestamp());
     }
     return CompletableFuture.completedFuture(null);
@@ -341,8 +341,8 @@ public class RaftServiceManager implements RaftStateMachine {
    * release the previous configuration entry since it was overwritten by a more recent committed
    * configuration entry.
    */
-  private CompletableFuture<Void> applyConfiguration(Indexed<ConfigurationEntry> entry) {
-    for (RaftServiceContext service : raft.getServices()) {
+  private CompletableFuture<Void> applyConfiguration(final Indexed<ConfigurationEntry> entry) {
+    for (final RaftServiceContext service : raft.getServices()) {
       service.keepAliveSessions(entry.index(), entry.entry().timestamp());
     }
     return CompletableFuture.completedFuture(null);
@@ -374,7 +374,7 @@ public class RaftServiceManager implements RaftStateMachine {
    * timeouts, keep alive entries cannot be cleaned from the log before they're replicated to some
    * servers.
    */
-  private long[] applyKeepAlive(Indexed<KeepAliveEntry> entry) {
+  private long[] applyKeepAlive(final Indexed<KeepAliveEntry> entry) {
 
     // Store the session/command/event sequence and event index instead of acquiring a reference to
     // the entry.
@@ -404,7 +404,7 @@ public class RaftServiceManager implements RaftStateMachine {
 
     // Iterate through services and complete keep-alives, causing sessions to be expired if
     // necessary.
-    for (RaftServiceContext service : services) {
+    for (final RaftServiceContext service : services) {
       service.completeKeepAlive(entry.index(), entry.entry().timestamp());
     }
 
@@ -414,7 +414,7 @@ public class RaftServiceManager implements RaftStateMachine {
   }
 
   /** Expires sessions that have timed out. */
-  private void expireOrphanSessions(long timestamp) {
+  private void expireOrphanSessions(final long timestamp) {
     // Iterate through registered sessions.
     for (RaftSession session : raft.getSessions().getSessions()) {
       if (session.getService().deleted() && session.isTimedOut(timestamp)) {
@@ -431,7 +431,7 @@ public class RaftServiceManager implements RaftStateMachine {
   }
 
   /** Applies an open session entry to the state machine. */
-  private long applyOpenSession(Indexed<OpenSessionEntry> entry) {
+  private long applyOpenSession(final Indexed<OpenSessionEntry> entry) {
     final PrimitiveType primitiveType =
         raft.getPrimitiveTypes().getPrimitiveType(entry.entry().serviceType());
 
@@ -465,7 +465,7 @@ public class RaftServiceManager implements RaftStateMachine {
 
   /** Gets or initializes a service context. */
   private RaftServiceContext getOrInitializeService(
-      PrimitiveId primitiveId, PrimitiveType primitiveType, String serviceName, byte[] config) {
+      final PrimitiveId primitiveId, final PrimitiveType primitiveType, final String serviceName, final byte[] config) {
     // Get the state machine executor or create one if it doesn't already exist.
     RaftServiceContext service = raft.getServices().getService(serviceName);
     if (service == null) {
@@ -475,7 +475,7 @@ public class RaftServiceManager implements RaftStateMachine {
   }
 
   /** Applies a close session entry to the state machine. */
-  private void applyCloseSession(Indexed<CloseSessionEntry> entry) {
+  private void applyCloseSession(final Indexed<CloseSessionEntry> entry) {
     final RaftSession session = raft.getSessions().getSession(entry.entry().session());
 
     // If the server session is null, the session either never existed or already expired.
@@ -495,7 +495,7 @@ public class RaftServiceManager implements RaftStateMachine {
   }
 
   /** Applies a metadata entry to the state machine. */
-  private MetadataResult applyMetadata(Indexed<MetadataEntry> entry) {
+  private MetadataResult applyMetadata(final Indexed<MetadataEntry> entry) {
     // If the session ID is non-zero, read the metadata for the associated state machine.
     if (entry.entry().session() > 0) {
       final RaftSession session = raft.getSessions().getSession(entry.entry().session());
@@ -507,7 +507,7 @@ public class RaftServiceManager implements RaftStateMachine {
       }
 
       final Set<SessionMetadata> sessions = new HashSet<>();
-      for (RaftSession s : raft.getSessions().getSessions()) {
+      for (final RaftSession s : raft.getSessions().getSessions()) {
         if (s.primitiveName().equals(session.primitiveName())) {
           sessions.add(
               new SessionMetadata(s.sessionId().id(), s.primitiveName(), s.primitiveType().name()));
@@ -516,7 +516,7 @@ public class RaftServiceManager implements RaftStateMachine {
       return new MetadataResult(sessions);
     } else {
       final Set<SessionMetadata> sessions = new HashSet<>();
-      for (RaftSession session : raft.getSessions().getSessions()) {
+      for (final RaftSession session : raft.getSessions().getSessions()) {
         sessions.add(
             new SessionMetadata(
                 session.sessionId().id(), session.primitiveName(), session.primitiveType().name()));
@@ -541,7 +541,7 @@ public class RaftServiceManager implements RaftStateMachine {
    * have been received in sequential order. The reason for this assumption is because leaders
    * always sequence commands as they're written to the log, so no sequence number will be skipped.
    */
-  private OperationResult applyCommand(Indexed<CommandEntry> entry) {
+  private OperationResult applyCommand(final Indexed<CommandEntry> entry) {
     // First check to ensure that the session exists.
     final RaftSession session = raft.getSessions().getSession(entry.entry().session());
 
@@ -590,7 +590,7 @@ public class RaftServiceManager implements RaftStateMachine {
    * the publishing of session events. Events require commands to be written to the Raft log to
    * ensure fault-tolerance and consistency across the cluster.
    */
-  private CompletableFuture<OperationResult> applyQuery(Indexed<QueryEntry> entry) {
+  private CompletableFuture<OperationResult> applyQuery(final Indexed<QueryEntry> entry) {
     final RaftSession session = raft.getSessions().getSession(entry.entry().session());
 
     // If the session is null then that indicates that the session already timed out or it never
@@ -633,7 +633,7 @@ public class RaftServiceManager implements RaftStateMachine {
    *
    * @param index the index up to which to apply entries
    */
-  private void enqueueBatch(long index) {
+  private void enqueueBatch(final long index) {
     while (lastEnqueued < index) {
       enqueueIndex(++lastEnqueued);
     }
@@ -644,7 +644,7 @@ public class RaftServiceManager implements RaftStateMachine {
    *
    * @param index the index to be applied to the state machine
    */
-  private void enqueueIndex(long index) {
+  private void enqueueIndex(final long index) {
     raft.getThreadContext().execute(() -> applyIndex(index));
   }
 
@@ -654,7 +654,7 @@ public class RaftServiceManager implements RaftStateMachine {
    * @param index the index up to which to apply the entry
    */
   @SuppressWarnings("unchecked")
-  private void applyIndex(long index) {
+  private void applyIndex(final long index) {
     // Apply entries prior to this entry.
     if (reader.hasNext() && reader.getNextIndex() == index) {
       // Read the entry from the log. If the entry is non-null then apply it, otherwise
@@ -679,7 +679,7 @@ public class RaftServiceManager implements RaftStateMachine {
                     }
                   }
                 });
-      } catch (Exception e) {
+      } catch (final Exception e) {
         logger.error("Failed to apply {}: {}", entry, e);
       }
     } else {
@@ -700,7 +700,7 @@ public class RaftServiceManager implements RaftStateMachine {
    * Takes a snapshot of all services and compacts logs if the server is not under high load or disk
    * needs to be freed.
    */
-  private CompletableFuture<Void> takeSnapshots(boolean rescheduleAfterCompletion, boolean force) {
+  private CompletableFuture<Void> takeSnapshots(final boolean rescheduleAfterCompletion, final boolean force) {
     // If compaction is already in progress, return the existing future and reschedule if this is a
     // scheduled compaction.
     if (compactFuture != null) {
@@ -789,7 +789,7 @@ public class RaftServiceManager implements RaftStateMachine {
             final long startTime = System.currentTimeMillis();
             future.complete(snapshot());
             metrics.snapshotTime(System.currentTimeMillis() - startTime);
-          } catch (Exception e) {
+          } catch (final Exception e) {
             future.completeExceptionally(e);
           }
         });
@@ -801,20 +801,20 @@ public class RaftServiceManager implements RaftStateMachine {
    *
    * @param snapshot the snapshot to complete
    */
-  private void scheduleCompletion(Snapshot snapshot) {
+  private void scheduleCompletion(final Snapshot snapshot) {
     stateContext.schedule(getSnapshotCompletionDelay(), () -> tryToCompleteSnapshot(snapshot));
   }
 
-  private void tryToCompleteSnapshot(Snapshot snapshot) {
+  private void tryToCompleteSnapshot(final Snapshot snapshot) {
     if (completeSnapshot(snapshot.index())) {
       logger.debug("Completing snapshot {}", snapshot.index());
       try {
         snapshot.complete();
-      } catch (AtomixIOException e) {
+      } catch (final AtomixIOException e) {
         logger.error("Failed to complete snapshot {}, rescheduling completion", snapshot, e);
         scheduleCompletion(snapshot);
         return;
-      } catch (Exception e) {
+      } catch (final Exception e) {
         logger.error("Failed to complete snapshot {}, rescheduling snapshots", snapshot, e);
         snapshot.close();
         scheduleSnapshots();
@@ -840,7 +840,7 @@ public class RaftServiceManager implements RaftStateMachine {
    * @param lastApplied the last applied index at the start of snapshotting. This represents the
    *     highest index before which segments can be safely removed from disk
    */
-  private void scheduleCompaction(long lastApplied) {
+  private void scheduleCompaction(final long lastApplied) {
     final Duration compactDelay = getCompactDelay();
     // Schedule compaction after a randomized delay to discourage snapshots on multiple nodes at the
     // same time.
@@ -853,7 +853,7 @@ public class RaftServiceManager implements RaftStateMachine {
    *
    * @param compactIndex the index to which to compact logs
    */
-  private void compactLogs(long compactIndex) {
+  private void compactLogs(final long compactIndex) {
     raft.getThreadContext()
         .execute(
             () -> {
@@ -862,7 +862,7 @@ public class RaftServiceManager implements RaftStateMachine {
                 final long startTime = System.currentTimeMillis();
                 raft.getLog().compact(compactIndex);
                 metrics.compactionTime(System.currentTimeMillis() - startTime);
-              } catch (Exception e) {
+              } catch (final Exception e) {
                 logger.error("An exception occurred during log compaction: {}", e);
               } finally {
                 this.compactFuture.complete(null);
@@ -879,8 +879,8 @@ public class RaftServiceManager implements RaftStateMachine {
     final Snapshot snapshot =
         raft.getSnapshotStore()
             .newSnapshot(getCompactableIndex(), getCompactableTerm(), new WallClockTimestamp());
-    try (SnapshotWriter writer = snapshot.openWriter()) {
-      for (RaftServiceContext service : raft.getServices()) {
+    try (final SnapshotWriter writer = snapshot.openWriter()) {
+      for (final RaftServiceContext service : raft.getServices()) {
         writer.buffer().mark();
         final SnapshotWriter serviceWriter =
             new SnapshotWriter(writer.buffer().writeInt(0).slice(), writer.snapshot());
@@ -888,7 +888,7 @@ public class RaftServiceManager implements RaftStateMachine {
         final int length = serviceWriter.buffer().position();
         writer.buffer().reset().writeInt(length).skip(length);
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       snapshot.close();
       logger.error("Failed to snapshot services", e);
       throw e;
@@ -902,7 +902,7 @@ public class RaftServiceManager implements RaftStateMachine {
    * @param writer the snapshot writer
    * @param service the service to snapshot
    */
-  private void snapshotService(SnapshotWriter writer, RaftServiceContext service) {
+  private void snapshotService(final SnapshotWriter writer, final RaftServiceContext service) {
     writer.writeLong(service.serviceId().id());
     writer.writeString(service.serviceType().name());
     writer.writeString(service.serviceName());
@@ -911,7 +911,7 @@ public class RaftServiceManager implements RaftStateMachine {
     writer.writeInt(config.length).writeBytes(config);
     try {
       service.takeSnapshot(writer);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       logger.error("Failed to take snapshot of service {}", service.serviceId(), e);
     }
   }
@@ -922,10 +922,10 @@ public class RaftServiceManager implements RaftStateMachine {
    * @param index the index of the snapshot to complete
    * @return whether to complete the snapshot at the given index
    */
-  private boolean completeSnapshot(long index) {
+  private boolean completeSnapshot(final long index) {
     // Compute the lowest completed index for all sessions that belong to this state machine.
     long lastCompleted = index;
-    for (RaftSession session : raft.getSessions().getSessions()) {
+    for (final RaftSession session : raft.getSessions().getSessions()) {
       lastCompleted = Math.min(lastCompleted, session.getLastCompleted());
     }
     return lastCompleted >= index;

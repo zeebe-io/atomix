@@ -40,7 +40,7 @@ public enum MemberGroupStrategy implements MemberGroupProvider {
    */
   ZONE_AWARE {
     @Override
-    public Collection<MemberGroup> getMemberGroups(Collection<Member> members) {
+    public Collection<MemberGroup> getMemberGroups(final Collection<Member> members) {
       return groupNodes(members, node -> node.zone() != null ? node.zone() : node.id().id());
     }
   },
@@ -52,7 +52,7 @@ public enum MemberGroupStrategy implements MemberGroupProvider {
    */
   RACK_AWARE {
     @Override
-    public Collection<MemberGroup> getMemberGroups(Collection<Member> members) {
+    public Collection<MemberGroup> getMemberGroups(final Collection<Member> members) {
       return groupNodes(members, node -> node.rack() != null ? node.rack() : node.id().id());
     }
   },
@@ -64,7 +64,7 @@ public enum MemberGroupStrategy implements MemberGroupProvider {
    */
   HOST_AWARE {
     @Override
-    public Collection<MemberGroup> getMemberGroups(Collection<Member> members) {
+    public Collection<MemberGroup> getMemberGroups(final Collection<Member> members) {
       return groupNodes(members, node -> node.host() != null ? node.host() : node.id().id());
     }
   },
@@ -77,7 +77,7 @@ public enum MemberGroupStrategy implements MemberGroupProvider {
    */
   NODE_AWARE {
     @Override
-    public Collection<MemberGroup> getMemberGroups(Collection<Member> members) {
+    public Collection<MemberGroup> getMemberGroups(final Collection<Member> members) {
       return groupNodes(members, node -> node.id().id());
     }
   };
@@ -90,9 +90,9 @@ public enum MemberGroupStrategy implements MemberGroupProvider {
    * @return a collection of node member groups
    */
   protected Collection<MemberGroup> groupNodes(
-      Collection<Member> members, Function<Member, String> keyFunction) {
-    Map<String, Set<Member>> groups = new HashMap<>();
-    for (Member member : members) {
+      final Collection<Member> members, final Function<Member, String> keyFunction) {
+    final Map<String, Set<Member>> groups = new HashMap<>();
+    for (final Member member : members) {
       groups.computeIfAbsent(keyFunction.apply(member), k -> new HashSet<>()).add(member);
     }
 

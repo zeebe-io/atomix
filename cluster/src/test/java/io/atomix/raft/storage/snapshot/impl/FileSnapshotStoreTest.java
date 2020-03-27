@@ -52,7 +52,7 @@ public class FileSnapshotStoreTest {
     SnapshotStore store = createSnapshotStore();
 
     final Snapshot snapshot = store.newSnapshot(2, 3, new WallClockTimestamp());
-    try (SnapshotWriter writer = snapshot.openWriter()) {
+    try (final SnapshotWriter writer = snapshot.openWriter()) {
       writer.writeLong(10);
     }
     snapshot.complete();
@@ -64,7 +64,7 @@ public class FileSnapshotStoreTest {
     assertEquals(2, store.getSnapshot(2).index());
     assertEquals(3, store.getSnapshot(2).term());
 
-    try (SnapshotReader reader = snapshot.openReader()) {
+    try (final SnapshotReader reader = snapshot.openReader()) {
       assertEquals(10, reader.readLong());
     }
   }
@@ -89,7 +89,7 @@ public class FileSnapshotStoreTest {
     SnapshotStore store = createSnapshotStore();
 
     Snapshot snapshot = store.newSnapshot(2, 3, new WallClockTimestamp());
-    try (SnapshotWriter writer = snapshot.openWriter()) {
+    try (final SnapshotWriter writer = snapshot.openWriter()) {
       writer.writeLong(10);
     }
 
@@ -97,7 +97,7 @@ public class FileSnapshotStoreTest {
     snapshot.complete();
     assertNotNull(store.getSnapshot(2));
 
-    try (SnapshotReader reader = snapshot.openReader()) {
+    try (final SnapshotReader reader = snapshot.openReader()) {
       assertEquals(10, reader.readLong());
     }
 
@@ -108,7 +108,7 @@ public class FileSnapshotStoreTest {
     assertEquals(2, store.getSnapshot(2).index());
 
     snapshot = store.getSnapshot(2);
-    try (SnapshotReader reader = snapshot.openReader()) {
+    try (final SnapshotReader reader = snapshot.openReader()) {
       assertEquals(10, reader.readLong());
     }
   }
@@ -122,14 +122,14 @@ public class FileSnapshotStoreTest {
 
     Snapshot snapshot = store.newSnapshot(1, 1, new WallClockTimestamp());
     for (long i = 1; i <= 10; i++) {
-      try (SnapshotWriter writer = snapshot.openWriter()) {
+      try (final SnapshotWriter writer = snapshot.openWriter()) {
         writer.writeLong(i);
       }
     }
     snapshot.complete();
 
     snapshot = store.getSnapshot(1);
-    try (SnapshotReader reader = snapshot.openReader()) {
+    try (final SnapshotReader reader = snapshot.openReader()) {
       for (long i = 1; i <= 10; i++) {
         assertEquals(i, reader.readLong());
       }
@@ -144,11 +144,11 @@ public class FileSnapshotStoreTest {
     final Snapshot first = store.newSnapshot(1, 1, timestamp);
     final Snapshot second = store.newSnapshot(1, 1, timestamp);
 
-    try (SnapshotWriter firstWriter = first.openWriter()) {
+    try (final SnapshotWriter firstWriter = first.openWriter()) {
       firstWriter.writeLong(1);
     }
 
-    try (SnapshotWriter secondWriter = second.openWriter()) {
+    try (final SnapshotWriter secondWriter = second.openWriter()) {
       secondWriter.writeLong(1);
     }
 
@@ -158,7 +158,7 @@ public class FileSnapshotStoreTest {
     final Snapshot completed = store.getSnapshot(first.index());
     assertNotNull(completed);
     long result = 0;
-    try (SnapshotReader reader = completed.openReader()) {
+    try (final SnapshotReader reader = completed.openReader()) {
       while (reader.hasRemaining()) {
         result += reader.readLong();
       }
@@ -176,14 +176,14 @@ public class FileSnapshotStoreTest {
           directory,
           new SimpleFileVisitor<Path>() {
             @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs)
                 throws IOException {
               Files.delete(file);
               return FileVisitResult.CONTINUE;
             }
 
             @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException exc)
+            public FileVisitResult postVisitDirectory(final Path dir, final IOException exc)
                 throws IOException {
               Files.delete(dir);
               return FileVisitResult.CONTINUE;
@@ -204,19 +204,19 @@ public class FileSnapshotStoreTest {
 
     assertNull(store.getSnapshot(2));
 
-    try (SnapshotWriter writer = snapshot.openWriter()) {
+    try (final SnapshotWriter writer = snapshot.openWriter()) {
       writer.writeLong(10);
     }
 
     assertNull(store.getSnapshot(2));
 
-    try (SnapshotWriter writer = snapshot.openWriter()) {
+    try (final SnapshotWriter writer = snapshot.openWriter()) {
       writer.writeLong(11);
     }
 
     assertNull(store.getSnapshot(2));
 
-    try (SnapshotWriter writer = snapshot.openWriter()) {
+    try (final SnapshotWriter writer = snapshot.openWriter()) {
       writer.writeLong(12);
     }
 
@@ -225,7 +225,7 @@ public class FileSnapshotStoreTest {
 
     assertEquals(2, store.getSnapshot(2).index());
 
-    try (SnapshotReader reader = store.getSnapshot(2).openReader()) {
+    try (final SnapshotReader reader = store.getSnapshot(2).openReader()) {
       assertEquals(10, reader.readLong());
       assertEquals(11, reader.readLong());
       assertEquals(12, reader.readLong());

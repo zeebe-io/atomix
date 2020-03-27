@@ -72,7 +72,7 @@ public class PassiveRole extends InactiveRole {
   private long pendingSnapshotStartTimestamp;
   private PendingSnapshot pendingSnapshot;
 
-  public PassiveRole(RaftContext context) {
+  public PassiveRole(final RaftContext context) {
     super(context);
 
     this.snapshotReplicationMetrics = new SnapshotReplicationMetrics(context.getName());
@@ -104,7 +104,7 @@ public class PassiveRole extends InactiveRole {
   }
 
   @Override
-  public CompletableFuture<MetadataResponse> onMetadata(MetadataRequest request) {
+  public CompletableFuture<MetadataResponse> onMetadata(final MetadataRequest request) {
     raft.checkThread();
     logRequest(request);
 
@@ -128,7 +128,7 @@ public class PassiveRole extends InactiveRole {
   }
 
   @Override
-  public CompletableFuture<OpenSessionResponse> onOpenSession(OpenSessionRequest request) {
+  public CompletableFuture<OpenSessionResponse> onOpenSession(final OpenSessionRequest request) {
     raft.checkThread();
     logRequest(request);
 
@@ -152,7 +152,7 @@ public class PassiveRole extends InactiveRole {
   }
 
   @Override
-  public CompletableFuture<KeepAliveResponse> onKeepAlive(KeepAliveRequest request) {
+  public CompletableFuture<KeepAliveResponse> onKeepAlive(final KeepAliveRequest request) {
     raft.checkThread();
     logRequest(request);
 
@@ -176,7 +176,7 @@ public class PassiveRole extends InactiveRole {
   }
 
   @Override
-  public CompletableFuture<CloseSessionResponse> onCloseSession(CloseSessionRequest request) {
+  public CompletableFuture<CloseSessionResponse> onCloseSession(final CloseSessionRequest request) {
     raft.checkThread();
     logRequest(request);
 
@@ -200,7 +200,7 @@ public class PassiveRole extends InactiveRole {
   }
 
   @Override
-  public CompletableFuture<InstallResponse> onInstall(InstallRequest request) {
+  public CompletableFuture<InstallResponse> onInstall(final InstallRequest request) {
     raft.checkThread();
     logRequest(request);
     updateTermAndLeader(request.currentTerm(), request.leader());
@@ -353,7 +353,7 @@ public class PassiveRole extends InactiveRole {
   }
 
   @Override
-  public CompletableFuture<JoinResponse> onJoin(JoinRequest request) {
+  public CompletableFuture<JoinResponse> onJoin(final JoinRequest request) {
     raft.checkThread();
     logRequest(request);
 
@@ -377,7 +377,7 @@ public class PassiveRole extends InactiveRole {
   }
 
   @Override
-  public CompletableFuture<ReconfigureResponse> onReconfigure(ReconfigureRequest request) {
+  public CompletableFuture<ReconfigureResponse> onReconfigure(final ReconfigureRequest request) {
     raft.checkThread();
     logRequest(request);
 
@@ -401,7 +401,7 @@ public class PassiveRole extends InactiveRole {
   }
 
   @Override
-  public CompletableFuture<LeaveResponse> onLeave(LeaveRequest request) {
+  public CompletableFuture<LeaveResponse> onLeave(final LeaveRequest request) {
     raft.checkThread();
     logRequest(request);
 
@@ -425,7 +425,7 @@ public class PassiveRole extends InactiveRole {
   }
 
   @Override
-  public CompletableFuture<AppendResponse> onAppend(AppendRequest request) {
+  public CompletableFuture<AppendResponse> onAppend(final AppendRequest request) {
     raft.checkThread();
     logRequest(request);
     updateTermAndLeader(request.term(), request.leader());
@@ -433,7 +433,7 @@ public class PassiveRole extends InactiveRole {
   }
 
   @Override
-  public CompletableFuture<PollResponse> onPoll(PollRequest request) {
+  public CompletableFuture<PollResponse> onPoll(final PollRequest request) {
     raft.checkThread();
     logRequest(request);
 
@@ -446,7 +446,7 @@ public class PassiveRole extends InactiveRole {
   }
 
   @Override
-  public CompletableFuture<VoteResponse> onVote(VoteRequest request) {
+  public CompletableFuture<VoteResponse> onVote(final VoteRequest request) {
     raft.checkThread();
     logRequest(request);
     updateTermAndLeader(request.term(), null);
@@ -461,7 +461,7 @@ public class PassiveRole extends InactiveRole {
   }
 
   @Override
-  public CompletableFuture<CommandResponse> onCommand(CommandRequest request) {
+  public CompletableFuture<CommandResponse> onCommand(final CommandRequest request) {
     raft.checkThread();
     logRequest(request);
 
@@ -485,7 +485,7 @@ public class PassiveRole extends InactiveRole {
   }
 
   @Override
-  public CompletableFuture<QueryResponse> onQuery(QueryRequest request) {
+  public CompletableFuture<QueryResponse> onQuery(final QueryRequest request) {
     raft.checkThread();
     logRequest(request);
 
@@ -558,7 +558,7 @@ public class PassiveRole extends InactiveRole {
   }
 
   /** Forwards the query to the leader. */
-  private CompletableFuture<QueryResponse> queryForward(QueryRequest request) {
+  private CompletableFuture<QueryResponse> queryForward(final QueryRequest request) {
     if (raft.getLeader() == null) {
       return CompletableFuture.completedFuture(
           logResponse(
@@ -580,7 +580,7 @@ public class PassiveRole extends InactiveRole {
   }
 
   /** Applies a query to the state machine. */
-  protected CompletableFuture<QueryResponse> applyQuery(Indexed<QueryEntry> entry) {
+  protected CompletableFuture<QueryResponse> applyQuery(final Indexed<QueryEntry> entry) {
     // In the case of the leader, the state machine is always up to date, so no queries will be
     // queued and all query
     // indexes will be the last applied index.
@@ -596,10 +596,10 @@ public class PassiveRole extends InactiveRole {
 
   /** Completes an operation. */
   protected <T extends OperationResponse> void completeOperation(
-      OperationResult result,
-      OperationResponse.Builder<?, T> builder,
+      final OperationResult result,
+      final OperationResponse.Builder<?, T> builder,
       Throwable error,
-      CompletableFuture<T> future) {
+      final CompletableFuture<T> future) {
     if (result != null) {
       builder.withIndex(result.index());
       builder.withEventIndex(result.eventIndex());
@@ -649,7 +649,7 @@ public class PassiveRole extends InactiveRole {
   }
 
   /** Handles an AppendRequest. */
-  protected CompletableFuture<AppendResponse> handleAppend(AppendRequest request) {
+  protected CompletableFuture<AppendResponse> handleAppend(final AppendRequest request) {
     final CompletableFuture<AppendResponse> future = new CompletableFuture<>();
 
     // Check that the term of the given request matches the local term or update the term.
@@ -671,7 +671,7 @@ public class PassiveRole extends InactiveRole {
    * Checks the leader's term of the given AppendRequest, returning a boolean indicating whether to
    * continue handling the request.
    */
-  protected boolean checkTerm(AppendRequest request, CompletableFuture<AppendResponse> future) {
+  protected boolean checkTerm(final AppendRequest request, final CompletableFuture<AppendResponse> future) {
     final RaftLogWriter writer = raft.getLogWriter();
     if (request.term() < raft.getTerm()) {
       log.debug(
@@ -686,7 +686,7 @@ public class PassiveRole extends InactiveRole {
    * continue handling the request.
    */
   protected boolean checkPreviousEntry(
-      AppendRequest request, CompletableFuture<AppendResponse> future) {
+      final AppendRequest request, final CompletableFuture<AppendResponse> future) {
     final RaftLogWriter writer = raft.getLogWriter();
 
     // If the previous term is set, validate that it matches the local log.
@@ -722,10 +722,10 @@ public class PassiveRole extends InactiveRole {
   }
 
   private boolean checkPreviousEntry(
-      AppendRequest request,
-      long lastEntryIndex,
-      long lastEntryTerm,
-      CompletableFuture<AppendResponse> future) {
+      final AppendRequest request,
+      final long lastEntryIndex,
+      final long lastEntryTerm,
+      final CompletableFuture<AppendResponse> future) {
 
     final RaftLogReader reader = raft.getLogReader();
 
@@ -777,7 +777,7 @@ public class PassiveRole extends InactiveRole {
   }
 
   /** Appends entries from the given AppendRequest. */
-  protected void appendEntries(AppendRequest request, CompletableFuture<AppendResponse> future) {
+  protected void appendEntries(final AppendRequest request, final CompletableFuture<AppendResponse> future) {
     // Compute the last entry index from the previous log index and request entry count.
     final long lastEntryIndex = request.prevLogIndex() + request.entries().size();
 
@@ -801,7 +801,7 @@ public class PassiveRole extends InactiveRole {
       }
 
       // Iterate through entries and append them.
-      for (RaftLogEntry entry : request.entries()) {
+      for (final RaftLogEntry entry : request.entries()) {
         final long index = ++lastLogIndex;
 
         // Get the last entry written to the log by the writer.
@@ -835,12 +835,12 @@ public class PassiveRole extends InactiveRole {
   }
 
   private boolean tryToAppend(
-      CompletableFuture<AppendResponse> future,
-      RaftLogWriter writer,
-      RaftLogReader reader,
-      RaftLogEntry entry,
-      long index,
-      Indexed<RaftLogEntry> lastEntry) {
+      final CompletableFuture<AppendResponse> future,
+      final RaftLogWriter writer,
+      final RaftLogReader reader,
+      final RaftLogEntry entry,
+      final long index,
+      final Indexed<RaftLogEntry> lastEntry) {
     boolean failedToAppend = false;
     if (lastEntry != null) {
       // If the last written entry index is greater than the next append entry index,
@@ -867,11 +867,11 @@ public class PassiveRole extends InactiveRole {
   }
 
   private boolean appendEntry(
-      CompletableFuture<AppendResponse> future,
-      RaftLogWriter writer,
-      RaftLogEntry entry,
-      long index,
-      Indexed<RaftLogEntry> lastEntry) {
+      final CompletableFuture<AppendResponse> future,
+      final RaftLogWriter writer,
+      final RaftLogEntry entry,
+      final long index,
+      final Indexed<RaftLogEntry> lastEntry) {
     // If the last entry index isn't the previous index, throw an exception because
     // something crazy happened!
     if (lastEntry.index() != index - 1) {
@@ -884,11 +884,11 @@ public class PassiveRole extends InactiveRole {
   }
 
   private boolean replaceExistingEntry(
-      CompletableFuture<AppendResponse> future,
-      RaftLogWriter writer,
-      RaftLogReader reader,
-      RaftLogEntry entry,
-      long index) {
+      final CompletableFuture<AppendResponse> future,
+      final RaftLogWriter writer,
+      final RaftLogReader reader,
+      final RaftLogEntry entry,
+      final long index) {
     // Reset the reader to the current entry index.
     if (reader.getNextIndex() != index) {
       reader.reset(index);
@@ -920,18 +920,18 @@ public class PassiveRole extends InactiveRole {
    * StorageException.OutOfDiskSpace} exception.
    */
   private boolean appendEntry(
-      long index,
-      RaftLogEntry entry,
-      RaftLogWriter writer,
-      CompletableFuture<AppendResponse> future) {
+      final long index,
+      final RaftLogEntry entry,
+      final RaftLogWriter writer,
+      final CompletableFuture<AppendResponse> future) {
     try {
       final Indexed<RaftLogEntry> indexed = writer.append(entry);
       log.trace("Appended {}", indexed);
-    } catch (StorageException.TooLarge e) {
+    } catch (final StorageException.TooLarge e) {
       log.warn(
           "Entry size exceeds maximum allowed bytes. Ensure Raft storage configuration is consistent on all nodes!");
       return false;
-    } catch (StorageException.OutOfDiskSpace e) {
+    } catch (final StorageException.OutOfDiskSpace e) {
       log.trace("Append failed: {}", e);
       raft.getServiceManager().compact();
       failAppend(index - 1, future);
@@ -947,7 +947,7 @@ public class PassiveRole extends InactiveRole {
    * @param future the append response future
    * @return the append response status
    */
-  protected boolean failAppend(long lastLogIndex, CompletableFuture<AppendResponse> future) {
+  protected boolean failAppend(final long lastLogIndex, final CompletableFuture<AppendResponse> future) {
     return completeAppend(false, lastLogIndex, future);
   }
 
@@ -958,7 +958,7 @@ public class PassiveRole extends InactiveRole {
    * @param future the append response future
    * @return the append response status
    */
-  protected boolean succeedAppend(long lastLogIndex, CompletableFuture<AppendResponse> future) {
+  protected boolean succeedAppend(final long lastLogIndex, final CompletableFuture<AppendResponse> future) {
     return completeAppend(true, lastLogIndex, future);
   }
 
@@ -971,7 +971,7 @@ public class PassiveRole extends InactiveRole {
    * @return the append response status
    */
   protected boolean completeAppend(
-      boolean succeeded, long lastLogIndex, CompletableFuture<AppendResponse> future) {
+      final boolean succeeded, final long lastLogIndex, final CompletableFuture<AppendResponse> future) {
     future.complete(
         logResponse(
             AppendResponse.builder()
@@ -985,7 +985,7 @@ public class PassiveRole extends InactiveRole {
   }
 
   /** Performs a local query. */
-  protected CompletableFuture<QueryResponse> queryLocal(Indexed<QueryEntry> entry) {
+  protected CompletableFuture<QueryResponse> queryLocal(final Indexed<QueryEntry> entry) {
     return applyQuery(entry);
   }
 }

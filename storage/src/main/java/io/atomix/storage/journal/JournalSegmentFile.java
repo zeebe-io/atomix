@@ -36,7 +36,7 @@ public final class JournalSegmentFile {
    *
    * @throws NullPointerException if {@code file} is null
    */
-  public static boolean isSegmentFile(String name, File file) {
+  public static boolean isSegmentFile(final String name, final File file) {
     return isSegmentFile(name, file.getName());
   }
 
@@ -48,12 +48,12 @@ public final class JournalSegmentFile {
    * @param fileName the name of the file to check
    * @throws NullPointerException if {@code file} is null
    */
-  public static boolean isSegmentFile(String journalName, String fileName) {
+  public static boolean isSegmentFile(final String journalName, final String fileName) {
     checkNotNull(journalName, "journalName cannot be null");
     checkNotNull(fileName, "fileName cannot be null");
 
-    int partSeparator = fileName.lastIndexOf(PART_SEPARATOR);
-    int extensionSeparator = fileName.lastIndexOf(EXTENSION_SEPARATOR);
+    final int partSeparator = fileName.lastIndexOf(PART_SEPARATOR);
+    final int extensionSeparator = fileName.lastIndexOf(EXTENSION_SEPARATOR);
 
     if (extensionSeparator == -1
         || partSeparator == -1
@@ -72,13 +72,13 @@ public final class JournalSegmentFile {
   }
 
   /** Creates a segment file for the given directory, log name, segment ID, and segment version. */
-  static File createSegmentFile(String name, File directory, long id) {
+  static File createSegmentFile(final String name, final File directory, final long id) {
     return new File(
         directory, String.format("%s-%d.log", checkNotNull(name, "name cannot be null"), id));
   }
 
   /** @throws IllegalArgumentException if {@code file} is not a valid segment file */
-  JournalSegmentFile(File file) {
+  JournalSegmentFile(final File file) {
     this.file = file;
   }
 

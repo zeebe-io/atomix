@@ -49,22 +49,22 @@ public class ConsensusProfile implements Profile {
     }
 
     @Override
-    public Profile newProfile(ConsensusProfileConfig config) {
+    public Profile newProfile(final ConsensusProfileConfig config) {
       return new ConsensusProfile(config);
     }
   }
 
   private final ConsensusProfileConfig config;
 
-  ConsensusProfile(String... members) {
+  ConsensusProfile(final String... members) {
     this(Sets.newHashSet(members));
   }
 
-  ConsensusProfile(Collection<String> members) {
+  ConsensusProfile(final Collection<String> members) {
     this(new ConsensusProfileConfig().setMembers(Sets.newHashSet(members)));
   }
 
-  ConsensusProfile(ConsensusProfileConfig config) {
+  ConsensusProfile(final ConsensusProfileConfig config) {
     this.config = config;
   }
 
@@ -74,7 +74,7 @@ public class ConsensusProfile implements Profile {
   }
 
   @Override
-  public void configure(AtomixConfig config) {
+  public void configure(final AtomixConfig config) {
     config.setManagementGroup(
         new RaftPartitionGroupConfig()
             .setName(this.config.getManagementGroup())

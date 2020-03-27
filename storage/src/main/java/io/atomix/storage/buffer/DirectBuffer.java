@@ -48,7 +48,7 @@ public class DirectBuffer extends ByteBufferBuffer {
    * @see DirectBuffer#allocate()
    * @see DirectBuffer#allocate(int, int)
    */
-  public static DirectBuffer allocate(int initialCapacity) {
+  public static DirectBuffer allocate(final int initialCapacity) {
     return allocate(initialCapacity, MAX_SIZE);
   }
 
@@ -63,7 +63,7 @@ public class DirectBuffer extends ByteBufferBuffer {
    * @see DirectBuffer#allocate()
    * @see DirectBuffer#allocate(int)
    */
-  public static DirectBuffer allocate(int initialCapacity, int maxCapacity) {
+  public static DirectBuffer allocate(final int initialCapacity, final int maxCapacity) {
     checkArgument(
         initialCapacity <= maxCapacity, "initial capacity cannot be greater than maximum capacity");
     return new DirectBuffer(
@@ -73,7 +73,7 @@ public class DirectBuffer extends ByteBufferBuffer {
         maxCapacity);
   }
 
-  protected DirectBuffer(DirectBytes bytes, int offset, int initialCapacity, int maxCapacity) {
+  protected DirectBuffer(final DirectBytes bytes, final int offset, final int initialCapacity, final int maxCapacity) {
     super(bytes, offset, initialCapacity, maxCapacity, null);
   }
 

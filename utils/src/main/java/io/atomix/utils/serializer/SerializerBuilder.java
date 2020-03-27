@@ -27,7 +27,7 @@ public class SerializerBuilder implements Builder<Serializer> {
     this(null);
   }
 
-  public SerializerBuilder(String name) {
+  public SerializerBuilder(final String name) {
     this.name = name;
   }
 
@@ -47,7 +47,7 @@ public class SerializerBuilder implements Builder<Serializer> {
    *     types
    * @return the serializer builder
    */
-  public SerializerBuilder withRegistrationRequired(boolean registrationRequired) {
+  public SerializerBuilder withRegistrationRequired(final boolean registrationRequired) {
     namespaceBuilder.setRegistrationRequired(registrationRequired);
     return this;
   }
@@ -67,7 +67,7 @@ public class SerializerBuilder implements Builder<Serializer> {
    * @param compatibleSerialization whether compatible serialization is enabled for user types
    * @return the serializer builder
    */
-  public SerializerBuilder withCompatibleSerialization(boolean compatibleSerialization) {
+  public SerializerBuilder withCompatibleSerialization(final boolean compatibleSerialization) {
     namespaceBuilder.setCompatible(compatibleSerialization);
     return this;
   }
@@ -78,7 +78,7 @@ public class SerializerBuilder implements Builder<Serializer> {
    * @param namespace the namespace to add
    * @return the serializer builder
    */
-  public SerializerBuilder withNamespace(Namespace namespace) {
+  public SerializerBuilder withNamespace(final Namespace namespace) {
     namespaceBuilder.register(namespace);
     return this;
   }
@@ -89,7 +89,7 @@ public class SerializerBuilder implements Builder<Serializer> {
    * @param types the types to register
    * @return the serializer builder
    */
-  public SerializerBuilder withTypes(Class<?>... types) {
+  public SerializerBuilder withTypes(final Class<?>... types) {
     namespaceBuilder.register(types);
     return this;
   }
@@ -100,7 +100,7 @@ public class SerializerBuilder implements Builder<Serializer> {
    * @param type the type to add
    * @return the serializer builder
    */
-  public SerializerBuilder addType(Class<?> type) {
+  public SerializerBuilder addType(final Class<?> type) {
     namespaceBuilder.register(type);
     return this;
   }
@@ -113,7 +113,7 @@ public class SerializerBuilder implements Builder<Serializer> {
    * @return the serializer builder
    */
   public SerializerBuilder addSerializer(
-      com.esotericsoftware.kryo.Serializer serializer, Class<?>... types) {
+      final com.esotericsoftware.kryo.Serializer serializer, final Class<?>... types) {
     namespaceBuilder.register(serializer, types);
     return this;
   }

@@ -67,24 +67,24 @@ public class DefaultPrimaryElectionService implements ManagedPrimaryElectionServ
   private final AtomicBoolean started = new AtomicBoolean();
   private SessionClient proxy;
 
-  public DefaultPrimaryElectionService(PartitionGroup partitionGroup) {
+  public DefaultPrimaryElectionService(final PartitionGroup partitionGroup) {
     this.partitions = checkNotNull(partitionGroup);
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public PrimaryElection getElectionFor(PartitionId partitionId) {
+  public PrimaryElection getElectionFor(final PartitionId partitionId) {
     return elections.computeIfAbsent(
         partitionId, id -> new DefaultPrimaryElection(partitionId, proxy, this));
   }
 
   @Override
-  public void addListener(PrimaryElectionEventListener listener) {
+  public void addListener(final PrimaryElectionEventListener listener) {
     listeners.add(checkNotNull(listener));
   }
 
   @Override
-  public void removeListener(PrimaryElectionEventListener listener) {
+  public void removeListener(final PrimaryElectionEventListener listener) {
     listeners.remove(checkNotNull(listener));
   }
 
@@ -115,7 +115,7 @@ public class DefaultPrimaryElectionService implements ManagedPrimaryElectionServ
 
   @Override
   public CompletableFuture<Void> stop() {
-    SessionClient proxy = this.proxy;
+    final SessionClient proxy = this.proxy;
     if (proxy != null) {
       return proxy
           .close()

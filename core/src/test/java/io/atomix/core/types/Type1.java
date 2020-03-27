@@ -19,7 +19,7 @@ package io.atomix.core.types;
 public class Type1 {
   String value;
 
-  public Type1(String value) {
+  public Type1(final String value) {
     this.value = value;
   }
 

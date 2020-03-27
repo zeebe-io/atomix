@@ -20,7 +20,7 @@ import io.atomix.raft.RaftError;
 /** Base session response. */
 public abstract class SessionResponse extends AbstractRaftResponse {
 
-  protected SessionResponse(Status status, RaftError error) {
+  protected SessionResponse(final Status status, final RaftError error) {
     super(status, error);
   }
 

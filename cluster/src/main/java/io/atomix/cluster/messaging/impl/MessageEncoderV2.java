@@ -20,12 +20,12 @@ import io.netty.buffer.ByteBuf;
 
 /** V2 message encoder. */
 class MessageEncoderV2 extends MessageEncoderV1 {
-  MessageEncoderV2(Address address) {
+  MessageEncoderV2(final Address address) {
     super(address);
   }
 
   @Override
-  protected void encodeAddress(ProtocolMessage message, ByteBuf buffer) {
+  protected void encodeAddress(final ProtocolMessage message, final ByteBuf buffer) {
     writeString(buffer, address.host());
     buffer.writeInt(address.port());
   }

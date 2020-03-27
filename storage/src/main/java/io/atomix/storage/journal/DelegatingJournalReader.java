@@ -21,7 +21,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 public class DelegatingJournalReader<E> implements JournalReader<E> {
   private final JournalReader<E> delegate;
 
-  public DelegatingJournalReader(JournalReader<E> delegate) {
+  public DelegatingJournalReader(final JournalReader<E> delegate) {
     this.delegate = delegate;
   }
 
@@ -71,7 +71,7 @@ public class DelegatingJournalReader<E> implements JournalReader<E> {
   }
 
   @Override
-  public void reset(long index) {
+  public void reset(final long index) {
     delegate.reset(index);
   }
 

@@ -27,7 +27,7 @@ public abstract class PrimitiveProtocolBuilder<
     implements Builder<P> {
   protected final C config;
 
-  protected PrimitiveProtocolBuilder(C config) {
+  protected PrimitiveProtocolBuilder(final C config) {
     this.config = checkNotNull(config);
   }
 }

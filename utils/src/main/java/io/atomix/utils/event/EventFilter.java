@@ -25,7 +25,7 @@ public interface EventFilter<E extends Event> {
    * @param event event to be inspected
    * @return true if event is relevant; false otherwise
    */
-  default boolean isRelevant(E event) {
+  default boolean isRelevant(final E event) {
     return true;
   }
 }

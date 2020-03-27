@@ -25,13 +25,13 @@ abstract class AbstractServerConnection implements ServerConnection {
   private final Logger log = LoggerFactory.getLogger(getClass());
   private final HandlerRegistry handlers;
 
-  AbstractServerConnection(HandlerRegistry handlers) {
+  AbstractServerConnection(final HandlerRegistry handlers) {
     this.handlers = handlers;
   }
 
   @Override
-  public void dispatch(ProtocolRequest message) {
-    BiConsumer<ProtocolRequest, ServerConnection> handler = handlers.get(message.subject());
+  public void dispatch(final ProtocolRequest message) {
+    final BiConsumer<ProtocolRequest, ServerConnection> handler = handlers.get(message.subject());
     if (handler != null) {
       log.trace("Received message type {} from {}", message.subject(), message.sender());
       handler.accept(message, this);

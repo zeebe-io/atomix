@@ -129,7 +129,7 @@ public class NettyMessagingServiceTest {
     if (netty1 != null) {
       try {
         netty1.stop().join();
-      } catch (Exception e) {
+      } catch (final Exception e) {
         LOGGER.warn("Failed stopping netty1", e);
       }
     }
@@ -137,7 +137,7 @@ public class NettyMessagingServiceTest {
     if (netty2 != null) {
       try {
         netty2.stop().join();
-      } catch (Exception e) {
+      } catch (final Exception e) {
         LOGGER.warn("Failed stopping netty2", e);
       }
     }
@@ -154,8 +154,8 @@ public class NettyMessagingServiceTest {
 
   @Test
   public void testSendAsync() {
-    String subject = nextSubject();
-    CountDownLatch latch1 = new CountDownLatch(1);
+    final String subject = nextSubject();
+    final CountDownLatch latch1 = new CountDownLatch(1);
     CompletableFuture<Void> response =
         netty1.sendAsync(address2, subject, "hello world".getBytes());
     response.whenComplete(
@@ -165,7 +165,7 @@ public class NettyMessagingServiceTest {
         });
     Uninterruptibles.awaitUninterruptibly(latch1);
 
-    CountDownLatch latch2 = new CountDownLatch(1);
+    final CountDownLatch latch2 = new CountDownLatch(1);
     response = netty1.sendAsync(invalidAddress, subject, "hello world".getBytes());
     response.whenComplete(
         (r, e) -> {
@@ -178,12 +178,12 @@ public class NettyMessagingServiceTest {
 
   @Test
   public void testSendAndReceive() {
-    String subject = nextSubject();
-    AtomicBoolean handlerInvoked = new AtomicBoolean(false);
-    AtomicReference<byte[]> request = new AtomicReference<>();
-    AtomicReference<Address> sender = new AtomicReference<>();
+    final String subject = nextSubject();
+    final AtomicBoolean handlerInvoked = new AtomicBoolean(false);
+    final AtomicReference<byte[]> request = new AtomicReference<>();
+    final AtomicReference<Address> sender = new AtomicReference<>();
 
-    BiFunction<Address, byte[], byte[]> handler =
+    final BiFunction<Address, byte[], byte[]> handler =
         (ep, data) -> {
           handlerInvoked.set(true);
           sender.set(ep);
@@ -192,7 +192,7 @@ public class NettyMessagingServiceTest {
         };
     netty2.registerHandler(subject, handler, MoreExecutors.directExecutor());
 
-    CompletableFuture<byte[]> response =
+    final CompletableFuture<byte[]> response =
         netty1.sendAndReceive(address2, subject, "hello world".getBytes());
     assertTrue(Arrays.equals("hello there".getBytes(), response.join()));
     assertTrue(handlerInvoked.get());
@@ -202,12 +202,12 @@ public class NettyMessagingServiceTest {
 
   @Test
   public void testTransientSendAndReceive() {
-    String subject = nextSubject();
-    AtomicBoolean handlerInvoked = new AtomicBoolean(false);
-    AtomicReference<byte[]> request = new AtomicReference<>();
-    AtomicReference<Address> sender = new AtomicReference<>();
+    final String subject = nextSubject();
+    final AtomicBoolean handlerInvoked = new AtomicBoolean(false);
+    final AtomicReference<byte[]> request = new AtomicReference<>();
+    final AtomicReference<Address> sender = new AtomicReference<>();
 
-    BiFunction<Address, byte[], byte[]> handler =
+    final BiFunction<Address, byte[], byte[]> handler =
         (ep, data) -> {
           handlerInvoked.set(true);
           sender.set(ep);
@@ -216,7 +216,7 @@ public class NettyMessagingServiceTest {
         };
     netty2.registerHandler(subject, handler, MoreExecutors.directExecutor());
 
-    CompletableFuture<byte[]> response =
+    final CompletableFuture<byte[]> response =
         netty1.sendAndReceive(address2, subject, "hello world".getBytes(), false);
     assertTrue(Arrays.equals("hello there".getBytes(), response.join()));
     assertTrue(handlerInvoked.get());
@@ -226,8 +226,8 @@ public class NettyMessagingServiceTest {
 
   @Test
   public void testSendAndReceiveWithFixedTimeout() {
-    String subject = nextSubject();
-    BiFunction<Address, byte[], CompletableFuture<byte[]>> handler =
+    final String subject = nextSubject();
+    final BiFunction<Address, byte[], CompletableFuture<byte[]>> handler =
         (ep, payload) -> new CompletableFuture<>();
     netty2.registerHandler(subject, handler);
 
@@ -236,22 +236,22 @@ public class NettyMessagingServiceTest {
           .sendAndReceive(address2, subject, "hello world".getBytes(), Duration.ofSeconds(1))
           .join();
       fail();
-    } catch (CompletionException e) {
+    } catch (final CompletionException e) {
       assertTrue(e.getCause() instanceof TimeoutException);
     }
   }
 
   @Test
   public void testSendAndReceiveWithDynamicTimeout() {
-    String subject = nextSubject();
-    BiFunction<Address, byte[], CompletableFuture<byte[]>> handler =
+    final String subject = nextSubject();
+    final BiFunction<Address, byte[], CompletableFuture<byte[]>> handler =
         (ep, payload) -> new CompletableFuture<>();
     netty2.registerHandler(subject, handler);
 
     try {
       netty1.sendAndReceive(address2, subject, "hello world".getBytes()).join();
       fail();
-    } catch (CompletionException e) {
+    } catch (final CompletionException e) {
       assertTrue(e.getCause() instanceof TimeoutException);
     }
   }
@@ -259,22 +259,22 @@ public class NettyMessagingServiceTest {
   @Test
   @Ignore
   public void testSendAndReceiveWithExecutor() {
-    String subject = nextSubject();
-    ExecutorService completionExecutor =
+    final String subject = nextSubject();
+    final ExecutorService completionExecutor =
         Executors.newSingleThreadExecutor(r -> new Thread(r, "completion-thread"));
-    ExecutorService handlerExecutor =
+    final ExecutorService handlerExecutor =
         Executors.newSingleThreadExecutor(r -> new Thread(r, "handler-thread"));
-    AtomicReference<String> handlerThreadName = new AtomicReference<>();
-    AtomicReference<String> completionThreadName = new AtomicReference<>();
+    final AtomicReference<String> handlerThreadName = new AtomicReference<>();
+    final AtomicReference<String> completionThreadName = new AtomicReference<>();
 
     final CountDownLatch latch = new CountDownLatch(1);
 
-    BiFunction<Address, byte[], byte[]> handler =
+    final BiFunction<Address, byte[], byte[]> handler =
         (ep, data) -> {
           handlerThreadName.set(Thread.currentThread().getName());
           try {
             latch.await();
-          } catch (InterruptedException e1) {
+          } catch (final InterruptedException e1) {
             Thread.currentThread().interrupt();
             fail("InterruptedException");
           }
@@ -282,7 +282,7 @@ public class NettyMessagingServiceTest {
         };
     netty2.registerHandler(subject, handler, handlerExecutor);
 
-    CompletableFuture<byte[]> response =
+    final CompletableFuture<byte[]> response =
         netty1.sendAndReceive(address2, subject, "hello world".getBytes(), completionExecutor);
     response.whenComplete(
         (r, e) -> {
@@ -299,9 +299,9 @@ public class NettyMessagingServiceTest {
 
   @Test
   public void testV1() throws Exception {
-    String subject;
-    byte[] payload = "Hello world!".getBytes();
-    byte[] response;
+    final String subject;
+    final byte[] payload = "Hello world!".getBytes();
+    final byte[] response;
 
     subject = nextSubject();
     nettyv11.registerHandler(subject, (address, bytes) -> CompletableFuture.completedFuture(bytes));
@@ -311,9 +311,9 @@ public class NettyMessagingServiceTest {
 
   @Test
   public void testV2() throws Exception {
-    String subject;
-    byte[] payload = "Hello world!".getBytes();
-    byte[] response;
+    final String subject;
+    final byte[] payload = "Hello world!".getBytes();
+    final byte[] response;
 
     subject = nextSubject();
     nettyv21.registerHandler(subject, (address, bytes) -> CompletableFuture.completedFuture(bytes));
@@ -324,7 +324,7 @@ public class NettyMessagingServiceTest {
   @Test
   public void testVersionNegotiation() throws Exception {
     String subject;
-    byte[] payload = "Hello world!".getBytes();
+    final byte[] payload = "Hello world!".getBytes();
     byte[] response;
 
     subject = nextSubject();
@@ -338,14 +338,14 @@ public class NettyMessagingServiceTest {
     assertArrayEquals(payload, response);
   }
 
-  private static int findAvailablePort(int defaultPort) {
+  private static int findAvailablePort(final int defaultPort) {
     try {
-      ServerSocket socket = new ServerSocket(0);
+      final ServerSocket socket = new ServerSocket(0);
       socket.setReuseAddress(true);
-      int port = socket.getLocalPort();
+      final int port = socket.getLocalPort();
       socket.close();
       return port;
-    } catch (IOException ex) {
+    } catch (final IOException ex) {
       return defaultPort;
     }
   }

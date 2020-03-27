@@ -23,11 +23,11 @@ import io.atomix.utils.AtomixRuntimeException;
 public class PrimitiveException extends AtomixRuntimeException {
   public PrimitiveException() {}
 
-  public PrimitiveException(String message) {
+  public PrimitiveException(final String message) {
     super(message);
   }
 
-  public PrimitiveException(Throwable t) {
+  public PrimitiveException(final Throwable t) {
     super(t);
   }
 
@@ -35,7 +35,7 @@ public class PrimitiveException extends AtomixRuntimeException {
   public static class Unavailable extends PrimitiveException {
     public Unavailable() {}
 
-    public Unavailable(String message) {
+    public Unavailable(final String message) {
       super(message);
     }
   }
@@ -53,11 +53,11 @@ public class PrimitiveException extends AtomixRuntimeException {
   public static class ServiceException extends PrimitiveException {
     public ServiceException() {}
 
-    public ServiceException(String message) {
+    public ServiceException(final String message) {
       super(message);
     }
 
-    public ServiceException(Throwable cause) {
+    public ServiceException(final Throwable cause) {
       super(cause);
     }
   }
@@ -66,7 +66,7 @@ public class PrimitiveException extends AtomixRuntimeException {
   public static class CommandFailure extends PrimitiveException {
     public CommandFailure() {}
 
-    public CommandFailure(String message) {
+    public CommandFailure(final String message) {
       super(message);
     }
   }
@@ -75,7 +75,7 @@ public class PrimitiveException extends AtomixRuntimeException {
   public static class QueryFailure extends PrimitiveException {
     public QueryFailure() {}
 
-    public QueryFailure(String message) {
+    public QueryFailure(final String message) {
       super(message);
     }
   }
@@ -84,7 +84,7 @@ public class PrimitiveException extends AtomixRuntimeException {
   public static class UnknownClient extends PrimitiveException {
     public UnknownClient() {}
 
-    public UnknownClient(String message) {
+    public UnknownClient(final String message) {
       super(message);
     }
   }
@@ -93,7 +93,7 @@ public class PrimitiveException extends AtomixRuntimeException {
   public static class UnknownSession extends PrimitiveException {
     public UnknownSession() {}
 
-    public UnknownSession(String message) {
+    public UnknownSession(final String message) {
       super(message);
     }
   }
@@ -102,7 +102,7 @@ public class PrimitiveException extends AtomixRuntimeException {
   public static class UnknownService extends PrimitiveException {
     public UnknownService() {}
 
-    public UnknownService(String message) {
+    public UnknownService(final String message) {
       super(message);
     }
   }
@@ -111,7 +111,7 @@ public class PrimitiveException extends AtomixRuntimeException {
   public static class ClosedSession extends PrimitiveException {
     public ClosedSession() {}
 
-    public ClosedSession(String message) {
+    public ClosedSession(final String message) {
       super(message);
     }
   }

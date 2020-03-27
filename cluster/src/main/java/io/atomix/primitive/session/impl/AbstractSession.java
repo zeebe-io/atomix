@@ -36,11 +36,11 @@ public abstract class AbstractSession<C> implements Session<C> {
 
   @SuppressWarnings("unchecked")
   protected AbstractSession(
-      SessionId sessionId,
-      String primitiveName,
-      PrimitiveType primitiveType,
-      MemberId memberId,
-      Serializer serializer) {
+      final SessionId sessionId,
+      final String primitiveName,
+      final PrimitiveType primitiveType,
+      final MemberId memberId,
+      final Serializer serializer) {
     this.sessionId = checkNotNull(sessionId);
     this.primitiveName = checkNotNull(primitiveName);
     this.primitiveType = checkNotNull(primitiveType);
@@ -75,7 +75,7 @@ public abstract class AbstractSession<C> implements Session<C> {
    * @param <T> the object type
    * @return the encoded bytes
    */
-  protected <T> byte[] encode(T object) {
+  protected <T> byte[] encode(final T object) {
     return object != null ? serializer.encode(object) : null;
   }
 
@@ -86,7 +86,7 @@ public abstract class AbstractSession<C> implements Session<C> {
    * @param <T> the object type
    * @return the decoded object
    */
-  protected <T> T decode(byte[] bytes) {
+  protected <T> T decode(final byte[] bytes) {
     return bytes != null ? serializer.decode(bytes) : null;
   }
 
@@ -94,12 +94,12 @@ public abstract class AbstractSession<C> implements Session<C> {
   public abstract void publish(PrimitiveEvent event);
 
   @Override
-  public void publish(EventType eventType, Object event) {
+  public void publish(final EventType eventType, final Object event) {
     publish(PrimitiveEvent.event(eventType, encode(event)));
   }
 
   @Override
-  public void accept(Consumer event) {
+  public void accept(final Consumer event) {
     throw new UnsupportedOperationException();
   }
 }

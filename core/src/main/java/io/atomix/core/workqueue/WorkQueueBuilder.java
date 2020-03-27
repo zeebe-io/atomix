@@ -27,12 +27,12 @@ public abstract class WorkQueueBuilder<E>
     implements ProxyCompatibleBuilder<WorkQueueBuilder<E>> {
 
   protected WorkQueueBuilder(
-      String name, WorkQueueConfig config, PrimitiveManagementService managementService) {
+      final String name, final WorkQueueConfig config, final PrimitiveManagementService managementService) {
     super(WorkQueueType.instance(), name, config, managementService);
   }
 
   @Override
-  public WorkQueueBuilder<E> withProtocol(ProxyProtocol protocol) {
+  public WorkQueueBuilder<E> withProtocol(final ProxyProtocol protocol) {
     return withProtocol((PrimitiveProtocol) protocol);
   }
 }

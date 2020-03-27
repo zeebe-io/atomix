@@ -42,22 +42,22 @@ public class VersionedTest {
    * @param a Actual Integer parameter.
    * @return String Mapped valued.
    */
-  public static String transform(Integer a) {
+  public static String transform(final Integer a) {
     return Integer.toString(a);
   }
 
   /** Tests the map function. */
   @Test
   public void testMap() {
-    Versioned<String> tempObj = stats1.map(VersionedTest::transform);
+    final Versioned<String> tempObj = stats1.map(VersionedTest::transform);
     assertThat(tempObj.value(), is("1"));
   }
 
   /** Tests the valueOrElse method. */
   @Test
   public void testOrElse() {
-    Versioned<String> vv = new Versioned<>("foo", 1);
-    Versioned<String> nullVV = null;
+    final Versioned<String> vv = new Versioned<>("foo", 1);
+    final Versioned<String> nullVV = null;
     assertThat(Versioned.valueOrElse(vv, "bar"), is("foo"));
     assertThat(Versioned.valueOrElse(nullVV, "bar"), is("bar"));
   }

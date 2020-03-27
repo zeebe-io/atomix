@@ -27,7 +27,7 @@ public final class OperationResult {
   private final Throwable error;
   private final byte[] result;
 
-  private OperationResult(long index, long eventIndex, Throwable error, byte[] result) {
+  private OperationResult(final long index, final long eventIndex, final Throwable error, final byte[] result) {
     this.index = index;
     this.eventIndex = eventIndex;
     this.error = error;
@@ -41,7 +41,7 @@ public final class OperationResult {
    * @param eventIndex the session's last event index
    * @return the operation result
    */
-  public static OperationResult noop(long index, long eventIndex) {
+  public static OperationResult noop(final long index, final long eventIndex) {
     return new OperationResult(index, eventIndex, null, null);
   }
 
@@ -53,7 +53,7 @@ public final class OperationResult {
    * @param result the operation result value
    * @return the operation result
    */
-  public static OperationResult succeeded(long index, long eventIndex, byte[] result) {
+  public static OperationResult succeeded(final long index, final long eventIndex, final byte[] result) {
     return new OperationResult(index, eventIndex, null, result);
   }
 
@@ -65,7 +65,7 @@ public final class OperationResult {
    * @param error the operation error
    * @return the operation result
    */
-  public static OperationResult failed(long index, long eventIndex, Throwable error) {
+  public static OperationResult failed(final long index, final long eventIndex, final Throwable error) {
     return new OperationResult(index, eventIndex, error, null);
   }
 

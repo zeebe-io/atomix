@@ -30,7 +30,7 @@ public class GroupMember {
   private final MemberId memberId;
   private final MemberGroupId groupId;
 
-  public GroupMember(MemberId memberId, MemberGroupId groupId) {
+  public GroupMember(final MemberId memberId, final MemberGroupId groupId) {
     this.memberId = memberId;
     this.groupId = groupId;
   }
@@ -59,9 +59,9 @@ public class GroupMember {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof GroupMember) {
-      GroupMember member = (GroupMember) object;
+      final GroupMember member = (GroupMember) object;
       return member.memberId.equals(memberId) && member.groupId.equals(groupId);
     }
     return false;

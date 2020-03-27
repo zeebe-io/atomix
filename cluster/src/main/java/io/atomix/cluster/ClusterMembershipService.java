@@ -57,7 +57,7 @@ public interface ClusterMembershipService
    * @param memberId the member identifier
    * @return the member or {@code null} if no node with the given identifier exists
    */
-  default Member getMember(String memberId) {
+  default Member getMember(final String memberId) {
     return getMember(MemberId.from(memberId));
   }
 
@@ -75,7 +75,7 @@ public interface ClusterMembershipService
    * @param address the member address
    * @return the member or {@code null} if no member with the given address could be found
    */
-  default Member getMember(Address address) {
+  default Member getMember(final Address address) {
     return getMembers().stream()
         .filter(member -> member.address().equals(address))
         .findFirst()

@@ -36,29 +36,29 @@ public class BlockingWorkQueue<E> extends Synchronous<AsyncWorkQueue<E>> impleme
   private final AsyncWorkQueue<E> asyncQueue;
   private final long operationTimeoutMillis;
 
-  public BlockingWorkQueue(AsyncWorkQueue<E> asyncQueue, long operationTimeoutMillis) {
+  public BlockingWorkQueue(final AsyncWorkQueue<E> asyncQueue, final long operationTimeoutMillis) {
     super(asyncQueue);
     this.asyncQueue = asyncQueue;
     this.operationTimeoutMillis = operationTimeoutMillis;
   }
 
   @Override
-  public void addMultiple(Collection<E> items) {
+  public void addMultiple(final Collection<E> items) {
     complete(asyncQueue.addMultiple(items));
   }
 
   @Override
-  public Collection<Task<E>> take(int maxItems) {
+  public Collection<Task<E>> take(final int maxItems) {
     return complete(asyncQueue.take(maxItems));
   }
 
   @Override
-  public void complete(Collection<String> taskIds) {
+  public void complete(final Collection<String> taskIds) {
     complete(asyncQueue.complete(taskIds));
   }
 
   @Override
-  public void registerTaskProcessor(Consumer<E> taskProcessor, int parallelism, Executor executor) {
+  public void registerTaskProcessor(final Consumer<E> taskProcessor, final int parallelism, final Executor executor) {
     complete(asyncQueue.registerTaskProcessor(taskProcessor, parallelism, executor));
   }
 
@@ -77,16 +77,16 @@ public class BlockingWorkQueue<E> extends Synchronous<AsyncWorkQueue<E>> impleme
     return asyncQueue;
   }
 
-  private <T> T complete(CompletableFuture<T> future) {
+  private <T> T complete(final CompletableFuture<T> future) {
     try {
       return future.get(operationTimeoutMillis, TimeUnit.MILLISECONDS);
-    } catch (InterruptedException e) {
+    } catch (final InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new PrimitiveException.Interrupted();
-    } catch (TimeoutException e) {
+    } catch (final TimeoutException e) {
       throw new PrimitiveException.Timeout();
-    } catch (ExecutionException e) {
-      Throwable cause = Throwables.getRootCause(e);
+    } catch (final ExecutionException e) {
+      final Throwable cause = Throwables.getRootCause(e);
       if (cause instanceof PrimitiveException) {
         throw (PrimitiveException) cause;
       } else {

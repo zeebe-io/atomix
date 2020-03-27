@@ -29,7 +29,7 @@ public class PrimaryElectionEvent extends AbstractEvent<PrimaryElectionEvent.Typ
 
   private final PartitionId partitionId;
 
-  public PrimaryElectionEvent(Type type, PartitionId partitionId, PrimaryTerm subject) {
+  public PrimaryElectionEvent(final Type type, final PartitionId partitionId, final PrimaryTerm subject) {
     super(type, subject);
     this.partitionId = partitionId;
   }

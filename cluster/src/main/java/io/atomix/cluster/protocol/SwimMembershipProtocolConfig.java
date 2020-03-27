@@ -59,7 +59,7 @@ public class SwimMembershipProtocolConfig extends GroupMembershipProtocolConfig 
    * @param broadcastUpdates whether to broadcast member updates to all peers
    * @return the protocol configuration
    */
-  public SwimMembershipProtocolConfig setBroadcastUpdates(boolean broadcastUpdates) {
+  public SwimMembershipProtocolConfig setBroadcastUpdates(final boolean broadcastUpdates) {
     this.broadcastUpdates = broadcastUpdates;
     return this;
   }
@@ -79,7 +79,7 @@ public class SwimMembershipProtocolConfig extends GroupMembershipProtocolConfig 
    * @param broadcastDisputes whether to broadcast disputes to all peers
    * @return the protocol configuration
    */
-  public SwimMembershipProtocolConfig setBroadcastDisputes(boolean broadcastDisputes) {
+  public SwimMembershipProtocolConfig setBroadcastDisputes(final boolean broadcastDisputes) {
     this.broadcastDisputes = broadcastDisputes;
     return this;
   }
@@ -99,7 +99,7 @@ public class SwimMembershipProtocolConfig extends GroupMembershipProtocolConfig 
    * @param notifySuspect whether to notify a suspect node on state changes
    * @return the protocol configuration
    */
-  public SwimMembershipProtocolConfig setNotifySuspect(boolean notifySuspect) {
+  public SwimMembershipProtocolConfig setNotifySuspect(final boolean notifySuspect) {
     this.notifySuspect = notifySuspect;
     return this;
   }
@@ -119,7 +119,7 @@ public class SwimMembershipProtocolConfig extends GroupMembershipProtocolConfig 
    * @param gossipInterval the gossip interval
    * @return the protocol configuration
    */
-  public SwimMembershipProtocolConfig setGossipInterval(Duration gossipInterval) {
+  public SwimMembershipProtocolConfig setGossipInterval(final Duration gossipInterval) {
     this.gossipInterval = gossipInterval;
     return this;
   }
@@ -139,7 +139,7 @@ public class SwimMembershipProtocolConfig extends GroupMembershipProtocolConfig 
    * @param gossipFanout the gossip fanout
    * @return the protocol configuration
    */
-  public SwimMembershipProtocolConfig setGossipFanout(int gossipFanout) {
+  public SwimMembershipProtocolConfig setGossipFanout(final int gossipFanout) {
     checkArgument(gossipFanout > 0, "gossipFanout must be positive");
     this.gossipFanout = gossipFanout;
     return this;
@@ -160,7 +160,7 @@ public class SwimMembershipProtocolConfig extends GroupMembershipProtocolConfig 
    * @param probeInterval the probe interval
    * @return the membership configuration
    */
-  public SwimMembershipProtocolConfig setProbeInterval(Duration probeInterval) {
+  public SwimMembershipProtocolConfig setProbeInterval(final Duration probeInterval) {
     checkNotNull(probeInterval, "probeInterval cannot be null");
     checkArgument(
         !probeInterval.isNegative() && !probeInterval.isZero(), "probeInterval must be positive");
@@ -183,7 +183,7 @@ public class SwimMembershipProtocolConfig extends GroupMembershipProtocolConfig 
    * @param probeTimeout the probe timeout
    * @return the membership protocol configuration
    */
-  public SwimMembershipProtocolConfig setProbeTimeout(Duration probeTimeout) {
+  public SwimMembershipProtocolConfig setProbeTimeout(final Duration probeTimeout) {
     checkNotNull(probeTimeout, "probeTimeout cannot be null");
     checkArgument(
         !probeTimeout.isNegative() && !probeTimeout.isZero(), "probeTimeout must be positive");
@@ -206,7 +206,7 @@ public class SwimMembershipProtocolConfig extends GroupMembershipProtocolConfig 
    * @param suspectProbes the number of probes to perform on suspect members
    * @return the membership configuration
    */
-  public SwimMembershipProtocolConfig setSuspectProbes(int suspectProbes) {
+  public SwimMembershipProtocolConfig setSuspectProbes(final int suspectProbes) {
     checkArgument(suspectProbes > 0, "suspectProbes must be positive");
     this.suspectProbes = suspectProbes;
     return this;
@@ -227,7 +227,7 @@ public class SwimMembershipProtocolConfig extends GroupMembershipProtocolConfig 
    * @param failureTimeout the base failure timeout
    * @return the group membership configuration
    */
-  public SwimMembershipProtocolConfig setFailureTimeout(Duration failureTimeout) {
+  public SwimMembershipProtocolConfig setFailureTimeout(final Duration failureTimeout) {
     checkNotNull(failureTimeout, "failureTimeout cannot be null");
     checkArgument(
         !failureTimeout.isNegative() && !failureTimeout.isZero(),
@@ -251,7 +251,7 @@ public class SwimMembershipProtocolConfig extends GroupMembershipProtocolConfig 
    * @param syncInterval the sync interval
    * @return the membership configuration
    */
-  public SwimMembershipProtocolConfig setSyncInterval(Duration syncInterval) {
+  public SwimMembershipProtocolConfig setSyncInterval(final Duration syncInterval) {
     checkNotNull(syncInterval, "syncInterval cannot be null");
     checkArgument(
         !syncInterval.isNegative() && !syncInterval.isZero(), "syncInterval must be positive");

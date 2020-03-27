@@ -26,9 +26,9 @@ public class TestBootstrapService implements BootstrapService {
   private final BroadcastService broadcastService;
 
   public TestBootstrapService(
-      MessagingService messagingService,
-      UnicastService unicastService,
-      BroadcastService broadcastService) {
+      final MessagingService messagingService,
+      final UnicastService unicastService,
+      final BroadcastService broadcastService) {
     this.messagingService = messagingService;
     this.unicastService = unicastService;
     this.broadcastService = broadcastService;

@@ -23,7 +23,7 @@ public class Indexed<E> {
   private final E entry;
   private final int size;
 
-  public Indexed(long index, E entry, int size) {
+  public Indexed(final long index, final E entry, final int size) {
     this.index = index;
     this.entry = entry;
     this.size = size;

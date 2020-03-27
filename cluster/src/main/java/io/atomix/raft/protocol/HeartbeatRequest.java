@@ -28,7 +28,7 @@ public class HeartbeatRequest extends AbstractRaftRequest {
   private final MemberId leader;
   private final Collection<MemberId> members;
 
-  public HeartbeatRequest(MemberId leader, Collection<MemberId> members) {
+  public HeartbeatRequest(final MemberId leader, final Collection<MemberId> members) {
     this.leader = leader;
     this.members = members;
   }
@@ -66,7 +66,7 @@ public class HeartbeatRequest extends AbstractRaftRequest {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof HeartbeatRequest) {
       final HeartbeatRequest request = (HeartbeatRequest) object;
       return Objects.equals(request.leader, leader) && Objects.equals(request.members, members);
@@ -91,7 +91,7 @@ public class HeartbeatRequest extends AbstractRaftRequest {
      * @param leader The request leader.
      * @return The request builder.
      */
-    public Builder withLeader(MemberId leader) {
+    public Builder withLeader(final MemberId leader) {
       this.leader = leader;
       return this;
     }
@@ -103,7 +103,7 @@ public class HeartbeatRequest extends AbstractRaftRequest {
      * @return The request builder.
      * @throws NullPointerException if {@code members} is null
      */
-    public Builder withMembers(Collection<MemberId> members) {
+    public Builder withMembers(final Collection<MemberId> members) {
       this.members = checkNotNull(members, "members cannot be null");
       return this;
     }

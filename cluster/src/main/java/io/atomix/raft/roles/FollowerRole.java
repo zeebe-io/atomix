@@ -52,7 +52,7 @@ public final class FollowerRole extends ActiveRole {
   private final ClusterMembershipEventListener clusterListener = this::handleClusterEvent;
   private volatile long lastHeartbeat;
 
-  public FollowerRole(RaftContext context) {
+  public FollowerRole(final RaftContext context) {
     super(context);
   }
 
@@ -77,7 +77,7 @@ public final class FollowerRole extends ActiveRole {
   }
 
   @Override
-  public CompletableFuture<InstallResponse> onInstall(InstallRequest request) {
+  public CompletableFuture<InstallResponse> onInstall(final InstallRequest request) {
     final CompletableFuture<InstallResponse> future = super.onInstall(request);
     resetHeartbeatTimeoutFromDifferentThread();
     return future;
@@ -103,7 +103,7 @@ public final class FollowerRole extends ActiveRole {
   }
 
   /** Handles a cluster event. */
-  private void handleClusterEvent(ClusterMembershipEvent event) {
+  private void handleClusterEvent(final ClusterMembershipEvent event) {
     raft.getThreadContext()
         .execute(
             () -> {
@@ -167,7 +167,7 @@ public final class FollowerRole extends ActiveRole {
 
     // Once we got the last log term, iterate through each current member
     // of the cluster and vote each member for a vote.
-    for (DefaultRaftMember member : votingMembers) {
+    for (final DefaultRaftMember member : votingMembers) {
       log.debug("Polling {} for next term {}", member, raft.getTerm() + 1);
       final PollRequest request =
           PollRequest.builder()
@@ -185,14 +185,14 @@ public final class FollowerRole extends ActiveRole {
   }
 
   @Override
-  public CompletableFuture<ConfigureResponse> onConfigure(ConfigureRequest request) {
+  public CompletableFuture<ConfigureResponse> onConfigure(final ConfigureRequest request) {
     final CompletableFuture<ConfigureResponse> future = super.onConfigure(request);
     resetHeartbeatTimeoutFromDifferentThread();
     return future;
   }
 
   @Override
-  public CompletableFuture<AppendResponse> onAppend(AppendRequest request) {
+  public CompletableFuture<AppendResponse> onAppend(final AppendRequest request) {
     // Reset the heartbeat timeout.
     resetHeartbeatTimeoutFromDifferentThread();
 
@@ -200,7 +200,7 @@ public final class FollowerRole extends ActiveRole {
   }
 
   @Override
-  protected VoteResponse handleVote(VoteRequest request) {
+  protected VoteResponse handleVote(final VoteRequest request) {
     // Reset the heartbeat timeout if we voted for another candidate.
     final VoteResponse response = super.handleVote(request);
     if (response.voted()) {
@@ -210,7 +210,7 @@ public final class FollowerRole extends ActiveRole {
   }
 
   @Override
-  public void onLeaderHeartbeat(LeaderHeartbeatRequest request) {
+  public void onLeaderHeartbeat(final LeaderHeartbeatRequest request) {
     raft.checkHeartbeatThread();
     logRequest(request);
 

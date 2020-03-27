@@ -18,7 +18,7 @@ public class TestPrimitiveImpl extends AbstractAsyncPrimitive<TestPrimitive, Tes
   private final Set<Consumer<String>> expireListeners = Sets.newCopyOnWriteArraySet();
   private final Set<Consumer<String>> closeListeners = Sets.newCopyOnWriteArraySet();
 
-  public TestPrimitiveImpl(ProxyClient<TestPrimitiveService> proxy, PrimitiveRegistry registry) {
+  public TestPrimitiveImpl(final ProxyClient<TestPrimitiveService> proxy, final PrimitiveRegistry registry) {
     super(proxy, registry);
   }
 
@@ -28,7 +28,7 @@ public class TestPrimitiveImpl extends AbstractAsyncPrimitive<TestPrimitive, Tes
   }
 
   @Override
-  public CompletableFuture<Long> write(String value) {
+  public CompletableFuture<Long> write(final String value) {
     return getProxyClient().applyBy(name(), service -> service.write(value));
   }
 
@@ -38,40 +38,40 @@ public class TestPrimitiveImpl extends AbstractAsyncPrimitive<TestPrimitive, Tes
   }
 
   @Override
-  public CompletableFuture<Long> sendEvent(boolean sender) {
+  public CompletableFuture<Long> sendEvent(final boolean sender) {
     return getProxyClient().applyBy(name(), service -> service.sendEvent(sender));
   }
 
   @Override
-  public CompletableFuture<Void> onEvent(Consumer<Long> callback) {
+  public CompletableFuture<Void> onEvent(final Consumer<Long> callback) {
     eventListeners.add(callback);
     return CompletableFuture.completedFuture(null);
   }
 
   @Override
-  public CompletableFuture<Void> onExpire(Consumer<String> callback) {
+  public CompletableFuture<Void> onExpire(final Consumer<String> callback) {
     expireListeners.add(callback);
     return getProxyClient().acceptBy(name(), service -> service.onExpire());
   }
 
   @Override
-  public CompletableFuture<Void> onClose(Consumer<String> callback) {
+  public CompletableFuture<Void> onClose(final Consumer<String> callback) {
     closeListeners.add(callback);
     return getProxyClient().acceptBy(name(), service -> service.onClose());
   }
 
   @Override
-  public void event(long index) {
+  public void event(final long index) {
     eventListeners.forEach(l -> l.accept(index));
   }
 
   @Override
-  public void expire(String value) {
+  public void expire(final String value) {
     expireListeners.forEach(l -> l.accept(value));
   }
 
   @Override
-  public void close(String value) {
+  public void close(final String value) {
     closeListeners.forEach(l -> l.accept(value));
   }
 
@@ -81,7 +81,7 @@ public class TestPrimitiveImpl extends AbstractAsyncPrimitive<TestPrimitive, Tes
   }
 
   @Override
-  public SyncPrimitive sync(Duration operationTimeout) {
+  public SyncPrimitive sync(final Duration operationTimeout) {
     return null;
   }
 }

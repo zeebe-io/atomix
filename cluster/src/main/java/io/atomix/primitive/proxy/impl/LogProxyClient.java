@@ -33,12 +33,12 @@ public class LogProxyClient<S> extends AbstractProxyClient<S> {
   private final Serializer serializer;
 
   public LogProxyClient(
-      String name,
-      PrimitiveType type,
-      PrimitiveProtocol protocol,
-      Class<S> serviceType,
-      ServiceConfig serviceConfig,
-      LogClient client) {
+      final String name,
+      final PrimitiveType type,
+      final PrimitiveProtocol protocol,
+      final Class<S> serviceType,
+      final ServiceConfig serviceConfig,
+      final LogClient client) {
     super(
         name,
         type,
@@ -49,12 +49,12 @@ public class LogProxyClient<S> extends AbstractProxyClient<S> {
   }
 
   private static <S> Collection<ProxySession<S>> createSessions(
-      String name,
-      PrimitiveType primitiveType,
-      Class<S> serviceType,
-      ServiceConfig serviceConfig,
-      Collection<LogSession> partitions) {
-    Serializer serializer = Serializer.using(primitiveType.namespace());
+      final String name,
+      final PrimitiveType primitiveType,
+      final Class<S> serviceType,
+      final ServiceConfig serviceConfig,
+      final Collection<LogSession> partitions) {
+    final Serializer serializer = Serializer.using(primitiveType.namespace());
     return partitions.stream()
         .map(
             partition ->
@@ -64,12 +64,12 @@ public class LogProxyClient<S> extends AbstractProxyClient<S> {
   }
 
   @Override
-  public PartitionId getPartitionId(String key) {
+  public PartitionId getPartitionId(final String key) {
     return client.getPartitionId(key);
   }
 
   @Override
-  public PartitionId getPartitionId(Object key) {
+  public PartitionId getPartitionId(final Object key) {
     return client.getPartitionId(BaseEncoding.base16().encode(serializer.encode(key)));
   }
 }

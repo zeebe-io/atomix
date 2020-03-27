@@ -43,7 +43,7 @@ public final class CandidateRole extends ActiveRole {
   private final Random random = new Random();
   private Scheduled currentTimer;
 
-  public CandidateRole(RaftContext context) {
+  public CandidateRole(final RaftContext context) {
     super(context);
   }
 
@@ -166,7 +166,7 @@ public final class CandidateRole extends ActiveRole {
 
     // Once we got the last log term, iterate through each current member
     // of the cluster and vote each member for a vote.
-    for (DefaultRaftMember member : votingMembers) {
+    for (final DefaultRaftMember member : votingMembers) {
       log.debug("Requesting vote from {} for term {}", member, raft.getTerm());
       final VoteRequest request =
           VoteRequest.builder()
@@ -181,7 +181,7 @@ public final class CandidateRole extends ActiveRole {
   }
 
   private void sendVoteRequestToMember(
-      AtomicBoolean complete, Quorum quorum, DefaultRaftMember member, VoteRequest request) {
+      final AtomicBoolean complete, final Quorum quorum, final DefaultRaftMember member, final VoteRequest request) {
     raft.getProtocol()
         .vote(member.memberId(), request)
         .whenCompleteAsync(
@@ -195,12 +195,12 @@ public final class CandidateRole extends ActiveRole {
   }
 
   private void onVoteResponse(
-      AtomicBoolean complete,
-      Quorum quorum,
-      DefaultRaftMember member,
-      VoteRequest request,
-      VoteResponse response,
-      Throwable error) {
+      final AtomicBoolean complete,
+      final Quorum quorum,
+      final DefaultRaftMember member,
+      final VoteRequest request,
+      final VoteResponse response,
+      final Throwable error) {
     if (error != null) {
       onVoteResponseError(complete, quorum, member, request, error);
     } else {
@@ -223,11 +223,11 @@ public final class CandidateRole extends ActiveRole {
   }
 
   private void onVoteResponseError(
-      AtomicBoolean complete,
-      Quorum quorum,
-      DefaultRaftMember member,
-      VoteRequest request,
-      Throwable error) {
+      final AtomicBoolean complete,
+      final Quorum quorum,
+      final DefaultRaftMember member,
+      final VoteRequest request,
+      final Throwable error) {
     if (error.getCause() instanceof NoRemoteHandler) {
       log.debug(
           "Member {} is not ready to receive vote requests, will retry later.", member, error);
@@ -244,7 +244,7 @@ public final class CandidateRole extends ActiveRole {
   }
 
   @Override
-  public CompletableFuture<AppendResponse> onAppend(AppendRequest request) {
+  public CompletableFuture<AppendResponse> onAppend(final AppendRequest request) {
     raft.checkThread();
 
     // If the request indicates a term that is greater than the current term then
@@ -257,7 +257,7 @@ public final class CandidateRole extends ActiveRole {
   }
 
   @Override
-  public CompletableFuture<VoteResponse> onVote(VoteRequest request) {
+  public CompletableFuture<VoteResponse> onVote(final VoteRequest request) {
     raft.checkThread();
     logRequest(request);
 

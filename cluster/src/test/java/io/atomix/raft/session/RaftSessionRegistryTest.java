@@ -52,7 +52,7 @@ public class RaftSessionRegistryTest {
     assertNull(sessionManager.getSession(1));
   }
 
-  private RaftSession createSession(long sessionId) {
+  private RaftSession createSession(final long sessionId) {
     final RaftServiceContext context = mock(RaftServiceContext.class);
     when(context.serviceType()).thenReturn(TestPrimitiveType.instance());
     when(context.serviceName()).thenReturn("test");

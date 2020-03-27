@@ -30,7 +30,7 @@ public class PrimitiveOperation {
    * @param id the operation identifier
    * @return the primitive operation
    */
-  public static PrimitiveOperation operation(OperationId id) {
+  public static PrimitiveOperation operation(final OperationId id) {
     return new PrimitiveOperation(OperationId.simplify(id), null);
   }
 
@@ -41,7 +41,7 @@ public class PrimitiveOperation {
    * @param value the operation value
    * @return the primitive operation
    */
-  public static PrimitiveOperation operation(OperationId id, byte[] value) {
+  public static PrimitiveOperation operation(final OperationId id, final byte[] value) {
     return new PrimitiveOperation(OperationId.simplify(id), value);
   }
 
@@ -53,7 +53,7 @@ public class PrimitiveOperation {
     this.value = null;
   }
 
-  public PrimitiveOperation(OperationId id, byte[] value) {
+  public PrimitiveOperation(final OperationId id, final byte[] value) {
     this.id = id;
     this.value = value;
   }
@@ -82,9 +82,9 @@ public class PrimitiveOperation {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof PrimitiveOperation) {
-      PrimitiveOperation operation = (PrimitiveOperation) object;
+      final PrimitiveOperation operation = (PrimitiveOperation) object;
       return Objects.equals(operation.id, id) && Arrays.equals(operation.value, value);
     }
     return false;

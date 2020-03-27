@@ -28,7 +28,7 @@ public class PrimitiveId extends AbstractIdentifier<Long> {
    * @param id the number from which to create the identifier
    * @return the snapshot identifier
    */
-  public static PrimitiveId from(long id) {
+  public static PrimitiveId from(final long id) {
     return new PrimitiveId(id);
   }
 
@@ -38,11 +38,11 @@ public class PrimitiveId extends AbstractIdentifier<Long> {
    * @param id the string from which to create the identifier
    * @return the snapshot identifier
    */
-  public static PrimitiveId from(String id) {
+  public static PrimitiveId from(final String id) {
     return from(Hashing.sha256().hashString(id, StandardCharsets.UTF_8).asLong());
   }
 
-  public PrimitiveId(Long value) {
+  public PrimitiveId(final Long value) {
     super(value);
   }
 }

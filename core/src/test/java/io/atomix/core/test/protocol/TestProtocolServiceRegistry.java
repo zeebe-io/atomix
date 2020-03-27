@@ -29,7 +29,7 @@ public class TestProtocolServiceRegistry {
   private final Map<PartitionId, Map<String, TestProtocolService>> partitions =
       Maps.newConcurrentMap();
 
-  TestProtocolServiceRegistry(ScheduledExecutorService threadPool) {
+  TestProtocolServiceRegistry(final ScheduledExecutorService threadPool) {
     this.threadPool = threadPool;
   }
 
@@ -43,7 +43,7 @@ public class TestProtocolServiceRegistry {
    * @return the test service
    */
   public TestProtocolService getOrCreateService(
-      PartitionId partitionId, String name, PrimitiveType type, ServiceConfig config) {
+      final PartitionId partitionId, final String name, final PrimitiveType type, final ServiceConfig config) {
     return partitions
         .computeIfAbsent(partitionId, id -> Maps.newConcurrentMap())
         .computeIfAbsent(
@@ -65,8 +65,8 @@ public class TestProtocolServiceRegistry {
    * @param partitionId the partition identifier
    * @param name the service name
    */
-  public void removeService(PartitionId partitionId, String name) {
-    Map<String, TestProtocolService> services = partitions.get(partitionId);
+  public void removeService(final PartitionId partitionId, final String name) {
+    final Map<String, TestProtocolService> services = partitions.get(partitionId);
     if (services != null) {
       services.remove(name);
     }

@@ -179,7 +179,7 @@ public interface RaftServer {
     try {
       final InetAddress address = InetAddress.getByName("0.0.0.0");
       return builder(MemberId.from(address.getHostName()));
-    } catch (UnknownHostException e) {
+    } catch (final UnknownHostException e) {
       throw new ConfigurationException("Cannot configure local node", e);
     }
   }
@@ -192,7 +192,7 @@ public interface RaftServer {
    * @param localMemberId The local node identifier.
    * @return The server builder.
    */
-  static Builder builder(MemberId localMemberId) {
+  static Builder builder(final MemberId localMemberId) {
     return new DefaultRaftServer.Builder(localMemberId);
   }
 
@@ -348,7 +348,7 @@ public interface RaftServer {
    * @param members The bootstrap cluster configuration.
    * @return A completable future to be completed once the cluster has been bootstrapped.
    */
-  default CompletableFuture<RaftServer> bootstrap(MemberId... members) {
+  default CompletableFuture<RaftServer> bootstrap(final MemberId... members) {
     return bootstrap(Arrays.asList(members));
   }
 
@@ -387,7 +387,7 @@ public interface RaftServer {
    * @param members A collection of cluster members to join.
    * @return A completable future to be completed once the local server has joined the cluster.
    */
-  default CompletableFuture<RaftServer> join(MemberId... members) {
+  default CompletableFuture<RaftServer> join(final MemberId... members) {
     return join(Arrays.asList(members));
   }
 
@@ -435,7 +435,7 @@ public interface RaftServer {
    * @return A completable future to be completed once the local server has joined the cluster as a
    *     listener.
    */
-  default CompletableFuture<RaftServer> listen(MemberId... cluster) {
+  default CompletableFuture<RaftServer> listen(final MemberId... cluster) {
     return listen(Arrays.asList(checkNotNull(cluster)));
   }
 
@@ -592,7 +592,7 @@ public interface RaftServer {
     protected LoadMonitorFactory loadMonitorFactory = LoadMonitor::new;
     protected Supplier<JournalIndex> journalIndexFactory;
 
-    protected Builder(MemberId localMemberId) {
+    protected Builder(final MemberId localMemberId) {
       this.localMemberId = checkNotNull(localMemberId, "localMemberId cannot be null");
     }
 
@@ -604,7 +604,7 @@ public interface RaftServer {
      * @param name The server name.
      * @return The server builder.
      */
-    public Builder withName(String name) {
+    public Builder withName(final String name) {
       this.name = checkNotNull(name, "name cannot be null");
       return this;
     }
@@ -615,7 +615,7 @@ public interface RaftServer {
      * @param membershipService the cluster membership service
      * @return the server builder
      */
-    public Builder withMembershipService(ClusterMembershipService membershipService) {
+    public Builder withMembershipService(final ClusterMembershipService membershipService) {
       this.membershipService = checkNotNull(membershipService, "membershipService cannot be null");
       return this;
     }
@@ -626,7 +626,7 @@ public interface RaftServer {
      * @param protocol The server protocol.
      * @return The server builder.
      */
-    public Builder withProtocol(RaftServerProtocol protocol) {
+    public Builder withProtocol(final RaftServerProtocol protocol) {
       this.protocol = checkNotNull(protocol, "protocol cannot be null");
       return this;
     }
@@ -637,7 +637,7 @@ public interface RaftServer {
      * @param threadModel the server thread model
      * @return the server builder
      */
-    public Builder withThreadModel(ThreadModel threadModel) {
+    public Builder withThreadModel(final ThreadModel threadModel) {
       this.threadModel = checkNotNull(threadModel, "threadModel cannot be null");
       return this;
     }
@@ -649,7 +649,7 @@ public interface RaftServer {
      * @return The Raft server builder.
      * @throws NullPointerException if {@code storage} is null
      */
-    public Builder withStorage(RaftStorage storage) {
+    public Builder withStorage(final RaftStorage storage) {
       this.storage = checkNotNull(storage, "storage cannot be null");
       return this;
     }
@@ -661,7 +661,7 @@ public interface RaftServer {
      * @return the Raft server builder
      * @throws NullPointerException if the {@code primitiveTypes} argument is {@code null}
      */
-    public Builder withPrimitiveTypes(PrimitiveTypeRegistry primitiveTypes) {
+    public Builder withPrimitiveTypes(final PrimitiveTypeRegistry primitiveTypes) {
       this.primitiveTypes = checkNotNull(primitiveTypes, "primitiveTypes cannot be null");
       return this;
     }
@@ -674,7 +674,7 @@ public interface RaftServer {
      * @throws IllegalArgumentException If the election timeout is not positive
      * @throws NullPointerException if {@code electionTimeout} is null
      */
-    public Builder withElectionTimeout(Duration electionTimeout) {
+    public Builder withElectionTimeout(final Duration electionTimeout) {
       checkNotNull(electionTimeout, "electionTimeout cannot be null");
       checkArgument(
           !electionTimeout.isNegative() && !electionTimeout.isZero(),
@@ -694,7 +694,7 @@ public interface RaftServer {
      * @throws IllegalArgumentException If the heartbeat interval is not positive
      * @throws NullPointerException if {@code heartbeatInterval} is null
      */
-    public Builder withHeartbeatInterval(Duration heartbeatInterval) {
+    public Builder withHeartbeatInterval(final Duration heartbeatInterval) {
       checkNotNull(heartbeatInterval, "heartbeatInterval cannot be null");
       checkArgument(
           !heartbeatInterval.isNegative() && !heartbeatInterval.isZero(),
@@ -714,7 +714,7 @@ public interface RaftServer {
      * @throws IllegalArgumentException If the session timeout is not positive
      * @throws NullPointerException if {@code sessionTimeout} is null
      */
-    public Builder withSessionTimeout(Duration sessionTimeout) {
+    public Builder withSessionTimeout(final Duration sessionTimeout) {
       checkNotNull(sessionTimeout, "sessionTimeout cannot be null");
       checkArgument(
           !sessionTimeout.isNegative() && !sessionTimeout.isZero(),
@@ -732,7 +732,7 @@ public interface RaftServer {
      * @param threadPoolSize The server thread pool size.
      * @return The server builder.
      */
-    public Builder withThreadPoolSize(int threadPoolSize) {
+    public Builder withThreadPoolSize(final int threadPoolSize) {
       checkArgument(threadPoolSize > 0, "threadPoolSize must be positive");
       this.threadPoolSize = threadPoolSize;
       return this;
@@ -745,7 +745,7 @@ public interface RaftServer {
      * @return the server builder
      * @throws NullPointerException if the factory is null
      */
-    public Builder withThreadContextFactory(ThreadContextFactory threadContextFactory) {
+    public Builder withThreadContextFactory(final ThreadContextFactory threadContextFactory) {
       this.threadContextFactory =
           checkNotNull(threadContextFactory, "threadContextFactory cannot be null");
       return this;
@@ -758,7 +758,7 @@ public interface RaftServer {
      * @return the server builder
      * @throws NullPointerException if the factory is null
      */
-    public Builder withStateMachineFactory(RaftStateMachineFactory stateMachineFactory) {
+    public Builder withStateMachineFactory(final RaftStateMachineFactory stateMachineFactory) {
       this.stateMachineFactory =
           checkNotNull(stateMachineFactory, "stateMachineFactory cannot be null");
       return this;
@@ -771,7 +771,7 @@ public interface RaftServer {
      * @param loadMonitorFactory the factory to create the load monitor
      * @return the server builder
      */
-    public Builder withLoadMonitorFactory(LoadMonitorFactory loadMonitorFactory) {
+    public Builder withLoadMonitorFactory(final LoadMonitorFactory loadMonitorFactory) {
       this.loadMonitorFactory = loadMonitorFactory;
       return this;
     }
@@ -845,7 +845,7 @@ public interface RaftServer {
 
     private final boolean active;
 
-    Role(boolean active) {
+    Role(final boolean active) {
       this.active = active;
     }
 

@@ -97,7 +97,7 @@ public final class JournalSegmentDescriptor {
    * @return The descriptor builder.
    * @throws NullPointerException if {@code buffer} is null
    */
-  public static Builder builder(ByteBuffer buffer) {
+  public static Builder builder(final ByteBuffer buffer) {
     return new Builder(buffer);
   }
 
@@ -111,7 +111,7 @@ public final class JournalSegmentDescriptor {
   private volatile boolean locked;
 
   /** @throws NullPointerException if {@code buffer} is null */
-  public JournalSegmentDescriptor(ByteBuffer buffer) {
+  public JournalSegmentDescriptor(final ByteBuffer buffer) {
     this.buffer = buffer;
     this.version = buffer.getInt();
     this.id = buffer.getLong();
@@ -189,7 +189,7 @@ public final class JournalSegmentDescriptor {
   }
 
   /** Writes an update to the descriptor. */
-  public void update(long timestamp) {
+  public void update(final long timestamp) {
     if (!locked) {
       buffer.putLong(UPDATED_POSITION, timestamp);
       this.updated = timestamp;
@@ -197,7 +197,7 @@ public final class JournalSegmentDescriptor {
   }
 
   /** Copies the segment to a new buffer. */
-  JournalSegmentDescriptor copyTo(ByteBuffer buffer) {
+  JournalSegmentDescriptor copyTo(final ByteBuffer buffer) {
     buffer.putInt(version);
     buffer.putLong(id);
     buffer.putLong(index);
@@ -222,7 +222,7 @@ public final class JournalSegmentDescriptor {
   public static class Builder {
     private final ByteBuffer buffer;
 
-    private Builder(ByteBuffer buffer) {
+    private Builder(final ByteBuffer buffer) {
       this.buffer = checkNotNull(buffer, "buffer cannot be null");
       buffer.putInt(VERSION_POSITION, VERSION);
     }
@@ -233,7 +233,7 @@ public final class JournalSegmentDescriptor {
      * @param id The segment identifier.
      * @return The segment descriptor builder.
      */
-    public Builder withId(long id) {
+    public Builder withId(final long id) {
       buffer.putLong(ID_POSITION, id);
       return this;
     }
@@ -244,7 +244,7 @@ public final class JournalSegmentDescriptor {
      * @param index The segment starting index.
      * @return The segment descriptor builder.
      */
-    public Builder withIndex(long index) {
+    public Builder withIndex(final long index) {
       buffer.putLong(INDEX_POSITION, index);
       return this;
     }
@@ -255,7 +255,7 @@ public final class JournalSegmentDescriptor {
      * @param maxSegmentSize The maximum count of the segment.
      * @return The segment descriptor builder.
      */
-    public Builder withMaxSegmentSize(int maxSegmentSize) {
+    public Builder withMaxSegmentSize(final int maxSegmentSize) {
       buffer.putInt(MAX_SIZE_POSITION, maxSegmentSize);
       return this;
     }
@@ -268,7 +268,7 @@ public final class JournalSegmentDescriptor {
      * @deprecated since 3.0.2
      */
     @Deprecated
-    public Builder withMaxEntries(int maxEntries) {
+    public Builder withMaxEntries(final int maxEntries) {
       buffer.putInt(MAX_ENTRIES_POSITION, maxEntries);
       return this;
     }

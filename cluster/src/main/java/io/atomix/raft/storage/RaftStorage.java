@@ -220,12 +220,12 @@ public final class RaftStorage {
     final File file = new File(directory, String.format(".%s.lock", prefix));
     try {
       if (file.createNewFile()) {
-        try (FileBuffer buffer = FileBuffer.allocate(file)) {
+        try (final FileBuffer buffer = FileBuffer.allocate(file)) {
           buffer.writeString(id).flush();
         }
         return true;
       } else {
-        try (FileBuffer buffer = FileBuffer.allocate(file)) {
+        try (final FileBuffer buffer = FileBuffer.allocate(file)) {
           final String lock = buffer.readString();
           return lock != null && lock.equals(id);
         }

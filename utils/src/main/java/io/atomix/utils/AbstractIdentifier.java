@@ -34,7 +34,7 @@ public class AbstractIdentifier<T extends Comparable<T>> implements Identifier<T
    *
    * @param value the backing value
    */
-  protected AbstractIdentifier(T value) {
+  protected AbstractIdentifier(final T value) {
     this.identifier = checkNotNull(value, "Identifier cannot be null.");
   }
 
@@ -64,12 +64,12 @@ public class AbstractIdentifier<T extends Comparable<T>> implements Identifier<T
    * @return true if the objects are equal, false otherwise.
    */
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(final Object obj) {
     if (this == obj) {
       return true;
     }
     if (obj instanceof AbstractIdentifier) {
-      AbstractIdentifier that = (AbstractIdentifier) obj;
+      final AbstractIdentifier that = (AbstractIdentifier) obj;
       return this.getClass() == that.getClass() && Objects.equals(this.identifier, that.identifier);
     }
     return false;

@@ -58,13 +58,13 @@ public class TestProtocolService {
   private boolean open;
 
   TestProtocolService(
-      PartitionId partition,
-      String name,
-      PrimitiveType primitiveType,
-      ServiceConfig config,
-      PrimitiveService service,
-      TestProtocolServiceRegistry registry,
-      ThreadContext context) {
+      final PartitionId partition,
+      final String name,
+      final PrimitiveType primitiveType,
+      final ServiceConfig config,
+      final PrimitiveService service,
+      final TestProtocolServiceRegistry registry,
+      final ThreadContext context) {
     this.partition = partition;
     this.name = name;
     this.primitiveType = primitiveType;
@@ -104,8 +104,8 @@ public class TestProtocolService {
    * @param client the session client
    * @return a future to be completed once the session has been opened
    */
-  public CompletableFuture<Void> open(SessionId sessionId, TestSessionClient client) {
-    CompletableFuture<Void> future = new CompletableFuture<>();
+  public CompletableFuture<Void> open(final SessionId sessionId, final TestSessionClient client) {
+    final CompletableFuture<Void> future = new CompletableFuture<>();
     context.execute(
         () -> {
           if (!open) {
@@ -113,7 +113,7 @@ public class TestProtocolService {
             return;
           }
 
-          TestProtocolSession session =
+          final TestProtocolSession session =
               new TestProtocolSession(
                   sessionId,
                   name,
@@ -137,11 +137,11 @@ public class TestProtocolService {
    * @param sessionId the session identifier
    * @return a future to be completed once the session has been closed
    */
-  public CompletableFuture<Void> close(SessionId sessionId) {
-    CompletableFuture<Void> future = new CompletableFuture<>();
+  public CompletableFuture<Void> close(final SessionId sessionId) {
+    final CompletableFuture<Void> future = new CompletableFuture<>();
     context.execute(
         () -> {
-          TestProtocolSession session = sessions.remove(sessionId);
+          final TestProtocolSession session = sessions.remove(sessionId);
           if (session != null) {
             session.setState(Session.State.CLOSED);
             service.close(sessionId);
@@ -159,11 +159,11 @@ public class TestProtocolService {
    * @param sessionId the session identifier
    * @return a future to be completed once the session has been expired
    */
-  public CompletableFuture<Void> expire(SessionId sessionId) {
-    CompletableFuture<Void> future = new CompletableFuture<>();
+  public CompletableFuture<Void> expire(final SessionId sessionId) {
+    final CompletableFuture<Void> future = new CompletableFuture<>();
     context.execute(
         () -> {
-          TestProtocolSession session = sessions.remove(sessionId);
+          final TestProtocolSession session = sessions.remove(sessionId);
           if (session != null) {
             session.setState(Session.State.EXPIRED);
             service.expire(sessionId);
@@ -182,22 +182,22 @@ public class TestProtocolService {
    * @param operation the operation to execute
    * @return a future to be completed with the operation result
    */
-  public CompletableFuture<byte[]> execute(SessionId sessionId, PrimitiveOperation operation) {
-    CompletableFuture<byte[]> future = new CompletableFuture<>();
+  public CompletableFuture<byte[]> execute(final SessionId sessionId, final PrimitiveOperation operation) {
+    final CompletableFuture<byte[]> future = new CompletableFuture<>();
     context.execute(
         () -> {
-          Session session = sessions.get(sessionId);
+          final Session session = sessions.get(sessionId);
           if (session == null) {
             future.completeExceptionally(new PrimitiveException.UnknownSession());
           }
 
-          long timestamp = timestamp();
+          final long timestamp = timestamp();
           this.session = session;
           this.operationType = operation.id().type();
           service.tick(new WallClockTimestamp(timestamp));
 
           try {
-            byte[] result =
+            final byte[] result =
                 service.apply(
                     new DefaultCommit<>(
                         index.incrementAndGet(),
@@ -206,7 +206,7 @@ public class TestProtocolService {
                         session,
                         timestamp));
             future.complete(result);
-          } catch (Exception e) {
+          } catch (final Exception e) {
             future.completeExceptionally(new PrimitiveException.ServiceException(e.getMessage()));
           }
         });
@@ -219,7 +219,7 @@ public class TestProtocolService {
    * @return a future to be completed once the service has been deleted
    */
   public CompletableFuture<Void> delete() {
-    CompletableFuture<Void> future = new CompletableFuture<>();
+    final CompletableFuture<Void> future = new CompletableFuture<>();
     context.execute(
         () -> {
           open = false;

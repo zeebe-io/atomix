@@ -27,11 +27,11 @@ public class LogOperation {
   private final byte[] operation;
 
   public LogOperation(
-      SessionId sessionId,
-      String primitive,
-      long operationIndex,
-      OperationId operationId,
-      byte[] operation) {
+      final SessionId sessionId,
+      final String primitive,
+      final long operationIndex,
+      final OperationId operationId,
+      final byte[] operation) {
     this.sessionId = sessionId;
     this.primitive = primitive;
     this.operationIndex = operationIndex;

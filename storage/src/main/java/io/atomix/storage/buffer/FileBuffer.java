@@ -45,7 +45,7 @@ public class FileBuffer extends AbstractBuffer {
    * @see FileBuffer#allocate(File, int, int)
    * @see FileBuffer#allocate(File, String, int, int)
    */
-  public static FileBuffer allocate(File file) {
+  public static FileBuffer allocate(final File file) {
     return allocate(file, FileBytes.DEFAULT_MODE, DEFAULT_INITIAL_CAPACITY, Integer.MAX_VALUE);
   }
 
@@ -63,7 +63,7 @@ public class FileBuffer extends AbstractBuffer {
    * @see FileBuffer#allocate(File, int, int)
    * @see FileBuffer#allocate(File, String, int, int)
    */
-  public static FileBuffer allocate(File file, int initialCapacity) {
+  public static FileBuffer allocate(final File file, final int initialCapacity) {
     return allocate(file, FileBytes.DEFAULT_MODE, initialCapacity, Integer.MAX_VALUE);
   }
 
@@ -83,7 +83,7 @@ public class FileBuffer extends AbstractBuffer {
    * @see FileBuffer#allocate(File, int)
    * @see FileBuffer#allocate(File, String, int, int)
    */
-  public static FileBuffer allocate(File file, int initialCapacity, int maxCapacity) {
+  public static FileBuffer allocate(final File file, final int initialCapacity, final int maxCapacity) {
     return allocate(file, FileBytes.DEFAULT_MODE, initialCapacity, maxCapacity);
   }
 
@@ -103,7 +103,7 @@ public class FileBuffer extends AbstractBuffer {
    * @see FileBuffer#allocate(File, int)
    * @see FileBuffer#allocate(File, int, int)
    */
-  public static FileBuffer allocate(File file, String mode, int initialCapacity, int maxCapacity) {
+  public static FileBuffer allocate(final File file, final String mode, final int initialCapacity, final int maxCapacity) {
     checkArgument(
         initialCapacity <= maxCapacity, "initial capacity cannot be greater than maximum capacity");
     return new FileBuffer(
@@ -115,7 +115,7 @@ public class FileBuffer extends AbstractBuffer {
 
   private final FileBytes bytes;
 
-  private FileBuffer(FileBytes bytes, int offset, int initialCapacity, int maxCapacity) {
+  private FileBuffer(final FileBytes bytes, final int offset, final int initialCapacity, final int maxCapacity) {
     super(bytes, offset, initialCapacity, maxCapacity, null);
     this.bytes = bytes;
   }
@@ -138,7 +138,7 @@ public class FileBuffer extends AbstractBuffer {
    * @throws IllegalArgumentException If {@code count} is greater than the maximum allowed {@link
    *     java.nio.MappedByteBuffer} count: {@link Integer#MAX_VALUE}
    */
-  public MappedBuffer map(int size) {
+  public MappedBuffer map(final int size) {
     return map(position(), size, FileChannel.MapMode.READ_WRITE);
   }
 
@@ -152,7 +152,7 @@ public class FileBuffer extends AbstractBuffer {
    * @throws IllegalArgumentException If {@code count} is greater than the maximum allowed {@link
    *     java.nio.MappedByteBuffer} count: {@link Integer#MAX_VALUE}
    */
-  public MappedBuffer map(int size, FileChannel.MapMode mode) {
+  public MappedBuffer map(final int size, final FileChannel.MapMode mode) {
     return map(position(), size, mode);
   }
 
@@ -166,7 +166,7 @@ public class FileBuffer extends AbstractBuffer {
    * @throws IllegalArgumentException If {@code count} is greater than the maximum allowed {@link
    *     java.nio.MappedByteBuffer} count: {@link Integer#MAX_VALUE}
    */
-  public MappedBuffer map(int offset, int size) {
+  public MappedBuffer map(final int offset, final int size) {
     return map(offset, size, FileChannel.MapMode.READ_WRITE);
   }
 
@@ -181,16 +181,16 @@ public class FileBuffer extends AbstractBuffer {
    * @throws IllegalArgumentException If {@code count} is greater than the maximum allowed {@link
    *     java.nio.MappedByteBuffer} count: {@link Integer#MAX_VALUE}
    */
-  public MappedBuffer map(int offset, int size, FileChannel.MapMode mode) {
+  public MappedBuffer map(final int offset, final int size, final FileChannel.MapMode mode) {
     return new MappedBuffer(((FileBytes) bytes).map(offset, size, mode), 0, size, size);
   }
 
   @Override
-  protected void compact(int from, int to, int length) {
-    byte[] bytes = new byte[1024];
+  protected void compact(final int from, final int to, final int length) {
+    final byte[] bytes = new byte[1024];
     int position = from;
     while (position < from + length) {
-      int size = Math.min((from + length) - position, 1024);
+      final int size = Math.min((from + length) - position, 1024);
       this.bytes.read(position, bytes, 0, size);
       this.bytes.write(0, bytes, 0, size);
       position += size;
@@ -211,7 +211,7 @@ public class FileBuffer extends AbstractBuffer {
    *
    * @return The mode with which to open the duplicate buffer.
    */
-  public FileBuffer duplicate(String mode) {
+  public FileBuffer duplicate(final String mode) {
     return new FileBuffer(
         new FileBytes(bytes.file(), mode, bytes.size()), offset(), capacity(), maxCapacity());
   }

@@ -26,7 +26,7 @@ package io.atomix.storage.buffer;
 public class SlicedBuffer extends AbstractBuffer {
   private final Buffer root;
 
-  public SlicedBuffer(Buffer root, Bytes bytes, int offset, int initialCapacity, int maxCapacity) {
+  public SlicedBuffer(final Buffer root, final Bytes bytes, final int offset, final int initialCapacity, final int maxCapacity) {
     super(bytes, offset, initialCapacity, maxCapacity, null);
     this.root = root;
     root.acquire();
@@ -47,7 +47,7 @@ public class SlicedBuffer extends AbstractBuffer {
   }
 
   @Override
-  protected void compact(int from, int to, int length) {
+  protected void compact(final int from, final int to, final int length) {
     if (root instanceof AbstractBuffer) {
       ((AbstractBuffer) root).compact(from, to, length);
     }

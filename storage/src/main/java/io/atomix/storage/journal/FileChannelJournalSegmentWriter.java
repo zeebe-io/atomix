@@ -55,11 +55,11 @@ class FileChannelJournalSegmentWriter<E> implements JournalWriter<E> {
   private Indexed<E> lastEntry;
 
   FileChannelJournalSegmentWriter(
-      FileChannel channel,
-      JournalSegment segment,
-      int maxEntrySize,
-      JournalIndex index,
-      Namespace namespace) {
+      final FileChannel channel,
+      final JournalSegment segment,
+      final int maxEntrySize,
+      final JournalIndex index,
+      final Namespace namespace) {
     this.channel = channel;
     this.segment = segment;
     this.maxEntrySize = maxEntrySize;
@@ -72,7 +72,7 @@ class FileChannelJournalSegmentWriter<E> implements JournalWriter<E> {
   }
 
   @Override
-  public void reset(long index) {
+  public void reset(final long index) {
     long nextIndex = firstIndex;
 
     // Clear the buffer indexes.
@@ -107,7 +107,7 @@ class FileChannelJournalSegmentWriter<E> implements JournalWriter<E> {
 
         // If the stored checksum equals the computed checksum, return the entry.
         if (checksum == crc32.getValue()) {
-          int limit = memory.limit();
+          final int limit = memory.limit();
           memory.limit(memory.position() + length);
           final E entry = namespace.deserialize(memory);
           memory.limit(limit);
@@ -136,13 +136,13 @@ class FileChannelJournalSegmentWriter<E> implements JournalWriter<E> {
 
       // Reset the buffer to the previous mark.
       channel.position(channel.position() + memory.reset().position());
-    } catch (BufferUnderflowException e) {
+    } catch (final BufferUnderflowException e) {
       try {
         channel.position(channel.position() + memory.reset().position());
-      } catch (IOException e2) {
+      } catch (final IOException e2) {
         throw new StorageException(e2);
       }
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new StorageException(e);
     }
   }
@@ -174,7 +174,7 @@ class FileChannelJournalSegmentWriter<E> implements JournalWriter<E> {
   public long size() {
     try {
       return channel.position();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new StorageException(e);
     }
   }
@@ -205,7 +205,7 @@ class FileChannelJournalSegmentWriter<E> implements JournalWriter<E> {
 
   @Override
   @SuppressWarnings("unchecked")
-  public void append(Indexed<E> entry) {
+  public void append(final Indexed<E> entry) {
     final long nextIndex = getNextIndex();
 
     // If the entry's index is greater than the next index in the segment, skip some entries.
@@ -222,7 +222,7 @@ class FileChannelJournalSegmentWriter<E> implements JournalWriter<E> {
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T extends E> Indexed<T> append(T entry) {
+  public <T extends E> Indexed<T> append(final T entry) {
     // Store the entry index.
     final long index = getNextIndex();
 
@@ -232,7 +232,7 @@ class FileChannelJournalSegmentWriter<E> implements JournalWriter<E> {
       memory.position(Integer.BYTES + Integer.BYTES);
       try {
         namespace.serialize(entry, memory);
-      } catch (KryoException e) {
+      } catch (final KryoException e) {
         throw new StorageException.TooLarge(
             "Entry size exceeds maximum allowed bytes (" + maxEntrySize + ")");
       }
@@ -241,7 +241,7 @@ class FileChannelJournalSegmentWriter<E> implements JournalWriter<E> {
       final int length = memory.limit() - (Integer.BYTES + Integer.BYTES);
 
       // Ensure there's enough space left in the buffer to store the entry.
-      long position = channel.position();
+      final long position = channel.position();
       if (segment.descriptor().maxSegmentSize() - position
           < length + Integer.BYTES + Integer.BYTES) {
         throw new BufferOverflowException();
@@ -268,21 +268,21 @@ class FileChannelJournalSegmentWriter<E> implements JournalWriter<E> {
       channel.write(memory);
 
       // Update the last entry with the correct index/term/length.
-      Indexed<E> indexedEntry = new Indexed<>(index, entry, length);
+      final Indexed<E> indexedEntry = new Indexed<>(index, entry, length);
       this.lastEntry = indexedEntry;
       this.index.index(lastEntry, (int) position);
       return (Indexed<T>) indexedEntry;
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new StorageException(e);
     }
   }
 
   @Override
-  public void commit(long index) {}
+  public void commit(final long index) {}
 
   @Override
   @SuppressWarnings("unchecked")
-  public void truncate(long index) {
+  public void truncate(final long index) {
     // If the index is greater than or equal to the last index, skip the truncate.
     if (index >= getLastIndex()) {
       return;
@@ -304,11 +304,11 @@ class FileChannelJournalSegmentWriter<E> implements JournalWriter<E> {
         reset(index);
 
         // Zero entries after the given index.
-        long position = channel.position();
+        final long position = channel.position();
         channel.write(zero());
         channel.position(position);
       }
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new StorageException(e);
     }
   }
@@ -328,7 +328,7 @@ class FileChannelJournalSegmentWriter<E> implements JournalWriter<E> {
       if (channel.isOpen()) {
         channel.force(true);
       }
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new StorageException(e);
     }
   }

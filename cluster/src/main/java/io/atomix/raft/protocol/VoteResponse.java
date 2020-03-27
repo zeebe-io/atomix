@@ -33,7 +33,7 @@ public class VoteResponse extends AbstractRaftResponse {
   private final long term;
   private final boolean voted;
 
-  public VoteResponse(Status status, RaftError error, long term, boolean voted) {
+  public VoteResponse(final Status status, final RaftError error, final long term, final boolean voted) {
     super(status, error);
     this.term = term;
     this.voted = voted;
@@ -72,7 +72,7 @@ public class VoteResponse extends AbstractRaftResponse {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof VoteResponse) {
       final VoteResponse response = (VoteResponse) object;
       return response.status == status && response.term == term && response.voted == voted;
@@ -106,7 +106,7 @@ public class VoteResponse extends AbstractRaftResponse {
      * @return The vote response builder.
      * @throws IllegalArgumentException if {@code term} is negative
      */
-    public Builder withTerm(long term) {
+    public Builder withTerm(final long term) {
       checkArgument(term >= 0, "term must be positive");
       this.term = term;
       return this;
@@ -118,7 +118,7 @@ public class VoteResponse extends AbstractRaftResponse {
      * @param voted Whether the vote was granted.
      * @return The vote response builder.
      */
-    public Builder withVoted(boolean voted) {
+    public Builder withVoted(final boolean voted) {
       this.voted = voted;
       return this;
     }

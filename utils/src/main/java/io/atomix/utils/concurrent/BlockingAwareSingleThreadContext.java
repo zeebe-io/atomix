@@ -24,17 +24,17 @@ import java.util.concurrent.ThreadFactory;
 public class BlockingAwareSingleThreadContext extends SingleThreadContext {
   private final Executor threadPoolExecutor;
 
-  public BlockingAwareSingleThreadContext(String nameFormat, Executor threadPoolExecutor) {
+  public BlockingAwareSingleThreadContext(final String nameFormat, final Executor threadPoolExecutor) {
     this(namedThreads(nameFormat, LOGGER), threadPoolExecutor);
   }
 
-  public BlockingAwareSingleThreadContext(ThreadFactory factory, Executor threadPoolExecutor) {
+  public BlockingAwareSingleThreadContext(final ThreadFactory factory, final Executor threadPoolExecutor) {
     super(factory);
     this.threadPoolExecutor = threadPoolExecutor;
   }
 
   @Override
-  public void execute(Runnable command) {
+  public void execute(final Runnable command) {
     if (isBlocked()) {
       threadPoolExecutor.execute(command);
     } else {

@@ -30,7 +30,7 @@ public class StringUtilsTest {
 
   @Test
   public void testFilter() {
-    String[] result = StringUtils.split("1,  ,,", ",");
+    final String[] result = StringUtils.split("1,  ,,", ",");
     assertNotNull(result);
     assertEquals(1, result.length);
     assertEquals("1", result[0]);

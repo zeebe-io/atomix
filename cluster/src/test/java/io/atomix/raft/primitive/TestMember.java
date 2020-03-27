@@ -12,7 +12,7 @@ public class TestMember implements RaftMember {
   private final MemberId memberId;
   private final Type type;
 
-  public TestMember(MemberId memberId, Type type) {
+  public TestMember(final MemberId memberId, final Type type) {
     this.memberId = memberId;
     this.type = type;
   }
@@ -28,10 +28,10 @@ public class TestMember implements RaftMember {
   }
 
   @Override
-  public void addTypeChangeListener(Consumer<Type> listener) {}
+  public void addTypeChangeListener(final Consumer<Type> listener) {}
 
   @Override
-  public void removeTypeChangeListener(Consumer<Type> listener) {}
+  public void removeTypeChangeListener(final Consumer<Type> listener) {}
 
   @Override
   public CompletableFuture<Void> promote() {
@@ -39,7 +39,7 @@ public class TestMember implements RaftMember {
   }
 
   @Override
-  public CompletableFuture<Void> promote(Type type) {
+  public CompletableFuture<Void> promote(final Type type) {
     return null;
   }
 
@@ -49,7 +49,7 @@ public class TestMember implements RaftMember {
   }
 
   @Override
-  public CompletableFuture<Void> demote(Type type) {
+  public CompletableFuture<Void> demote(final Type type) {
     return null;
   }
 

@@ -32,7 +32,7 @@ public class RaftError {
   private final Type type;
   private final String message;
 
-  public RaftError(Type type, String message) {
+  public RaftError(final Type type, final String message) {
     this.type = checkNotNull(type, "type cannot be null");
     this.message = message;
   }
@@ -80,7 +80,7 @@ public class RaftError {
       }
 
       @Override
-      PrimitiveException createException(String message) {
+      PrimitiveException createException(final String message) {
         return message != null ? new PrimitiveException.Unavailable(message) : createException();
       }
     },
@@ -93,7 +93,7 @@ public class RaftError {
       }
 
       @Override
-      PrimitiveException createException(String message) {
+      PrimitiveException createException(final String message) {
         return message != null ? new PrimitiveException.QueryFailure(message) : createException();
       }
     },
@@ -106,7 +106,7 @@ public class RaftError {
       }
 
       @Override
-      PrimitiveException createException(String message) {
+      PrimitiveException createException(final String message) {
         return message != null ? new PrimitiveException.CommandFailure(message) : createException();
       }
     },
@@ -119,7 +119,7 @@ public class RaftError {
       }
 
       @Override
-      PrimitiveException createException(String message) {
+      PrimitiveException createException(final String message) {
         return message != null
             ? new PrimitiveException.ServiceException(message)
             : createException();
@@ -134,7 +134,7 @@ public class RaftError {
       }
 
       @Override
-      PrimitiveException createException(String message) {
+      PrimitiveException createException(final String message) {
         return message != null ? new PrimitiveException.Unavailable(message) : createException();
       }
     },
@@ -147,7 +147,7 @@ public class RaftError {
       }
 
       @Override
-      PrimitiveException createException(String message) {
+      PrimitiveException createException(final String message) {
         return message != null ? new PrimitiveException.UnknownClient(message) : createException();
       }
     },
@@ -160,7 +160,7 @@ public class RaftError {
       }
 
       @Override
-      PrimitiveException createException(String message) {
+      PrimitiveException createException(final String message) {
         return message != null ? new PrimitiveException.UnknownSession(message) : createException();
       }
     },
@@ -173,7 +173,7 @@ public class RaftError {
       }
 
       @Override
-      PrimitiveException createException(String message) {
+      PrimitiveException createException(final String message) {
         return message != null ? new PrimitiveException.UnknownService(message) : createException();
       }
     },
@@ -186,7 +186,7 @@ public class RaftError {
       }
 
       @Override
-      PrimitiveException createException(String message) {
+      PrimitiveException createException(final String message) {
         return message != null ? new PrimitiveException.ClosedSession(message) : createException();
       }
     },
@@ -199,7 +199,7 @@ public class RaftError {
       }
 
       @Override
-      PrimitiveException createException(String message) {
+      PrimitiveException createException(final String message) {
         return message != null ? new PrimitiveException.Unavailable(message) : createException();
       }
     },
@@ -212,7 +212,7 @@ public class RaftError {
       }
 
       @Override
-      PrimitiveException createException(String message) {
+      PrimitiveException createException(final String message) {
         return message != null ? new PrimitiveException.Unavailable(message) : createException();
       }
     },
@@ -225,7 +225,7 @@ public class RaftError {
       }
 
       @Override
-      PrimitiveException createException(String message) {
+      PrimitiveException createException(final String message) {
         return message != null ? new PrimitiveException.Unavailable(message) : createException();
       }
     };

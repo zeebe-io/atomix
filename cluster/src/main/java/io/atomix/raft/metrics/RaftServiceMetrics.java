@@ -35,16 +35,16 @@ public class RaftServiceMetrics extends RaftMetrics {
           .labelNames("partitionGroupName", "partition")
           .register();
 
-  public RaftServiceMetrics(String partitionName) {
+  public RaftServiceMetrics(final String partitionName) {
     super(partitionName);
   }
 
-  public void snapshotTime(long latencyms) {
+  public void snapshotTime(final long latencyms) {
     // Historgram class expect seconds not milliseconds, for that we need to divied by 1000
     SNAPSHOTING_TIME.labels(partitionGroupName, partition).observe(latencyms / 1000f);
   }
 
-  public void compactionTime(long latencyms) {
+  public void compactionTime(final long latencyms) {
     COMPACTION_TIME.labels(partitionGroupName, partition).observe(latencyms / 1000f);
   }
 }

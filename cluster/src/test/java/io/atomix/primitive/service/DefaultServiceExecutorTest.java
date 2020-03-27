@@ -39,8 +39,8 @@ import org.junit.Test;
 public class DefaultServiceExecutorTest {
   @Test
   public void testExecuteOperations() throws Exception {
-    ServiceExecutor executor = executor();
-    Set<String> calls = new HashSet<>();
+    final ServiceExecutor executor = executor();
+    final Set<String> calls = new HashSet<>();
 
     executor.register(OperationId.command("a"), () -> calls.add("a"));
     executor.<Void>register(OperationId.command("b"), commit -> calls.add("b"));
@@ -81,11 +81,11 @@ public class DefaultServiceExecutorTest {
 
   @Test
   public void testScheduling() throws Exception {
-    ServiceExecutor executor = executor();
+    final ServiceExecutor executor = executor();
     executor.register(OperationId.command("a"), () -> {});
     executor.apply(commit(OperationId.command("a"), 1, null, 0));
 
-    Set<String> calls = new HashSet<>();
+    final Set<String> calls = new HashSet<>();
     executor.tick(new WallClockTimestamp(1));
     executor.schedule(Duration.ofMillis(100), () -> calls.add("a"));
     executor.tick(new WallClockTimestamp(100));
@@ -95,7 +95,7 @@ public class DefaultServiceExecutorTest {
   }
 
   private ServiceExecutor executor() {
-    ServiceContext context = mock(ServiceContext.class);
+    final ServiceContext context = mock(ServiceContext.class);
     when(context.serviceId()).thenReturn(PrimitiveId.from(1));
     when(context.serviceType()).thenReturn(TestPrimitiveType.instance());
     when(context.serviceName()).thenReturn("test");
@@ -104,7 +104,7 @@ public class DefaultServiceExecutorTest {
   }
 
   @SuppressWarnings("unchecked")
-  private <T> Commit<T> commit(OperationId operation, long index, T value, long timestamp) {
+  private <T> Commit<T> commit(final OperationId operation, final long index, final T value, final long timestamp) {
     return new DefaultCommit<T>(index, operation, value, mock(Session.class), timestamp);
   }
 }

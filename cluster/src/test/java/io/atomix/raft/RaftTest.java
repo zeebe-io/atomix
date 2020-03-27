@@ -1055,7 +1055,7 @@ public class RaftTest extends ConcurrentTestCase {
           threadAssertEquals(index.get(), event);
           try {
             threadAssertTrue(index.get() <= primitive.read().get(10, TimeUnit.SECONDS));
-          } catch (InterruptedException | TimeoutException | ExecutionException e) {
+          } catch (final InterruptedException | TimeoutException | ExecutionException e) {
             threadFail(e);
           }
           resume();
@@ -1595,7 +1595,7 @@ public class RaftTest extends ConcurrentTestCase {
 
   private ByteBuffer readSnapshot(final Snapshot snapshot) {
     ByteBuffer buffer = ByteBuffer.allocate(2048);
-    try (SnapshotChunkReader reader = snapshot.newChunkReader()) {
+    try (final SnapshotChunkReader reader = snapshot.newChunkReader()) {
       while (reader.hasNext()) {
         final SnapshotChunk chunk = reader.next();
         // resize buffer
@@ -1695,7 +1695,7 @@ public class RaftTest extends ConcurrentTestCase {
   }
 
   private void assertLastReadInitialEntry(
-      Role role, long term, RaftServer server, CountDownLatch transitionCompleted) {
+      final Role role, final long term, final RaftServer server, final CountDownLatch transitionCompleted) {
     if (role == Role.LEADER) {
       final RaftLogReader raftLogReader = server.getContext().getLog().openReader(0, Mode.COMMITS);
       raftLogReader.reset(raftLogReader.getLastIndex());

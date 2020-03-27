@@ -36,13 +36,13 @@ public class OpenSessionRequest extends AbstractRaftRequest {
   private final long maxTimeout;
 
   public OpenSessionRequest(
-      String node,
-      String name,
-      String typeName,
-      byte[] config,
-      ReadConsistency readConsistency,
-      long minTimeout,
-      long maxTimeout) {
+      final String node,
+      final String name,
+      final String typeName,
+      final byte[] config,
+      final ReadConsistency readConsistency,
+      final long minTimeout,
+      final long maxTimeout) {
     this.node = node;
     this.name = name;
     this.typeName = typeName;
@@ -130,7 +130,7 @@ public class OpenSessionRequest extends AbstractRaftRequest {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof OpenSessionRequest) {
       final OpenSessionRequest request = (OpenSessionRequest) object;
       return request.node.equals(node)
@@ -173,7 +173,7 @@ public class OpenSessionRequest extends AbstractRaftRequest {
      * @return The open session request builder.
      * @throws NullPointerException if {@code node} is {@code null}
      */
-    public Builder withMemberId(MemberId node) {
+    public Builder withMemberId(final MemberId node) {
       this.memberId = checkNotNull(node, "node cannot be null").id();
       return this;
     }
@@ -185,7 +185,7 @@ public class OpenSessionRequest extends AbstractRaftRequest {
      * @return The open session request builder.
      * @throws NullPointerException if {@code serviceName} is {@code null}
      */
-    public Builder withServiceName(String serviceName) {
+    public Builder withServiceName(final String serviceName) {
       this.serviceName = checkNotNull(serviceName, "serviceName cannot be null");
       return this;
     }
@@ -197,7 +197,7 @@ public class OpenSessionRequest extends AbstractRaftRequest {
      * @return The open session request builder.
      * @throws NullPointerException if {@code serviceType} is {@code null}
      */
-    public Builder withServiceType(PrimitiveType primitiveType) {
+    public Builder withServiceType(final PrimitiveType primitiveType) {
       this.serviceType = checkNotNull(primitiveType, "serviceType cannot be null").name();
       return this;
     }
@@ -209,7 +209,7 @@ public class OpenSessionRequest extends AbstractRaftRequest {
      * @return the open session request builder
      * @throws NullPointerException if the configuration is {@code null}
      */
-    public Builder withServiceConfig(byte[] config) {
+    public Builder withServiceConfig(final byte[] config) {
       this.serviceConfig = checkNotNull(config, "config cannot be null");
       return this;
     }
@@ -221,7 +221,7 @@ public class OpenSessionRequest extends AbstractRaftRequest {
      * @return the session request builder
      * @throws NullPointerException if the {@code readConsistency} is null
      */
-    public Builder withReadConsistency(ReadConsistency readConsistency) {
+    public Builder withReadConsistency(final ReadConsistency readConsistency) {
       this.readConsistency = checkNotNull(readConsistency, "readConsistency cannot be null");
       return this;
     }
@@ -233,7 +233,7 @@ public class OpenSessionRequest extends AbstractRaftRequest {
      * @return The open session request builder.
      * @throws IllegalArgumentException if {@code timeout} is not positive
      */
-    public Builder withMinTimeout(long timeout) {
+    public Builder withMinTimeout(final long timeout) {
       checkArgument(timeout >= 0, "timeout must be positive");
       this.minTimeout = timeout;
       return this;
@@ -246,7 +246,7 @@ public class OpenSessionRequest extends AbstractRaftRequest {
      * @return The open session request builder.
      * @throws IllegalArgumentException if {@code timeout} is not positive
      */
-    public Builder withMaxTimeout(long timeout) {
+    public Builder withMaxTimeout(final long timeout) {
       checkArgument(timeout >= 0, "timeout must be positive");
       this.maxTimeout = timeout;
       return this;

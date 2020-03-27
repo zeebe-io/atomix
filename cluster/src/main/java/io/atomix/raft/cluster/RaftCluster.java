@@ -149,7 +149,7 @@ public interface RaftCluster {
    * @param cluster The bootstrap cluster configuration.
    * @return A completable future to be completed once the cluster has been bootstrapped.
    */
-  default CompletableFuture<Void> bootstrap(MemberId... cluster) {
+  default CompletableFuture<Void> bootstrap(final MemberId... cluster) {
     return bootstrap(Arrays.asList(cluster));
   }
 
@@ -220,7 +220,7 @@ public interface RaftCluster {
    * @param cluster A list of cluster member addresses to join.
    * @return A completable future to be completed once the local server has joined the cluster.
    */
-  default CompletableFuture<Void> listen(MemberId... cluster) {
+  default CompletableFuture<Void> listen(final MemberId... cluster) {
     return join(Arrays.asList(cluster));
   }
 
@@ -333,7 +333,7 @@ public interface RaftCluster {
    * @param cluster A list of cluster member addresses to join.
    * @return A completable future to be completed once the local server has joined the cluster.
    */
-  default CompletableFuture<Void> join(MemberId... cluster) {
+  default CompletableFuture<Void> join(final MemberId... cluster) {
     return join(Arrays.asList(cluster));
   }
 

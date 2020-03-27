@@ -73,10 +73,10 @@ public class RaftSessionConnection {
   private int selectionId;
 
   public RaftSessionConnection(
-      RaftClientProtocol protocol,
-      MemberSelector selector,
-      ThreadContext context,
-      LoggerContext loggerContext) {
+      final RaftClientProtocol protocol,
+      final MemberSelector selector,
+      final ThreadContext context,
+      final LoggerContext loggerContext) {
     this.protocol = checkNotNull(protocol, "protocol cannot be null");
     this.selector = checkNotNull(selector, "selector cannot be null");
     this.context = checkNotNull(context, "context cannot be null");
@@ -94,7 +94,7 @@ public class RaftSessionConnection {
    * @param leader the selector leader
    * @param servers the selector servers
    */
-  public void reset(MemberId leader, Collection<MemberId> servers) {
+  public void reset(final MemberId leader, final Collection<MemberId> servers) {
     selector.reset(leader, servers);
   }
 
@@ -122,7 +122,7 @@ public class RaftSessionConnection {
    * @param request the request to send
    * @return a future to be completed with the response
    */
-  public CompletableFuture<OpenSessionResponse> openSession(OpenSessionRequest request) {
+  public CompletableFuture<OpenSessionResponse> openSession(final OpenSessionRequest request) {
     final CompletableFuture<OpenSessionResponse> future = new CompletableFuture<>();
     if (context.isCurrentContext()) {
       sendRequest(request, protocol::openSession, future);
@@ -138,7 +138,7 @@ public class RaftSessionConnection {
    * @param request the request to send
    * @return a future to be completed with the response
    */
-  public CompletableFuture<CloseSessionResponse> closeSession(CloseSessionRequest request) {
+  public CompletableFuture<CloseSessionResponse> closeSession(final CloseSessionRequest request) {
     final CompletableFuture<CloseSessionResponse> future = new CompletableFuture<>();
     if (context.isCurrentContext()) {
       sendRequest(request, protocol::closeSession, future);
@@ -154,7 +154,7 @@ public class RaftSessionConnection {
    * @param request the request to send
    * @return a future to be completed with the response
    */
-  public CompletableFuture<KeepAliveResponse> keepAlive(KeepAliveRequest request) {
+  public CompletableFuture<KeepAliveResponse> keepAlive(final KeepAliveRequest request) {
     final CompletableFuture<KeepAliveResponse> future = new CompletableFuture<>();
     if (context.isCurrentContext()) {
       sendRequest(request, protocol::keepAlive, future);
@@ -170,7 +170,7 @@ public class RaftSessionConnection {
    * @param request the request to send
    * @return a future to be completed with the response
    */
-  public CompletableFuture<QueryResponse> query(QueryRequest request) {
+  public CompletableFuture<QueryResponse> query(final QueryRequest request) {
     final CompletableFuture<QueryResponse> future = new CompletableFuture<>();
     if (context.isCurrentContext()) {
       sendRequest(request, protocol::query, future);
@@ -186,7 +186,7 @@ public class RaftSessionConnection {
    * @param request the request to send
    * @return a future to be completed with the response
    */
-  public CompletableFuture<CommandResponse> command(CommandRequest request) {
+  public CompletableFuture<CommandResponse> command(final CommandRequest request) {
     final CompletableFuture<CommandResponse> future = new CompletableFuture<>();
     if (context.isCurrentContext()) {
       sendRequest(request, protocol::command, future);
@@ -202,7 +202,7 @@ public class RaftSessionConnection {
    * @param request the request to send
    * @return a future to be completed with the response
    */
-  public CompletableFuture<MetadataResponse> metadata(MetadataRequest request) {
+  public CompletableFuture<MetadataResponse> metadata(final MetadataRequest request) {
     final CompletableFuture<MetadataResponse> future = new CompletableFuture<>();
     if (context.isCurrentContext()) {
       sendRequest(request, protocol::metadata, future);
@@ -214,18 +214,18 @@ public class RaftSessionConnection {
 
   /** Sends the given request attempt to the cluster. */
   protected <T extends RaftRequest, U extends RaftResponse> void sendRequest(
-      T request,
-      BiFunction<MemberId, T, CompletableFuture<U>> sender,
-      CompletableFuture<U> future) {
+      final T request,
+      final BiFunction<MemberId, T, CompletableFuture<U>> sender,
+      final CompletableFuture<U> future) {
     sendRequest(request, sender, 0, future);
   }
 
   /** Sends the given request attempt to the cluster. */
   protected <T extends RaftRequest, U extends RaftResponse> void sendRequest(
-      T request,
-      BiFunction<MemberId, T, CompletableFuture<U>> sender,
-      int count,
-      CompletableFuture<U> future) {
+      final T request,
+      final BiFunction<MemberId, T, CompletableFuture<U>> sender,
+      final int count,
+      final CompletableFuture<U> future) {
     final MemberId node = next();
     if (node != null) {
       log.trace("Sending {} to {}", request, node);
@@ -249,12 +249,12 @@ public class RaftSessionConnection {
   /** Resends a request due to a request failure, resetting the connection if necessary. */
   @SuppressWarnings("unchecked")
   protected <T extends RaftRequest> void retryRequest(
-      Throwable cause,
-      T request,
-      BiFunction sender,
-      int count,
-      int selectionId,
-      CompletableFuture future) {
+      final Throwable cause,
+      final T request,
+      final BiFunction sender,
+      final int count,
+      final int selectionId,
+      final CompletableFuture future) {
     // If the connection has not changed, reset it and connect to the next server.
     if (this.selectionId == selectionId) {
       log.trace("Resetting connection. Reason: {}", cause.getMessage());
@@ -268,14 +268,14 @@ public class RaftSessionConnection {
   /** Handles a response from the cluster. */
   @SuppressWarnings("unchecked")
   protected <T extends RaftRequest> void handleResponse(
-      T request,
-      BiFunction sender,
-      int count,
-      int selectionId,
-      MemberId node,
-      RaftResponse response,
+      final T request,
+      final BiFunction sender,
+      final int count,
+      final int selectionId,
+      final MemberId node,
+      final RaftResponse response,
       Throwable error,
-      CompletableFuture future) {
+      final CompletableFuture future) {
     if (error == null) {
       log.trace("Received {} from {}", response, node);
       if (COMPLETE_PREDICATE.test(response)) {

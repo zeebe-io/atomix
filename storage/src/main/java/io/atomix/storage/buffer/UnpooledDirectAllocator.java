@@ -23,7 +23,7 @@ package io.atomix.storage.buffer;
 public class UnpooledDirectAllocator extends UnpooledAllocator {
 
   @Override
-  public Buffer allocate(int initialCapacity, int maxCapacity) {
+  public Buffer allocate(final int initialCapacity, final int maxCapacity) {
     return DirectBuffer.allocate(initialCapacity, maxCapacity);
   }
 

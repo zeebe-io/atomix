@@ -24,7 +24,7 @@ public final class PrimitiveInfo {
   private final String name;
   private final PrimitiveType type;
 
-  public PrimitiveInfo(String name, PrimitiveType type) {
+  public PrimitiveInfo(final String name, final PrimitiveType type) {
     this.name = name;
     this.type = type;
   }
@@ -53,9 +53,9 @@ public final class PrimitiveInfo {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof PrimitiveInfo) {
-      PrimitiveInfo info = (PrimitiveInfo) object;
+      final PrimitiveInfo info = (PrimitiveInfo) object;
       return Objects.equals(name, info.name) && Objects.equals(type, info.type);
     }
     return false;

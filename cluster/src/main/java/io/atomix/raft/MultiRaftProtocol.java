@@ -37,7 +37,7 @@ public class MultiRaftProtocol implements ProxyProtocol {
   public static final Type TYPE = new Type();
   private final MultiRaftProtocolConfig config;
 
-  protected MultiRaftProtocol(MultiRaftProtocolConfig config) {
+  protected MultiRaftProtocol(final MultiRaftProtocolConfig config) {
     this.config = checkNotNull(config, "config cannot be null");
   }
 
@@ -65,7 +65,7 @@ public class MultiRaftProtocol implements ProxyProtocol {
    * @param group the partition group
    * @return the multi-Raft protocol builder
    */
-  public static MultiRaftProtocolBuilder builder(String group) {
+  public static MultiRaftProtocolBuilder builder(final String group) {
     return new MultiRaftProtocolBuilder(new MultiRaftProtocolConfig().setGroup(group));
   }
 
@@ -81,11 +81,11 @@ public class MultiRaftProtocol implements ProxyProtocol {
 
   @Override
   public <S> ProxyClient<S> newProxy(
-      String primitiveName,
-      PrimitiveType primitiveType,
-      Class<S> serviceType,
-      ServiceConfig serviceConfig,
-      PartitionService partitionService) {
+      final String primitiveName,
+      final PrimitiveType primitiveType,
+      final Class<S> serviceType,
+      final ServiceConfig serviceConfig,
+      final PartitionService partitionService) {
     final PartitionGroup partitionGroup = partitionService.getPartitionGroup(this);
     if (partitionGroup == null) {
       throw new ConfigurationException(
@@ -128,7 +128,7 @@ public class MultiRaftProtocol implements ProxyProtocol {
     }
 
     @Override
-    public PrimitiveProtocol newProtocol(MultiRaftProtocolConfig config) {
+    public PrimitiveProtocol newProtocol(final MultiRaftProtocolConfig config) {
       return new MultiRaftProtocol(config);
     }
   }

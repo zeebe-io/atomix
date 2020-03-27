@@ -29,7 +29,7 @@ public class HeapBytes extends ByteBufferBytes {
    * @throws IllegalArgumentException If {@code count} is greater than the maximum allowed count for
    *     an array on the Java heap - {@code Integer.MAX_VALUE - 5}
    */
-  public static HeapBytes allocate(int size) {
+  public static HeapBytes allocate(final int size) {
     if (size > MAX_SIZE) {
       throw new IllegalArgumentException(
           "size cannot for HeapBytes cannot be greater than " + MAX_SIZE);
@@ -46,16 +46,16 @@ public class HeapBytes extends ByteBufferBytes {
    *
    * @param bytes The bytes to wrap.
    */
-  public static HeapBytes wrap(byte[] bytes) {
+  public static HeapBytes wrap(final byte[] bytes) {
     return new HeapBytes(ByteBuffer.wrap(bytes));
   }
 
-  protected HeapBytes(ByteBuffer buffer) {
+  protected HeapBytes(final ByteBuffer buffer) {
     super(buffer);
   }
 
   @Override
-  protected ByteBuffer newByteBuffer(int size) {
+  protected ByteBuffer newByteBuffer(final int size) {
     return ByteBuffer.allocate((int) size);
   }
 

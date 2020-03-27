@@ -20,7 +20,7 @@ import io.atomix.primitive.protocol.PrimitiveProtocolBuilder;
 /** Test protocol builder. */
 public class TestProtocolBuilder
     extends PrimitiveProtocolBuilder<TestProtocolBuilder, TestProtocolConfig, TestProtocol> {
-  TestProtocolBuilder(TestProtocolConfig config) {
+  TestProtocolBuilder(final TestProtocolConfig config) {
     super(config);
   }
 
@@ -30,7 +30,7 @@ public class TestProtocolBuilder
    * @param partitions the number of test partitions
    * @return the test protocol builder
    */
-  public TestProtocolBuilder withNumPartitions(int partitions) {
+  public TestProtocolBuilder withNumPartitions(final int partitions) {
     config.setPartitions(partitions);
     return this;
   }

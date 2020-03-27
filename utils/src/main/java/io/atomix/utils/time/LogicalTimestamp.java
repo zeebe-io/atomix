@@ -34,13 +34,13 @@ public class LogicalTimestamp implements Timestamp {
    * @param value the logical time for which to create a new logical timestamp
    * @return the logical timestamp
    */
-  public static LogicalTimestamp of(long value) {
+  public static LogicalTimestamp of(final long value) {
     return new LogicalTimestamp(value);
   }
 
   private final long value;
 
-  public LogicalTimestamp(long value) {
+  public LogicalTimestamp(final long value) {
     this.value = value;
   }
 
@@ -63,9 +63,9 @@ public class LogicalTimestamp implements Timestamp {
   }
 
   @Override
-  public int compareTo(Timestamp o) {
+  public int compareTo(final Timestamp o) {
     Preconditions.checkArgument(o instanceof LogicalTimestamp, "Must be LogicalTimestamp", o);
-    LogicalTimestamp that = (LogicalTimestamp) o;
+    final LogicalTimestamp that = (LogicalTimestamp) o;
 
     return ComparisonChain.start().compare(this.value, that.value).result();
   }
@@ -76,14 +76,14 @@ public class LogicalTimestamp implements Timestamp {
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(final Object obj) {
     if (this == obj) {
       return true;
     }
     if (!(obj instanceof LogicalTimestamp)) {
       return false;
     }
-    LogicalTimestamp that = (LogicalTimestamp) obj;
+    final LogicalTimestamp that = (LogicalTimestamp) obj;
     return Objects.equals(this.value, that.value);
   }
 

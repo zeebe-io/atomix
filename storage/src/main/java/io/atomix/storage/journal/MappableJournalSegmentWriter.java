@@ -33,11 +33,11 @@ class MappableJournalSegmentWriter<E> implements JournalWriter<E> {
   private JournalWriter<E> writer;
 
   MappableJournalSegmentWriter(
-      FileChannel channel,
-      JournalSegment<E> segment,
-      int maxEntrySize,
-      JournalIndex index,
-      Namespace namespace) {
+      final FileChannel channel,
+      final JournalSegment<E> segment,
+      final int maxEntrySize,
+      final JournalIndex index,
+      final Namespace namespace) {
     this.channel = channel;
     this.segment = segment;
     this.maxEntrySize = maxEntrySize;
@@ -58,14 +58,14 @@ class MappableJournalSegmentWriter<E> implements JournalWriter<E> {
     }
 
     try {
-      JournalWriter<E> writer = this.writer;
-      MappedByteBuffer buffer =
+      final JournalWriter<E> writer = this.writer;
+      final MappedByteBuffer buffer =
           channel.map(FileChannel.MapMode.READ_WRITE, 0, segment.descriptor().maxSegmentSize());
       this.writer =
           new MappedJournalSegmentWriter<>(buffer, segment, maxEntrySize, index, namespace);
       writer.close();
       return buffer;
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new StorageException(e);
     }
   }
@@ -73,7 +73,7 @@ class MappableJournalSegmentWriter<E> implements JournalWriter<E> {
   /** Unmaps the mapped buffer. */
   void unmap() {
     if (writer instanceof MappedJournalSegmentWriter) {
-      JournalWriter<E> writer = this.writer;
+      final JournalWriter<E> writer = this.writer;
       this.writer =
           new FileChannelJournalSegmentWriter<>(channel, segment, maxEntrySize, index, namespace);
       writer.close();
@@ -81,7 +81,7 @@ class MappableJournalSegmentWriter<E> implements JournalWriter<E> {
   }
 
   MappedByteBuffer buffer() {
-    JournalWriter<E> writer = this.writer;
+    final JournalWriter<E> writer = this.writer;
     if (writer instanceof MappedJournalSegmentWriter) {
       return ((MappedJournalSegmentWriter<E>) writer).buffer();
     }
@@ -105,7 +105,7 @@ class MappableJournalSegmentWriter<E> implements JournalWriter<E> {
   public int size() {
     try {
       return (int) channel.size();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new StorageException(e);
     }
   }
@@ -126,27 +126,27 @@ class MappableJournalSegmentWriter<E> implements JournalWriter<E> {
   }
 
   @Override
-  public <T extends E> Indexed<T> append(T entry) {
+  public <T extends E> Indexed<T> append(final T entry) {
     return writer.append(entry);
   }
 
   @Override
-  public void append(Indexed<E> entry) {
+  public void append(final Indexed<E> entry) {
     writer.append(entry);
   }
 
   @Override
-  public void commit(long index) {
+  public void commit(final long index) {
     writer.commit(index);
   }
 
   @Override
-  public void reset(long index) {
+  public void reset(final long index) {
     writer.reset(index);
   }
 
   @Override
-  public void truncate(long index) {
+  public void truncate(final long index) {
     writer.truncate(index);
   }
 
@@ -160,7 +160,7 @@ class MappableJournalSegmentWriter<E> implements JournalWriter<E> {
     writer.close();
     try {
       channel.close();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new StorageException(e);
     }
   }

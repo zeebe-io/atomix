@@ -34,12 +34,12 @@ public class MapDelegateEvent<K, V> extends AbstractEvent<MapDelegateEvent.Type,
 
   private final V value;
 
-  public MapDelegateEvent(Type type, K key, V value) {
+  public MapDelegateEvent(final Type type, final K key, final V value) {
     super(type, key);
     this.value = value;
   }
 
-  public MapDelegateEvent(Type type, K key, V value, long time) {
+  public MapDelegateEvent(final Type type, final K key, final V value, final long time) {
     super(type, key, time);
     this.value = value;
   }

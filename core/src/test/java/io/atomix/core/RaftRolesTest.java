@@ -49,7 +49,7 @@ public final class RaftRolesTest extends AbstractAtomixTest {
     try {
       CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
           .get(30, TimeUnit.SECONDS);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       // Do nothing
     }
   }
@@ -358,7 +358,7 @@ public final class RaftRolesTest extends AbstractAtomixTest {
   }
 
   private CompletableFuture<Atomix> startAtomixAndCollectNodeRoles(
-      int nodeId, List<Integer> members, List<Map<Integer, Role>> nodeRoles, CountDownLatch latch) {
+      final int nodeId, final List<Integer> members, final List<Map<Integer, Role>> nodeRoles, final CountDownLatch latch) {
     return startAtomixWithPartitionConsumer(
         nodeId,
         3,
@@ -425,7 +425,7 @@ public final class RaftRolesTest extends AbstractAtomixTest {
   }
 
   private CompletableFuture<Atomix> startAtomix(
-      int id, List<Integer> persistentIds, Function<AtomixBuilder, Atomix> builderFunction) {
+      final int id, final List<Integer> persistentIds, final Function<AtomixBuilder, Atomix> builderFunction) {
     final Atomix atomix = atomixRule.createAtomix(id, persistentIds, builderFunction);
     instances.add(atomix);
     return atomix.start().thenApply(v -> atomix);

@@ -32,7 +32,7 @@ abstract class AbstractMessageDecoder extends ByteToMessageDecoder {
 
   static class Escape extends RuntimeException {}
 
-  static int readInt(ByteBuf buffer) {
+  static int readInt(final ByteBuf buffer) {
     if (buffer.readableBytes() < 5) {
       return readIntSlow(buffer);
     } else {
@@ -40,7 +40,7 @@ abstract class AbstractMessageDecoder extends ByteToMessageDecoder {
     }
   }
 
-  static int readIntFast(ByteBuf buffer) {
+  static int readIntFast(final ByteBuf buffer) {
     int b = buffer.readByte();
     int result = b & 0x7F;
     if ((b & 0x80) != 0) {
@@ -62,7 +62,7 @@ abstract class AbstractMessageDecoder extends ByteToMessageDecoder {
     return result;
   }
 
-  static int readIntSlow(ByteBuf buffer) {
+  static int readIntSlow(final ByteBuf buffer) {
     if (buffer.readableBytes() == 0) {
       throw ESCAPE;
     }
@@ -104,7 +104,7 @@ abstract class AbstractMessageDecoder extends ByteToMessageDecoder {
     return result;
   }
 
-  static long readLong(ByteBuf buffer) {
+  static long readLong(final ByteBuf buffer) {
     if (buffer.readableBytes() < 9) {
       return readLongSlow(buffer);
     } else {
@@ -112,7 +112,7 @@ abstract class AbstractMessageDecoder extends ByteToMessageDecoder {
     }
   }
 
-  static long readLongFast(ByteBuf buffer) {
+  static long readLongFast(final ByteBuf buffer) {
     int b = buffer.readByte();
     long result = b & 0x7F;
     if ((b & 0x80) != 0) {
@@ -150,7 +150,7 @@ abstract class AbstractMessageDecoder extends ByteToMessageDecoder {
     return result;
   }
 
-  static long readLongSlow(ByteBuf buffer) {
+  static long readLongSlow(final ByteBuf buffer) {
     if (buffer.readableBytes() == 0) {
       throw ESCAPE;
     }
@@ -224,7 +224,7 @@ abstract class AbstractMessageDecoder extends ByteToMessageDecoder {
     return result;
   }
 
-  static String readString(ByteBuf buffer, int length) {
+  static String readString(final ByteBuf buffer, final int length) {
     if (buffer.isDirect()) {
       final String result = buffer.toString(buffer.readerIndex(), length, StandardCharsets.UTF_8);
       buffer.skipBytes(length);
@@ -246,7 +246,7 @@ abstract class AbstractMessageDecoder extends ByteToMessageDecoder {
   }
 
   @Override
-  public void exceptionCaught(ChannelHandlerContext context, Throwable cause) {
+  public void exceptionCaught(final ChannelHandlerContext context, final Throwable cause) {
     try {
       log.error("Exception inside channel handling pipeline.", cause);
     } finally {

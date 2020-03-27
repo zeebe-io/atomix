@@ -28,25 +28,25 @@ public class DefaultBackupOutput implements BackupOutput {
   private final BufferOutput<?> output;
   private final Serializer serializer;
 
-  public DefaultBackupOutput(BufferOutput<?> output, Serializer serializer) {
+  public DefaultBackupOutput(final BufferOutput<?> output, final Serializer serializer) {
     this.output = output;
     this.serializer = serializer;
   }
 
   @Override
-  public <U> BackupOutput writeObject(U object) {
+  public <U> BackupOutput writeObject(final U object) {
     output.writeObject(object, o -> o != null ? serializer.encode(o) : null);
     return this;
   }
 
   @Override
-  public BackupOutput write(Bytes bytes) {
+  public BackupOutput write(final Bytes bytes) {
     output.write(bytes);
     return this;
   }
 
   @Override
-  public BackupOutput write(byte[] bytes) {
+  public BackupOutput write(final byte[] bytes) {
     output.write(bytes);
     return this;
   }
@@ -65,115 +65,115 @@ public class DefaultBackupOutput implements BackupOutput {
   }
 
   @Override
-  public BackupOutput write(Bytes bytes, int offset, int length) {
+  public BackupOutput write(final Bytes bytes, final int offset, final int length) {
     output.write(bytes, offset, length);
     return this;
   }
 
   @Override
-  public BackupOutput write(byte[] bytes, int offset, int length) {
+  public BackupOutput write(final byte[] bytes, final int offset, final int length) {
     output.write(bytes, offset, length);
     return this;
   }
 
   @Override
-  public BackupOutput write(Buffer buffer) {
+  public BackupOutput write(final Buffer buffer) {
     output.write(buffer);
     return this;
   }
 
   @Override
-  public BackupOutput writeByte(int b) {
+  public BackupOutput writeByte(final int b) {
     output.writeByte(b);
     return this;
   }
 
   @Override
-  public BackupOutput writeUnsignedByte(int b) {
+  public BackupOutput writeUnsignedByte(final int b) {
     output.writeUnsignedByte(b);
     return this;
   }
 
   @Override
-  public BackupOutput writeChar(char c) {
+  public BackupOutput writeChar(final char c) {
     output.writeChar(c);
     return this;
   }
 
   @Override
-  public BackupOutput writeShort(short s) {
+  public BackupOutput writeShort(final short s) {
     output.writeShort(s);
     return this;
   }
 
   @Override
-  public BackupOutput writeUnsignedShort(int s) {
+  public BackupOutput writeUnsignedShort(final int s) {
     output.writeUnsignedShort(s);
     return this;
   }
 
   @Override
-  public BackupOutput writeMedium(int m) {
+  public BackupOutput writeMedium(final int m) {
     output.writeMedium(m);
     return this;
   }
 
   @Override
-  public BackupOutput writeUnsignedMedium(int m) {
+  public BackupOutput writeUnsignedMedium(final int m) {
     output.writeUnsignedMedium(m);
     return this;
   }
 
   @Override
-  public BackupOutput writeInt(int i) {
+  public BackupOutput writeInt(final int i) {
     output.writeInt(i);
     return this;
   }
 
   @Override
-  public BackupOutput writeUnsignedInt(long i) {
+  public BackupOutput writeUnsignedInt(final long i) {
     output.writeUnsignedInt(i);
     return this;
   }
 
   @Override
-  public BackupOutput writeLong(long l) {
+  public BackupOutput writeLong(final long l) {
     output.writeLong(l);
     return this;
   }
 
   @Override
-  public BackupOutput writeFloat(float f) {
+  public BackupOutput writeFloat(final float f) {
     output.writeFloat(f);
     return this;
   }
 
   @Override
-  public BackupOutput writeDouble(double d) {
+  public BackupOutput writeDouble(final double d) {
     output.writeDouble(d);
     return this;
   }
 
   @Override
-  public BackupOutput writeBoolean(boolean b) {
+  public BackupOutput writeBoolean(final boolean b) {
     output.writeBoolean(b);
     return this;
   }
 
   @Override
-  public BackupOutput writeString(String s) {
+  public BackupOutput writeString(final String s) {
     output.writeString(s);
     return this;
   }
 
   @Override
-  public BackupOutput writeString(String s, Charset charset) {
+  public BackupOutput writeString(final String s, final Charset charset) {
     output.writeString(s, charset);
     return this;
   }
 
   @Override
-  public BackupOutput writeUTF8(String s) {
+  public BackupOutput writeUTF8(final String s) {
     output.writeUTF8(s);
     return this;
   }

@@ -30,11 +30,11 @@ public class NodeDiscoveryEvent extends AbstractEvent<NodeDiscoveryEvent.Type, N
     LEAVE,
   }
 
-  public NodeDiscoveryEvent(Type type, Node subject) {
+  public NodeDiscoveryEvent(final Type type, final Node subject) {
     super(type, subject);
   }
 
-  public NodeDiscoveryEvent(Type type, Node subject, long time) {
+  public NodeDiscoveryEvent(final Type type, final Node subject, final long time) {
     super(type, subject, time);
   }
 

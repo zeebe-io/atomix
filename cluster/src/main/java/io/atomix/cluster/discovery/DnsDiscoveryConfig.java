@@ -44,7 +44,7 @@ public class DnsDiscoveryConfig extends NodeDiscoveryConfig {
    * @param service the DNS service name
    * @return the DNS configuration
    */
-  public DnsDiscoveryConfig setService(String service) {
+  public DnsDiscoveryConfig setService(final String service) {
     this.service = checkNotNull(service);
     return this;
   }
@@ -64,7 +64,7 @@ public class DnsDiscoveryConfig extends NodeDiscoveryConfig {
    * @param resolutionInterval the DNS resolution interval
    * @return the DNS configuration
    */
-  public DnsDiscoveryConfig setResolutionInterval(Duration resolutionInterval) {
+  public DnsDiscoveryConfig setResolutionInterval(final Duration resolutionInterval) {
     this.resolutionInterval = checkNotNull(resolutionInterval, "resolutionInterval cannot be null");
     return this;
   }

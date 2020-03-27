@@ -39,9 +39,9 @@ public class TranscodingAsyncWorkQueue<V1, V2> extends DelegatingAsyncPrimitive
   private final Function<V2, V1> valueDecoder;
 
   public TranscodingAsyncWorkQueue(
-      AsyncWorkQueue<V2> backingQueue,
-      Function<V1, V2> valueEncoder,
-      Function<V2, V1> valueDecoder) {
+      final AsyncWorkQueue<V2> backingQueue,
+      final Function<V1, V2> valueEncoder,
+      final Function<V2, V1> valueDecoder) {
     super(backingQueue);
     this.backingQueue = backingQueue;
     this.valueEncoder = valueEncoder;
@@ -49,12 +49,12 @@ public class TranscodingAsyncWorkQueue<V1, V2> extends DelegatingAsyncPrimitive
   }
 
   @Override
-  public CompletableFuture<Void> addMultiple(Collection<V1> items) {
+  public CompletableFuture<Void> addMultiple(final Collection<V1> items) {
     return backingQueue.addMultiple(items.stream().map(valueEncoder).collect(Collectors.toList()));
   }
 
   @Override
-  public CompletableFuture<Collection<Task<V1>>> take(int maxItems) {
+  public CompletableFuture<Collection<Task<V1>>> take(final int maxItems) {
     return backingQueue
         .take(maxItems)
         .thenApply(
@@ -62,13 +62,13 @@ public class TranscodingAsyncWorkQueue<V1, V2> extends DelegatingAsyncPrimitive
   }
 
   @Override
-  public CompletableFuture<Void> complete(Collection<String> taskIds) {
+  public CompletableFuture<Void> complete(final Collection<String> taskIds) {
     return backingQueue.complete(taskIds);
   }
 
   @Override
   public CompletableFuture<Void> registerTaskProcessor(
-      Consumer<V1> taskProcessor, int parallelism, Executor executor) {
+      final Consumer<V1> taskProcessor, final int parallelism, final Executor executor) {
     return backingQueue.registerTaskProcessor(
         v -> taskProcessor.accept(valueDecoder.apply(v)), parallelism, executor);
   }
@@ -84,7 +84,7 @@ public class TranscodingAsyncWorkQueue<V1, V2> extends DelegatingAsyncPrimitive
   }
 
   @Override
-  public WorkQueue<V1> sync(Duration operationTimeout) {
+  public WorkQueue<V1> sync(final Duration operationTimeout) {
     return new BlockingWorkQueue<>(this, operationTimeout.toMillis());
   }
 

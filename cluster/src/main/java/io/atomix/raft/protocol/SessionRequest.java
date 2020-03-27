@@ -30,7 +30,7 @@ public abstract class SessionRequest extends AbstractRaftRequest {
 
   protected final long session;
 
-  protected SessionRequest(long session) {
+  protected SessionRequest(final long session) {
     this.session = session;
   }
 
@@ -49,7 +49,7 @@ public abstract class SessionRequest extends AbstractRaftRequest {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (this == object) {
       return true;
     }
@@ -80,7 +80,7 @@ public abstract class SessionRequest extends AbstractRaftRequest {
      * @throws IllegalArgumentException if {@code session} is less than 0
      */
     @SuppressWarnings("unchecked")
-    public T withSession(long session) {
+    public T withSession(final long session) {
       checkArgument(session > 0, "session must be positive");
       this.session = session;
       return (T) this;

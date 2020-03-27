@@ -64,12 +64,12 @@ public class RecoveringSessionClient implements SessionClient {
   private volatile boolean connected;
 
   public RecoveringSessionClient(
-      String clientId,
-      PartitionId partitionId,
-      String name,
-      PrimitiveType primitiveType,
-      Supplier<CompletableFuture<SessionClient>> sessionFactory,
-      ThreadContext context) {
+      final String clientId,
+      final PartitionId partitionId,
+      final String name,
+      final PrimitiveType primitiveType,
+      final Supplier<CompletableFuture<SessionClient>> sessionFactory,
+      final ThreadContext context) {
     this.partitionId = checkNotNull(partitionId);
     this.name = checkNotNull(name);
     this.primitiveType = checkNotNull(primitiveType);
@@ -82,7 +82,7 @@ public class RecoveringSessionClient implements SessionClient {
 
   @Override
   public SessionId sessionId() {
-    SessionClient proxy = this.session;
+    final SessionClient proxy = this.session;
     return proxy != null ? proxy.sessionId() : DEFAULT_SESSION_ID;
   }
 
@@ -116,7 +116,7 @@ public class RecoveringSessionClient implements SessionClient {
    *
    * @param state the session state
    */
-  private synchronized void onStateChange(PrimitiveState state) {
+  private synchronized void onStateChange(final PrimitiveState state) {
     if (this.state != state) {
       if (state == PrimitiveState.EXPIRED) {
         if (connected) {
@@ -140,12 +140,12 @@ public class RecoveringSessionClient implements SessionClient {
   }
 
   @Override
-  public void addStateChangeListener(Consumer<PrimitiveState> listener) {
+  public void addStateChangeListener(final Consumer<PrimitiveState> listener) {
     stateChangeListeners.add(listener);
   }
 
   @Override
-  public void removeStateChangeListener(Consumer<PrimitiveState> listener) {
+  public void removeStateChangeListener(final Consumer<PrimitiveState> listener) {
     stateChangeListeners.remove(listener);
   }
 
@@ -161,7 +161,7 @@ public class RecoveringSessionClient implements SessionClient {
    *
    * @param future the future to be completed once the client is opened
    */
-  private void openProxy(CompletableFuture<SessionClient> future) {
+  private void openProxy(final CompletableFuture<SessionClient> future) {
     log.debug("Opening proxy session");
     proxyFactory
         .get()
@@ -193,8 +193,8 @@ public class RecoveringSessionClient implements SessionClient {
   }
 
   @Override
-  public CompletableFuture<byte[]> execute(PrimitiveOperation operation) {
-    SessionClient proxy = this.session;
+  public CompletableFuture<byte[]> execute(final PrimitiveOperation operation) {
+    final SessionClient proxy = this.session;
     if (proxy != null) {
       return proxy.execute(operation);
     } else {
@@ -204,9 +204,9 @@ public class RecoveringSessionClient implements SessionClient {
 
   @Override
   public synchronized void addEventListener(
-      EventType eventType, Consumer<PrimitiveEvent> consumer) {
+      final EventType eventType, final Consumer<PrimitiveEvent> consumer) {
     eventListeners.put(eventType.canonicalize(), consumer);
-    SessionClient proxy = this.session;
+    final SessionClient proxy = this.session;
     if (proxy != null) {
       proxy.addEventListener(eventType, consumer);
     }
@@ -214,9 +214,9 @@ public class RecoveringSessionClient implements SessionClient {
 
   @Override
   public synchronized void removeEventListener(
-      EventType eventType, Consumer<PrimitiveEvent> consumer) {
+      final EventType eventType, final Consumer<PrimitiveEvent> consumer) {
     eventListeners.remove(eventType.canonicalize(), consumer);
-    SessionClient proxy = this.session;
+    final SessionClient proxy = this.session;
     if (proxy != null) {
       proxy.removeEventListener(eventType, consumer);
     }
@@ -247,12 +247,12 @@ public class RecoveringSessionClient implements SessionClient {
   }
 
   private CompletableFuture<Void> close(
-      Function<SessionClient, CompletableFuture<Void>> closeFunction) {
+      final Function<SessionClient, CompletableFuture<Void>> closeFunction) {
     if (closeFuture == null) {
       synchronized (this) {
         if (closeFuture == null) {
           connected = false;
-          SessionClient session = this.session;
+          final SessionClient session = this.session;
           if (session != null) {
             closeFuture = closeFunction.apply(session);
           } else if (closeFuture != null) {

@@ -102,7 +102,7 @@ public interface ProxyClient<S> {
    * @param key the key for which to return the partition proxy
    * @return the partition proxy for the given key
    */
-  default ProxySession<S> getPartition(String key) {
+  default ProxySession<S> getPartition(final String key) {
     return getPartition(getPartitionId(key));
   }
 
@@ -112,7 +112,7 @@ public interface ProxyClient<S> {
    * @param key the key for which to return the partition proxy
    * @return the partition proxy for the given key
    */
-  default ProxySession<S> getPartition(Object key) {
+  default ProxySession<S> getPartition(final Object key) {
     return getPartition(getPartitionId(key));
   }
 
@@ -121,7 +121,7 @@ public interface ProxyClient<S> {
    *
    * @param client the client proxy to register
    */
-  default void register(Object client) {
+  default void register(final Object client) {
     getPartitions().forEach(partition -> partition.register(client));
   }
 
@@ -134,7 +134,7 @@ public interface ProxyClient<S> {
    *     preceded it.
    * @throws NullPointerException if {@code operation} is null
    */
-  default CompletableFuture<Void> acceptAll(Consumer<S> operation) {
+  default CompletableFuture<Void> acceptAll(final Consumer<S> operation) {
     return Futures.allOf(getPartitions().stream().map(proxy -> proxy.accept(operation)))
         .thenApply(v -> null);
   }
@@ -149,7 +149,7 @@ public interface ProxyClient<S> {
    *     preceded it.
    * @throws NullPointerException if {@code operation} is null
    */
-  default <R> CompletableFuture<Stream<R>> applyAll(Function<S, R> operation) {
+  default <R> CompletableFuture<Stream<R>> applyAll(final Function<S, R> operation) {
     return Futures.allOf(getPartitions().stream().map(proxy -> proxy.apply(operation)));
   }
 
@@ -163,7 +163,7 @@ public interface ProxyClient<S> {
    *     preceded it.
    * @throws NullPointerException if {@code operation} is null
    */
-  default CompletableFuture<Void> acceptOn(PartitionId partitionId, Consumer<S> operation) {
+  default CompletableFuture<Void> acceptOn(final PartitionId partitionId, final Consumer<S> operation) {
     return getPartition(partitionId).accept(operation);
   }
 
@@ -178,7 +178,7 @@ public interface ProxyClient<S> {
    *     preceded it.
    * @throws NullPointerException if {@code operation} is null
    */
-  default <R> CompletableFuture<R> applyOn(PartitionId partitionId, Function<S, R> operation) {
+  default <R> CompletableFuture<R> applyOn(final PartitionId partitionId, final Function<S, R> operation) {
     return getPartition(partitionId).apply(operation);
   }
 
@@ -192,7 +192,7 @@ public interface ProxyClient<S> {
    *     preceded it.
    * @throws NullPointerException if {@code operation} is null
    */
-  default CompletableFuture<Void> acceptBy(String key, Consumer<S> operation) {
+  default CompletableFuture<Void> acceptBy(final String key, final Consumer<S> operation) {
     return getPartition(key).accept(operation);
   }
 
@@ -207,7 +207,7 @@ public interface ProxyClient<S> {
    *     preceded it.
    * @throws NullPointerException if {@code operation} is null
    */
-  default <R> CompletableFuture<R> applyBy(String key, Function<S, R> operation) {
+  default <R> CompletableFuture<R> applyBy(final String key, final Function<S, R> operation) {
     return getPartition(key).apply(operation);
   }
 
@@ -222,7 +222,7 @@ public interface ProxyClient<S> {
    *     preceded it.
    * @throws NullPointerException if {@code operation} is null
    */
-  default <R> CompletableFuture<R> applyBy(Object key, Function<S, R> operation) {
+  default <R> CompletableFuture<R> applyBy(final Object key, final Function<S, R> operation) {
     return getPartition(key).apply(operation);
   }
 

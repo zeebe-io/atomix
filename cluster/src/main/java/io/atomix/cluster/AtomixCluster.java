@@ -100,7 +100,7 @@ import org.slf4j.LoggerFactory;
 public class AtomixCluster implements BootstrapService, Managed<Void> {
   private static final String[] DEFAULT_RESOURCES = new String[] {"cluster"};
 
-  private static String[] withDefaultResources(String config) {
+  private static String[] withDefaultResources(final String config) {
     return Stream.concat(Stream.of(config), Stream.of(DEFAULT_RESOURCES)).toArray(String[]::new);
   }
 
@@ -111,7 +111,7 @@ public class AtomixCluster implements BootstrapService, Managed<Void> {
    * @param classLoader the class loader
    * @return a new Atomix configuration from the given resource
    */
-  private static ClusterConfig config(String[] resources, ClassLoader classLoader) {
+  private static ClusterConfig config(final String[] resources, final ClassLoader classLoader) {
     return new ConfigMapper(classLoader).loadResources(ClusterConfig.class, resources);
   }
 
@@ -130,7 +130,7 @@ public class AtomixCluster implements BootstrapService, Managed<Void> {
    * @param classLoader the class loader
    * @return a new Atomix builder
    */
-  public static AtomixClusterBuilder builder(ClassLoader classLoader) {
+  public static AtomixClusterBuilder builder(final ClassLoader classLoader) {
     return builder(config(DEFAULT_RESOURCES, classLoader));
   }
 
@@ -140,7 +140,7 @@ public class AtomixCluster implements BootstrapService, Managed<Void> {
    * @param config the Atomix configuration
    * @return a new Atomix builder
    */
-  public static AtomixClusterBuilder builder(String config) {
+  public static AtomixClusterBuilder builder(final String config) {
     return builder(config, Thread.currentThread().getContextClassLoader());
   }
 
@@ -151,7 +151,7 @@ public class AtomixCluster implements BootstrapService, Managed<Void> {
    * @param classLoader the class loader
    * @return a new Atomix builder
    */
-  public static AtomixClusterBuilder builder(String config, ClassLoader classLoader) {
+  public static AtomixClusterBuilder builder(final String config, final ClassLoader classLoader) {
     return new AtomixClusterBuilder(config(withDefaultResources(config), classLoader));
   }
 
@@ -161,7 +161,7 @@ public class AtomixCluster implements BootstrapService, Managed<Void> {
    * @param config the Atomix configuration
    * @return a new Atomix builder
    */
-  public static AtomixClusterBuilder builder(ClusterConfig config) {
+  public static AtomixClusterBuilder builder(final ClusterConfig config) {
     return new AtomixClusterBuilder(config);
   }
 
@@ -180,7 +180,7 @@ public class AtomixCluster implements BootstrapService, Managed<Void> {
   private final ThreadContext threadContext = new SingleThreadContext("atomix-cluster-%d");
   private final AtomicBoolean started = new AtomicBoolean();
 
-  public AtomixCluster(String configFile) {
+  public AtomixCluster(final String configFile) {
     this(
         loadConfig(
             new File(System.getProperty("atomix.root", System.getProperty("user.dir")), configFile),
@@ -188,11 +188,11 @@ public class AtomixCluster implements BootstrapService, Managed<Void> {
         null);
   }
 
-  public AtomixCluster(File configFile) {
+  public AtomixCluster(final File configFile) {
     this(loadConfig(configFile, Thread.currentThread().getContextClassLoader()), null);
   }
 
-  public AtomixCluster(ClusterConfig config, Version version) {
+  public AtomixCluster(final ClusterConfig config, final Version version) {
     this(
         config,
         version,
@@ -202,11 +202,11 @@ public class AtomixCluster implements BootstrapService, Managed<Void> {
   }
 
   protected AtomixCluster(
-      ClusterConfig config,
-      Version version,
-      ManagedMessagingService messagingService,
-      ManagedUnicastService unicastService,
-      ManagedBroadcastService broadcastService) {
+      final ClusterConfig config,
+      final Version version,
+      final ManagedMessagingService messagingService,
+      final ManagedUnicastService unicastService,
+      final ManagedBroadcastService broadcastService) {
     this.messagingService =
         messagingService != null ? messagingService : buildMessagingService(config);
     this.unicastService = unicastService != null ? unicastService : buildUnicastService(config);
@@ -348,7 +348,7 @@ public class AtomixCluster implements BootstrapService, Managed<Void> {
     return closeFuture;
   }
 
-  private Void logServiceStopError(String serviceName, Throwable throwable) {
+  private Void logServiceStopError(final String serviceName, final Throwable throwable) {
     LOGGER.error("Failed to stop service {}", serviceName, throwable);
     return null;
   }
@@ -382,25 +382,25 @@ public class AtomixCluster implements BootstrapService, Managed<Void> {
   }
 
   /** Loads a configuration from the given file. */
-  private static ClusterConfig loadConfig(File config, ClassLoader classLoader) {
+  private static ClusterConfig loadConfig(final File config, final ClassLoader classLoader) {
     return new ConfigMapper(classLoader)
         .loadResources(ClusterConfig.class, config.getAbsolutePath());
   }
 
   /** Builds a default messaging service. */
-  protected static ManagedMessagingService buildMessagingService(ClusterConfig config) {
+  protected static ManagedMessagingService buildMessagingService(final ClusterConfig config) {
     return new NettyMessagingService(
         config.getClusterId(), config.getNodeConfig().getAddress(), config.getMessagingConfig());
   }
 
   /** Builds a default unicast service. */
-  protected static ManagedUnicastService buildUnicastService(ClusterConfig config) {
+  protected static ManagedUnicastService buildUnicastService(final ClusterConfig config) {
     return new NettyUnicastService(
         config.getNodeConfig().getAddress(), config.getMessagingConfig());
   }
 
   /** Builds a default broadcast service. */
-  protected static ManagedBroadcastService buildBroadcastService(ClusterConfig config) {
+  protected static ManagedBroadcastService buildBroadcastService(final ClusterConfig config) {
     return NettyBroadcastService.builder()
         .withLocalAddress(config.getNodeConfig().getAddress())
         .withGroupAddress(
@@ -414,8 +414,8 @@ public class AtomixCluster implements BootstrapService, Managed<Void> {
 
   /** Builds a member location provider. */
   @SuppressWarnings("unchecked")
-  protected static NodeDiscoveryProvider buildLocationProvider(ClusterConfig config) {
-    NodeDiscoveryConfig discoveryProviderConfig = config.getDiscoveryConfig();
+  protected static NodeDiscoveryProvider buildLocationProvider(final ClusterConfig config) {
+    final NodeDiscoveryConfig discoveryProviderConfig = config.getDiscoveryConfig();
     if (discoveryProviderConfig != null) {
       return discoveryProviderConfig.getType().newProvider(discoveryProviderConfig);
     }
@@ -428,19 +428,19 @@ public class AtomixCluster implements BootstrapService, Managed<Void> {
 
   /** Builds the group membership protocol. */
   @SuppressWarnings("unchecked")
-  protected static GroupMembershipProtocol buildMembershipProtocol(ClusterConfig config) {
+  protected static GroupMembershipProtocol buildMembershipProtocol(final ClusterConfig config) {
     return config.getProtocolConfig().getType().newProtocol(config.getProtocolConfig());
   }
 
   /** Builds a cluster service. */
   protected static ManagedClusterMembershipService buildClusterMembershipService(
-      ClusterConfig config,
-      BootstrapService bootstrapService,
-      NodeDiscoveryProvider discoveryProvider,
-      GroupMembershipProtocol membershipProtocol,
-      Version version) {
+      final ClusterConfig config,
+      final BootstrapService bootstrapService,
+      final NodeDiscoveryProvider discoveryProvider,
+      final GroupMembershipProtocol membershipProtocol,
+      final Version version) {
     // If the local node has not be configured, create a default node.
-    Member localMember =
+    final Member localMember =
         Member.builder()
             .withId(config.getNodeConfig().getId())
             .withAddress(config.getNodeConfig().getAddress())
@@ -459,16 +459,16 @@ public class AtomixCluster implements BootstrapService, Managed<Void> {
 
   /** Builds a cluster messaging service. */
   protected static ManagedClusterCommunicationService buildClusterMessagingService(
-      ClusterMembershipService membershipService,
-      MessagingService messagingService,
-      UnicastService unicastService) {
+      final ClusterMembershipService membershipService,
+      final MessagingService messagingService,
+      final UnicastService unicastService) {
     return new DefaultClusterCommunicationService(
         membershipService, messagingService, unicastService);
   }
 
   /** Builds a cluster event service. */
   protected static ManagedClusterEventService buildClusterEventService(
-      ClusterMembershipService membershipService, MessagingService messagingService) {
+      final ClusterMembershipService membershipService, final MessagingService messagingService) {
     return new DefaultClusterEventService(membershipService, messagingService);
   }
 }

@@ -59,7 +59,7 @@ public class WorkQueueType<E>
   }
 
   @Override
-  public PrimitiveService newService(ServiceConfig config) {
+  public PrimitiveService newService(final ServiceConfig config) {
     return new DefaultWorkQueueService();
   }
 
@@ -70,7 +70,7 @@ public class WorkQueueType<E>
 
   @Override
   public WorkQueueBuilder<E> newBuilder(
-      String name, WorkQueueConfig config, PrimitiveManagementService managementService) {
+      final String name, final WorkQueueConfig config, final PrimitiveManagementService managementService) {
     return new DefaultWorkQueueBuilder<>(name, config, managementService);
   }
 

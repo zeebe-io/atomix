@@ -23,7 +23,7 @@ import org.junit.Test;
 public class SessionMetadataTest {
   @Test
   public void testRaftSessionMetadata() throws Exception {
-    SessionMetadata metadata = new SessionMetadata(1, "foo", "test");
+    final SessionMetadata metadata = new SessionMetadata(1, "foo", "test");
     assertEquals(SessionId.from(1), metadata.sessionId());
     assertEquals("foo", metadata.primitiveName());
     assertEquals("test", metadata.primitiveType());

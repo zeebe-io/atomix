@@ -128,7 +128,7 @@ public class MultiRaftProtocolConfig extends PrimitiveProtocolConfig<MultiRaftPr
    * @return the Raft protocol configuration
    */
   public MultiRaftProtocolConfig setCommunicationStrategy(
-      CommunicationStrategy communicationStrategy) {
+      final CommunicationStrategy communicationStrategy) {
     this.communicationStrategy = communicationStrategy;
     return this;
   }
@@ -139,7 +139,7 @@ public class MultiRaftProtocolConfig extends PrimitiveProtocolConfig<MultiRaftPr
    * @param group the partition group
    * @return the protocol configuration
    */
-  public MultiRaftProtocolConfig setGroup(String group) {
+  public MultiRaftProtocolConfig setGroup(final String group) {
     this.group = group;
     return this;
   }
@@ -150,7 +150,7 @@ public class MultiRaftProtocolConfig extends PrimitiveProtocolConfig<MultiRaftPr
    * @param maxRetries the maximum allowed number of retries
    * @return the protocol configuration
    */
-  public MultiRaftProtocolConfig setMaxRetries(int maxRetries) {
+  public MultiRaftProtocolConfig setMaxRetries(final int maxRetries) {
     this.maxRetries = maxRetries;
     return this;
   }
@@ -161,7 +161,7 @@ public class MultiRaftProtocolConfig extends PrimitiveProtocolConfig<MultiRaftPr
    * @param maxTimeout the maximum session timeout
    * @return the Raft protocol configuration
    */
-  public MultiRaftProtocolConfig setMaxTimeout(Duration maxTimeout) {
+  public MultiRaftProtocolConfig setMaxTimeout(final Duration maxTimeout) {
     this.maxTimeout = maxTimeout;
     return this;
   }
@@ -172,7 +172,7 @@ public class MultiRaftProtocolConfig extends PrimitiveProtocolConfig<MultiRaftPr
    * @param minTimeout the minimum session timeout
    * @return the Raft protocol configuration
    */
-  public MultiRaftProtocolConfig setMinTimeout(Duration minTimeout) {
+  public MultiRaftProtocolConfig setMinTimeout(final Duration minTimeout) {
     this.minTimeout = minTimeout;
     return this;
   }
@@ -183,7 +183,7 @@ public class MultiRaftProtocolConfig extends PrimitiveProtocolConfig<MultiRaftPr
    * @param partitioner the protocol partitioner
    * @return the protocol configuration
    */
-  public MultiRaftProtocolConfig setPartitioner(Partitioner<String> partitioner) {
+  public MultiRaftProtocolConfig setPartitioner(final Partitioner<String> partitioner) {
     this.partitioner = partitioner;
     return this;
   }
@@ -194,7 +194,7 @@ public class MultiRaftProtocolConfig extends PrimitiveProtocolConfig<MultiRaftPr
    * @param readConsistency the read consistency level
    * @return the Raft protocol configuration
    */
-  public MultiRaftProtocolConfig setReadConsistency(ReadConsistency readConsistency) {
+  public MultiRaftProtocolConfig setReadConsistency(final ReadConsistency readConsistency) {
     this.readConsistency = readConsistency;
     return this;
   }
@@ -205,7 +205,7 @@ public class MultiRaftProtocolConfig extends PrimitiveProtocolConfig<MultiRaftPr
    * @param recoveryStrategy the client recovery strategy
    * @return the Raft protocol configuration
    */
-  public MultiRaftProtocolConfig setRecoveryStrategy(Recovery recoveryStrategy) {
+  public MultiRaftProtocolConfig setRecoveryStrategy(final Recovery recoveryStrategy) {
     this.recoveryStrategy = recoveryStrategy;
     return this;
   }
@@ -216,7 +216,7 @@ public class MultiRaftProtocolConfig extends PrimitiveProtocolConfig<MultiRaftPr
    * @param retryDelayMillis the retry delay in milliseconds
    * @return the protocol configuration
    */
-  public MultiRaftProtocolConfig setRetryDelayMillis(long retryDelayMillis) {
+  public MultiRaftProtocolConfig setRetryDelayMillis(final long retryDelayMillis) {
     return setRetryDelay(Duration.ofMillis(retryDelayMillis));
   }
 
@@ -226,7 +226,7 @@ public class MultiRaftProtocolConfig extends PrimitiveProtocolConfig<MultiRaftPr
    * @param retryDelay the retry delay
    * @return the protocol configuration
    */
-  public MultiRaftProtocolConfig setRetryDelay(Duration retryDelay) {
+  public MultiRaftProtocolConfig setRetryDelay(final Duration retryDelay) {
     this.retryDelay = retryDelay;
     return this;
   }

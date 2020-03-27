@@ -32,7 +32,7 @@ public abstract class ConfigurationRequest extends AbstractRaftRequest {
 
   protected final RaftMember member;
 
-  protected ConfigurationRequest(RaftMember member) {
+  protected ConfigurationRequest(final RaftMember member) {
     this.member = member;
   }
 
@@ -51,7 +51,7 @@ public abstract class ConfigurationRequest extends AbstractRaftRequest {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (this == object) {
       return true;
     }
@@ -81,7 +81,7 @@ public abstract class ConfigurationRequest extends AbstractRaftRequest {
      * @throws NullPointerException if {@code member} is null
      */
     @SuppressWarnings("unchecked")
-    public T withMember(RaftMember member) {
+    public T withMember(final RaftMember member) {
       this.member = checkNotNull(member, "member cannot be null");
       return (T) this;
     }

@@ -50,7 +50,7 @@ public class DefaultRaftServer implements RaftServer {
   private volatile CompletableFuture<Void> closeFuture;
   private volatile boolean started;
 
-  public DefaultRaftServer(RaftContext context) {
+  public DefaultRaftServer(final RaftContext context) {
     this.context = checkNotNull(context, "context cannot be null");
     this.log =
         ContextualLoggerFactory.getLogger(
@@ -74,37 +74,37 @@ public class DefaultRaftServer implements RaftServer {
   }
 
   @Override
-  public void addRoleChangeListener(RaftRoleChangeListener listener) {
+  public void addRoleChangeListener(final RaftRoleChangeListener listener) {
     context.addRoleChangeListener(listener);
   }
 
   @Override
-  public void removeRoleChangeListener(RaftRoleChangeListener listener) {
+  public void removeRoleChangeListener(final RaftRoleChangeListener listener) {
     context.removeRoleChangeListener(listener);
   }
 
   @Override
-  public void addFailureListener(Runnable failureListener) {
+  public void addFailureListener(final Runnable failureListener) {
     context.addFailureListener(failureListener);
   }
 
   @Override
-  public void removeFailureListener(Runnable failureListener) {
+  public void removeFailureListener(final Runnable failureListener) {
     context.removeFailureListener(failureListener);
   }
 
   @Override
-  public CompletableFuture<RaftServer> bootstrap(Collection<MemberId> cluster) {
+  public CompletableFuture<RaftServer> bootstrap(final Collection<MemberId> cluster) {
     return start(() -> cluster().bootstrap(cluster));
   }
 
   @Override
-  public CompletableFuture<RaftServer> join(Collection<MemberId> cluster) {
+  public CompletableFuture<RaftServer> join(final Collection<MemberId> cluster) {
     return start(() -> cluster().join(cluster));
   }
 
   @Override
-  public CompletableFuture<RaftServer> listen(Collection<MemberId> cluster) {
+  public CompletableFuture<RaftServer> listen(final Collection<MemberId> cluster) {
     return start(() -> cluster().listen(cluster));
   }
 
@@ -240,7 +240,7 @@ public class DefaultRaftServer implements RaftServer {
   }
 
   /** Starts the server. */
-  private CompletableFuture<RaftServer> start(Supplier<CompletableFuture<Void>> joiner) {
+  private CompletableFuture<RaftServer> start(final Supplier<CompletableFuture<Void>> joiner) {
     if (started) {
       return CompletableFuture.completedFuture(this);
     }
@@ -282,7 +282,7 @@ public class DefaultRaftServer implements RaftServer {
   /** Default Raft server builder. */
   public static class Builder extends RaftServer.Builder {
 
-    public Builder(MemberId localMemberId) {
+    public Builder(final MemberId localMemberId) {
       super(localMemberId);
     }
 

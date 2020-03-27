@@ -22,7 +22,7 @@ public class StorageStatistics {
 
   private final File file;
 
-  public StorageStatistics(File file) {
+  public StorageStatistics(final File file) {
     this.file = file;
   }
 

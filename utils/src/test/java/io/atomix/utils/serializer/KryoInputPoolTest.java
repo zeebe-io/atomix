@@ -57,7 +57,7 @@ public class KryoInputPoolTest {
     kryoInputPool.run(
         input -> {
           assertEquals(0, input.position());
-          byte[] payload = new byte[] {1, 2, 3, 4};
+          final byte[] payload = new byte[] {1, 2, 3, 4};
           input.setBuffer(payload);
           assertArrayEquals(payload, input.readBytes(4));
           result[0] = input;

@@ -35,15 +35,15 @@ public class RaftRequestMetrics extends RaftMetrics {
           .labelNames("to", "type", "partitionGroupName", "partition")
           .register();
 
-  public RaftRequestMetrics(String partitionName) {
+  public RaftRequestMetrics(final String partitionName) {
     super(partitionName);
   }
 
-  public void receivedMessage(String type) {
+  public void receivedMessage(final String type) {
     RAFT_MESSAGES_RECEIVED.labels(type, partitionGroupName, partition).inc();
   }
 
-  public void sendMessage(String memberId, String type) {
+  public void sendMessage(final String memberId, final String type) {
     RAFT_MESSAGES_SEND.labels(memberId, type, partitionGroupName, partition).inc();
   }
 }

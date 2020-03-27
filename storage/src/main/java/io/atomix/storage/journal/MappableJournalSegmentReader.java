@@ -32,11 +32,11 @@ class MappableJournalSegmentReader<E> implements JournalReader<E> {
   private JournalReader<E> reader;
 
   MappableJournalSegmentReader(
-      FileChannel channel,
-      JournalSegment<E> segment,
-      int maxEntrySize,
-      JournalIndex index,
-      Namespace namespace) {
+      final FileChannel channel,
+      final JournalSegment<E> segment,
+      final int maxEntrySize,
+      final JournalIndex index,
+      final Namespace namespace) {
     this.channel = channel;
     this.segment = segment;
     this.maxEntrySize = maxEntrySize;
@@ -51,9 +51,9 @@ class MappableJournalSegmentReader<E> implements JournalReader<E> {
    *
    * @param buffer the mapped buffer
    */
-  void map(ByteBuffer buffer) {
+  void map(final ByteBuffer buffer) {
     if (!(reader instanceof MappedJournalSegmentReader)) {
-      JournalReader<E> reader = this.reader;
+      final JournalReader<E> reader = this.reader;
       this.reader =
           new MappedJournalSegmentReader<>(buffer, segment, maxEntrySize, index, namespace);
       this.reader.reset(reader.getNextIndex());
@@ -64,7 +64,7 @@ class MappableJournalSegmentReader<E> implements JournalReader<E> {
   /** Converts the reader to an unmapped reader. */
   void unmap() {
     if (reader instanceof MappedJournalSegmentReader) {
-      JournalReader<E> reader = this.reader;
+      final JournalReader<E> reader = this.reader;
       this.reader =
           new FileChannelJournalSegmentReader<>(channel, segment, maxEntrySize, index, namespace);
       this.reader.reset(reader.getNextIndex());
@@ -118,7 +118,7 @@ class MappableJournalSegmentReader<E> implements JournalReader<E> {
   }
 
   @Override
-  public void reset(long index) {
+  public void reset(final long index) {
     reader.reset(index);
   }
 
@@ -127,7 +127,7 @@ class MappableJournalSegmentReader<E> implements JournalReader<E> {
     reader.close();
     try {
       channel.close();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new StorageException(e);
     } finally {
       segment.closeReader(this);

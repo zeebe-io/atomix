@@ -27,14 +27,14 @@ public class SegmentedJournalReader<E> implements JournalReader<E> {
   private Indexed<E> previousEntry;
   private MappableJournalSegmentReader<E> currentReader;
 
-  SegmentedJournalReader(SegmentedJournal<E> journal, long index, Mode mode) {
+  SegmentedJournalReader(final SegmentedJournal<E> journal, final long index, final Mode mode) {
     this.journal = journal;
     this.mode = mode;
     initialize(index);
   }
 
   /** Initializes the reader to the given index. */
-  private void initialize(long index) {
+  private void initialize(final long index) {
     currentSegment = journal.getSegment(index);
     currentSegment.acquire();
     currentReader = currentSegment.createReader();
@@ -126,7 +126,7 @@ public class SegmentedJournalReader<E> implements JournalReader<E> {
   }
 
   @Override
-  public void reset(long index) {
+  public void reset(final long index) {
     // If the current segment is not open, it has been replaced. Reset the segments.
     if (!currentSegment.isOpen()) {
       reset();
@@ -148,7 +148,7 @@ public class SegmentedJournalReader<E> implements JournalReader<E> {
   }
 
   /** Rewinds the journal to the given index. */
-  private void rewind(long index) {
+  private void rewind(final long index) {
     if (currentSegment.index() >= index) {
       final JournalSegment<E> segment = journal.getSegment(index - 1);
       if (segment != null) {
@@ -161,7 +161,7 @@ public class SegmentedJournalReader<E> implements JournalReader<E> {
   }
 
   /** Fast forwards the journal to the given index. */
-  private void forward(long index) {
+  private void forward(final long index) {
     // skip to the correct segment if there is one
     if (!currentSegment.equals(journal.getLastSegment())) {
       final JournalSegment<E> segment = journal.getSegment(index);
@@ -188,7 +188,7 @@ public class SegmentedJournalReader<E> implements JournalReader<E> {
     return true;
   }
 
-  private void replaceCurrentSegment(JournalSegment<E> nextSegment) {
+  private void replaceCurrentSegment(final JournalSegment<E> nextSegment) {
     currentReader.close();
     currentSegment.release();
     currentSegment = nextSegment;

@@ -40,13 +40,13 @@ public class ListenerRegistry<E extends Event, L extends EventListener<E>>
   protected final Set<L> listeners = new CopyOnWriteArraySet<>();
 
   @Override
-  public void addListener(L listener) {
+  public void addListener(final L listener) {
     checkNotNull(listener, "Listener cannot be null");
     listeners.add(listener);
   }
 
   @Override
-  public void removeListener(L listener) {
+  public void removeListener(final L listener) {
     checkNotNull(listener, "Listener cannot be null");
     if (!listeners.remove(listener)) {
       log.warn("Listener {} not registered", listener);
@@ -54,8 +54,8 @@ public class ListenerRegistry<E extends Event, L extends EventListener<E>>
   }
 
   @Override
-  public void process(E event) {
-    for (L listener : listeners) {
+  public void process(final E event) {
+    for (final L listener : listeners) {
       try {
         lastListener = listener;
         lastStart = System.currentTimeMillis();
@@ -63,7 +63,7 @@ public class ListenerRegistry<E extends Event, L extends EventListener<E>>
           listener.event(event);
         }
         lastStart = 0;
-      } catch (Exception error) {
+      } catch (final Exception error) {
         reportProblem(event, error);
       }
     }
@@ -72,7 +72,7 @@ public class ListenerRegistry<E extends Event, L extends EventListener<E>>
   @Override
   public void onProcessLimit() {
     if (lastStart > 0) {
-      long duration = System.currentTimeMillis() - lastStart;
+      final long duration = System.currentTimeMillis() - lastStart;
       if (duration > LIMIT) {
         log.error(
             "Listener {} exceeded execution time limit: {} ms; ejected",
@@ -90,7 +90,7 @@ public class ListenerRegistry<E extends Event, L extends EventListener<E>>
    * @param event event being processed
    * @param error error encountered while processing
    */
-  protected void reportProblem(E event, Throwable error) {
+  protected void reportProblem(final E event, final Throwable error) {
     log.warn("Exception encountered while processing event " + event, error);
   }
 }

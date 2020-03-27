@@ -43,7 +43,7 @@ public class SnapshotReader implements BufferInput<SnapshotReader> {
   private final Buffer buffer;
   private final Snapshot snapshot;
 
-  public SnapshotReader(Buffer buffer, Snapshot snapshot) {
+  public SnapshotReader(final Buffer buffer, final Snapshot snapshot) {
     this.buffer = checkNotNull(buffer, "buffer cannot be null");
     this.snapshot = checkNotNull(snapshot, "snapshot cannot be null");
   }
@@ -82,42 +82,42 @@ public class SnapshotReader implements BufferInput<SnapshotReader> {
   }
 
   @Override
-  public SnapshotReader skip(int bytes) {
+  public SnapshotReader skip(final int bytes) {
     buffer.skip(bytes);
     return this;
   }
 
   @Override
-  public SnapshotReader read(Bytes bytes) {
+  public SnapshotReader read(final Bytes bytes) {
     buffer.read(bytes);
     return this;
   }
 
-  public SnapshotReader read(ByteBuffer bytes) {
-    buffer.read(bytes);
-    return this;
-  }
-
-  @Override
-  public SnapshotReader read(byte[] bytes) {
+  public SnapshotReader read(final ByteBuffer bytes) {
     buffer.read(bytes);
     return this;
   }
 
   @Override
-  public SnapshotReader read(Bytes bytes, int offset, int length) {
+  public SnapshotReader read(final byte[] bytes) {
+    buffer.read(bytes);
+    return this;
+  }
+
+  @Override
+  public SnapshotReader read(final Bytes bytes, final int offset, final int length) {
     buffer.read(bytes, offset, length);
     return this;
   }
 
   @Override
-  public SnapshotReader read(byte[] bytes, int offset, int length) {
+  public SnapshotReader read(final byte[] bytes, final int offset, final int length) {
     buffer.read(bytes, offset, length);
     return this;
   }
 
   @Override
-  public SnapshotReader read(Buffer buffer) {
+  public SnapshotReader read(final Buffer buffer) {
     this.buffer.read(buffer);
     return this;
   }
@@ -193,7 +193,7 @@ public class SnapshotReader implements BufferInput<SnapshotReader> {
   }
 
   @Override
-  public String readString(Charset charset) {
+  public String readString(final Charset charset) {
     return buffer.readString(charset);
   }
 

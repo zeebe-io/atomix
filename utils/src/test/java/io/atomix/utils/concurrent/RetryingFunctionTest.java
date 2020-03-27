@@ -62,7 +62,7 @@ public class RetryingFunctionTest {
     new RetryingFunction<>(this::failCompletely, RetryableException.class, 2, 10).apply(null);
   }
 
-  private String succeedAfterOneFailure(String input) {
+  private String succeedAfterOneFailure(final String input) {
     if (round++ <= 1) {
       throw new RetryableException();
     } else {
@@ -70,7 +70,7 @@ public class RetryingFunctionTest {
     }
   }
 
-  private String succeedAfterTwoFailures(String input) {
+  private String succeedAfterTwoFailures(final String input) {
     if (round++ <= 2) {
       throw new RetryableException();
     } else {
@@ -78,7 +78,7 @@ public class RetryingFunctionTest {
     }
   }
 
-  private String failCompletely(String input) {
+  private String failCompletely(final String input) {
     if (round++ <= 1) {
       throw new NonRetryableException();
     } else {

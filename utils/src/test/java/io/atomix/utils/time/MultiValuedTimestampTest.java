@@ -56,7 +56,7 @@ public class MultiValuedTimestampTest {
   @Test
   public void testSerializerConstructor() {
     try {
-      Constructor[] constructors = MultiValuedTimestamp.class.getDeclaredConstructors();
+      final Constructor[] constructors = MultiValuedTimestamp.class.getDeclaredConstructors();
       assertThat(constructors, notNullValue());
       Arrays.stream(constructors)
           .filter(ctor -> ctor.getParameterTypes().length == 0)
@@ -64,13 +64,13 @@ public class MultiValuedTimestampTest {
               noParamsCtor -> {
                 try {
                   noParamsCtor.setAccessible(true);
-                  MultiValuedTimestamp stats = (MultiValuedTimestamp) noParamsCtor.newInstance();
+                  final MultiValuedTimestamp stats = (MultiValuedTimestamp) noParamsCtor.newInstance();
                   assertThat(stats, notNullValue());
-                } catch (Exception e) {
+                } catch (final Exception e) {
                   Assert.fail("Exception instantiating no parameters constructor");
                 }
               });
-    } catch (Exception e) {
+    } catch (final Exception e) {
       Assert.fail("Exception looking up constructors");
     }
   }

@@ -32,7 +32,7 @@ public class PartitionId extends AbstractIdentifier<Integer> implements Comparab
    * @param group the group identifier
    * @param id input integer
    */
-  public PartitionId(String group, int id) {
+  public PartitionId(final String group, final int id) {
     super(id);
     this.group = checkNotNull(group, "group cannot be null");
     Preconditions.checkArgument(id >= 0, "partition id must be non-negative");
@@ -45,12 +45,12 @@ public class PartitionId extends AbstractIdentifier<Integer> implements Comparab
    * @param id input integer
    * @return partition identification
    */
-  public static PartitionId from(String group, int id) {
+  public static PartitionId from(final String group, final int id) {
     return new PartitionId(group, id);
   }
 
   @Override
-  public int compareTo(PartitionId that) {
+  public int compareTo(final PartitionId that) {
     return Integer.compare(this.identifier, that.identifier);
   }
 
@@ -69,9 +69,9 @@ public class PartitionId extends AbstractIdentifier<Integer> implements Comparab
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof PartitionId) {
-      PartitionId partitionId = (PartitionId) object;
+      final PartitionId partitionId = (PartitionId) object;
       return partitionId.id().equals(id()) && partitionId.group().equals(group());
     }
     return false;

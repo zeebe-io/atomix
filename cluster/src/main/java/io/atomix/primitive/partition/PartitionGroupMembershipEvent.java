@@ -26,11 +26,11 @@ public class PartitionGroupMembershipEvent
     MEMBERS_CHANGED
   }
 
-  public PartitionGroupMembershipEvent(Type type, PartitionGroupMembership membership) {
+  public PartitionGroupMembershipEvent(final Type type, final PartitionGroupMembership membership) {
     super(type, membership);
   }
 
-  public PartitionGroupMembershipEvent(Type type, PartitionGroupMembership membership, long time) {
+  public PartitionGroupMembershipEvent(final Type type, final PartitionGroupMembership membership, final long time) {
     super(type, membership, time);
   }
 

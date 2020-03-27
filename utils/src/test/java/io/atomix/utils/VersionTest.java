@@ -61,11 +61,11 @@ public class VersionTest {
     assertIllegalArgument(() -> Version.from("1.0.0-rc"));
   }
 
-  private void assertIllegalArgument(Runnable callback) {
+  private void assertIllegalArgument(final Runnable callback) {
     try {
       callback.run();
       fail();
-    } catch (IllegalArgumentException e) {
+    } catch (final IllegalArgumentException e) {
     }
   }
 }

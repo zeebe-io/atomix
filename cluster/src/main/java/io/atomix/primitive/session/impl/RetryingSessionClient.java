@@ -53,7 +53,7 @@ public class RetryingSessionClient extends DelegatingSessionClient {
               || e instanceof PrimitiveException.ClosedSession;
 
   public RetryingSessionClient(
-      SessionClient session, Scheduler scheduler, int maxRetries, Duration delayBetweenRetries) {
+      final SessionClient session, final Scheduler scheduler, final int maxRetries, final Duration delayBetweenRetries) {
     super(session);
     this.session = session;
     this.scheduler = scheduler;
@@ -70,17 +70,17 @@ public class RetryingSessionClient extends DelegatingSessionClient {
   }
 
   @Override
-  public CompletableFuture<byte[]> execute(PrimitiveOperation operation) {
+  public CompletableFuture<byte[]> execute(final PrimitiveOperation operation) {
     if (getState() == PrimitiveState.CLOSED) {
       return Futures.exceptionalFuture(new PrimitiveException.ClosedSession());
     }
-    CompletableFuture<byte[]> future = new CompletableFuture<>();
+    final CompletableFuture<byte[]> future = new CompletableFuture<>();
     execute(operation, 1, future);
     return future;
   }
 
   private void execute(
-      PrimitiveOperation operation, int attemptIndex, CompletableFuture<byte[]> future) {
+      final PrimitiveOperation operation, final int attemptIndex, final CompletableFuture<byte[]> future) {
     session
         .execute(operation)
         .whenComplete(

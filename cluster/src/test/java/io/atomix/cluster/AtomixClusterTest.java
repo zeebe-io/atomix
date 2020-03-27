@@ -36,13 +36,13 @@ public class AtomixClusterTest {
 
   @Test
   public void testBootstrap() throws Exception {
-    Collection<Node> bootstrapLocations =
+    final Collection<Node> bootstrapLocations =
         Arrays.asList(
             Node.builder().withId("foo").withAddress(Address.from("localhost:5000")).build(),
             Node.builder().withId("bar").withAddress(Address.from("localhost:5001")).build(),
             Node.builder().withId("baz").withAddress(Address.from("localhost:5002")).build());
 
-    AtomixCluster cluster1 =
+    final AtomixCluster cluster1 =
         AtomixCluster.builder()
             .withMemberId("foo")
             .withHost("localhost")
@@ -54,7 +54,7 @@ public class AtomixClusterTest {
 
     assertEquals("foo", cluster1.getMembershipService().getLocalMember().id().id());
 
-    AtomixCluster cluster2 =
+    final AtomixCluster cluster2 =
         AtomixCluster.builder()
             .withMemberId("bar")
             .withHost("localhost")
@@ -66,7 +66,7 @@ public class AtomixClusterTest {
 
     assertEquals("bar", cluster2.getMembershipService().getLocalMember().id().id());
 
-    AtomixCluster cluster3 =
+    final AtomixCluster cluster3 =
         AtomixCluster.builder()
             .withMemberId("baz")
             .withHost("localhost")
@@ -78,34 +78,34 @@ public class AtomixClusterTest {
 
     assertEquals("baz", cluster3.getMembershipService().getLocalMember().id().id());
 
-    List<CompletableFuture<Void>> futures =
+    final List<CompletableFuture<Void>> futures =
         Stream.of(cluster1, cluster2, cluster3)
             .map(AtomixCluster::stop)
             .collect(Collectors.toList());
     try {
       CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()])).join();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       // Do nothing
     }
   }
 
   @Test
   public void testDiscovery() throws Exception {
-    AtomixCluster cluster1 =
+    final AtomixCluster cluster1 =
         AtomixCluster.builder()
             .withHost("localhost")
             .withPort(5000)
             .withMulticastEnabled()
             .withMembershipProvider(new MulticastDiscoveryProvider())
             .build();
-    AtomixCluster cluster2 =
+    final AtomixCluster cluster2 =
         AtomixCluster.builder()
             .withHost("localhost")
             .withPort(5001)
             .withMulticastEnabled()
             .withMembershipProvider(new MulticastDiscoveryProvider())
             .build();
-    AtomixCluster cluster3 =
+    final AtomixCluster cluster3 =
         AtomixCluster.builder()
             .withHost("localhost")
             .withPort(5002)
@@ -113,14 +113,14 @@ public class AtomixClusterTest {
             .withMembershipProvider(new MulticastDiscoveryProvider())
             .build();
 
-    TestClusterMembershipEventListener listener1 = new TestClusterMembershipEventListener();
+    final TestClusterMembershipEventListener listener1 = new TestClusterMembershipEventListener();
     cluster1.getMembershipService().addListener(listener1);
-    TestClusterMembershipEventListener listener2 = new TestClusterMembershipEventListener();
+    final TestClusterMembershipEventListener listener2 = new TestClusterMembershipEventListener();
     cluster2.getMembershipService().addListener(listener2);
-    TestClusterMembershipEventListener listener3 = new TestClusterMembershipEventListener();
+    final TestClusterMembershipEventListener listener3 = new TestClusterMembershipEventListener();
     cluster3.getMembershipService().addListener(listener3);
 
-    List<CompletableFuture<Void>> startFutures =
+    final List<CompletableFuture<Void>> startFutures =
         Stream.of(cluster1, cluster2, cluster3)
             .map(AtomixCluster::start)
             .collect(Collectors.toList());
@@ -141,14 +141,14 @@ public class AtomixClusterTest {
     assertEquals(3, cluster2.getMembershipService().getMembers().size());
     assertEquals(3, cluster3.getMembershipService().getMembers().size());
 
-    List<CompletableFuture<Void>> stopFutures =
+    final List<CompletableFuture<Void>> stopFutures =
         Stream.of(cluster1, cluster2, cluster3)
             .map(AtomixCluster::stop)
             .collect(Collectors.toList());
     try {
       CompletableFuture.allOf(stopFutures.toArray(new CompletableFuture[stopFutures.size()]))
           .get(10, TimeUnit.SECONDS);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       // Do nothing
     }
   }
@@ -158,14 +158,14 @@ public class AtomixClusterTest {
         new ArrayBlockingQueue<ClusterMembershipEvent>(10);
 
     @Override
-    public void event(ClusterMembershipEvent event) {
+    public void event(final ClusterMembershipEvent event) {
       queue.add(event);
     }
 
     ClusterMembershipEvent nextEvent() {
       try {
         return queue.poll(10, TimeUnit.SECONDS);
-      } catch (InterruptedException e) {
+      } catch (final InterruptedException e) {
         return null;
       }
     }

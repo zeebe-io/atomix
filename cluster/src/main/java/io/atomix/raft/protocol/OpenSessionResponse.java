@@ -27,7 +27,7 @@ public class OpenSessionResponse extends AbstractRaftResponse {
   protected final long session;
   protected final long timeout;
 
-  public OpenSessionResponse(Status status, RaftError error, long session, long timeout) {
+  public OpenSessionResponse(final Status status, final RaftError error, final long session, final long timeout) {
     super(status, error);
     this.session = session;
     this.timeout = timeout;
@@ -66,7 +66,7 @@ public class OpenSessionResponse extends AbstractRaftResponse {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (object instanceof OpenSessionResponse) {
       final OpenSessionResponse response = (OpenSessionResponse) object;
       return response.status == status
@@ -103,7 +103,7 @@ public class OpenSessionResponse extends AbstractRaftResponse {
      * @return The register response builder.
      * @throws IllegalArgumentException if {@code session} is less than 1
      */
-    public Builder withSession(long session) {
+    public Builder withSession(final long session) {
       checkArgument(session > 0, "session must be positive");
       this.session = session;
       return this;
@@ -115,7 +115,7 @@ public class OpenSessionResponse extends AbstractRaftResponse {
      * @param timeout The session timeout.
      * @return The response builder.
      */
-    public Builder withTimeout(long timeout) {
+    public Builder withTimeout(final long timeout) {
       checkArgument(timeout > 0, "timeout must be positive");
       this.timeout = timeout;
       return this;

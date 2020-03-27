@@ -58,13 +58,13 @@ public class DefaultRaftClient implements RaftClient {
   private final RaftSessionManager sessionManager;
 
   public DefaultRaftClient(
-      String clientId,
-      PartitionId partitionId,
-      MemberId memberId,
-      Collection<MemberId> cluster,
-      RaftClientProtocol protocol,
-      ThreadContextFactory threadContextFactory,
-      boolean closeThreadFactoryOnClose) {
+      final String clientId,
+      final PartitionId partitionId,
+      final MemberId memberId,
+      final Collection<MemberId> cluster,
+      final RaftClientProtocol protocol,
+      final ThreadContextFactory threadContextFactory,
+      final boolean closeThreadFactoryOnClose) {
     this.clientId = checkNotNull(clientId, "clientId cannot be null");
     this.partitionId = checkNotNull(partitionId, "partitionId cannot be null");
     this.cluster = checkNotNull(cluster, "cluster cannot be null");
@@ -102,7 +102,7 @@ public class DefaultRaftClient implements RaftClient {
 
   @Override
   public RaftSessionClient.Builder sessionBuilder(
-      String primitiveName, PrimitiveType primitiveType, ServiceConfig serviceConfig) {
+      final String primitiveName, final PrimitiveType primitiveType, final ServiceConfig serviceConfig) {
     return new RaftSessionClient.Builder() {
       @Override
       public SessionClient build() {
@@ -199,7 +199,7 @@ public class DefaultRaftClient implements RaftClient {
   /** Default Raft client builder. */
   public static class Builder extends RaftClient.Builder {
 
-    public Builder(Collection<MemberId> cluster) {
+    public Builder(final Collection<MemberId> cluster) {
       super(cluster);
     }
 

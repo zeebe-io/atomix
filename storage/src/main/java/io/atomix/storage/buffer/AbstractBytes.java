@@ -43,7 +43,7 @@ public abstract class AbstractBytes implements Bytes {
   }
 
   /** Checks that the offset is within the bounds of the buffer. */
-  protected void checkOffset(int offset) {
+  protected void checkOffset(final int offset) {
     checkOpen();
     if (offset < 0 || offset > size()) {
       throw new IndexOutOfBoundsException();
@@ -51,9 +51,9 @@ public abstract class AbstractBytes implements Bytes {
   }
 
   /** Checks bounds for a read. */
-  protected int checkRead(int offset, int length) {
+  protected int checkRead(final int offset, final int length) {
     checkOffset(offset);
-    int position = offset + length;
+    final int position = offset + length;
     if (position > size()) {
       throw new BufferUnderflowException();
     }
@@ -61,9 +61,9 @@ public abstract class AbstractBytes implements Bytes {
   }
 
   /** Checks bounds for a write. */
-  protected int checkWrite(int offset, int length) {
+  protected int checkWrite(final int offset, final int length) {
     checkOffset(offset);
-    int position = offset + length;
+    final int position = offset + length;
     if (position > size()) {
       throw new BufferOverflowException();
     }
@@ -86,7 +86,7 @@ public abstract class AbstractBytes implements Bytes {
   }
 
   @Override
-  public Bytes order(ByteOrder order) {
+  public Bytes order(final ByteOrder order) {
     if (order == null) {
       throw new NullPointerException("order cannot be null");
     }
@@ -101,48 +101,48 @@ public abstract class AbstractBytes implements Bytes {
   }
 
   @Override
-  public boolean readBoolean(int offset) {
+  public boolean readBoolean(final int offset) {
     return readByte(offset) == 1;
   }
 
   @Override
-  public int readUnsignedByte(int offset) {
+  public int readUnsignedByte(final int offset) {
     return readByte(offset) & 0xFF;
   }
 
   @Override
-  public int readUnsignedShort(int offset) {
+  public int readUnsignedShort(final int offset) {
     return readShort(offset) & 0xFFFF;
   }
 
   @Override
-  public int readMedium(int offset) {
+  public int readMedium(final int offset) {
     return (readByte(offset)) << 16
         | (readByte(offset + 1) & 0xff) << 8
         | (readByte(offset + 2) & 0xff);
   }
 
   @Override
-  public int readUnsignedMedium(int offset) {
+  public int readUnsignedMedium(final int offset) {
     return (readByte(offset) & 0xff) << 16
         | (readByte(offset + 1) & 0xff) << 8
         | (readByte(offset + 2) & 0xff);
   }
 
   @Override
-  public long readUnsignedInt(int offset) {
+  public long readUnsignedInt(final int offset) {
     return readInt(offset) & 0xFFFFFFFFL;
   }
 
   @Override
-  public String readString(int offset) {
+  public String readString(final int offset) {
     return readString(offset, Charset.defaultCharset());
   }
 
   @Override
-  public String readString(int offset, Charset charset) {
+  public String readString(final int offset, final Charset charset) {
     if (readBoolean(offset)) {
-      byte[] bytes = new byte[readUnsignedShort(offset + BYTE)];
+      final byte[] bytes = new byte[readUnsignedShort(offset + BYTE)];
       read(offset + BYTE + SHORT, bytes, 0, bytes.length);
       return new String(bytes, charset);
     }
@@ -150,27 +150,27 @@ public abstract class AbstractBytes implements Bytes {
   }
 
   @Override
-  public String readUTF8(int offset) {
+  public String readUTF8(final int offset) {
     return readString(offset, StandardCharsets.UTF_8);
   }
 
   @Override
-  public Bytes writeBoolean(int offset, boolean b) {
+  public Bytes writeBoolean(final int offset, final boolean b) {
     return writeByte(offset, b ? 1 : 0);
   }
 
   @Override
-  public Bytes writeUnsignedByte(int offset, int b) {
+  public Bytes writeUnsignedByte(final int offset, final int b) {
     return writeByte(offset, (byte) b);
   }
 
   @Override
-  public Bytes writeUnsignedShort(int offset, int s) {
+  public Bytes writeUnsignedShort(final int offset, final int s) {
     return writeShort(offset, (short) s);
   }
 
   @Override
-  public Bytes writeMedium(int offset, int m) {
+  public Bytes writeMedium(final int offset, final int m) {
     writeByte(offset, (byte) (m >>> 16));
     writeByte(offset + 1, (byte) (m >>> 8));
     writeByte(offset + 2, (byte) m);
@@ -178,34 +178,34 @@ public abstract class AbstractBytes implements Bytes {
   }
 
   @Override
-  public Bytes writeUnsignedMedium(int offset, int m) {
+  public Bytes writeUnsignedMedium(final int offset, final int m) {
     return writeMedium(offset, m);
   }
 
   @Override
-  public Bytes writeUnsignedInt(int offset, long i) {
+  public Bytes writeUnsignedInt(final int offset, final long i) {
     return writeInt(offset, (int) i);
   }
 
   @Override
-  public Bytes writeString(int offset, String s) {
+  public Bytes writeString(final int offset, final String s) {
     return writeString(offset, s, Charset.defaultCharset());
   }
 
   @Override
-  public Bytes writeString(int offset, String s, Charset charset) {
+  public Bytes writeString(final int offset, final String s, final Charset charset) {
     if (s == null) {
       return writeBoolean(offset, Boolean.FALSE);
     } else {
       writeBoolean(offset, Boolean.TRUE);
-      byte[] bytes = s.getBytes(charset);
+      final byte[] bytes = s.getBytes(charset);
       return writeUnsignedShort(offset + BYTE, bytes.length)
           .write(offset + BYTE + SHORT, bytes, 0, bytes.length);
     }
   }
 
   @Override
-  public Bytes writeUTF8(int offset, String s) {
+  public Bytes writeUTF8(final int offset, final String s) {
     return writeString(offset, s, StandardCharsets.UTF_8);
   }
 

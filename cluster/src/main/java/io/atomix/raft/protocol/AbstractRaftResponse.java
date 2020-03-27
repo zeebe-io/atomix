@@ -27,7 +27,7 @@ public abstract class AbstractRaftResponse implements RaftResponse {
   protected final Status status;
   protected final RaftError error;
 
-  protected AbstractRaftResponse(Status status, RaftError error) {
+  protected AbstractRaftResponse(final Status status, final RaftError error) {
     this.status = status;
     this.error = error;
   }
@@ -48,7 +48,7 @@ public abstract class AbstractRaftResponse implements RaftResponse {
   }
 
   @Override
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (this == object) {
       return true;
     }
@@ -83,14 +83,14 @@ public abstract class AbstractRaftResponse implements RaftResponse {
 
     @Override
     @SuppressWarnings("unchecked")
-    public T withStatus(Status status) {
+    public T withStatus(final Status status) {
       this.status = checkNotNull(status, "status cannot be null");
       return (T) this;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public T withError(RaftError error) {
+    public T withError(final RaftError error) {
       this.error = checkNotNull(error, "error cannot be null");
       return (T) this;
     }

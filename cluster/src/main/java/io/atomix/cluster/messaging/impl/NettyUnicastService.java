@@ -73,13 +73,13 @@ public class NettyUnicastService implements ManagedUnicastService {
       Maps.newConcurrentMap();
   private final AtomicBoolean started = new AtomicBoolean();
 
-  public NettyUnicastService(Address address, MessagingConfig config) {
+  public NettyUnicastService(final Address address, final MessagingConfig config) {
     this.address = address;
     this.config = config;
   }
 
   @Override
-  public void unicast(Address address, String subject, byte[] payload) {
+  public void unicast(final Address address, final String subject, final byte[] payload) {
     final InetAddress resolvedAddress = address.address();
     if (resolvedAddress == null) {
       LOGGER.debug(
@@ -87,9 +87,9 @@ public class NettyUnicastService implements ManagedUnicastService {
       return;
     }
 
-    Message message = new Message(this.address, subject, payload);
-    byte[] bytes = SERIALIZER.encode(message);
-    ByteBuf buf = channel.alloc().buffer(4 + bytes.length);
+    final Message message = new Message(this.address, subject, payload);
+    final byte[] bytes = SERIALIZER.encode(message);
+    final ByteBuf buf = channel.alloc().buffer(4 + bytes.length);
     buf.writeInt(bytes.length).writeBytes(bytes);
     channel.writeAndFlush(
         new DatagramPacket(buf, new InetSocketAddress(resolvedAddress, address.port())));
@@ -97,13 +97,13 @@ public class NettyUnicastService implements ManagedUnicastService {
 
   @Override
   public synchronized void addListener(
-      String subject, BiConsumer<Address, byte[]> listener, Executor executor) {
+      final String subject, final BiConsumer<Address, byte[]> listener, final Executor executor) {
     listeners.computeIfAbsent(subject, s -> Maps.newConcurrentMap()).put(listener, executor);
   }
 
   @Override
-  public synchronized void removeListener(String subject, BiConsumer<Address, byte[]> listener) {
-    Map<BiConsumer<Address, byte[]>, Executor> listeners = this.listeners.get(subject);
+  public synchronized void removeListener(final String subject, final BiConsumer<Address, byte[]> listener) {
+    final Map<BiConsumer<Address, byte[]>, Executor> listeners = this.listeners.get(subject);
     if (listeners != null) {
       listeners.remove(listener);
       if (listeners.isEmpty()) {
@@ -113,19 +113,19 @@ public class NettyUnicastService implements ManagedUnicastService {
   }
 
   private CompletableFuture<Void> bootstrap() {
-    Bootstrap serverBootstrap =
+    final Bootstrap serverBootstrap =
         new Bootstrap()
             .group(group)
             .channel(NioDatagramChannel.class)
             .handler(
                 new SimpleChannelInboundHandler<DatagramPacket>() {
                   @Override
-                  protected void channelRead0(ChannelHandlerContext context, DatagramPacket packet)
+                  protected void channelRead0(final ChannelHandlerContext context, final DatagramPacket packet)
                       throws Exception {
-                    byte[] payload = new byte[packet.content().readInt()];
+                    final byte[] payload = new byte[packet.content().readInt()];
                     packet.content().readBytes(payload);
-                    Message message = SERIALIZER.decode(payload);
-                    Map<BiConsumer<Address, byte[]>, Executor> listeners =
+                    final Message message = SERIALIZER.decode(payload);
+                    final Map<BiConsumer<Address, byte[]>, Executor> listeners =
                         NettyUnicastService.this.listeners.get(message.subject());
                     if (listeners != null) {
                       listeners.forEach(
@@ -148,9 +148,9 @@ public class NettyUnicastService implements ManagedUnicastService {
    * @param bootstrap the bootstrap to bind
    * @return a future to be completed once the bootstrap has been bound to all interfaces
    */
-  private CompletableFuture<Void> bind(Bootstrap bootstrap) {
-    CompletableFuture<Void> future = new CompletableFuture<>();
-    int port = config.getPort() != null ? config.getPort() : address.port();
+  private CompletableFuture<Void> bind(final Bootstrap bootstrap) {
+    final CompletableFuture<Void> future = new CompletableFuture<>();
+    final int port = config.getPort() != null ? config.getPort() : address.port();
     if (config.getInterfaces().isEmpty()) {
       bind(bootstrap, Lists.newArrayList("0.0.0.0").iterator(), port, future);
     } else {
@@ -169,9 +169,9 @@ public class NettyUnicastService implements ManagedUnicastService {
    *     interfaces
    */
   private void bind(
-      Bootstrap bootstrap, Iterator<String> ifaces, int port, CompletableFuture<Void> future) {
+      final Bootstrap bootstrap, final Iterator<String> ifaces, final int port, final CompletableFuture<Void> future) {
     if (ifaces.hasNext()) {
-      String iface = ifaces.next();
+      final String iface = ifaces.next();
       bootstrap
           .bind(iface, port)
           .addListener(
@@ -209,7 +209,7 @@ public class NettyUnicastService implements ManagedUnicastService {
   @Override
   public CompletableFuture<Void> stop() {
     if (channel != null) {
-      CompletableFuture<Void> future = new CompletableFuture<>();
+      final CompletableFuture<Void> future = new CompletableFuture<>();
       channel
           .close()
           .addListener(
@@ -234,7 +234,7 @@ public class NettyUnicastService implements ManagedUnicastService {
       this(null, null, null);
     }
 
-    Message(Address source, String subject, byte[] payload) {
+    Message(final Address source, final String subject, final byte[] payload) {
       this.source = source;
       this.subject = subject;
       this.payload = payload;

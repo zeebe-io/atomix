@@ -26,7 +26,7 @@ import java.util.Objects;
 public class VectorTimestamp<T extends Identifier> extends LogicalTimestamp {
   private final T identifier;
 
-  public VectorTimestamp(T identifier, long value) {
+  public VectorTimestamp(final T identifier, final long value) {
     super(value);
     this.identifier = identifier;
   }
@@ -41,9 +41,9 @@ public class VectorTimestamp<T extends Identifier> extends LogicalTimestamp {
   }
 
   @Override
-  public int compareTo(Timestamp o) {
+  public int compareTo(final Timestamp o) {
     checkArgument(o instanceof VectorTimestamp, "Must be VectorTimestamp", o);
-    VectorTimestamp that = (VectorTimestamp) o;
+    final VectorTimestamp that = (VectorTimestamp) o;
 
     return ComparisonChain.start()
         .compare(this.identifier.id(), that.identifier.id())
@@ -57,14 +57,14 @@ public class VectorTimestamp<T extends Identifier> extends LogicalTimestamp {
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(final Object obj) {
     if (this == obj) {
       return true;
     }
     if (!(obj instanceof VectorTimestamp)) {
       return false;
     }
-    VectorTimestamp that = (VectorTimestamp) obj;
+    final VectorTimestamp that = (VectorTimestamp) obj;
     return Objects.equals(this.identifier, that.identifier)
         && Objects.equals(this.value(), that.value());
   }

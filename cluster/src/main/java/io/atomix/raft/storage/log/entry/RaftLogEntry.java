@@ -24,7 +24,7 @@ public abstract class RaftLogEntry {
 
   protected final long term;
 
-  public RaftLogEntry(long term) {
+  public RaftLogEntry(final long term) {
     this.term = term;
   }
 

@@ -45,7 +45,7 @@ public class RaftRoleMetrics extends RaftMetrics {
           .labelNames("partitionGroupName", "partition")
           .register();
 
-  public RaftRoleMetrics(String partitionName) {
+  public RaftRoleMetrics(final String partitionName) {
     super(partitionName);
   }
 
@@ -65,11 +65,11 @@ public class RaftRoleMetrics extends RaftMetrics {
     HEARTBEAT_MISS.labels(partitionGroupName, partition).inc();
   }
 
-  public void observeHeartbeatInterval(long milliseconds) {
+  public void observeHeartbeatInterval(final long milliseconds) {
     HEARTBEAT_TIME.labels(partitionGroupName, partition).observe(milliseconds / 1000f);
   }
 
-  public static double getHeartbeatMissCount(String partition) {
+  public static double getHeartbeatMissCount(final String partition) {
     return HEARTBEAT_MISS.labels(partition, partition).get();
   }
 }

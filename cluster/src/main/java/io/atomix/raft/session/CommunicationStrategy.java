@@ -37,7 +37,7 @@ public enum CommunicationStrategy {
    */
   ANY {
     @Override
-    public List<MemberId> selectConnections(MemberId leader, List<MemberId> members) {
+    public List<MemberId> selectConnections(final MemberId leader, final List<MemberId> members) {
       Collections.shuffle(members);
       return members;
     }
@@ -55,7 +55,7 @@ public enum CommunicationStrategy {
    */
   LEADER {
     @Override
-    public List<MemberId> selectConnections(MemberId leader, List<MemberId> members) {
+    public List<MemberId> selectConnections(final MemberId leader, final List<MemberId> members) {
       if (leader != null) {
         return Collections.singletonList(leader);
       }
@@ -74,11 +74,11 @@ public enum CommunicationStrategy {
    */
   FOLLOWERS {
     @Override
-    public List<MemberId> selectConnections(MemberId leader, List<MemberId> members) {
+    public List<MemberId> selectConnections(final MemberId leader, final List<MemberId> members) {
       Collections.shuffle(members);
       if (leader != null && members.size() > 1) {
         final List<MemberId> results = new ArrayList<>(members.size());
-        for (MemberId memberId : members) {
+        for (final MemberId memberId : members) {
           if (!memberId.equals(leader)) {
             results.add(memberId);
           }
