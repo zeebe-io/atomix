@@ -290,7 +290,6 @@
       <plugin>
         <artifactId>maven-checkstyle-plugin</artifactId>
         <configuration>
-          <skip>true</skip>
           <configLocation>check/.checkstyle.xml</configLocation>
           <encoding>UTF-8</encoding>
           <failOnViolation>true</failOnViolation>
