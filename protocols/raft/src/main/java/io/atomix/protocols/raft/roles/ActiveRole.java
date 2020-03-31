@@ -66,6 +66,23 @@ public abstract class ActiveRole extends PassiveRole {
     return CompletableFuture.completedFuture(logResponse(handlePoll(request)));
   }
 
+  @Override
+  public CompletableFuture<VoteResponse> onVote(VoteRequest request) {
+    raft.checkThread();
+    logRequest(request);
+
+    // If the request indicates a term that is greater than the current term then
+    // assign that term and leader to the current context.
+    final boolean transition = updateTermAndLeader(request.term(), null);
+
+    final CompletableFuture<VoteResponse> future =
+        CompletableFuture.completedFuture(logResponse(handleVote(request)));
+    if (transition) {
+      raft.transition(RaftServer.Role.FOLLOWER);
+    }
+    return future;
+  }
+
   /** Handles a poll request. */
   protected PollResponse handlePoll(PollRequest request) {
     // If the request term is not as great as the current context term then don't
@@ -138,23 +155,6 @@ public abstract class ActiveRole extends PassiveRole {
     // than the local log's last index.
     log.info("Accepted {}: candidate's log is up-to-date", request);
     return true;
-  }
-
-  @Override
-  public CompletableFuture<VoteResponse> onVote(VoteRequest request) {
-    raft.checkThread();
-    logRequest(request);
-
-    // If the request indicates a term that is greater than the current term then
-    // assign that term and leader to the current context.
-    final boolean transition = updateTermAndLeader(request.term(), null);
-
-    final CompletableFuture<VoteResponse> future =
-        CompletableFuture.completedFuture(logResponse(handleVote(request)));
-    if (transition) {
-      raft.transition(RaftServer.Role.FOLLOWER);
-    }
-    return future;
   }
 
   /** Handles a vote request. */
@@ -237,17 +237,20 @@ public abstract class ActiveRole extends PassiveRole {
 
   @Override
   public void onLeaderHeartbeat(LeaderHeartbeatRequest request) {
-    raft.checkHeartbeatThread();
-    logRequest(request);
+    raft.getThreadContext()
+        .execute(
+            () -> {
+              logRequest(request);
 
-    // If the request indicates a term that is greater than the current term then
-    // assign that term and leader to the current context and transition to follower.
-    final boolean transition = updateTermAndLeader(request.term(), request.leader());
+              // If the request indicates a term that is greater than the current term then
+              // assign that term and leader to the current context and transition to follower.
+              final boolean transition = updateTermAndLeader(request.term(), request.leader());
 
-    // If a transition is required then transition back to the follower state.
-    // If the node is already a follower then the transition will be ignored.
-    if (transition) {
-      raft.transition(RaftServer.Role.FOLLOWER);
-    }
+              // If a transition is required then transition back to the follower state.
+              // If the node is already a follower then the transition will be ignored.
+              if (transition) {
+                raft.transition(RaftServer.Role.FOLLOWER);
+              }
+            });
   }
 }

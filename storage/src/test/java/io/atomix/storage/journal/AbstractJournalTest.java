@@ -35,6 +35,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -89,6 +90,7 @@ public abstract class AbstractJournalTest {
         .withNamespace(NAMESPACE)
         .withStorageLevel(storageLevel())
         .withMaxSegmentSize(maxSegmentSize)
+        .withMaxEntrySize(64)
         .withJournalIndexFactory(() -> index)
         .build();
   }
@@ -429,6 +431,47 @@ public abstract class AbstractJournalTest {
       assertTrue(committedReader.hasNext());
       assertEquals(entriesPerSegment * 5 + 1, committedReader.getNextIndex());
       assertEquals(entriesPerSegment * 5 + 1, committedReader.next().index());
+    }
+  }
+
+  @Test
+  public void testReadAfterTruncate() {
+    // This test fails because writer truncate does not truncate reader buffer
+    int totalWrites = 15;
+    int commitPosition = 6;
+    try (Journal<TestEntry> journal = createJournal()) {
+      JournalWriter<TestEntry> writer = journal.writer();
+      JournalReader<TestEntry> reader = journal.openReader(1, Mode.COMMITS);
+
+      int j;
+      for (j = 1; j <= totalWrites - 2; j++) {
+        assertEquals(
+            j, writer.append(new TestEntry(15)).index());
+      }
+
+      writer.commit(commitPosition);
+
+      int r = 1;
+      for (r = 1; r <= commitPosition; r++) {
+        assertTrue(reader.hasNext());
+        assertEquals(r, reader.next().index());
+      }
+
+      writer.truncate(commitPosition + 1);
+
+      assertFalse(reader.hasNext());
+      for (j = commitPosition + 2; j <= totalWrites; j++) {
+        assertEquals(
+            j, writer.append(new TestEntry(19)).index());
+      }
+
+      commitPosition = totalWrites;
+      writer.commit(commitPosition);
+
+      for (; r <= commitPosition; r++) {
+        assertTrue("no next entry at index " + r, reader.hasNext());
+        assertEquals(r, reader.next().index());
+      }
     }
   }
 
