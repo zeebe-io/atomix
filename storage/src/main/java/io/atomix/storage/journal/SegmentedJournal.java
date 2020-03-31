@@ -589,6 +589,9 @@ public class SegmentedJournal<E> implements Journal<E> {
       if (reader.getNextIndex() >= index) {
         reader.reset(index);
       }
+      else {
+        reader.reset(reader.getNextIndex());
+      }
     }
   }
 
