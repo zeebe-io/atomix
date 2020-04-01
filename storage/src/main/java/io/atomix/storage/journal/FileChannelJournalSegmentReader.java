@@ -128,7 +128,7 @@ class FileChannelJournalSegmentReader<E> implements JournalReader<E> {
     memory.clear().limit(0);
     currentEntry = null;
     nextEntry = null;
-    readNext();
+//    readNext();
   }
 
   @Override
@@ -169,8 +169,11 @@ class FileChannelJournalSegmentReader<E> implements JournalReader<E> {
 
     try {
       // Read more bytes from the segment if necessary.
-      if (memory.remaining() < maxEntrySize) {
-        long position = channel.position() + memory.position();
+      final int position1 = memory.position();
+      if (memory.remaining() < Integer.BYTES + 1
+          || (memory.remaining() < memory.getInt()
+              || memory.position(position1) == null)) {
+        long position = channel.position() + position1;
         channel.position(position);
         memory.clear();
         channel.read(memory);
